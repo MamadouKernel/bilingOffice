@@ -1,0 +1,35 @@
+@page "/administration/audit"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Securite
+@inject ConsulterJournalAuditQuery ConsulterAudit
+
+<PageTitle>Journal d'audit</PageTitle>
+
+<h1>Journal d'audit (SOC-13, C-25)</h1>
+
+<p class="text-muted">Réservé à l'administrateur technique — distinct de l'historique fonctionnel du ticket.</p>
+
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant administrateur technique" @bind="administrateurId" /></div>
+    <div class="col-auto"><button class="btn btn-primary" @onclick="ChargerAsync">Consulter</button></div>
+</div>
+
+@if (entrees is not null)
+{
+    <table class="table">
+        <thead><tr><th>Horodatage (UTC)</th><th>Auteur</th><th>Action</th><th>Entité</th></tr></thead>
+        <tbody>
+            @foreach (var entree in entrees)
+            {
+                <tr><td>@entree.HorodatageUtc</td><td>@entree.AuteurId</td><td>@entree.Action</td><td>@entree.EntiteType / @entree.EntiteId</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string administrateurId = string.Empty;
+    private IReadOnlyList<EntreeJournalAuditVue>? entrees;
+
+    private async Task ChargerAsync() => entrees = await ConsulterAudit.ExecuterAsync(Guid.Parse(administrateurId));
+}

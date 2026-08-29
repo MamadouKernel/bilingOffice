@@ -1,0 +1,65 @@
+@page "/tickets/{TicketId:guid}/messages"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Messagerie
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Domain.Messagerie
+@inject PublierMessageCommand PublierMessage
+@inject IMessageRepository Messages
+
+<PageTitle>Fil de messages</PageTitle>
+
+<h1>Fil de messages (SOC-05)</h1>
+
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Votre identifiant" @bind="auteurId" /></div>
+    <div class="col-auto"><button class="btn btn-outline-secondary" @onclick="ChargerAsync">Charger le fil</button></div>
+</div>
+
+@if (fil is not null)
+{
+    <ul class="list-group mb-3">
+        @foreach (var message in fil)
+        {
+            <li class="list-group-item @(message.Type == TypeMessage.NoteInterne ? "list-group-item-warning" : "list-group-item-light")">
+                <strong>@(message.Type == TypeMessage.NoteInterne ? "Note interne (jamais visible du client)" : "Message")</strong>
+                — @message.HorodatageUtc : @message.Contenu
+            </li>
+        }
+    </ul>
+}
+
+<div class="row mb-2">
+    <div class="col"><input class="form-control" placeholder="Message" @bind="contenuMessage" /></div>
+    <div class="col-auto"><button class="btn btn-primary" @onclick="PublierMessageClientAsync">Envoyer (client)</button></div>
+    <div class="col-auto"><button class="btn btn-secondary" @onclick="PublierMessageAgentAsync">Envoyer (agent)</button></div>
+    <div class="col-auto"><button class="btn btn-warning" @onclick="PublierNoteInterneAsync">Note interne (MSG-02)</button></div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid TicketId { get; set; }
+
+    private string auteurId = string.Empty;
+    private string contenuMessage = string.Empty;
+    private IReadOnlyList<Message>? fil;
+
+    private async Task ChargerAsync() => fil = await Messages.ListerParTicketAsync(TicketId);
+
+    private async Task PublierMessageClientAsync()
+    {
+        await PublierMessage.PublierMessageClientAsync(Guid.Parse(auteurId), TicketId, contenuMessage);
+        await ChargerAsync();
+    }
+
+    private async Task PublierMessageAgentAsync()
+    {
+        await PublierMessage.PublierMessageAgentAsync(Guid.Parse(auteurId), TicketId, contenuMessage);
+        await ChargerAsync();
+    }
+
+    private async Task PublierNoteInterneAsync()
+    {
+        await PublierMessage.PublierNoteInterneAsync(Guid.Parse(auteurId), TicketId, contenuMessage);
+        await ChargerAsync();
+    }
+}

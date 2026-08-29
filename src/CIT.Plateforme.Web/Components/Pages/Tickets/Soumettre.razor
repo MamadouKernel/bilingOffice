@@ -1,0 +1,71 @@
+@page "/tickets/soumettre"
+@rendermode InteractiveServer
+@inject CreerTicketCommand CreerTicket
+
+<PageTitle>Soumettre une demande</PageTitle>
+
+<h1>Soumettre une demande</h1>
+
+<p class="text-muted">
+    Formulaire générique de soumission (US1, contrat C-08). Le choix du module/type de demande et
+    la saisie détaillée par module (Billing Office, Customer Complaint, Enrôlement) relèvent des
+    features consommatrices de ce socle — hors périmètre ici.
+</p>
+
+<EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-ticket">
+    <div class="mb-3">
+        <label class="form-label" for="client-id">Identifiant client (démonstration)</label>
+        <InputText id="client-id" class="form-control" @bind-Value="modele.ClientId" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="module">Module</label>
+        <InputText id="module" class="form-control" @bind-Value="modele.Module" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="type">Type de demande</label>
+        <InputText id="type" class="form-control" @bind-Value="modele.TypeDemande" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="file">Identifiant de la file cible</label>
+        <InputText id="file" class="form-control" @bind-Value="modele.FileCibleId" />
+    </div>
+    <button type="submit" class="btn btn-primary">Soumettre</button>
+</EditForm>
+
+@if (numeroCree is not null)
+{
+    <div class="alert alert-success mt-3">
+        Ticket créé : <strong>@numeroCree</strong> (SOC-01 — numéro unique communiqué immédiatement).
+    </div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    private ModeleSoumission? modeleFormulaire { get; set; }
+
+    private ModeleSoumission modele = new();
+    private string? numeroCree;
+
+    protected override void OnInitialized() => modele = modeleFormulaire ?? modele;
+
+    private async Task SoumettreAsync()
+    {
+        var ticket = await CreerTicket.ExecuterAsync(new CreerTicketRequete(
+            Guid.Parse(modele.ClientId),
+            modele.Module,
+            modele.TypeDemande,
+            Guid.Parse(modele.FileCibleId),
+            DossierExistantId: null));
+
+        numeroCree = ticket.Numero;
+        modele = new ModeleSoumission();
+    }
+
+    private sealed class ModeleSoumission
+    {
+        public string ClientId { get; set; } = Guid.NewGuid().ToString();
+        public string Module { get; set; } = "BillingOffice";
+        public string TypeDemande { get; set; } = "Import";
+        public string FileCibleId { get; set; } = string.Empty;
+    }
+}

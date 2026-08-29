@@ -1,0 +1,41 @@
+@page "/administration/disponibilite"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Affectation
+@using CIT.Plateforme.Domain.Affectation
+@inject GererDisponibiliteCommand GererDisponibilite
+
+<PageTitle>Disponibilité des agents</PageTitle>
+
+<h1>Disponibilité (DIS-01, C-07)</h1>
+
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Votre identifiant (appelant)" @bind="appelantId" /></div>
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant opérateur" @bind="operateurId" /></div>
+    <div class="col-auto">
+        <select class="form-select" @bind="statutSelectionne">
+            @foreach (var statut in Enum.GetValues<StatutDisponibilite>())
+            {
+                <option value="@statut">@statut</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto"><button class="btn btn-primary" @onclick="DefinirAsync">Mettre à jour</button></div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert alert-success">@message</div>
+}
+
+@code {
+    private string appelantId = string.Empty;
+    private string operateurId = string.Empty;
+    private StatutDisponibilite statutSelectionne = StatutDisponibilite.Disponible;
+    private string? message;
+
+    private async Task DefinirAsync()
+    {
+        await GererDisponibilite.DefinirAsync(Guid.Parse(appelantId), Guid.Parse(operateurId), statutSelectionne);
+        message = $"Disponibilité mise à jour : {statutSelectionne} (DIS-03 : tracée).";
+    }
+}

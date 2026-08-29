@@ -1,0 +1,37 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# Visual Studio / Rider caches
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nupkg
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# User-specific / secrets (never commit real connection strings or secrets)
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.snk
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

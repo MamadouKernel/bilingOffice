@@ -1,0 +1,36 @@
+@page "/tickets/{TicketId:guid}/temps"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Domain.SuiviTemps
+@inject CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext DbContext
+
+<PageTitle>Indicateurs temps et SLA</PageTitle>
+
+<h1>Temps et SLA (TPS-01, SLA-02)</h1>
+
+@if (mesure is not null)
+{
+    <ul>
+        <li>Temps d'attente : @mesure.TempsAttente</li>
+        <li>Temps de traitement : @mesure.TempsTraitement</li>
+        <li>Temps d'attente client (jamais imputé — TPS-04) : @mesure.TempsAttenteClient</li>
+        <li>Temps interne CIT : @mesure.TempsInterneCit</li>
+        <li>Temps total du parcours : @mesure.TempsTotal</li>
+    </ul>
+}
+
+@code {
+    [Parameter]
+    public Guid TicketId { get; set; }
+
+    private MesureTemps? mesure;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ticket = await DbContext.Tickets.FindAsync(TicketId);
+        if (ticket is not null)
+        {
+            mesure = MesureTemps.Calculer(
+                ticket.DateArriveeEnFileUtc, ticket.DatePriseEnChargeUtc, DateTime.UtcNow, ticket.DureeAttenteClienteCumulee);
+        }
+    }
+}

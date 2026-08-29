@@ -1,0 +1,131 @@
+@page "/tickets/{TicketId:guid}"
+@rendermode InteractiveServer
+@inject TransfererTicketCommand Transferer
+@inject ReaffecterTicketCommand Reaffecter
+@inject AttenteClientCommand AttenteClient
+@inject AnnulerTicketCommand Annuler
+@inject CloturerTicketCommand Cloturer
+@inject ReouvrirTicketCommand Reouvrir
+
+<PageTitle>Détail du ticket</PageTitle>
+
+<h1>Détail du ticket</h1>
+
+<p class="text-muted">
+    Actions US2 (transfert, réaffectation) sur le ticket <code>@TicketId</code>. La saisie du
+    module/type et des données métier détaillées relève des features consommatrices — hors
+    périmètre ici.
+</p>
+
+<h2>Transférer (TRF-01)</h2>
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Initiateur" @bind="initiateurId" /></div>
+    <div class="col-auto"><input class="form-control" placeholder="File cible" @bind="fileCibleId" /></div>
+    <div class="col-auto"><input class="form-control" placeholder="Motif (obligatoire)" @bind="motifTransfert" /></div>
+    <div class="col-auto"><button class="btn btn-primary" @onclick="TransfererAsync">Transférer</button></div>
+</div>
+
+<h2>Réaffecter (TRF-04)</h2>
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Nouvel opérateur" @bind="nouvelOperateurId" /></div>
+    <div class="col-auto"><button class="btn btn-secondary" @onclick="ReaffecterAsync">Réaffecter</button></div>
+</div>
+
+<h2>Attente client (TPS-02)</h2>
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Motif du complément demandé" @bind="motifAttente" /></div>
+    <div class="col-auto"><button class="btn btn-warning" @onclick="MettreEnAttenteAsync">Demander un complément</button></div>
+    <div class="col-auto"><button class="btn btn-outline-secondary" @onclick="RependreAsync">Reprendre après réponse</button></div>
+</div>
+
+<h2>Cycle de vie (CYC-01, SOC-09, CYC-06)</h2>
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Motif" @bind="motifCycleDeVie" /></div>
+    <div class="col-auto"><button class="btn btn-outline-danger" @onclick="AnnulerAsync">Annuler (CYC-01)</button></div>
+    <div class="col-auto"><button class="btn btn-success" @onclick="ClorerAsync">Clôturer (SOC-09)</button></div>
+    <div class="col-auto"><button class="btn btn-outline-primary" @onclick="RouvrirAsync">Rouvrir (CYC-06)</button></div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@code {
+    [Parameter]
+    public Guid TicketId { get; set; }
+
+    private string initiateurId = string.Empty;
+    private string fileCibleId = string.Empty;
+    private string motifTransfert = string.Empty;
+    private string nouvelOperateurId = string.Empty;
+    private string motifAttente = string.Empty;
+    private string motifCycleDeVie = string.Empty;
+    private string? message;
+    private bool erreur;
+
+    private async Task MettreEnAttenteAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await AttenteClient.MettreEnAttenteAsync(Guid.Parse(initiateurId), TicketId, motifAttente),
+        "Ticket mis en attente client (TPS-02).");
+
+    private async Task RependreAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await AttenteClient.RependreApresReponseAsync(TicketId),
+        "Traitement repris après réponse client.");
+
+    private async Task AnnulerAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await Annuler.AnnulerLibrementAsync(Guid.Parse(initiateurId), TicketId, motifCycleDeVie, etapeBloquanteAtteinte: false),
+        "Ticket annulé (CYC-01).");
+
+    private async Task ClorerAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await Cloturer.ExecuterAsync(Guid.Parse(initiateurId), TicketId),
+        "Ticket clôturé et archivé automatiquement (SOC-09).");
+
+    private async Task RouvrirAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await Reouvrir.RouvrirAsync(Guid.Parse(initiateurId), TicketId, motifCycleDeVie),
+        "Ticket rouvert (CYC-06).");
+
+    private async Task ExecuterAvecGestionErreurAsync(Func<Task> action, string messageSucces)
+    {
+        try
+        {
+            await action();
+            message = messageSucces;
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task TransfererAsync()
+    {
+        try
+        {
+            await Transferer.ExecuterAsync(Guid.Parse(initiateurId), TicketId, Guid.Parse(fileCibleId), motifTransfert);
+            message = "Ticket transféré (TRF-01/TRF-02/TRF-05).";
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task ReaffecterAsync()
+    {
+        try
+        {
+            await Reaffecter.ExecuterAsync(Guid.Parse(initiateurId), TicketId, Guid.Parse(nouvelOperateurId));
+            message = "Ticket réaffecté (TRF-04).";
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

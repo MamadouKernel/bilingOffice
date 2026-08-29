@@ -1,0 +1,1279 @@
+﻿
+CÔTE D'IVOIRE TERMINAL
+Direction des Systèmes d'Information
+CAHIER DES CHARGES FONCTIONNEL
+Plateforme Digitale de Gestion des Parcours et Demandes Clients
+Billing Office virtuel — Customer Complaint — Enrôlement Transporteurs
+Référence : CIT-CIV-DSI-RFP-XXXX
+Version 1.0 — 12 août 2026
+Tableau de révision
+Version
+Date
+Auteur
+Description
+1.0
+12/08/2026
+Aldric GNAMIAN
+Création du document
+Sommaire
+1. Contexte et justification
+Le Billing Office de Côte d'Ivoire Terminal (CIT) est le point de passage obligé des clients pour la réalisation des formalités liées à leurs opérations d'import et d'export : contrôle documentaire des BL et bookings, facturation, paiement et délivrance des documents de sortie ou d'entrée des conteneurs (Bon de Sortie, BADT, BEE).
+Aujourd'hui, ce parcours est essentiellement physique : le client se déplace successivement aux guichets Contrôle BL, Facturation, Caisse et Contrôle Documentaire, avec une liasse documentaire papier. Ce fonctionnement génère des files d'attente, des déplacements répétés en cas de dossier incomplet, des échanges dispersés (mail, téléphone, présentiel) et une traçabilité limitée du traitement des demandes.
+Le projet consiste à mettre en place un portail client digital unique permettant de digitaliser progressivement les interactions entre les clients et les différents services du terminal. L'ambition dépasse la seule digitalisation du parcours Billing Office : il s'agit de doter CIT d'une plateforme de gestion des demandes et parcours clients, reposant sur des workflows, des tickets, de la gestion documentaire, des échanges multicanaux et une traçabilité complète.
+Le portail est volontairement autonome : il ne comporte aucune interface automatisée avec les systèmes métiers existants (IPAKI, IRIS, SydamWorld, IES, plateformes de paiement). Les agents continuent de réaliser leurs opérations dans ces systèmes, et le portail orchestre le parcours, les documents et les échanges. L'ensemble des fonctionnalités décrites dans ce cahier des charges constitue un périmètre cible global et unique ; sa mise en production peut être progressive (voir section 23), le Billing Office digital étant le socle prioritaire.
+2. Objet du cahier des charges
+Le présent cahier des charges définit les besoins fonctionnels, ergonomiques, sécuritaires et opérationnels de la « Plateforme Digitale de Gestion des Parcours et Demandes Clients » de Côte d'Ivoire Terminal (ci-après « la plateforme »).
+Il est destiné à servir de référence commune pour les trois scénarios de réalisation envisagés :
+un développement interne par la DSI de CIT ;
+un développement externalisé auprès d'un prestataire ;
+l'acquisition et l'adaptation d'une solution existante du marché (progiciel de gestion de tickets / portail client), si sa couverture fonctionnelle et sa paramétrabilité le permettent.
+À ce titre, le document décrit les exigences indépendamment de toute technologie, et fournit en section 23 les critères d'évaluation permettant de comparer les scénarios.
+3. Objectifs
+La plateforme devra permettre de :
+Digitaliser le parcours client du Billing Office (import et export) de bout en bout, du dépôt du dossier à la mise à disposition des documents finaux, sans déplacement physique obligatoire pour les étapes dématérialisables.
+Faire du ticket le fil conducteur unique de tout traitement : documents, échanges, décisions, motifs de rejet, statuts, historique et documents finaux centralisés au même endroit.
+Adapter automatiquement le workflow au profil du client (normal, en compte, deposit, IES), défini à la création de son compte.
+Offrir aux agents des files de traitement par rôle (Pilote Manifeste, Back Office, Pilote Facturation Terre, Comptabilité Client, Pilote Contrôle Documentaire, Support Opérationnel, agents Gate).
+Permettre les échanges directs client/agent à l'intérieur du ticket (commentaires, demandes de complément, notifications), afin de supprimer les échanges dispersés.
+Gérer les réclamations et demandes d'assistance clients via un module dédié à catégories paramétrables.
+Digitaliser l'enrôlement des chauffeurs/transporteurs, en limitant le déplacement physique aux seules étapes qui l'exigent (photo, remise du badge).
+Notifier le client sur plusieurs canaux (e-mail, WhatsApp, SMS, notifications portail) selon les événements du workflow.
+Garantir la continuité digital/présentiel : un parcours commencé en ligne peut se poursuivre au guichet, et inversement, grâce au numéro de ticket.
+Assurer la traçabilité complète des opérations, décisions et échanges, et l'archivage automatique des tickets clôturés.
+4. Principes directeurs
+La plateforme est conçue autour de principes qui priment sur toute exigence fonctionnelle en cas d'arbitrage. Le principe fondateur est le suivant :
+La plateforme repose sur des workflows métier paramétrables définissant le circuit nominal de chaque demande. Ces workflows ne doivent toutefois pas être rigides : selon leurs habilitations, les opérateurs et superviseurs peuvent prendre en charge, affecter, réaffecter, transférer, mettre en attente, annuler, rouvrir ou réorienter les tickets dans les limites des règles configurées. Les files, transitions autorisées, modes d'affectation, priorités, SLA, alertes, escalades, statuts, motifs et règles associées sont administrables autant que possible sans développement. Chaque action et toute dérogation au workflow nominal sont intégralement tracées dans l'historique et le journal d'audit ; la plateforme mesure les temps d'attente et de traitement à chaque étape et fournit aux superviseurs une vision en temps réel des files, de la charge des opérateurs, des SLA, des alertes et de la performance opérationnelle.
+Ce principe se décline comme suit :
+Principe
+Traduction dans la plateforme
+Le ticket est central
+Toute demande soumise sur la plateforme, quel que soit le module, génère un numéro de ticket unique qui porte l'intégralité du traitement (documents, statuts, échanges, décisions, historique, documents finaux). Les tickets d'une même demande sont regroupés dans un dossier.
+Workflow par défaut, non rigide
+Le module, le type de demande et le profil du client déterminent automatiquement le circuit nominal du ticket ; ce circuit peut être adapté par les utilisateurs habilités (prise en charge, affectation, réaffectation, transfert) dans le respect des règles d'habilitation paramétrées.
+Fonctionnement autonome
+La plateforme fonctionne sans interface automatisée avec IPAKI, IRIS, SydamWorld, IES ou les plateformes de paiement. Les agents opèrent ces systèmes manuellement et tracent le résultat dans le ticket.
+Rôles et champs réservés
+Chaque profil agent n'accède qu'aux files, actions et champs correspondant à son rôle (principe de moindre privilège), y compris lorsque plusieurs rôles traitent le même ticket en parallèle.
+Tout est tracé et mesuré
+Chaque action (prise en charge, décision, transfert, dépôt) est horodatée et attribuée ; la plateforme mesure les temps d'attente et de traitement à chaque étape et distingue le temps sous responsabilité CIT du temps d'attente client.
+Communication proactive
+Chaque événement significatif du workflow déclenche une notification au client sur les canaux configurés, avec lien direct vers le ticket.
+Paramétrable sans développement
+Files, transitions autorisées, règles d'affectation, SLA, seuils d'alerte, escalades, catégories, modèles de notifications, statuts, types de documents exigés et étapes de workflow sont administrables depuis l'interface.
+Continuité digital/présentiel
+Le numéro de ticket permet à un agent de guichet de reprendre instantanément un dossier commencé en ligne, et réciproquement, sans ressaisie.
+5. Périmètre
+5.1 Inclus dans le périmètre
+Portail web client avec création de compte, authentification et profil typé (normal, en compte, deposit, IES).
+Module Billing Office : parcours client IMPORT et EXPORT par tickets (1 ticket par BL ou par booking), simulation de proforma, demandes d'avoir et d'exonération avec leurs workflows de validation.
+Module Customer Complaint : réclamations et demandes d'assistance à catégories paramétrables, orientées vers le Support Opérationnel.
+Module Enrôlement Transporteurs : constitution du dossier chauffeur à distance, instruction par les agents Gate.
+Socle transverse de gestion des tickets : files par rôle, statuts, chat client/agent, gestion documentaire, liaison entre tickets, historique et archives.
+Notifications multicanales : e-mail, WhatsApp, SMS, notifications dans le portail.
+Back-office agents avec files de traitement par rôle et actions de workflow.
+Administration fonctionnelle : utilisateurs, rôles, catégories, modèles de notification, paramétrage des workflows.
+Tableaux de bord de suivi (volumes, délais, statuts) et journal d'audit.
+Assistant virtuel basé sur l'IA (réponses de premier niveau, orientation du client, escalade vers un opérateur humain lorsque nécessaire).
+Prise de rendez-vous depuis la plateforme lorsque la présence physique du client est nécessaire (le rendez-vous donne accès au bureau de facturation) ; le système de gestion de file d'attente existant reste distinct, avec redirection possible.
+5.2 Hors périmètre
+La seule restriction du périmètre est l'absence d'interfaçage automatique avec les systèmes métiers existants. Concrètement :
+Aucune interface automatisée avec IPAKI, IRIS, SydamWorld, IES, la GED ou les systèmes de la Douane : les contrôles et saisies dans ces systèmes restent réalisés manuellement par les agents, qui tracent le résultat dans le ticket.
+Pas de paiement en ligne débité par le portail : le client paie via Wave ou en banque agréée selon les circuits actuels et joint sa preuve de paiement au ticket ; la confirmation du paiement est une action manuelle des équipes habilitées.
+Pas d'édition automatique des documents métiers (facture, Bon de Sortie, BADT, BEE) : ces documents sont produits dans les systèmes actuels puis déposés dans le ticket par les agents.
+Les processus Back Office d'intégration des manifestes (import) restent inchangés et ne sont pas repris par la plateforme.
+Toutes les autres fonctionnalités décrites dans ce cahier des charges font partie du périmètre cible. Leur mise en production peut être échelonnée dans le temps (approche agile), le fournisseur restant engagé sur l'ensemble du périmètre (voir section 23).
+6. Parties prenantes et profils
+Les rôles applicatifs appliquent le principe de moindre privilège : chaque profil n'accède qu'aux files, tickets, champs et actions relevant de son rôle.
+Profil
+Responsabilités et droits principaux
+Client (normal, en compte, deposit, IES)
+Crée ses demandes, dépose ses documents, suit ses tickets, échange avec les agents, joint ses preuves de paiement, télécharge ses documents finaux. Ne voit que ses propres tickets.
+Transporteur / Chauffeur
+Renseigne son dossier d'enrôlement, dépose ses pièces, suit son ticket.
+Pilote Manifeste (Front Office)
+Traite la file Contrôle BL import : vérifie les documents, valide, rejette avec motif ou demande un complément ; échange avec le client dans le ticket.
+Back Office (Export)
+Traite la file Codification export : crée et codifie le booking dans IPAKI (hors portail), trace le résultat, valide/rejette/demande complément.
+Pilote Facturation Terre
+Traite la file Facturation : effectue ses contrôles (IPAKI, hors portail), édite la facture et la joint au ticket.
+Comptable Client
+Traite la file Lettrage (clients deposit) : effectue le lettrage dans IRIS (hors portail) et confirme dans le ticket.
+Pilote Contrôle Documentaire
+Traite la file Contrôle Documentaire : vérifie le dossier, opère dans les systèmes (hors portail), dépose les documents finaux (BS, BADT, BEE), clôture le ticket.
+Support Opérationnel
+Traite les tickets Customer Complaint : instruit, demande des compléments, oriente vers les services concernés.
+Agent Gate
+Traite les tickets d'enrôlement transporteurs : vérifie le dossier, demande des compléments, valide, convoque pour photo/badge.
+Superviseur
+Dispose d'une vue temps réel des files, de la charge des opérateurs, des SLA et alertes de son périmètre. Affecte, réaffecte, transfère et débloque les tickets, équilibre la charge, suit l'activité opérationnelle des agents et consulte l'historique (voir section 9).
+Administrateur fonctionnel
+Gère les comptes, rôles, files et transitions, SLA, seuils d'alerte, escalades, catégories, modèles de notifications et paramètres de workflow.
+Administrateur technique
+Gère la configuration technique, la sécurité, les sauvegardes et le journal d'audit.
+7. Architecture fonctionnelle de la plateforme
+La plateforme s'organise en trois modules métiers reposant sur un socle transverse de gestion des tickets :
+Module 1 — Billing Office virtuel : Parcours Client (IMPORT / EXPORT), Simulation de Proforma, Avoir et Exonération.
+Module 2 — Customer Complaint : réclamations et demandes d'assistance, catégories paramétrables, orientation vers le Support Opérationnel.
+Module 3 — Enrôlement Transporteurs : constitution du dossier chauffeur à distance, instruction par les agents Gate, déplacement limité à la photo et à la remise du badge.
+Socle transverse : gestion des tickets et des files par rôle, statuts, chat, gestion documentaire, liaison de tickets, notifications multicanales, archives, administration, audit.
+Lorsque plusieurs modules interviennent dans un même processus métier, les tickets correspondants doivent pouvoir être liés entre eux afin de conserver la continuité du parcours client.
+8. Exigences du socle commun de gestion des tickets
+Les exigences sont numérotées et priorisées : [Must] indispensable, [Should] souhaitée, [Could] optionnelle.
+Réf.
+Priorité
+Exigence
+SOC-01
+Must
+Toute demande soumise sur la plateforme, quel que soit le module, génère un ticket avec un numéro unique, communiqué au client (portail + e-mail).
+SOC-02
+Must
+Le ticket centralise : documents joints, statut, historique horodaté des actions, échanges client/agent, décisions et motifs de rejet, documents produits en fin de traitement.
+SOC-03
+Must
+Chaque ticket suit un workflow d'étapes et de statuts propre à son module et, pour le Billing Office, au type de client.
+SOC-04
+Must
+Files de traitement par rôle : chaque agent voit les tickets en attente de son rôle, avec tri et filtres (date, type de client, statut, priorité).
+SOC-05
+Must
+Fil de commentaires (chat) par ticket entre le client et les agents, horodaté, conservé dans l'historique.
+SOC-06
+Must
+Actions de workflow standard : valider, rejeter avec motif obligatoire, demander un complément (documents ou informations) au client.
+SOC-07
+Must
+Dépôt de documents par le client et par les agents, avec types de pièces paramétrables par étape ; formats acceptés et taille maximale configurables.
+SOC-08
+Must
+Statuts visibles par le client en temps réel sur son profil, sur chaque ticket.
+SOC-09
+Must
+Clôture d'un ticket suivie d'un archivage automatique ; les archives restent consultables (historique complet, traçabilité, accès permanent) par le client et par les agents habilités.
+SOC-10
+Must
+Liaison entre tickets : possibilité d'associer des tickets entre eux (y compris entre modules) pour conserver la continuité d'un même dossier métier.
+SOC-11
+Must
+Dossier : les tickets issus d'une même demande (par exemple une soumission multi-BL ou multi-booking) sont regroupés sous un numéro de dossier unique, permettant au client et aux agents un suivi global des tickets liés.
+SOC-12
+Must
+Prise en charge : le système distingue l'arrivée d'un ticket dans une file de sa prise en charge effective par un opérateur ; il enregistre l'heure d'arrivée en file, l'heure de prise en charge, l'opérateur, le début de traitement et la dernière activité (voir section 9).
+SOC-13
+Must
+Journal d'audit inviolable : toute action (création, prise en charge, changement de statut, dépôt, décision, transfert, réaffectation, téléchargement, connexion) est tracée avec auteur, date/heure et détail.
+SOC-14
+Could
+Export des indicateurs et des listes de tickets aux formats usuels (Excel, PDF).
+8.1 Cycle de vie du ticket : annulation, abandon, réouverture
+Au-delà de la clôture, la plateforme gère l'annulation, l'abandon pour absence de réponse et la réouverture des tickets.
+Réf.
+Priorité
+Exigence
+CYC-01
+Must
+Le client peut annuler lui-même un ticket tant qu'aucun traitement métier engageant ni document officiel n'a été produit. Les étapes à partir desquelles l'annulation libre n'est plus autorisée sont paramétrables par workflow (et non codées en dur).
+CYC-02
+Must
+Lorsque l'annulation directe n'est plus autorisée, le client peut soumettre une demande d'annulation depuis le ticket ; elle est transmise à la file ou au responsable habilité pour décision.
+CYC-03
+Must
+Toute annulation ou demande d'annulation est motivée, horodatée et conservée dans l'historique.
+CYC-04
+Must
+Lorsqu'un ticket est en attente d'une action du client, la plateforme émet des relances automatiques selon des délais paramétrables (nombre et cadence). Au terme des relances sans réponse, elle génère une suggestion de clôture (motif « absence de réponse ») ; la clôture reste une décision manuelle d'un agent habilité — aucune clôture automatique.
+CYC-05
+Must
+La suggestion de clôture pour absence de réponse n'est jamais proposée lorsque le ticket a atteint un état engageant (par exemple après paiement confirmé ou production d'un document officiel).
+CYC-06
+Should
+Un ticket clôturé peut être rouvert par un utilisateur CIT habilité lorsque la situation métier le justifie ; la réouverture est obligatoirement motivée et tracée, et le ticket conserve son numéro, son historique, ses documents et ses échanges.
+CYC-07
+Should
+Le client ne peut pas rouvrir directement un ticket clôturé ; il peut demander une réouverture ou créer une nouvelle demande selon le cas.
+8.2 Échanges client et notes internes
+Le fil d'échange du ticket distingue deux natures de messages, clairement identifiables dans l'interface pour éviter toute publication accidentelle d'une information interne au client.
+Réf.
+Priorité
+Exigence
+MSG-01
+Must
+Message client/agent : visible par le client et les agents habilités.
+MSG-02
+Must
+Note interne CIT : visible uniquement par les collaborateurs CIT habilités ; jamais visible du client.
+MSG-03
+Must
+Le caractère interne ou externe d'un message est visuellement très distinct dans l'interface. Les deux types de messages sont horodatés et historisés.
+MSG-04
+Should
+Un collaborateur peut être mentionné (par exemple @Nom) dans une note interne ; la personne mentionnée reçoit une notification dans la plateforme et, selon paramétrage, un e-mail avec lien vers le ticket.
+MSG-05
+Must
+Une mention n'entraîne pas de réaffectation : le ticket reste sous la responsabilité de son opérateur courant tant qu'une action explicite de réaffectation n'a pas été réalisée.
+9. Moteur de workflow, files et supervision opérationnelle
+Cette section décrit le cœur opérationnel de la plateforme : le moteur de workflow qui orchestre les tickets, la gestion des files et des transferts, la prise en charge, la mesure des temps, les SLA, les alertes et la supervision. Ces mécanismes sont communs aux trois modules.
+Note de périmètre : en l'absence d'interfaçage avec les systèmes métiers (IPAKI, IRIS, IES), les temps mesurés sont ceux des opérations réalisées dans la plateforme (dépôt, prise en charge, décisions, transferts, attente client). Le temps passé par l'agent dans les systèmes externes n'est pas mesuré automatiquement mais est encadré par le temps de traitement de l'étape correspondante.
+9.1 Circuit nominal et dérogation
+Réf.
+Priorité
+Exigence
+WKF-01
+Must
+La plateforme applique automatiquement le workflow de traitement correspondant au module, au type de demande et au profil du client.
+WKF-02
+Must
+Ce circuit par défaut n'est pas rigide : les utilisateurs habilités peuvent déroger au circuit nominal en transférant ou réaffectant un ticket lorsque la situation opérationnelle le nécessite, dans le respect des règles d'habilitation paramétrées.
+WKF-03
+Must
+Toute dérogation au circuit nominal (transfert, réaffectation) est tracée dans l'historique du ticket et le journal d'audit.
+9.2 Prise en charge du ticket
+Un ticket arrivé dans une file n'est pas encore pris en charge. Le cycle est : arrivée en file → en attente de prise en charge → prise en charge par un opérateur → traitement.
+Réf.
+Priorité
+Exigence
+PEC-01
+Must
+Un ticket entrant dans une file est à l'état « en attente de prise en charge » tant qu'aucun opérateur ne l'a accepté.
+PEC-02
+Must
+Un opérateur habilité peut prendre en charge (accepter) un ticket de sa file ; le ticket lui est alors affecté et passe en traitement.
+PEC-03
+Must
+Le système enregistre, pour chaque ticket : heure d'arrivée dans la file, heure de prise en charge, opérateur ayant accepté, début de traitement, dernière activité.
+PEC-04
+Must
+Le délai de prise en charge (arrivée en file → acceptation) est calculé et exploitable dans les indicateurs.
+PEC-05
+Should
+Affectation directe : un superviseur (ou une règle d'affectation paramétrée) peut affecter un ticket non pris en charge à un opérateur précis.
+9.3 Transfert entre files et réaffectation entre opérateurs
+Deux mécanismes distincts sont prévus : le transfert de file (le ticket change de file de traitement) et la réaffectation entre opérateurs (le ticket change d'opérateur au sein d'une même file/rôle).
+Réf.
+Priorité
+Exigence
+TRF-01
+Must
+Un opérateur habilité peut transférer un ticket mal orienté vers une autre file de traitement autorisée (ex. Contrôle BL → Facturation), sans demander au client de clôturer sa demande et d'en recréer une.
+TRF-02
+Must
+Lors d'un transfert, le ticket conserve son numéro, son dossier, son statut et son historique pertinents, ses documents, ses commentaires et l'ensemble des informations déjà collectées.
+TRF-03
+Must
+Un transfert de file trace au minimum : opérateur à l'origine, date et heure, file d'origine, file de destination, motif/commentaire, et le cas échéant le destinataire précis. Le motif est obligatoire.
+TRF-04
+Must
+Un opérateur habilité peut réaffecter un ticket à un autre opérateur habilité (ex. Opérateur Facturation A → Opérateur Facturation B), sous réserve des droits configurés. Ce droit n'est pas réservé au superviseur.
+TRF-05
+Must
+Le client est automatiquement notifié d'une réorientation lorsque celle-ci a un impact sur son parcours.
+TRF-06
+Must
+Les transitions autorisées entre files sont définies par une matrice paramétrable (voir 9.4) ; aucun circuit de transfert n'est codé en dur.
+9.4 Matrice des transitions autorisées (paramétrable)
+L'administration définit, sans développement, quelles files peuvent transférer vers quelles autres files. Les droits peuvent également dépendre du rôle. À titre d'illustration (valeurs à définir avec le métier) :
+File source
+Destination(s) autorisée(s)
+Contrôle BL (Manifeste)
+Facturation ; Contrôle documentaire
+Facturation
+Contrôle BL ; Contrôle documentaire
+Contrôle documentaire
+Facturation
+Codification (Back Office export)
+Facturation ; Contrôle documentaire
+Comptabilité (lettrage)
+Contrôle documentaire ; Facturation
+…
+Entièrement paramétrable (ajout / retrait de files et de transitions)
+9.5 Mesure des temps par étape
+La mesure ne se limite pas à création → clôture : la plateforme mesure chaque passage dans une file et chaque état, en distinguant l'attente et le traitement.
+Réf.
+Priorité
+Exigence
+TPS-01
+Must
+Pour chaque étape/file traversée, la plateforme mesure le temps d'attente (arrivée en file → prise en charge) et le temps de traitement (prise en charge → sortie de l'étape).
+TPS-02
+Must
+La plateforme mesure le temps d'attente client (durée pendant laquelle le ticket est en attente d'un complément, d'un document ou d'une action du client).
+TPS-03
+Must
+La plateforme distingue trois durées : le temps interne (ticket sous responsabilité CIT), le temps d'attente client, et le temps total du parcours (création → clôture).
+TPS-04
+Must
+Le temps d'attente client n'est pas imputé à la performance de l'opérateur ni de la file ; les SLA internes peuvent être suspendus ou adaptés pendant les états d'attente client (voir 9.6).
+TPS-05
+Should
+L'historique du ticket restitue la chronologie détaillée par étape (ex. Contrôle BL : attente puis traitement ; Facturation : attente puis traitement ; Attente client ; Contrôle documentaire : attente puis traitement).
+9.6 Gestion des SLA
+Réf.
+Priorité
+Exigence
+SLA-01
+Must
+Les SLA sont paramétrables selon, au minimum : module, type de demande, étape, file, priorité, et éventuellement catégorie de client.
+SLA-02
+Must
+Plusieurs seuils sont gérés par SLA : un seuil d'information (ex. 50 %), un seuil d'alerte (ex. 80 %), le dépassement (100 %) et l'escalade au-delà.
+SLA-03
+Must
+Les SLA peuvent être suspendus ou adaptés pendant certains états, notamment « En attente client », afin de ne pas dégrader la mesure par un délai imputable au client.
+SLA-04
+Should
+Les horaires de fonctionnement (heures ouvrées du service) peuvent être pris en compte dans le calcul des SLA.
+SLA-05
+Must
+Les valeurs de seuils et les durées cibles sont administrables sans développement (les valeurs exactes seront déterminées avec le métier).
+9.7 Alertes et escalades
+Réf.
+Priorité
+Exigence
+ALE-01
+Must
+La plateforme génère des alertes lorsque : un ticket n'est pas pris en charge depuis X minutes ; un ticket est sans activité depuis X minutes/heures ; un SLA est bientôt dépassé ; un SLA est dépassé ; le backlog d'une file dépasse un seuil ; un volume anormal de tickets est détecté ; un opérateur indisponible a des tickets affectés.
+ALE-02
+Must
+Les règles d'alerte, les seuils, les destinataires et les canaux sont paramétrables sans développement.
+ALE-03
+Must
+Le dépassement d'un SLA peut déclencher une escalade (notification d'un superviseur, remontée de priorité, réaffectation) selon des règles paramétrables.
+9.8 Rôle du superviseur et supervision temps réel
+Le superviseur dispose d'une vue opérationnelle en temps réel de son périmètre. La supervision porte sur l'activité opérationnelle (charge, délais, disponibilité) dans une finalité de pilotage, et non de contrôle individuel des personnes.
+Réf.
+Priorité
+Exigence
+SUP-01
+Must
+Vue temps réel des tickets par état : en attente, non affectés, pris en charge, en cours, en attente d'action client, proches d'un dépassement SLA, en dépassement SLA, sans activité depuis une durée définie.
+SUP-02
+Must
+Vue temps réel par file : nombre de tickets, backlog, ancienneté du ticket le plus ancien, délai moyen, respect des SLA.
+SUP-03
+Must
+Vue de la charge par opérateur et de la disponibilité/connexion des opérateurs du périmètre.
+SUP-04
+Must
+Le superviseur peut : affecter un ticket non pris en charge, réaffecter un ticket, transférer un ticket, équilibrer la charge entre opérateurs, intervenir sur un ticket bloqué, rechercher un ticket et consulter son historique complet.
+SUP-05
+Must
+Suivi de l'activité opérationnelle des agents du périmètre : statut de disponibilité, dernière activité, tickets affectés, tickets en cours, volumes pris en charge et traités, indicateurs de délai (ex. identifier un agent connecté sans prise en charge depuis un certain temps).
+9.9 Tableaux de bord et indicateurs
+Au-delà des volumes, délais et statuts, les tableaux de bord couvrent trois familles d'indicateurs :
+Performance des processus
+Tickets reçus, tickets clôturés, backlog, délai moyen de prise en charge, délai moyen de traitement, délai moyen par étape, durée totale du parcours, taux de respect des SLA, taux de dépassement des SLA, tickets en attente client, taux de rejet, taux de demande de complément, taux de transfert/réorientation.
+Performance des files
+Volume entrant, volume sortant, backlog, ancienneté du ticket le plus ancien, délai moyen, respect des SLA.
+Activité opérateur
+Tickets pris en charge, tickets traités, tickets clôturés, tickets actuellement affectés, délai moyen de prise en charge, délai moyen de traitement, dernière activité.
+9.10 Paramétrabilité de la gestion des files
+Outre les référentiels déjà cités, l'administration permet de gérer sans développement :
+la création et la modification des files ;
+le rattachement des rôles aux files et les opérateurs appartenant à chaque file ;
+les transitions autorisées entre files (matrice) ;
+les règles d'affectation et les priorités ;
+les SLA, seuils d'alerte et escalades ;
+les motifs de transfert ;
+les statuts ;
+les horaires de fonctionnement utilisés pour le calcul des SLA.
+9.11 Disponibilité et absence des opérateurs
+La plateforme intègre une notion de disponibilité opérationnelle des agents (statuts minimum : Disponible, Indisponible, Absent).
+Réf.
+Priorité
+Exigence
+DIS-01
+Must
+La plateforme permet de connaître la disponibilité opérationnelle d'un agent. Un opérateur déclaré indisponible ou absent ne reçoit pas de nouvelle affectation automatique.
+DIS-02
+Must
+Le superviseur peut, selon ses habilitations : modifier la disponibilité d'un opérateur, identifier les tickets encore affectés à un opérateur absent, réaffecter ces tickets en masse, et consulter la charge restante de l'opérateur.
+DIS-03
+Must
+Les changements de disponibilité sont tracés.
+9.12 Modes d'affectation des tickets
+Le mode de distribution des tickets est paramétrable par file, sans développement.
+Réf.
+Priorité
+Exigence
+AFF-01
+Must
+Prise libre : un opérateur habilité prend un ticket dans sa file.
+AFF-02
+Must
+Affectation manuelle : un superviseur affecte un ticket à un opérateur.
+AFF-03
+Should
+Distribution automatique en Round-Robin.
+AFF-04
+Should
+Distribution selon la charge actuelle des agents.
+AFF-05
+Should
+Distribution selon la disponibilité des agents.
+AFF-06
+Should
+Distribution selon la compétence / l'habilitation.
+AFF-07
+Must
+Le changement de stratégie d'affectation d'une file est réalisable sans développement (ex. Contrôle BL en prise libre, Facturation en Round-Robin, Customer Complaint selon compétence, Gate selon charge).
+9.13 Gestion des priorités
+Chaque ticket porte un niveau de priorité issu d'un référentiel paramétrable (par exemple : Standard, Urgent, Critique).
+Réf.
+Priorité
+Exigence
+PRI-01
+Must
+Chaque ticket dispose d'un niveau de priorité issu d'un référentiel paramétrable ; la priorité peut être attribuée automatiquement selon des règles métier ou modifiée par un utilisateur habilité.
+PRI-02
+Must
+La priorité peut influencer l'ordre du ticket dans la file, le SLA applicable, les alertes et les règles d'escalade.
+PRI-03
+Must
+Toute modification manuelle de priorité enregistre l'ancienne et la nouvelle priorité, l'auteur, la date/heure et le motif.
+PRI-04
+Must
+Le client ne peut pas déclarer librement sa demande « urgente » ou « critique », sauf si un processus métier particulier le prévoit.
+9.14 Actions de masse du superviseur
+Le superviseur peut sélectionner plusieurs tickets et leur appliquer une action en masse selon ses habilitations (ex. redistribuer les 25 tickets d'un opérateur absent sans les traiter un par un).
+Réf.
+Priorité
+Exigence
+MAS-01
+Should
+Le superviseur peut, en masse : affecter, réaffecter, transférer de file, modifier la priorité, et le cas échéant réaliser d'autres actions administratives autorisées.
+MAS-02
+Must
+Toute action de masse est tracée ticket par ticket dans l'historique et le journal d'audit.
+10. Gestion des comptes et types de clients
+Réf.
+Priorité
+Exigence
+CPT-01
+Must
+Création de compte client soumise à validation par CIT avant activation ; les informations et justificatifs exigés sont paramétrables.
+CPT-02
+Must
+Le profil du client est défini à la création du compte : client normal, client en compte, client deposit ou client IES. Ce profil détermine automatiquement le workflow applicable à ses tickets Billing Office.
+CPT-03
+Must
+Authentification sécurisée du client (identifiant/mot de passe avec politique de robustesse) ; récupération de mot de passe en autonomie.
+CPT-04
+Must
+Un client n'accède qu'à ses propres tickets, documents et échanges.
+CPT-05
+Must
+La gestion multi-utilisateurs pour une même société cliente est requise et détaillée en section 10.1 (compte entreprise).
+CPT-06
+Should
+Modification du type de client par l'administrateur fonctionnel, tracée, sans effet rétroactif sur les tickets en cours.
+CPT-07
+Could
+Authentification renforcée (second facteur) pour les comptes clients et agents.
+10.1 Compte entreprise et utilisateurs rattachés
+L'entité principale est la société cliente, à laquelle sont rattachés plusieurs utilisateurs. La gestion multi-utilisateurs est requise.
+Réf.
+Priorité
+Exigence
+ENT-01
+Must
+Une société cliente peut rattacher plusieurs utilisateurs à son compte.
+ENT-02
+Must
+Un administrateur de la société gère ses collaborateurs : activation / désactivation, droits de consultation et de soumission paramétrables.
+ENT-03
+Must
+La visibilité des dossiers est fonction des droits accordés : selon son habilitation, un utilisateur voit uniquement ses propres demandes ou l'ensemble des demandes de sa société.
+ENT-04
+Should
+Journalisation des actions des administrateurs de société (ajout/retrait de collaborateurs, modification de droits).
+11. Module Billing Office virtuel
+Le module Billing Office regroupe trois sous-ensembles accessibles au client : le Parcours Client (IMPORT / EXPORT), la Simulation de Proforma et les demandes d'Avoir et d'Exonération. Le client choisit le parcours qu'il souhaite réaliser ; le workflow s'adapte automatiquement à son type de compte.
+11.1 Parcours Client IMPORT — tronc commun
+Réf.
+Priorité
+Exigence
+IMP-01
+Must
+Formulaire dynamique de soumission permettant de saisir les informations nécessaires, d'ajouter jusqu'à 5 BL par demande et de déposer les documents associés à chaque BL (déclaration douane, copie du BL, autres pièces exigées).
+IMP-02
+Must
+À la validation du formulaire, génération automatique d'un ticket par BL, chaque ticket étant totalement indépendant (documents, historique, échanges, statut propres) avec correspondance claire ticket ↔ BL.
+IMP-03
+Must
+Le client reçoit ses numéros de ticket sur son profil et par e-mail.
+IMP-04
+Must
+Les tickets arrivent dans la file du Pilote Manifeste, qui vérifie les documents et prononce pour chaque ticket : Validé, Rejeté (motif obligatoire) ou En attente de complément.
+IMP-05
+Must
+En cas de demande de complément, le client est notifié, dépose les éléments demandés dans le ticket et le dossier revient dans la file du Pilote Manifeste.
+IMP-06
+Must
+À l'issue du contrôle BL, le ticket validé s'oriente automatiquement selon le type de client (voir 11.2).
+Contrôle d'unicité des BL actifs
+Réf.
+Priorité
+Exigence
+UNI-01
+Must
+À la création d'un ticket Billing Office IMPORT, la plateforme vérifie s'il existe déjà un ticket actif pour le même numéro de BL. Si oui, la création d'un nouveau ticket pour ce BL est bloquée et le client est informé qu'une demande est déjà en cours ; un accès au ticket existant lui est proposé s'il dispose des droits. Le contrôle porte sur les tickets actifs uniquement, pas sur l'historique.
+UNI-02
+Must
+Un BL associé uniquement à un ticket clôturé ou annulé peut faire l'objet d'une nouvelle demande ultérieure.
+UNI-03
+Must
+Le contrôle porte sur chaque BL individuellement (une soumission multi-BL reste possible : elle génère un ticket par BL, tous regroupés sous un même numéro de dossier). Il n'empêche pas l'utilisation du même numéro de BL dans d'autres modules (par exemple Customer Complaint).
+UNI-04
+Should
+Pour l'EXPORT, une règle équivalente sur le numéro de booking pourra être mise en œuvre après validation métier.
+11.2 Parcours IMPORT — variantes par type de client
+Client normal
+Réf.
+Priorité
+Exigence
+IMP-10
+Must
+Après validation, le client demande la facture depuis son ticket (la simulation de proforma lui ayant permis d'anticiper les frais) ; le ticket passe dans la file Facturation.
+IMP-11
+Must
+Le Pilote Facturation Terre effectue ses contrôles (hors portail), édite la facture et la joint au ticket ; le client est notifié.
+IMP-12
+Must
+Le client procède au paiement (Wave ou banque agréée, hors portail) puis joint sa preuve de paiement au ticket.
+IMP-13
+Must
+La preuve de paiement fait l'objet d'une validation interne par le rôle habilité (Caisse/Finance) avant le passage du ticket au Contrôle Documentaire (statuts : En attente paiement → En attente validation paiement → Payé confirmé).
+IMP-14
+Must
+Le Pilote Contrôle Documentaire vérifie le dossier, réalise les opérations nécessaires dans les systèmes (hors portail), dépose dans le ticket les documents de sortie (Bon de Sortie, BADT), renvoie le ticket au client et le clôture.
+IMP-15
+Should
+Alternative présentielle : à l'issue du contrôle BL, le client peut choisir de prendre rendez-vous et de finaliser physiquement au Billing Office ; le ticket porte alors la trace de cette bascule (continuité digital/présentiel).
+Client en compte
+Réf.
+Priorité
+Exigence
+IMP-20
+Must
+Parcours identique au client normal jusqu'à l'édition de la facture.
+IMP-21
+Must
+Après édition de la facture, le ticket n'est pas renvoyé au client pour paiement : il est transmis directement au Contrôle Documentaire pour finalisation (le règlement s'effectue en fin de mois selon les modalités contractuelles, hors portail).
+IMP-22
+Must
+Le client récupère son ticket clôturé avec l'ensemble des documents (facture, Bon de Sortie, BADT).
+Client deposit
+Réf.
+Priorité
+Exigence
+IMP-30
+Must
+Parcours identique au client normal jusqu'à l'édition de la facture.
+IMP-31
+Must
+Après édition de la facture, le ticket est transmis à la file de la Comptabilité Client pour lettrage (opéré dans IRIS, hors portail) ; le comptable confirme le lettrage dans le ticket.
+IMP-32
+Must
+Après lettrage, le ticket passe au Contrôle Documentaire pour finalisation, puis est retourné au client avec ses documents.
+Client IES
+Réf.
+Priorité
+Exigence
+IMP-40
+Must
+Dès sa création, le ticket d'un client IES est traité en parallèle par le Pilote Manifeste et le Pilote Contrôle Documentaire, chacun intervenant exclusivement sur les champs et actions correspondant à son rôle.
+IMP-41
+Must
+Le ticket n'est retourné au client que lorsque les deux traitements parallèles sont terminés (jointure), avec les documents devant être joints à son dossier.
+IMP-42
+Must
+Le client poursuit et finalise son parcours sur la plateforme IES (facturation, paiement, documents via IES) ; le ticket portail est clôturé à la remise des documents.
+11.3 Parcours Client EXPORT
+Le parcours EXPORT applique le même modèle de tickets avec ses spécificités : l'objet traité est le booking, l'acteur de contrôle initial est le Back Office et le document final est le BEE (Bon d'Entrée Export), qui autorise l'entrée du conteneur au terminal.
+Réf.
+Priorité
+Exigence
+EXP-01
+Must
+Soumission par le client d'un ou plusieurs bookings avec dépôt des documents associés (confirmation de booking, déclaration export, autres pièces) ; génération d'un ticket par booking.
+EXP-02
+Must
+Les tickets arrivent dans la file du Back Office, qui crée et codifie le booking dans IPAKI (hors portail), vérifie la cohérence et prononce : Codifié, Rejeté (motif) ou En attente de complément.
+EXP-03
+Must
+Après codification, l'orientation du ticket suit les mêmes variantes par type de client que l'import (normal, en compte, deposit, IES), avec les adaptations suivantes : le Pilote Facturation crée le Draft IN (simulation d'entrée plein export, hors portail) avant l'édition de la facture ; le document final déposé par le Contrôle Documentaire est le BEE.
+EXP-04
+Must
+Pour le client IES export, la facture et le BEE sont générés côté plateforme IES après le traitement parallèle et la remise des documents dans le ticket.
+11.4 Statuts des tickets Billing Office
+Le référentiel de statuts, visible par le client, est le suivant (libellés paramétrables) :
+Créé → En cours de traitement → En attente client → Validé (import) / Codifié (export) → Facturé → En attente paiement → En attente validation paiement → Payé confirmé → Clôturé.
+Selon la branche, certains statuts sont sans objet (exemples : pas de statuts de paiement pour les clients en compte et IES ; statut spécifique de lettrage possible pour les clients deposit).
+11.5 Simulation de Proforma
+La plateforme intègre un moteur de simulation de proforma reprenant la logique de calcul de l'outil Excel actuellement utilisé par CIT, mais entièrement paramétrable (grilles tarifaires, taux de majoration, franchises, règles de répartition administrables sans développement). Le moteur estime, par conteneur puis en cumul, les frais prévisionnels d'un dossier import ou export.
+Données d'entrée d'une simulation
+La simulation porte sur un dossier (navire, voyage, dates, BL/booking, client) et une liste de conteneurs. Pour chaque conteneur, les caractéristiques suivantes sont saisies :
+Numéro de conteneur ;
+Sens de l'opération : Import Local, Import Transit, Export Local, Export Transit ;
+Taille : 20" ou 40" ;
+Type : Dry ou Reefer (conteneur frigorifique) ;
+Poids en tonnes ;
+Statut hors gabarit (OOG) : oui / non ;
+Statut dangereux : oui / non ;
+Catégorie de marchandise (référentiel paramétrable, ex. produits de première nécessité, produits agricoles, marchandises diverses, conteneurs en transit).
+Au niveau du dossier, la date d'arrivée du navire et la date prévisionnelle d'enlèvement permettent de déterminer la durée de séjour retenue pour le calcul du stationnement et du branchement frigorifique.
+Postes de facturation calculés
+Le moteur reconstitue, pour chaque conteneur, les postes suivants (repris de l'outil actuel) et les additionne :
+Poste
+Règle de calcul (paramétrable)
+Acconage
+Tarif de base lu dans la grille tarifaire selon la clé Sens + Taille + Catégorie de marchandise.
+Relevage
+Tarif fixe lu dans la grille selon la même clé.
+Branchement frigorifique
+Pour les conteneurs Reefer uniquement : tarif journalier × (durée de séjour − franchise). La franchise (2 jours par défaut) est paramétrable.
+Majoration lourd
+Pourcentage de l'acconage (30 % par défaut), appliqué dès que le poids du conteneur dépasse un seuil fixé par taille (par défaut : au-delà de 15 t en 20" et 26 t en 40"), quelle que soit la catégorie de marchandise. Taux et seuils paramétrables.
+Majoration dangereux
+Pourcentage de l'acconage (50 % par défaut) appliqué si le conteneur est déclaré dangereux. Taux paramétrable.
+Majoration hors gabarit (OOG)
+Pourcentage de l'acconage (50 % par défaut) appliqué si le conteneur est déclaré hors gabarit. Taux paramétrable.
+Stationnement
+Calculé par tranches de durée de séjour hors franchise : tranche 1-5 jours, tranche 6-15 jours, tranche 16 jours et au-delà, chacune à un tarif journalier propre. Franchise de stationnement paramétrable (par défaut 11 jours en import local, 21 jours en import transit ; non applicable à l'export dans l'outil actuel).
+Le montant de stationnement est ensuite réparti entre les bénéficiaires selon des quotes-parts paramétrables (par défaut : CIT 30 %, OIC 20 %, PAA 50 %).
+Exigences fonctionnelles de la Simulation
+Réf.
+Priorité
+Exigence
+SIM-01
+Must
+Le client peut lancer une simulation de proforma avant, si nécessaire, de démarrer son parcours de facturation, en saisissant les caractéristiques de son dossier et de ses conteneurs.
+SIM-02
+Must
+Le moteur calcule, par conteneur, les postes suivants : acconage, relevage, branchement frigorifique (Reefer), majoration lourd, majoration dangereux, majoration hors gabarit, stationnement par tranches, et la répartition du stationnement entre bénéficiaires.
+SIM-03
+Must
+Le tarif applicable est déterminé par la clé Sens + Taille + Catégorie de marchandise, à partir d'une grille tarifaire administrable.
+SIM-04
+Must
+La durée de séjour est déduite des dates d'arrivée et d'enlèvement prévisionnel ; elle alimente le calcul du branchement frigorifique et du stationnement.
+SIM-05
+Must
+Le résultat présente le détail des postes par conteneur ainsi qu'un total général du dossier, et affiche la mention légale indiquant que la proforma est fournie à titre indicatif et n'engage pas CIT.
+SIM-06
+Must
+Tous les paramètres de calcul sont administrables sans développement : grille tarifaire (acconage, relevage, branchement, tarifs de stationnement par tranche), taux de majoration (lourd, dangereux, hors gabarit), seuils de poids, franchises (branchement et stationnement), bornes des tranches de stationnement, quotes-parts de répartition, et référentiels (sens, tailles, types, catégories de marchandise). Les valeurs actuellement en vigueur, à charger comme paramétrage initial, sont fournies en Annexe A.
+SIM-07
+Must
+Les grilles tarifaires sont versionnées avec une date d'effet ; une simulation référence la version de tarif appliquée, et l'historique des grilles est conservé.
+SIM-08
+Should
+Le client peut enregistrer une simulation, la retrouver sur son profil et la rattacher ultérieurement à un ticket de parcours client.
+SIM-09
+Should
+Le client peut exporter/imprimer le résultat de simulation (PDF).
+SIM-10
+Should
+L'administrateur peut charger une nouvelle grille tarifaire par import (ex. tableur) en plus de la saisie manuelle.
+SIM-11
+Could
+Contrôles de cohérence à la saisie (ex. taille et type reconnus, catégorie compatible avec le sens) avec messages d'aide.
+11.6 Avoir et Exonération
+Réf.
+Priorité
+Exigence
+AVE-01
+Must
+Le client peut soumettre une demande d'avoir ou une demande d'exonération, avec les justificatifs exigés ; chaque demande génère un ticket.
+AVE-02
+Must
+Chaque type de demande suit son propre workflow de validation, avec étapes et intervenants paramétrables.
+AVE-03
+Must
+La décision (accord, rejet motivé) et les documents associés sont déposés dans le ticket et notifiés au client.
+AVE-04
+Should
+Une demande d'avoir/exonération peut être liée au ticket de parcours client concerné.
+12. Module Customer Complaint
+Réf.
+Priorité
+Exigence
+REC-01
+Must
+Le client crée une demande en sélectionnant une catégorie de réclamation ; chaque demande génère un ticket tracé de bout en bout.
+REC-02
+Must
+Les catégories sont paramétrables et dynamiques (ajout/modification sans développement) : facturation, assistance plateforme, problème opérationnel, sujet documentaire, juridique, autre.
+REC-03
+Must
+Les tickets sont orientés vers le Support Opérationnel, qui peut instruire, demander des informations complémentaires, joindre des documents, échanger avec le client et orienter le ticket vers les personnes ou services concernés.
+REC-04
+Must
+La clôture d'une réclamation comporte une réponse formalisée au client, conservée dans le ticket.
+REC-05
+Should
+Règles d'orientation automatique par catégorie (file ou service destinataire paramétrable).
+REC-06
+Could
+Enquête de satisfaction à la clôture du ticket.
+13. Module Enrôlement Transporteurs
+Réf.
+Priorité
+Exigence
+ENR-01
+Must
+Le chauffeur ou le transporteur renseigne à distance les informations nécessaires à son enrôlement et dépose les pièces demandées ; la liste des informations et pièces est paramétrable.
+ENR-02
+Must
+La soumission génère un ticket transmis aux agents concernés au niveau de la Gate, qui peuvent vérifier le dossier, demander des compléments ou le valider.
+ENR-03
+Must
+Le déplacement physique du chauffeur n'est requis que pour les étapes qui l'exigent (prise de photo, récupération/impression du badge) ; le ticket trace la convocation et la réalisation de ces étapes.
+ENR-04
+Should
+Notification au chauffeur (SMS/WhatsApp prioritaires) à chaque étape clé : dossier validé, convocation, badge disponible.
+ENR-05
+Could
+Gestion du renouvellement des badges avec rappel automatique avant expiration.
+14. Communication multicanale et notifications
+Réf.
+Priorité
+Exigence
+COM-01
+Must
+Selon les événements du workflow, la plateforme notifie le client via : e-mail, notifications dans le portail, et au moins un canal de messagerie mobile (WhatsApp et/ou SMS).
+COM-02
+Must
+Chaque notification comporte un lien invitant le client à se connecter directement à son ticket.
+COM-03
+Must
+Les événements déclencheurs et les modèles de messages sont paramétrables par l'administrateur fonctionnel (par module, par étape, par canal).
+COM-04
+Must
+Le chat/commentaires dans le ticket constitue le canal d'échange de référence entre le client et l'agent ; les messages y sont horodatés et conservés.
+COM-05
+Should
+Préférences de canaux par client (activation/désactivation par canal, dans le respect des notifications obligatoires).
+COM-06
+Could
+Relances automatiques paramétrables lorsque le ticket est en attente d'une action client au-delà d'un délai défini.
+14.1 Centre de notifications
+Le portail intègre un centre de notifications regroupant les événements adressés à l'utilisateur (par exemple : document complémentaire demandé, facture disponible, ticket transféré, documents de sortie disponibles, action requise, rendez-vous à confirmer).
+Réf.
+Priorité
+Exigence
+NOT-01
+Must
+Chaque notification dispose d'un état Lu / Non lu et permet d'accéder directement au ticket concerné.
+NOT-02
+Must
+Les règles de diffusion sont paramétrables par événement et par canal (par exemple : facture disponible → portail + e-mail ; complément demandé → portail + e-mail + WhatsApp ; rendez-vous → portail + SMS).
+NOT-03
+Should
+Un indicateur du nombre de notifications non lues est visible en permanence dans le portail.
+15. Continuité digital / présentiel
+Réf.
+Priorité
+Exigence
+CON-01
+Must
+Un client peut commencer son parcours en ligne et le poursuivre physiquement, ou inversement, sans recommencer son dossier : le numéro de ticket permet à l'agent de retrouver immédiatement l'historique et l'étape en cours.
+CON-02
+Must
+Les agents de guichet disposent d'une recherche rapide de ticket (numéro, client, BL/booking) pour reprendre un dossier au guichet.
+CON-03
+Must
+La plateforme permet au client de prendre un rendez-vous lorsque la présence physique est nécessaire ; le rendez-vous est rattaché à son ticket/dossier. À son arrivée, le client prend son ticket de file d'attente physique ; son rendez-vous lui donne accès au bureau de facturation (Billing Office).
+CON-04
+Should
+La plateforme et le système de gestion de file d'attente existant restent deux systèmes distincts. Une redirection depuis la plateforme vers ce système est possible ; une intégration automatique (API) constitue une évolution future et n'est pas requise.
+16. Assistant virtuel IA
+La plateforme intègre un assistant virtuel basé sur l'IA, destiné à reproduire au plus près l'assistance qu'un client obtiendrait face à un agent, mais à distance.
+Réf.
+Priorité
+Exigence
+IA-01
+Must
+L'assistant répond aux questions simples des clients (fonctionnement du portail, pièces à fournir, état d'avancement, prochaines étapes) en langage naturel, en français.
+IA-02
+Must
+L'assistant oriente le client dans ses démarches (choix du parcours, du module, de la catégorie de réclamation) et l'aide à compléter ses dossiers.
+IA-03
+Must
+L'assistant n'escalade vers un opérateur humain que lorsque cela est réellement nécessaire ; le passage au traitement humain se fait sans perte de contexte (le fil est conservé dans le ticket).
+IA-04
+Should
+L'assistant s'appuie sur une base de connaissances administrable (FAQ, procédures) sans développement, et cite la source de ses réponses lorsque pertinent.
+IA-05
+Should
+L'assistant est accessible depuis le portail et, si possible, depuis les canaux de messagerie configurés.
+Réf.
+Priorité
+Exigence
+IA-06
+Must
+L'assistant identifie les situations nécessitant une intervention humaine et permet le transfert vers un opérateur habilité sans perte de contexte.
+IA-07
+Must
+Le client peut demander une intervention humaine lorsque les règles définies le permettent ; l'assistant réduit les sollicitations inutiles sans constituer une barrière entre CIT et le client.
+17. Parcours et écrans attendus
+17.1 Espace client
+Réf.
+Priorité
+Exigence
+ACR-01
+Must
+Le tableau de bord client met clairement en évidence les actions attendues de sa part (« Mes actions requises »), distinctes de la simple liste des tickets ouverts (par exemple : fournir un document, paiement attendu, rendez-vous à confirmer), chacune renvoyant au ticket concerné.
+Tableau de bord : mes tickets en cours, statuts, actions attendues de ma part, notifications.
+Formulaire de soumission Billing Office : choix IMPORT/EXPORT, saisie multi-BL/booking (jusqu'à 5), dépôt des documents par BL/booking, récapitulatif avant validation.
+Détail d'un ticket : statut et frise d'avancement, documents (déposés et produits), fil d'échanges, historique, actions disponibles selon l'étape (déposer complément, demander la facture, joindre preuve de paiement, télécharger documents).
+Simulation de proforma ; demandes d'avoir/exonération ; création d'une réclamation ; suivi global d'un dossier regroupant plusieurs tickets.
+17.2 Espace agent (back-office)
+File de traitement de mon rôle avec filtres/tri, indicateurs de délais et priorités.
+Détail d'un ticket : documents, échanges, historique, champs et actions propres à mon rôle (y compris champs réservés en traitement parallèle IES), actions valider/rejeter avec motif/demander complément, dépôt de documents (facture, BS, BADT, BEE).
+Recherche transverse de tickets (numéro, client, BL/booking, statut, période) selon habilitations.
+Vue superviseur : indicateurs de file, réaffectation.
+17.3 Administration
+Gestion des comptes clients (validation, typage) et des comptes agents (rôles).
+Paramétrage des catégories de réclamation, des pièces exigées par étape, des modèles de notification, des statuts et libellés.
+Consultation du journal d'audit et des archives.
+18. Exigences de sécurité
+Réf.
+Priorité
+Exigence
+SEC-01
+Must
+Authentification obligatoire pour tout accès ; politique de mots de passe robuste ; verrouillage après échecs répétés.
+SEC-02
+Must
+Contrôle d'accès par rôles (RBAC) appliquant le moindre privilège, y compris au niveau des champs pour les traitements parallèles.
+SEC-03
+Must
+Cloisonnement strict des données : un client n'accède qu'à ses tickets ; un agent n'accède qu'aux files et actions de son rôle.
+SEC-04
+Must
+Chiffrement des échanges (HTTPS/TLS) et protection des documents stockés.
+SEC-05
+Must
+Journal d'audit complet et non modifiable des actions utilisateurs et administrateurs.
+SEC-06
+Must
+Protection des données personnelles (clients, chauffeurs) conformément à la réglementation ivoirienne en vigueur (ARTCI) : minimisation, durées de conservation, droits des personnes.
+SEC-07
+Must
+Contrôle des fichiers déposés : types autorisés, taille maximale, analyse antivirale.
+SEC-08
+Should
+Second facteur d'authentification pour les profils agents et administrateurs.
+SEC-09
+Should
+Cloisonnement des environnements (production, recette) et gestion des habilitations par environnement.
+Réf.
+Priorité
+Exigence
+SEC-10
+Must
+Les sessions utilisateurs expirent après une période d'inactivité paramétrable.
+SEC-11
+Must
+Les comptes agents peuvent être désactivés immédiatement, sans suppression de leur historique.
+SEC-12
+Must
+Aucun lien transmis par e-mail, SMS ou WhatsApp ne donne accès direct à un document protégé sans contrôle préalable de l'identité et des habilitations : le lien conduit au ticket après authentification.
+19. Exigences non fonctionnelles
+Réf.
+Priorité
+Exigence
+NFR-01
+Must
+Interface en français ; ergonomie simple adaptée à des utilisateurs non techniciens.
+NFR-02
+Must
+Portail client responsive, utilisable sur mobile (une part importante des clients et chauffeurs utilisera un smartphone).
+NFR-03
+Must
+Disponibilité cible en heures ouvrées du Billing Office ; objectif ≥ 99 % ; maintenance planifiée hors heures de pointe.
+NFR-04
+Must
+Temps de réponse &lt; 3 secondes pour les écrans courants dans des conditions normales de charge.
+NFR-05
+Must
+Volumétrie dimensionnante à confirmer en phase de cadrage : nombre de tickets/jour, taille moyenne des pièces jointes, nombre d'utilisateurs simultanés (voir section 23).
+NFR-06
+Must
+Sauvegardes régulières (données et documents) et procédure de restauration testée.
+NFR-07
+Should
+Interface disponible en anglais (clients internationaux).
+NFR-08
+Should
+Architecture ouverte exposant des API, afin de faciliter d'éventuelles intégrations avec les systèmes métiers (IPAKI, IRIS, paiement, file d'attente) si CIT décide de les mettre en place ultérieurement.
+NFR-09
+Should
+Hébergement conforme aux standards du groupe ; le choix (infrastructure CIT/AGL ou cloud) sera arrêté selon le scénario de réalisation retenu.
+Réf.
+Priorité
+Exigence
+NFR-10
+Must
+Disponibilité du portail client : la plateforme est accessible 24h/24 et 7j/7, hors périodes de maintenance planifiées.
+NFR-11
+Must
+Horaires de traitement : les services CIT conservent leurs horaires de fonctionnement propres, utilisés notamment dans le calcul des SLA. Un client peut déposer un dossier hors heures ouvrées ; le SLA de traitement démarre selon les règles de la file concernée.
+20. Modèle de données minimal
+Sans préjuger de la conception détaillée, la solution devra au minimum modéliser les objets suivants et leurs relations :
+Compte client (type : normal / en compte / deposit / IES ; utilisateurs rattachés) ; compte transporteur/chauffeur.
+Dossier (numéro regroupant les tickets d'une même demande multi-BL/booking).
+Ticket (module, workflow, statut, priorité, file/rôle courant, agent assigné, dossier de rattachement, liens vers autres tickets ; horodatages : arrivée en file, prise en charge, début de traitement, dernière activité, clôture).
+File de traitement (rôle(s) rattaché(s), opérateurs membres, SLA, seuils d'alerte, priorités, transitions autorisées).
+Transfert / réaffectation (ticket, type, opérateur à l'origine, file/opérateur d'origine et de destination, motif, date/heure).
+Mesure de temps (ticket, étape/file, temps d'attente, temps de traitement, temps interne / temps client).
+Document (type paramétrable, version, auteur du dépôt, horodatage, rattachement au ticket).
+Échange/commentaire (auteur, horodatage, contenu, pièces).
+Événement d'historique (action, auteur, date/heure, détail) et entrée d'audit.
+Notification (canal, modèle, destinataire, statut d'envoi).
+Référentiels paramétrables : files et transitions autorisées, règles d'affectation, priorités, SLA et seuils d'alerte, escalades, motifs de transfert, horaires de fonctionnement, catégories de réclamation, pièces exigées par étape, statuts/libellés, modèles de messages, rôles et habilitations, grilles de simulation.
+21. Gestion des erreurs et continuité
+Réf.
+Priorité
+Exigence
+ERR-01
+Must
+Aucune perte de données saisies en cas d'incident lors d'une soumission (brouillon ou reprise de saisie).
+ERR-02
+Must
+Échec d'envoi d'une notification : nouvelle tentative automatique et traçage ; l'échec d'un canal n'empêche pas les autres.
+ERR-03
+Must
+Les documents déposés sont vérifiés à l'upload (intégrité, type, taille) avec message d'erreur explicite.
+ERR-04
+Should
+Mode dégradé documenté : en cas d'indisponibilité du portail, le parcours physique reste possible, et la reprise s'effectue par le numéro de ticket.
+22. Recette et critères d'acceptation
+La recette fonctionnelle couvrira au minimum les scénarios de bout en bout suivants, joués en environnement de recette avec des jeux de données représentatifs :
+IMPORT client normal : soumission 3 BL → 3 tickets ; 1 validé directement, 1 rejet motivé, 1 demande de complément puis validation ; facturation ; paiement + preuve ; validation paiement ; dépôt BS + BADT ; clôture et archivage.
+IMPORT client en compte : facture éditée → passage direct au Contrôle Documentaire → remise des documents sans étape de paiement.
+IMPORT client deposit : facture → lettrage Comptabilité → Contrôle Documentaire → clôture.
+IMPORT client IES : traitement parallèle Manifeste/Contrôle Documentaire avec champs réservés par rôle ; jointure ; remise des documents ; clôture.
+EXPORT (les 4 types de clients) : codification Back Office, Draft IN à la facturation, BEE en document final.
+Simulation de proforma : calcul multi-conteneurs (Dry et Reefer, avec majorations lourd/dangereux/hors gabarit et stationnement par tranches) contrôlé au franc près contre l'outil Excel de référence sur un jeu de cas identiques ; vérification qu'une modification de paramètre (tarif, taux, franchise) sans développement se répercute correctement sur le calcul.
+Customer Complaint : création par catégorie, instruction, complément, orientation, clôture avec réponse.
+Enrôlement transporteur : dossier à distance, complément, validation, convocation photo/badge, clôture.
+Prise en charge : un ticket arrive en file en « attente de prise en charge », un opérateur l'accepte, et les horodatages (arrivée, prise en charge, dernière activité) sont enregistrés et exploités dans les indicateurs.
+Transfert de file : un opérateur transfère un ticket mal orienté (ex. Contrôle BL → Facturation) avec motif obligatoire ; le ticket conserve numéro, dossier, documents, commentaires et historique ; le client est notifié ; un transfert vers une destination non autorisée par la matrice est refusé.
+Réaffectation entre opérateurs (A → B) selon habilitations, tracée dans l'historique.
+Temps et SLA : vérification de la mesure attente/traitement par étape, de la distinction temps interne / temps client (SLA suspendu en « En attente client »), et du déclenchement des seuils 50 % / 80 % / dépassement / escalade.
+Supervision : vue temps réel des files et de la charge, alertes (ticket non pris en charge, sans activité, SLA), affectation d'un ticket non pris en charge, déblocage d'un ticket.
+Transverse : notifications sur chaque canal configuré avec lien vers le ticket ; continuité digital/présentiel par recherche de ticket au guichet et rendez-vous donnant accès au bureau de facturation ; regroupement des tickets d'une même demande en dossier ; contrôle des habilitations (un client ne voit pas les tickets d'un autre ; un agent ne voit pas les files des autres rôles) ; journal d'audit.
+Critères d'acceptation : 100 % des scénarios Must exécutés avec succès, aucune anomalie bloquante ou majeure ouverte, exigences de sécurité vérifiées, documentation livrée.
+23. Stratégie de réalisation et scénarios d'acquisition
+Trois scénarios sont ouverts et seront comparés sur la base du présent cahier des charges :
+Scénario A — Développement interne : réalisation par la DSI de CIT ; maîtrise complète du besoin et des évolutions, charge interne à sécuriser.
+Scénario B — Développement externalisé : réalisation sur mesure par un prestataire ; le présent document vaut expression de besoin contractuelle.
+Scénario C — Solution du marché adaptée : acquisition d'une plateforme existante de gestion de tickets / portail client (avec workflows paramétrables), configurée pour couvrir les exigences.
+23.1 Grille d'évaluation des scénarios et solutions
+Critère
+Attendu
+Couverture fonctionnelle
+Taux de couverture des exigences Must sans développement spécifique ; écarts et solutions de contournement documentés.
+Paramétrabilité
+Workflows, statuts, catégories, pièces exigées, modèles de notification et champs par rôle administrables sans code.
+Multicanal
+Capacité native ou par connecteur à notifier par e-mail, WhatsApp et SMS dans le contexte ivoirien.
+Ouverture / API
+API documentées permettant les intégrations futures (IPAKI, IRIS, paiement, file d'attente, IA).
+Ergonomie et mobile
+Expérience client simple, responsive, adaptée aux usages locaux.
+Sécurité et conformité
+RBAC fin (jusqu'au champ), audit, hébergement et protection des données conformes aux exigences CIT/AGL et à la réglementation ivoirienne.
+Coût total (TCO)
+Coûts de licence/abonnement, de mise en œuvre, d'exploitation et d'évolution sur 3 à 5 ans.
+Délai de mise en œuvre
+Délai réaliste jusqu'à la mise en production.
+Réversibilité
+Capacité à exporter l'intégralité des données et documents (tickets, historiques, pièces) dans un format exploitable.
+Support et pérennité
+Qualité du support (idéalement local ou dans le fuseau), feuille de route de la solution, références comparables.
+23.2 Démarche recommandée
+Le périmètre reste global : le fournisseur s'engage sur l'ensemble des fonctionnalités décrites. La mise en production peut en revanche être progressive et itérative (approche agile / Scrum), à condition que le socle prioritaire soit livré et opérationnel en premier.
+Priorité au Billing Office : le parcours client digital du Billing Office (import et export, quatre types de clients, tickets, simulation de proforma) constitue le socle à livrer et à mettre en production en premier.
+Une fois ce socle opérationnel, les autres capacités (Customer Complaint, Enrôlement Transporteurs, supervision avancée, assistant IA) sont livrées de façon progressive par incréments, sans réduction du périmètre cible contractuel.
+Une phase de cadrage consolide au préalable les points restants (section 25).
+Chaque incrément fait l'objet d'une recette avant sa mise en production (section 22).
+Un pilote avec un périmètre restreint de clients précède la généralisation de chaque incrément.
+Conduite du changement : formation des agents par rôle, communication clients, supports d'utilisation.
+Le parcours physique est maintenu en parallèle du digital pendant la bascule, la continuité étant assurée par le numéro de ticket.
+24. Livrables attendus
+Dossier d'architecture et de conception (adapté au scénario retenu).
+Plateforme livrée et configurée en environnements de recette et de production.
+Dossier de paramétrage (workflows, statuts, catégories, modèles de notifications, rôles).
+Cahier de recette exécuté et procès-verbaux.
+Documentation d'exploitation (sauvegarde/restauration, supervision, gestion des incidents).
+Guides utilisateurs : client, agent (par rôle), administrateur ; supports de formation.
+Plan de réversibilité (scénarios B et C).
+25. Hypothèses et points à valider
+Les points suivants restent à consolider en phase de cadrage. Les règles IES (traitement parallèle), la validation des preuves de paiement (rôle Caisse/Finance) et les valeurs tarifaires de la simulation (Annexe A) sont, elles, confirmées par le métier et figées dans le présent document.
+Volumétrie cible (tickets/jour par module, pièces jointes, utilisateurs simultanés) à consolider avec les équipes du Billing Office et de la Gate.
+Liste exacte des pièces exigées par étape et par parcours, à valider avec les responsables métiers.
+Choix des canaux de notification actifs au lancement (l'envoi WhatsApp/SMS suppose la souscription d'un service d'envoi ; à chiffrer).
+Valeurs cibles des SLA par module/étape/file et seuils d'alerte (50 %, 80 %…), à déterminer avec le métier.
+Matrice des transitions autorisées entre files, à arrêter avec les responsables métiers.
+Statut exact du parcours 'Avoir et Exonération' (circuits de validation internes) à formaliser avec la Finance.
+Politique de conservation et d'archivage des tickets et documents à valider (durées légales).
+Décision sur l'hébergement (infrastructure CIT/AGL ou cloud) selon le scénario retenu.
+26. Risques projet et mesures de maîtrise
+Risque
+Mesure de maîtrise
+Adoption insuffisante par les clients
+Communication et accompagnement, simplicité du portail, maintien du double parcours, pilote avec clients volontaires.
+Ressaisie et charge agents (absence d'interfaçage avec les systèmes métiers)
+Ergonomie back-office optimisée et champs pré-remplis ; architecture ouverte permettant à CIT d'ajouter des intégrations API si elle le décide ultérieurement.
+Divergence ticket / réalité systèmes (IPAKI, IRIS)
+Procédures opératoires claires : l'agent trace systématiquement dans le ticket le résultat de ses actions hors portail ; contrôles de cohérence en recette.
+Retard de paramétrage des canaux WhatsApp/SMS
+Démarrage possible avec e-mail + notifications portail ; ajout des canaux mobiles sans impact sur le workflow.
+Sous-estimation de la volumétrie documentaire
+Dimensionnement du stockage validé en cadrage ; quotas et politique de purge/archivage.
+Dépendance à un éditeur (scénario C)
+Exigence de réversibilité contractuelle et d'export complet des données.
+27. Sources fonctionnelles utilisées
+Description du parcours client Billing Office — Digitalisation (AS IS import/export et proposition TO BE), DSI CIT.
+Note de cadrage « Parcours client Billing Office » (portail 3 modules, types de clients, principes tickets et communication), DSI CIT, 2026.
+Outil Excel « Simulation Proforma CIT » (moteur de calcul des frais : acconage, relevage, branchement frigorifique, majorations, stationnement et répartition), dont la logique est reprise et rendue paramétrable dans la plateforme.
+Modélisations des workflows IMPORT et EXPORT digitalisés (diagrammes de flux par type de client), DSI CIT, 2026.
+Échanges avec les équipes Billing Office (Pilotes Manifeste, Facturation, Contrôle Documentaire), Comptabilité Client et Gate.
+Annexe A — Grille tarifaire et paramètres de calcul (valeurs initiales)
+Les valeurs ci-dessous sont celles actuellement utilisées par l'outil de simulation de CIT. Elles constituent le paramétrage initial à charger dans la plateforme. Conformément à l'exigence SIM-06, elles ne sont pas figées : elles doivent rester modifiables par l'administrateur fonctionnel, sans développement, et versionnées avec une date d'effet (SIM-07). Les montants sont exprimés en francs CFA (XOF).
+A.1 Grille tarifaire de base
+Le tarif applicable à un conteneur est déterminé par la clé Sens + Taille + Catégorie de marchandise. Pour chaque combinaison : montant d'acconage, de relevage et tarif journalier de branchement frigorifique (ce dernier n'est appliqué qu'aux conteneurs Reefer).
+Sens
+Taille
+Catégorie de marchandise
+Acconage
+Relevage
+Branchement frigo (/jour)
+Import Local
+20"
+C1 : Produits de première nécessité
+66 800
+25 000
+35 000
+Import Local
+20"
+C2 : Produits alimentaires de base, produits agricoles
+95 000
+25 000
+35 000
+Import Local
+20"
+C3 : Marchandises diverses
+140 000
+25 000
+35 000
+Import Local
+40"
+C1 : Produits de première nécessité
+133 600
+50 000
+67 000
+Import Local
+40"
+C2 : Produits alimentaires de base, produits agricoles
+190 000
+50 000
+67 000
+Import Local
+40"
+C3 : Marchandises diverses
+280 000
+50 000
+67 000
+Export Local
+20"
+C1 : Produits agricoles de base et halieutiques
+69 500
+25 000
+35 000
+Export Local
+20"
+C2 : Autres produits agricoles et dérivés
+122 500
+25 000
+35 000
+Export Local
+20"
+C3 : Marchandises diverses
+130 000
+25 000
+35 000
+Export Local
+40"
+C1 : Produits agricoles de base et halieutiques
+139 000
+50 000
+65 000
+Export Local
+40"
+C2 : Autres produits agricoles et dérivés
+245 000
+50 000
+65 000
+Export Local
+40"
+C3 : Marchandises diverses
+260 000
+50 000
+65 000
+Import Transit
+20"
+C4 : Conteneurs en transit (toutes marchandises)
+72 230
+25 000
+35 000
+Import Transit
+40"
+C4 : Conteneurs en transit (toutes marchandises)
+144 460
+50 000
+67 000
+Export Transit
+20"
+C5 : Conteneurs en transit (toutes marchandises)
+69 000
+25 000
+35 000
+Export Transit
+40"
+C5 : Conteneurs en transit (toutes marchandises)
+138 000
+50 000
+65 000
+A.2 Majorations
+Majoration
+Règle et valeur initiale
+Majoration lourd
+30 % du montant d'acconage, appliquée dès que le poids dépasse le seuil fixé par taille (plus de 15 tonnes pour un 20", plus de 26 tonnes pour un 40"), quelle que soit la catégorie de marchandise. Taux et seuils paramétrables.
+Majoration dangereux
+50 % du montant d'acconage, appliquée si le conteneur est déclaré dangereux. Taux paramétrable.
+Majoration hors gabarit (OOG)
+50 % du montant d'acconage, appliquée si le conteneur est déclaré hors gabarit. Taux paramétrable.
+A.3 Branchement frigorifique
+Paramètre
+Valeur initiale
+Applicabilité
+Conteneurs Reefer uniquement.
+Tarif journalier
+Selon la grille A.1 (colonne Branchement frigo), fonction de la clé Sens + Taille + Catégorie.
+Franchise
+2 jours (déduits de la durée de séjour avant facturation du branchement). Paramétrable.
+Base de calcul
+Tarif journalier × (durée de séjour − franchise).
+A.4 Stationnement
+Le stationnement est calculé sur la durée de séjour hors franchise, par tranches, chacune à un tarif journalier. La durée de séjour est le nombre de jours entre l'arrivée du navire et l'enlèvement prévisionnel (inclus).
+Paramètre
+Valeur initiale
+Tarif tranche 1 à 5 jours
+850 / conteneur / jour.
+Tarif tranche 6 à 15 jours
+1 250 / conteneur / jour.
+Tarif tranche 16 jours et au-delà
+1 850 / conteneur / jour.
+Franchise — Import Local
+11 jours.
+Franchise — Import Transit
+21 jours.
+Applicabilité
+Appliqué à l'import (local et transit) dans l'outil actuel ; non appliqué à l'export. Paramétrable.
+Les bornes des tranches (5, 15), les tarifs journaliers et les franchises sont paramétrables.
+A.5 Répartition du stationnement
+Le montant total de stationnement est réparti entre les bénéficiaires selon les quotes-parts suivantes (paramétrables) :
+Bénéficiaire
+Quote-part initiale
+CIT (Côte d'Ivoire Terminal)
+30 %
+OIC
+20 %
+PAA (Port Autonome d'Abidjan)
+50 %
+A.6 Référentiels
+Référentiel
+Valeurs initiales (paramétrables)
+Sens
+Import Local, Import Transit, Export Local, Export Transit.
+Taille
+20", 40".
+Type
+Dry, Reefer.
+Catégories de marchandise
+C1 à C5 selon le sens, telles que listées dans la grille A.1 ; le libellé et le rattachement des catégories sont paramétrables.
+A.7 Formule de calcul par conteneur
+Pour mémoire, le total d'un conteneur se compose ainsi :
+Total conteneur = Acconage + Relevage + Branchement frigorifique (si Reefer) + Majoration lourd + Majoration dangereux + Majoration hors gabarit + Stationnement (parts CIT + OIC + PAA).
+Le total du dossier est la somme des totaux de tous les conteneurs. Ce résultat est une estimation indicative et n'engage pas CIT.
+A.8 Jeu de tests de référence
+Les cas suivants, issus de l'outil actuel, servent de référence de recette : l'implémentation doit produire exactement ces totaux. Hypothèse commune : durée de séjour de 29 jours (date d'arrivée 10/02, enlèvement prévisionnel 10/03, séjour = écart + 1). Montants en francs CFA.
+Cas
+Sens
+Taille
+Type
+Poids (t)
+OOG
+Dang.
+Catégorie
+Total attendu
+test01
+Import Transit
+20"
+Dry
+100
+Oui
+Oui
+C4
+199 129
+test02
+Import Local
+40"
+Reefer
+200
+Non
+Non
+C1
+2 054 980
+test03
+Export Local
+20"
+Dry
+300
+Oui
+Non
+C2
+245 500
+test04
+Export Transit
+40"
+Reefer
+100
+Non
+Oui
+C5
+2 053 400
+test06
+Import Local
+40"
+Reefer
+300
+Non
+Non
+C3
+2 245 300
+Exemple de décomposition — test06 (Import Local, 40", Reefer, 300 t, C3, séjour 29 j) : acconage 280 000 + relevage 50 000 + branchement frigo 67 000 × (29 − 2) = 1 809 000 + majoration lourd 30 % × 280 000 = 84 000 + stationnement sur 29 − 11 = 18 jours facturables [5 j × 850 + 10 j × 1 250 + 3 j × 1 850 = 22 300], soit total 2 245 300 (dont stationnement réparti CIT 6 690 / OIC 4 460 / PAA 11 150).
+28. Validation du cahier des charges
+Rôle
+Nom
+Date
+Signature
+Rédacteur
+Aldric GNAMIAN — Responsable Solutions IT &amp; Projets
+Vérificateur
+Rodi KPEGBA — DSI
+Approbateur
+Rodi KPEGBA — DSI

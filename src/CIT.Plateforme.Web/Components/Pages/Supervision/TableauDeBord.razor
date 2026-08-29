@@ -1,0 +1,58 @@
+@page "/supervision"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Supervision
+@inject VueFilesQuery VueFiles
+@inject VueChargeQuery VueCharge
+@implements IAsyncDisposable
+
+<PageTitle>Supervision temps réel</PageTitle>
+
+<h1>Supervision (SUP-01, SUP-02, SUP-03)</h1>
+
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant superviseur" @bind="superviseurId" /></div>
+    <div class="col-auto"><button class="btn btn-primary" @onclick="ChargerAsync">Charger ma vue</button></div>
+</div>
+
+@if (vuesFiles is not null)
+{
+    <h2>Files de mon périmètre</h2>
+    <table class="table">
+        <thead><tr><th>File</th><th>Non affectés</th><th>En cours</th><th>Attente client</th><th>Total actifs</th></tr></thead>
+        <tbody>
+            @foreach (var vue in vuesFiles)
+            {
+                <tr><td>@vue.FileId</td><td>@vue.NonAffectes</td><td>@vue.EnCours</td><td>@vue.EnAttenteClient</td><td>@vue.TotalActifs</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (vuesCharge is not null)
+{
+    <h2>Charge par opérateur</h2>
+    <table class="table">
+        <thead><tr><th>Opérateur</th><th>Disponibilité</th><th>Tickets en cours</th><th>Dernière activité</th></tr></thead>
+        <tbody>
+            @foreach (var vue in vuesCharge)
+            {
+                <tr><td>@vue.OperateurId</td><td>@vue.Disponibilite</td><td>@vue.TicketsEnCours</td><td>@vue.DerniereActiviteUtc</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string superviseurId = string.Empty;
+    private IReadOnlyList<VueFile>? vuesFiles;
+    private IReadOnlyList<VueOperateur>? vuesCharge;
+
+    private async Task ChargerAsync()
+    {
+        var id = Guid.Parse(superviseurId);
+        vuesFiles = await VueFiles.ExecuterAsync(id);
+        vuesCharge = await VueCharge.ExecuterAsync(id);
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+}

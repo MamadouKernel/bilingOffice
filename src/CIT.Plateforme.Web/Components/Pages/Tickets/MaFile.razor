@@ -1,0 +1,71 @@
+@page "/tickets/ma-file"
+@rendermode InteractiveServer
+@inject ConsulterFileQuery ConsulterFile
+@inject PriseLibreCommand PriseLibre
+
+<PageTitle>Ma file</PageTitle>
+
+<h1>Ma file (SOC-04)</h1>
+
+<div class="mb-3 row">
+    <div class="col-auto">
+        <label class="form-label" for="agent-id">Identifiant agent (démonstration)</label>
+        <input id="agent-id" class="form-control" @bind="agentId" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label" for="file-id">Identifiant de la file</label>
+        <input id="file-id" class="form-control" @bind="fileId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-secondary" @onclick="ChargerAsync">Charger ma file</button>
+    </div>
+</div>
+
+@if (ticketsDeLaFile is not null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Statut</th>
+                <th>Dernière activité (UTC)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in ticketsDeLaFile)
+            {
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.Statut</td>
+                    <td>@ticket.DateDerniereActiviteUtc</td>
+                    <td>
+                        @if (ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge)
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="() => PrendreEnChargeAsync(ticket.Id)">
+                                Prendre en charge (PEC-02)
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string agentId = Guid.NewGuid().ToString();
+    private string fileId = string.Empty;
+    private IReadOnlyList<Ticket>? ticketsDeLaFile;
+
+    private async Task ChargerAsync()
+    {
+        ticketsDeLaFile = await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), Guid.Parse(fileId));
+    }
+
+    private async Task PrendreEnChargeAsync(Guid ticketId)
+    {
+        await PriseLibre.ExecuterAsync(Guid.Parse(agentId), ticketId);
+        await ChargerAsync();
+    }
+}

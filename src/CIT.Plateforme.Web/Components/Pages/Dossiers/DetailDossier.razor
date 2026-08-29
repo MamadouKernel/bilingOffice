@@ -1,0 +1,31 @@
+@page "/dossiers/{DossierId:guid}"
+@rendermode InteractiveServer
+@inject ConsulterDossierQuery ConsulterDossier
+
+<PageTitle>Détail du dossier</PageTitle>
+
+<h1>Dossier (SOC-11)</h1>
+
+@if (vue is not null)
+{
+    <p>Numéro : <strong>@vue.Numero</strong> — État dérivé (CLAR-01) : <strong>@vue.Etat</strong></p>
+
+    <table class="table">
+        <thead><tr><th>Ticket</th><th>Statut</th></tr></thead>
+        <tbody>
+            @foreach (var ticket in vue.Tickets)
+            {
+                <tr><td>@ticket.Numero</td><td>@ticket.Statut</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public Guid DossierId { get; set; }
+
+    private DossierVue? vue;
+
+    protected override async Task OnInitializedAsync() => vue = await ConsulterDossier.ExecuterAsync(DossierId);
+}

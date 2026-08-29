@@ -1,0 +1,96 @@
+@page "/tickets/{TicketId:guid}/documents"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Documents
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Domain.Documents
+@inject DeposerDocumentCommand DeposerDocument
+@inject IDocumentRepository DepotDocuments
+
+<PageTitle>Documents du ticket</PageTitle>
+
+<h1>Documents (SOC-07)</h1>
+
+<p class="text-muted">
+    Les types de pièces exigées et la taille maximale sont paramétrables par étape (SOC-07,
+    PC-08) — les règles ci-dessous sont une configuration de démonstration, pas une valeur figée.
+</p>
+
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Votre identifiant" @bind="deposantId" /></div>
+    <div class="col-auto">
+        <select class="form-select" @bind="natureDeposant">
+            <option value="Client">Client (propriétaire du ticket)</option>
+            <option value="Agent">Agent (habilité sur la file)</option>
+        </select>
+    </div>
+    <div class="col-auto"><InputFile OnChange="DeposerAsync" /></div>
+</div>
+
+@if (documents is not null)
+{
+    <table class="table">
+        <thead><tr><th>Fichier</th><th>Taille</th><th>Analyse antivirus</th><th>Déposé le (UTC)</th></tr></thead>
+        <tbody>
+            @foreach (var document in documents)
+            {
+                <tr>
+                    <td>@document.NomFichier</td>
+                    <td>@document.TailleOctets octets</td>
+                    <td>@document.StatutAntivirus</td>
+                    <td>@document.DateDepotUtc</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@code {
+    [Parameter]
+    public Guid TicketId { get; set; }
+
+    private string deposantId = string.Empty;
+    private string natureDeposant = "Client";
+    private IReadOnlyList<Document>? documents;
+    private string? message;
+    private bool erreur;
+
+    protected override async Task OnInitializedAsync() => documents = await DepotDocuments.ListerParTicketAsync(TicketId);
+
+    private static readonly ReglesDepotDocument ReglesDemonstration = new(
+        ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
+
+    private async Task DeposerAsync(Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs e)
+    {
+        try
+        {
+            await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            if (natureDeposant == "Agent")
+            {
+                await DeposerDocument.DeposerPourAgentAsync(
+                    Guid.Parse(deposantId), TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
+            }
+            else
+            {
+                await DeposerDocument.DeposerPourClientAsync(
+                    Guid.Parse(deposantId), TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
+            }
+
+            documents = await DepotDocuments.ListerParTicketAsync(TicketId);
+            message = "Document déposé et analysé.";
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

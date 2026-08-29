@@ -1,0 +1,43 @@
+@page "/administration/strategie-file"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Domain.Files
+@inject GererFilesCommand GererFiles
+
+<PageTitle>Stratégie d'affectation des files</PageTitle>
+
+<h1>Stratégie d'affectation (AFF-07, C-01)</h1>
+
+<p class="text-muted">Le changement de stratégie d'une file est réalisable sans développement.</p>
+
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant administrateur" @bind="administrateurId" /></div>
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant file" @bind="fileId" /></div>
+    <div class="col-auto">
+        <select class="form-select" @bind="strategieSelectionnee">
+            @foreach (var strategie in Enum.GetValues<StrategieAffectation>())
+            {
+                <option value="@strategie">@strategie</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto"><button class="btn btn-primary" @onclick="ChangerAsync">Appliquer</button></div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert alert-success">@message</div>
+}
+
+@code {
+    private string administrateurId = string.Empty;
+    private string fileId = string.Empty;
+    private StrategieAffectation strategieSelectionnee = StrategieAffectation.PriseLibre;
+    private string? message;
+
+    private async Task ChangerAsync()
+    {
+        await GererFiles.ChangerStrategieAsync(Guid.Parse(administrateurId), Guid.Parse(fileId), strategieSelectionnee);
+        message = $"Stratégie appliquée sans développement : {strategieSelectionnee} (AFF-07).";
+    }
+}

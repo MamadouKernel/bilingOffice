@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CIT.Plateforme.Application/CIT.Plateforme.Application.csproj" />
+    <Project Path="src/CIT.Plateforme.Domain/CIT.Plateforme.Domain.csproj" />
+    <Project Path="src/CIT.Plateforme.Infrastructure/CIT.Plateforme.Infrastructure.csproj" />
+    <Project Path="src/CIT.Plateforme.Web/CIT.Plateforme.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CIT.Plateforme.Application.Tests/CIT.Plateforme.Application.Tests.csproj" />
+    <Project Path="tests/CIT.Plateforme.Domain.Tests/CIT.Plateforme.Domain.Tests.csproj" />
+    <Project Path="tests/CIT.Plateforme.Infrastructure.Tests/CIT.Plateforme.Infrastructure.Tests.csproj" />
+    <Project Path="tests/CIT.Plateforme.Web.Tests/CIT.Plateforme.Web.Tests.csproj" />
+  </Folder>
+</Solution>
