@@ -1,0 +1,135 @@
+@page "/billing-import/manifeste"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@inject ValiderTicketImportCommand Valider
+@inject RejeterTicketImportCommand Rejeter
+@inject GestionComplementManifesteCommand Complement
+@inject ConsulterFileBillingImportQuery ConsulterFile
+
+<PageTitle>File Pilote Manifeste</PageTitle>
+
+<h1>File Pilote Manifeste</h1>
+
+<p class="text-muted">
+    Contrats C3-03→C3-06 (IMP-04, IMP-05). Chaque décision est indépendante des autres tickets du
+    même dossier (IMP-02).
+</p>
+
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
+        <InputText id="agent" class="form-control" @bind-Value="agentId" />
+    </div>
+    <div class="col align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger les tickets en instance</button>
+    </div>
+</div>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger">@erreur</div>
+}
+
+@if (tickets.Count > 0)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>BL</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.NumeroBl</td>
+                    <td>@ticket.Statut</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(ticket.Id)">Valider</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => AfficherRejetAsync(ticket.Id)">Rejeter</button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => DemanderComplementAsync(ticket.Id)">Demander complément</button>
+                    </td>
+                </tr>
+                @if (ticketEnRejet == ticket.Id)
+                {
+                    <tr>
+                        <td colspan="4">
+                            <div class="input-group">
+                                <input class="form-control" placeholder="Motif obligatoire" @bind="motifRejet" />
+                                <button class="btn btn-danger" @onclick="() => ConfirmerRejetAsync(ticket.Id)">Confirmer le rejet</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string agentId = string.Empty;
+    private List<Ticket> tickets = [];
+    private string? erreur;
+    private Guid? ticketEnRejet;
+    private string motifRejet = string.Empty;
+
+    private async Task ChargerAsync()
+    {
+        erreur = null;
+        if (!Guid.TryParse(agentId, out var agentGuid))
+        {
+            erreur = "Identifiant invalide.";
+            return;
+        }
+
+        try
+        {
+            var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
+                agentGuid, SoumettreDemandeImportCommand.FilePiloteManifeste, [Permission.BillingImportManifesteInstruire]);
+            tickets = [.. ticketsDeLaFile.Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+        }
+        catch (AccesRefuseException ex)
+        {
+            tickets = [];
+            erreur = ex.Message;
+        }
+    }
+
+    private async Task ExecuterAsync(Func<Task> action)
+    {
+        erreur = null;
+        try
+        {
+            await action();
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            erreur = ex.Message;
+        }
+    }
+
+    private Task ValiderAsync(Guid ticketId) => ExecuterAsync(() => Valider.ExecuterAsync(Guid.Parse(agentId), ticketId));
+
+    private void AfficherRejetAsync(Guid ticketId)
+    {
+        ticketEnRejet = ticketId;
+        motifRejet = string.Empty;
+    }
+
+    private Task ConfirmerRejetAsync(Guid ticketId) => ExecuterAsync(async () =>
+    {
+        await Rejeter.ExecuterAsync(Guid.Parse(agentId), ticketId, motifRejet);
+        ticketEnRejet = null;
+    });
+
+    private Task DemanderComplementAsync(Guid ticketId) => ExecuterAsync(() =>
+        Complement.DemanderComplementAsync(Guid.Parse(agentId), ticketId, "Pièce complémentaire requise"));
+}

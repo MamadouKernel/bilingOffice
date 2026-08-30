@@ -1,0 +1,168 @@
+@page "/billing-import/validation-paiement"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Documents
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Documents
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@using Microsoft.AspNetCore.Components.Forms
+@inject DeposerPreuvePaiementCommand DeposerPreuve
+@inject ValiderPreuvePaiementCommand ValiderPreuve
+@inject ConsulterFileBillingImportQuery ConsulterFile
+
+<PageTitle>Validation Paiement</PageTitle>
+
+<h1>File Validation Paiement</h1>
+
+<p class="text-muted">Contrats C3-10/C3-11 (IMP-12, IMP-13). CLAR-PAIEMENT-01 : une preuve refusée
+renvoie le ticket en attente d'une nouvelle preuve du client — jamais un rejet définitif.</p>
+
+<h2>Dépôt d'une preuve de paiement (client)</h2>
+<p class="text-muted">
+REMÉDIATION AUDIT (post-implementation-audit.md §8.3) : le client dépose sur SON ticket, connu de
+lui (numéro communiqué à la soumission) — il ne parcourt jamais la file interne des Pilotes
+Paiement, réservée aux agents habilités ci-dessous.
+</p>
+<div class="row mb-3">
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant société (client)" @bind="clientId" /></div>
+    <div class="col-auto"><input class="form-control" placeholder="Identifiant du ticket" @bind="ticketIdClient" /></div>
+    <div class="col-auto"><InputFile OnChange="DeposerPreuveAsync" /></div>
+</div>
+
+<h2>File des Pilotes Paiement (agent habilité)</h2>
+<div class="row mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
+        <input id="agent" class="form-control" @bind="agentId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
+    </div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@if (tickets.Count > 0)
+{
+    <table class="table">
+        <thead><tr><th>Numéro</th><th>BL</th><th>Statut</th><th>Décision agent</th></tr></thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.NumeroBl</td>
+                    <td>@ticket.Statut</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(ticket.Id)">Valider</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => AfficherRefusAsync(ticket.Id)">Refuser</button>
+                        @if (ticketEnRefus == ticket.Id)
+                        {
+                            <div class="input-group mt-1">
+                                <input class="form-control" placeholder="Motif obligatoire" @bind="motifRefus" />
+                                <button class="btn btn-danger" @onclick="() => ConfirmerRefusAsync(ticket.Id)">Confirmer</button>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private static readonly ReglesDepotDocument ReglesDemonstration = new(
+        ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
+
+    private string agentId = string.Empty;
+    private string clientId = string.Empty;
+    private string ticketIdClient = string.Empty;
+    private List<Ticket> tickets = [];
+    private string? message;
+    private bool erreur;
+    private Guid? ticketEnRefus;
+    private string motifRefus = string.Empty;
+
+    private async Task ChargerAsync()
+    {
+        message = null;
+        try
+        {
+            tickets = [.. await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), NomsFiles.ValidationPaiement, [Permission.BillingImportPaiementValider])];
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            tickets = [];
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task DeposerPreuveAsync(InputFileChangeEventArgs e)
+    {
+        message = null;
+        try
+        {
+            await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            await DeposerPreuve.ExecuterAsync(
+                Guid.Parse(clientId), Guid.Parse(ticketIdClient), e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
+
+            message = "Preuve de paiement déposée.";
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task ValiderAsync(Guid ticketId)
+    {
+        message = null;
+        try
+        {
+            await ValiderPreuve.ValiderAsync(Guid.Parse(agentId), ticketId);
+            message = "Paiement validé — ticket transféré au Contrôle Documentaire.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private void AfficherRefusAsync(Guid ticketId)
+    {
+        ticketEnRefus = ticketId;
+        motifRefus = string.Empty;
+    }
+
+    private async Task ConfirmerRefusAsync(Guid ticketId)
+    {
+        message = null;
+        try
+        {
+            await ValiderPreuve.RefuserAsync(Guid.Parse(agentId), ticketId, motifRefus);
+            ticketEnRefus = null;
+            message = "Preuve refusée — ticket en attente d'une nouvelle preuve du client.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

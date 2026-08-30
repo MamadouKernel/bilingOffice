@@ -612,6 +612,36 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("PeriodesAttenteClient");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.SuiviBrancheIes", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AuteurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Branche")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime?>("DateAchevementUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EstTerminee")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("SuivisBranchesIes");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.Ticket", b =>
                 {
                     b.Property<Guid>("Id")
@@ -635,6 +665,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("DatePriseEnChargeUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("DeclarationPresentielle")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("DossierId")
                         .HasColumnType("uniqueidentifier");
@@ -664,6 +697,11 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<string>("NumeroBl")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .UseCollation("Latin1_General_CI_AS");
+
                     b.Property<Guid?>("OperateurAssigneId")
                         .HasColumnType("uniqueidentifier");
 
@@ -672,6 +710,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("Statut")
                         .HasColumnType("int");
+
+                    b.Property<string>("TypeAnnulationImport")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("TypeDemande")
                         .IsRequired()
@@ -688,6 +730,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Numero")
                         .IsUnique();
+
+                    b.HasIndex("NumeroBl")
+                        .IsUnique()
+                        .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (0, 1, 2)");
 
                     b.ToTable("Tickets");
                 });

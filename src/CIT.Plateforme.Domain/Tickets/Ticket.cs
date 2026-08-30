@@ -63,9 +63,32 @@ public sealed class Ticket
     /// charge concurrente réussit sur un même ticket (règle métier critique).</summary>
     public byte[] VersionConcurrence { get; private set; } = [];
 
+    /// <summary>
+    /// EXTENSION FEATURE 003 (research.md D2) : numéro de BL métier fourni par le client, distinct
+    /// de <see cref="Numero"/> (identifiant technique séquentiel). Nullable, uniquement renseigné
+    /// pour les tickets du module Billing IMPORT. Portée d'unicité globale garantie par un index
+    /// SQL Server dédié (D3), pas par ce type.
+    /// </summary>
+    public string? NumeroBl { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 003 (research.md D12, IMP-15) : le client a déclaré vouloir finaliser
+    /// physiquement au Billing Office à l'issue du contrôle BL. Point d'extension pour la future
+    /// Feature Continuité Digital/Présentiel — aucun mécanisme de rendez-vous n'est porté ici.
+    /// </summary>
+    public bool DeclarationPresentielle { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 003 (research.md D13bis) : distingue un rejet Pilote Manifeste (IMP-04)
+    /// d'une annulation client ordinaire (CYC-01) — les deux partagent <see cref="StatutTicket.Annule"/>
+    /// pour le workflow générique et l'unicité BL (D3), mais restent distinguables en audit/
+    /// historique/affichage/reporting via ce champ nullable.
+    /// </summary>
+    public TypeAnnulationImport? TypeAnnulationImport { get; private set; }
+
     private Ticket() { }
 
-    public static Ticket Creer(string numero, string module, string typeDemande, Guid fileCibleId, Guid dossierId, DateTime maintenantUtc)
+    public static Ticket Creer(string numero, string module, string typeDemande, Guid fileCibleId, Guid dossierId, DateTime maintenantUtc, string? numeroBl = null)
     {
         if (string.IsNullOrWhiteSpace(numero))
         {
@@ -84,6 +107,7 @@ public sealed class Ticket
             DateCreationUtc = maintenantUtc,
             DateArriveeEnFileUtc = maintenantUtc,
             DateDerniereActiviteUtc = maintenantUtc,
+            NumeroBl = numeroBl,
         };
     }
 
@@ -199,6 +223,36 @@ public sealed class Ticket
 
         Statut = StatutTicket.Annule;
         DateDerniereActiviteUtc = maintenantUtc;
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 003 (research.md D13bis, IMP-04) : rejet d'un ticket Billing IMPORT par le
+    /// Pilote Manifeste. Réutilise le statut générique <see cref="StatutTicket.Annule"/> — jamais
+    /// <see cref="StatutTicket.Cloture"/>, car <see cref="Rouvrir"/> n'autorise déjà que les tickets
+    /// clôturés (CLAR-02 de Feature 001) : un ticket rejeté ne doit jamais pouvoir être rouvert, il
+    /// nécessite une nouvelle soumission. Le motif (obligatoire, IMP-04) est tracé par l'appelant
+    /// (Application) via le journal/historique existant, pas sur ce type.
+    /// </summary>
+    public void RejeterImport(DateTime maintenantUtc)
+    {
+        if (Statut is StatutTicket.Cloture or StatutTicket.Annule)
+        {
+            throw new InvalidOperationException($"Le ticket {Numero} est déjà {Statut} et ne peut plus être rejeté.");
+        }
+
+        Statut = StatutTicket.Annule;
+        TypeAnnulationImport = Tickets.TypeAnnulationImport.RejetManifeste;
+        DateDerniereActiviteUtc = maintenantUtc;
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 003 (research.md D12, IMP-15) : le client déclare vouloir finaliser
+    /// physiquement au Billing Office à l'issue du contrôle BL. N'implémente aucun mécanisme de
+    /// rendez-vous (hors périmètre — future Feature Continuité Digital/Présentiel).
+    /// </summary>
+    public void DeclarerFinalisationPresentielle()
+    {
+        DeclarationPresentielle = true;
     }
 
     /// <summary>SOC-09 : la clôture déclenche un archivage automatique (représenté ici par

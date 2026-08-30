@@ -1,11 +1,13 @@
 @page "/tickets/{TicketId:guid}"
 @rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
 @inject TransfererTicketCommand Transferer
 @inject ReaffecterTicketCommand Reaffecter
 @inject AttenteClientCommand AttenteClient
 @inject AnnulerTicketCommand Annuler
 @inject CloturerTicketCommand Cloturer
 @inject ReouvrirTicketCommand Reouvrir
+@inject DeclarerFinalisationPresentielleCommand DeclarerFinalisationPresentielle
 
 <PageTitle>Détail du ticket</PageTitle>
 
@@ -46,6 +48,14 @@
     <div class="col-auto"><button class="btn btn-outline-primary" @onclick="RouvrirAsync">Rouvrir (CYC-06)</button></div>
 </div>
 
+<h2>Bascule présentielle — Billing Office IMPORT (IMP-15)</h2>
+<p class="text-muted">Composant partagé (pas de page dédiée) : ne s'applique qu'aux tickets du module
+Billing IMPORT, une fois validés par le Pilote Manifeste. Aucun mécanisme de rendez-vous — trace
+uniquement (future Feature Continuité Digital/Présentiel).</p>
+<div class="row mb-3">
+    <div class="col-auto"><button class="btn btn-outline-primary" @onclick="DeclarerFinalisationPresentielleAsync">Finaliser au Billing Office</button></div>
+</div>
+
 @if (message is not null)
 {
     <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
@@ -83,6 +93,10 @@
     private async Task RouvrirAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Reouvrir.RouvrirAsync(Guid.Parse(initiateurId), TicketId, motifCycleDeVie),
         "Ticket rouvert (CYC-06).");
+
+    private async Task DeclarerFinalisationPresentielleAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await DeclarerFinalisationPresentielle.ExecuterAsync(Guid.Parse(initiateurId), TicketId),
+        "Bascule présentielle déclarée (IMP-15).");
 
     private async Task ExecuterAvecGestionErreurAsync(Func<Task> action, string messageSucces)
     {

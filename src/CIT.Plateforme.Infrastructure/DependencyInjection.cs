@@ -150,6 +150,41 @@ public static class DependencyInjection
         // User Story 5 — modification tracée du type de client.
         services.AddScoped<Application.Comptes.ModifierTypeClientCommand>();
 
+        // FEATURE 003 (Billing Office IMPORT) — Phase 2 : fondations (research.md D8).
+        services.AddScoped<ISuiviBrancheIesRepository, SuiviBrancheIesRepository>();
+        services.AddScoped<Application.BillingImport.SoumettreDemandeImportCommand>();
+
+        // FEATURE 003 — Phase 5 (US3) : instruction Pilote Manifeste.
+        services.AddScoped<Application.BillingImport.ValiderTicketImportCommand>();
+        services.AddScoped<Application.BillingImport.RejeterTicketImportCommand>();
+        services.AddScoped<Application.BillingImport.GestionComplementManifesteCommand>();
+
+        // FEATURE 003 — Phase 7 (US5) : circuit Client Normal.
+        services.AddScoped<Application.BillingImport.DemanderFactureCommand>();
+        services.AddScoped<Application.BillingImport.EditerFactureCommand>();
+        services.AddScoped<Application.BillingImport.DeposerPreuvePaiementCommand>();
+        services.AddScoped<Application.BillingImport.ValiderPreuvePaiementCommand>();
+        services.AddScoped<Application.BillingImport.DeposerDocumentsControleEtCloturerCommand>();
+
+        // FEATURE 003 — Phase 8 (US6) : circuit Client En Compte.
+        services.AddScoped<Application.BillingImport.ConsulterDocumentsTicketClotureQuery>();
+
+        // FEATURE 003 — Phase 9 (US7) : circuit Client Deposit.
+        services.AddScoped<Application.BillingImport.ConfirmerLettrageCommand>();
+
+        // FEATURE 003 — Phase 10 (US8) : circuit Client IES (parcours parallèle).
+        services.AddScoped<Application.BillingImport.InstruireBrancheIesCommand>();
+        services.AddScoped<Application.BillingImport.ConstaterJointureIesEtFinaliserCommand>();
+
+        // FEATURE 003 — Phase 11 (US9) : bascule présentielle (IMP-15).
+        services.AddScoped<Application.BillingImport.DeclarerFinalisationPresentielleCommand>();
+
+        // FEATURE 003 — REMÉDIATION AUDIT (post-implementation-audit.md §8.3) : consultation
+        // autorisée du contenu d'une file (remplace la lecture directe de PlateformeDbContext dans
+        // les pages Blazor).
+        services.AddScoped<Application.BillingImport.ConsulterFileBillingImportQuery>();
+        services.AddScoped<Application.BillingImport.ConsulterSuivisBranchesIesQuery>();
+
         return services;
     }
 }

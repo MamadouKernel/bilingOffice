@@ -1,0 +1,129 @@
+using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Domain.Securite;
+using CIT.Plateforme.Domain.Tickets;
+
+namespace CIT.Plateforme.Application.BillingImport;
+
+/// <summary>
+/// Contrat C3-01/C3-02 — Soumettre une demande IMPORT multi-BL, avec contrôle d'unicité par BL.
+/// CDC : IMP-01, IMP-02, IMP-03, UNI-01, UNI-02, UNI-03.
+/// </summary>
+public sealed record SoumettreDemandeImportRequete(Guid SocieteId, Guid AuteurId, IReadOnlyList<string> NumerosBl);
+
+/// <summary>
+/// UNI-01, CPT-04 : un BL refusé (déjà actif) ne révèle <see cref="TicketExistantId"/> que si le
+/// ticket actif appartient à la **même société** que l'appelant (cloisonnement absolu, aucune
+/// exception) — sinon un message générique, sans divulgation d'appartenance.
+/// </summary>
+public sealed record BlRefuseInfo(string NumeroBl, Guid? TicketExistantId);
+
+/// <summary>
+/// research.md D4 : chaque BL est traité indépendamment — un dossier est toujours créé (même si
+/// tous les BL sont refusés, cohérent avec IMP-01) ; <see cref="BlRefuses"/> ne bloque jamais les
+/// autres BL de la même soumission (jamais de transaction globale « tout ou rien »).
+/// </summary>
+public sealed record SoumettreDemandeImportResultat(Dossier Dossier, IReadOnlyList<Ticket> TicketsCrees, IReadOnlyList<BlRefuseInfo> BlRefuses);
+
+public sealed class SoumettreDemandeImportCommand(
+    ITicketRepository tickets,
+    IDossierRepository dossiers,
+    ISocieteClienteRepository societes,
+    IUtilisateurSocieteRepository utilisateursSociete,
+    IFileDeTraitementRepository files,
+    IServiceNumerotation numerotation,
+    IJournalisationService journalisation,
+    IHorloge horloge,
+    IUniteDeTravail uniteDeTravail)
+{
+    public const string Module = "BillingImport";
+    public const string TypeDemande = "Import";
+    public const string FilePiloteManifeste = "Pilote Manifeste";
+
+    public async Task<SoumettreDemandeImportResultat> ExecuterAsync(SoumettreDemandeImportRequete requete, CancellationToken ct = default)
+    {
+        var maintenant = horloge.MaintenantUtc;
+
+        // ENT-02 (Feature 002) : le droit de soumission est individuel, rattaché à la société —
+        // distinct du moteur de permissions IAutorisationService (agents CIT). Un utilisateur
+        // désactivé ou sans droit de soumission est refusé, quel que soit l'état de l'interface.
+        var rattachement = await utilisateursSociete.ObtenirParUtilisateurAsync(requete.AuteurId, ct).ConfigureAwait(false);
+        if (rattachement is null || rattachement.SocieteId != requete.SocieteId || !rattachement.EstActif || !rattachement.DroitSoumission)
+        {
+            throw new AccesRefuseException($"L'utilisateur {requete.AuteurId} n'est pas habilité à soumettre pour la société {requete.SocieteId} (ENT-02).");
+        }
+
+        // research.md D5 : instantané du type de client figé à la création du dossier (Dossier.
+        // TypeClient, Feature 002 CPT-06) — jamais relu ensuite pour piloter l'aiguillage (IMP-06).
+        var societe = await societes.ObtenirParIdAsync(requete.SocieteId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Société {requete.SocieteId} introuvable.");
+
+        // T028 (quickstart.md §3) : la file Pilote Manifeste est une donnée paramétrée, jamais un
+        // identifiant codé en dur.
+        var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
+        var fileManifeste = toutesLesFiles.SingleOrDefault(f => f.Module == Module && f.Nom == FilePiloteManifeste)
+            ?? throw new InvalidOperationException($"File « {FilePiloteManifeste} » (module {Module}) non paramétrée — voir quickstart.md §3.");
+
+        var numeroDossier = await numerotation.ProchainNumeroDossierAsync(ct).ConfigureAwait(false);
+        var dossier = Dossier.Creer(numeroDossier, requete.SocieteId, maintenant, requete.AuteurId, societe.Profil);
+        await dossiers.AjouterAsync(dossier, ct).ConfigureAwait(false);
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+
+        var ticketsCrees = new List<Ticket>();
+        var blRefuses = new List<BlRefuseInfo>();
+
+        // research.md D4 : chaque BL est vérifié et créé indépendamment, jamais dans une
+        // transaction globale — un doublon sur un BL n'affecte jamais les autres BL de la même
+        // soumission (IMP-02, REC-SCE-01).
+        foreach (var numeroBlBrut in requete.NumerosBl)
+        {
+            // research.md D2 (CLARIFICATION PROJET) : seul le trim des espaces externes est
+            // appliqué avant persistance — jamais la casse (gérée par la collation explicite de la
+            // colonne, D3), jamais les tirets/espaces internes.
+            var numeroBl = numeroBlBrut.Trim();
+            var actif = await tickets.ObtenirTicketActifParNumeroBlAsync(numeroBl, ct).ConfigureAwait(false);
+            if (actif is not null)
+            {
+                blRefuses.Add(await CreerRefusAsync(numeroBl, actif, requete.SocieteId, ct).ConfigureAwait(false));
+                continue;
+            }
+
+            var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, TypeDemande, ct).ConfigureAwait(false);
+            var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileManifeste.Id, dossier.Id, maintenant, numeroBl);
+            await tickets.AjouterAsync(ticket, ct).ConfigureAwait(false);
+
+            try
+            {
+                await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+            }
+            catch (BlDejaActifException)
+            {
+                // Fenêtre de course (D3) : l'index unique filtré SQL Server a rejeté l'insertion
+                // entre notre pré-vérification et l'écriture — traité comme un refus ordinaire,
+                // sans affecter les autres BL de la soumission (D4). Le ticket gagnant n'est pas
+                // encore visible dans ce contexte (rollback implicite de l'entrée en échec) ; un
+                // rechargement ultérieur de la page de soumission permettrait d'y accéder si les
+                // droits le permettent.
+                blRefuses.Add(new BlRefuseInfo(numeroBl, null));
+                continue;
+            }
+
+            ticketsCrees.Add(ticket);
+            await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketImportCree", $"numeroBl={numeroBl}", requete.AuteurId, ct).ConfigureAwait(false);
+            await journalisation.ConsignerAuditAsync(requete.AuteurId, "TicketImportCree", nameof(Ticket), ticket.Id, null, numeroBl, ct).ConfigureAwait(false);
+        }
+
+        return new SoumettreDemandeImportResultat(dossier, ticketsCrees, blRefuses);
+    }
+
+    /// <summary>
+    /// CPT-04 (cloisonnement absolu) : l'accès au ticket existant n'est proposé que si son dossier
+    /// appartient à la **même société** que l'appelant — jamais d'exception, quel que soit le rôle.
+    /// </summary>
+    private async Task<BlRefuseInfo> CreerRefusAsync(string numeroBl, Ticket ticketActif, Guid societeAppelant, CancellationToken ct)
+    {
+        var dossierExistant = await dossiers.ObtenirParIdAsync(ticketActif.DossierId, ct).ConfigureAwait(false);
+        var accesAutorise = dossierExistant is not null && dossierExistant.ClientId == societeAppelant;
+        return new BlRefuseInfo(numeroBl, accesAutorise ? ticketActif.Id : null);
+    }
+}

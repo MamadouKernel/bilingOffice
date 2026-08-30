@@ -1,0 +1,90 @@
+@page "/billing-import/comptabilite-client"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@inject ConfirmerLettrageCommand ConfirmerLettrage
+@inject ConsulterFileBillingImportQuery ConsulterFile
+
+<PageTitle>File Comptabilité Client</PageTitle>
+
+<h1>File Comptabilité Client</h1>
+
+<p class="text-muted">Contrat C3-15 (IMP-31). Le lettrage est effectué hors portail dans IRIS
+(research.md D7, aucune intégration) — seule la confirmation est enregistrée ici. CLAR-DEPOSIT-01 :
+un lettrage impossible ou à reprendre n'a aucune contrepartie système ; le ticket reste dans cette
+file jusqu'à résolution manuelle.</p>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
+        <input id="agent" class="form-control" @bind="agentId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
+    </div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@if (tickets.Count > 0)
+{
+    <table class="table">
+        <thead><tr><th>Numéro</th><th>BL</th><th>Statut</th><th>Action</th></tr></thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.NumeroBl</td>
+                    <td>@ticket.Statut</td>
+                    <td><button class="btn btn-sm btn-outline-success" @onclick="() => ConfirmerAsync(ticket.Id)">Confirmer le lettrage</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string agentId = string.Empty;
+    private List<Ticket> tickets = [];
+    private string? message;
+    private bool erreur;
+
+    private async Task ChargerAsync()
+    {
+        message = null;
+        try
+        {
+            tickets = [.. await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), NomsFiles.ComptabiliteClient, [Permission.BillingImportComptabiliteConfirmerLettrage])];
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            tickets = [];
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task ConfirmerAsync(Guid ticketId)
+    {
+        message = null;
+        try
+        {
+            await ConfirmerLettrage.ConfirmerAsync(Guid.Parse(agentId), ticketId);
+            message = "Lettrage confirmé — ticket transféré au Contrôle Documentaire.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

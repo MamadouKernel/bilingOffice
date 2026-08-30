@@ -66,6 +66,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     public DbSet<EvenementSocle> JournalEvenements => Set<EvenementSocle>();
 
+    /// <summary>FEATURE 003 (research.md D8) : suivi des branches IES.</summary>
+    public DbSet<SuiviBrancheIes> SuivisBranchesIes => Set<SuiviBrancheIes>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -84,6 +87,21 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // Jeton de concurrence optimiste (D6/D3) — garantit qu'une seule prise en charge
             // concurrente réussit (règle métier critique « prise en charge concurrente »).
             b.Property(t => t.VersionConcurrence).IsRowVersion();
+            // FEATURE 003 (research.md D2/D3) : collation explicite et fixe, jamais héritée du
+            // défaut de l'instance SQL Server — garantit un comportement de comparaison identique
+            // (insensible à la casse, sensible aux accents) quelle que soit l'instance cible.
+            b.Property(t => t.NumeroBl).HasMaxLength(64).UseCollation("Latin1_General_CI_AS");
+            // FEATURE 003 (research.md D3, T017) : index unique filtré — inclusion EXPLICITE des
+            // statuts bloquants (jamais NOT IN), portée globale (CLAR-BL-01). Valeurs entières de
+            // StatutTicket (vérifiées dans StatutTicket.cs, aucune conversion configurée) :
+            // EnAttenteDePriseEnCharge=0, EnCours=1, EnAttenteClient=2 (Cloture=3, Annule=4 exclus
+            // par construction de la liste d'inclusion, jamais par une négation).
+            b.HasIndex(t => t.NumeroBl)
+                .IsUnique()
+                .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+            // FEATURE 003 (research.md D13bis) : distingue Rejeté d'un Annulé ordinaire sans
+            // modifier StatutTicket.
+            b.Property(t => t.TypeAnnulationImport).HasConversion<string>().HasMaxLength(32);
         });
 
         // REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : entité autonome, sans relation
@@ -96,6 +114,15 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         {
             b.HasKey(p => p.Id);
             b.HasIndex(p => p.TicketId);
+        });
+
+        // FEATURE 003 (research.md D8) : entité satellite autonome, même style que
+        // PeriodeAttenteClient ci-dessus — aucune relation EF configurée vers Ticket.
+        builder.Entity<SuiviBrancheIes>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.HasIndex(s => s.TicketId);
+            b.Property(s => s.Branche).HasConversion<string>().HasMaxLength(32);
         });
 
         builder.Entity<Dossier>(b =>

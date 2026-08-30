@@ -1,0 +1,77 @@
+@page "/billing-import/ticket-cloture"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Documents
+
+@inject ConsulterDocumentsTicketClotureQuery ConsulterDocuments
+
+<PageTitle>Ticket clôturé — documents</PageTitle>
+
+<h1>Consultation d'un ticket clôturé</h1>
+
+<p class="text-muted">Contrat C3-14 (IMP-22). Le client en compte récupère l'ensemble des documents
+du ticket clôturé (facture, BS, BADT — PC-08 non résolu, liste paramétrable).</p>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="client">Identifiant du client (société)</label>
+        <input id="client" class="form-control" @bind="clientId" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label" for="ticket">Identifiant du ticket</label>
+        <input id="ticket" class="form-control" @bind="ticketId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Consulter</button>
+    </div>
+</div>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger">@erreur</div>
+}
+
+@if (documents is not null)
+{
+    <table class="table">
+        <thead><tr><th>Fichier</th><th>Taille</th><th>Déposé le (UTC)</th></tr></thead>
+        <tbody>
+            @foreach (var document in documents)
+            {
+                <tr>
+                    <td>@document.NomFichier</td>
+                    <td>@document.TailleOctets octets</td>
+                    <td>@document.DateDepotUtc</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string clientId = string.Empty;
+    private string ticketId = string.Empty;
+    private IReadOnlyList<Document>? documents;
+    private string? erreur;
+
+    private async Task ChargerAsync()
+    {
+        erreur = null;
+        documents = null;
+        if (!Guid.TryParse(clientId, out var clientGuid) || !Guid.TryParse(ticketId, out var ticketGuid))
+        {
+            erreur = "Identifiants invalides.";
+            return;
+        }
+
+        try
+        {
+            documents = await ConsulterDocuments.ExecuterAsync(clientGuid, ticketGuid);
+        }
+        catch (AccesRefuseException ex)
+        {
+            erreur = ex.Message;
+        }
+    }
+}

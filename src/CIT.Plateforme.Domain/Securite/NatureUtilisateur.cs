@@ -50,4 +50,15 @@ public static class Permission
     /// <summary>FEATURE 002 (research.md D4) : gestion des collaborateurs d'une société (ENT-02),
     /// réservé à l'administrateur de la société concernée.</summary>
     public const string CompteGererCollaborateurs = "compte.gerer_collaborateurs";
+
+    // FEATURE 003 (research.md D15) — Billing Office IMPORT. Formulation neutre pour la validation
+    // du paiement (PC-03 non résolu, aucun rôle métier codé en dur).
+    public const string BillingImportSoumettre = "billing_import.soumettre";
+    public const string BillingImportManifesteInstruire = "billing_import.manifeste.instruire";
+    public const string BillingImportFacturationEditer = "billing_import.facturation.editer";
+    public const string BillingImportPaiementValider = "billing_import.paiement.valider";
+    public const string BillingImportComptabiliteConfirmerLettrage = "billing_import.comptabilite.confirmer_lettrage";
+    public const string BillingImportControleDocumentaireTraiter = "billing_import.controle_documentaire.traiter";
+    public const string BillingImportIesManifesteInstruire = "billing_import.ies.manifeste.instruire";
+    public const string BillingImportIesControleDocumentaireInstruire = "billing_import.ies.controle_documentaire.instruire";
 }

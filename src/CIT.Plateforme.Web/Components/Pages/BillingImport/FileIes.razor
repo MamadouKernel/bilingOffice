@@ -1,0 +1,126 @@
+@page "/billing-import/ies"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@inject InstruireBrancheIesCommand Instruire
+@inject ConstaterJointureIesEtFinaliserCommand ConstaterJointure
+@inject ConsulterFileBillingImportQuery ConsulterFile
+@inject ConsulterSuivisBranchesIesQuery ConsulterSuivis
+
+<PageTitle>File IES</PageTitle>
+
+<h1>File IES</h1>
+
+<p class="text-muted">Contrats C3-16/C3-17/C3-18 (IMP-40, IMP-41, IMP-42). Les deux branches
+progressent indépendamment (research.md D8/D9) ; la finalisation n'est possible qu'après jointure
+des deux — le mécanisme de séparation par permission est générique, la liste exacte des champs
+réservés à chaque rôle reste PC-05 (non résolu).</p>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
+        <input id="agent" class="form-control" @bind="agentId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
+    </div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@if (tickets.Count > 0)
+{
+    <table class="table">
+        <thead><tr><th>Numéro</th><th>BL</th><th>Branche Manifeste</th><th>Branche Contrôle Documentaire</th><th>Actions</th></tr></thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                var suivis = suivisParTicket.TryGetValue(ticket.Id, out var s) ? s : [];
+                var manifeste = suivis.SingleOrDefault(x => x.Branche == BrancheIes.Manifeste);
+                var controleDocumentaire = suivis.SingleOrDefault(x => x.Branche == BrancheIes.ControleDocumentaire);
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.NumeroBl</td>
+                    <td>@(manifeste?.EstTerminee == true ? "Achevée" : "En cours")</td>
+                    <td>@(controleDocumentaire?.EstTerminee == true ? "Achevée" : "En cours")</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => AcheverAsync(ticket.Id, BrancheIes.Manifeste)">Achever Manifeste</button>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => AcheverAsync(ticket.Id, BrancheIes.ControleDocumentaire)">Achever Contrôle Documentaire</button>
+                        <button class="btn btn-sm btn-outline-success" @onclick="() => FinaliserAsync(ticket.Id)">Constater jointure et finaliser</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string agentId = string.Empty;
+    private List<Ticket> tickets = [];
+    private Dictionary<Guid, List<SuiviBrancheIes>> suivisParTicket = [];
+    private string? message;
+    private bool erreur;
+
+    private async Task ChargerAsync()
+    {
+        message = null;
+        try
+        {
+            tickets = [.. await ConsulterFile.ExecuterAsync(
+                Guid.Parse(agentId), NomsFiles.FileIes,
+                [Permission.BillingImportIesManifesteInstruire, Permission.BillingImportIesControleDocumentaireInstruire])];
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            tickets = [];
+            message = ex.Message;
+            erreur = true;
+        }
+
+        suivisParTicket = [];
+        foreach (var ticket in tickets)
+        {
+            suivisParTicket[ticket.Id] = [.. await ConsulterSuivis.ExecuterAsync(Guid.Parse(agentId), ticket.Id)];
+        }
+    }
+
+    private async Task AcheverAsync(Guid ticketId, BrancheIes branche)
+    {
+        message = null;
+        try
+        {
+            await Instruire.ExecuterAsync(Guid.Parse(agentId), ticketId, branche);
+            message = $"Branche {branche} achevée.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task FinaliserAsync(Guid ticketId)
+    {
+        message = null;
+        try
+        {
+            await ConstaterJointure.ExecuterAsync(Guid.Parse(agentId), ticketId);
+            message = "Jointure constatée — ticket IES clôturé.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

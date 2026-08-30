@@ -30,6 +30,30 @@ public sealed class TicketRepository(PlateformeDbContext dbContext) : ITicketRep
 
     public async Task<IReadOnlyList<Ticket>> ListerParOperateurAsync(Guid operateurId, CancellationToken ct = default) =>
         await dbContext.Tickets.Where(t => t.OperateurAssigneId == operateurId).ToListAsync(ct).ConfigureAwait(false);
+
+    // FEATURE 003 (research.md D3, UNI-01, UNI-03) : pré-vérification applicative — statuts
+    // bloquants par INCLUSION explicite, jamais NOT IN (cohérent avec le prédicat de l'index unique
+    // filtré réel). Portée strictement limitée au module Billing IMPORT (UNI-03) : un même numéro
+    // de BL référencé par un ticket d'un autre module (ex. Customer Complaint) n'entre jamais dans
+    // ce contrôle.
+    public Task<Ticket?> ObtenirTicketActifParNumeroBlAsync(string numeroBl, CancellationToken ct = default) =>
+        dbContext.Tickets.SingleOrDefaultAsync(
+            t => t.NumeroBl == numeroBl &&
+                 t.Module == "BillingImport" &&
+                 (t.Statut == StatutTicket.EnAttenteDePriseEnCharge ||
+                  t.Statut == StatutTicket.EnCours ||
+                  t.Statut == StatutTicket.EnAttenteClient),
+            ct);
+}
+
+/// <summary>FEATURE 003 (research.md D8).</summary>
+public sealed class SuiviBrancheIesRepository(PlateformeDbContext dbContext) : ISuiviBrancheIesRepository
+{
+    public async Task AjouterAsync(SuiviBrancheIes suivi, CancellationToken ct = default) =>
+        await dbContext.SuivisBranchesIes.AddAsync(suivi, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<SuiviBrancheIes>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        await dbContext.SuivisBranchesIes.Where(s => s.TicketId == ticketId).ToListAsync(ct).ConfigureAwait(false);
 }
 
 public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierRepository
@@ -268,7 +292,28 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
                 Source = ex.Source,
             };
         }
+        catch (DbUpdateException ex) when (EstViolationIndexNumeroBl(ex))
+        {
+            // FEATURE 003 (research.md D3, T020) : violation de l'index unique filtré sur
+            // NumeroBl — fenêtre de course entre la pré-vérification applicative (T013/T015) et
+            // l'écriture. Seule traduction ici : jamais une exception technique brute exposée à
+            // l'appelant Application.
+            var numeroBl = ExtraireNumeroBlEnEchec(ex);
+            throw new BlDejaActifException(numeroBl ?? "inconnu");
+        }
     }
+
+    /// <summary>Détecte, sans dépendre du provider SQL exact, une violation de contrainte unique
+    /// (SQL Server : 2601/2627) portant spécifiquement sur l'index de NumeroBl — jamais une
+    /// violation de contrainte non liée, qui doit rester une <see cref="DbUpdateException"/>
+    /// brute (remontée telle quelle par l'absence de filtre correspondant).</summary>
+    private static bool EstViolationIndexNumeroBl(DbUpdateException ex) =>
+        ex.InnerException is Microsoft.Data.SqlClient.SqlException sql &&
+        (sql.Number == 2601 || sql.Number == 2627) &&
+        sql.Message.Contains("IX_Tickets_NumeroBl", StringComparison.OrdinalIgnoreCase);
+
+    private static string? ExtraireNumeroBlEnEchec(DbUpdateException ex) =>
+        ex.Entries.Select(e => e.Entity).OfType<Ticket>().FirstOrDefault()?.NumeroBl;
 }
 
 /// <summary>FEATURE 002 (research.md D2).</summary>

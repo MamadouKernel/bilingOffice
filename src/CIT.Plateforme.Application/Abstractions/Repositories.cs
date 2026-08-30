@@ -21,6 +21,13 @@ public interface ITicketRepository
     Task<IReadOnlyList<Ticket>> ListerParFileAsync(Guid fileId, CancellationToken ct = default);
 
     Task<IReadOnlyList<Ticket>> ListerParOperateurAsync(Guid operateurId, CancellationToken ct = default);
+
+    /// <summary>FEATURE 003 (research.md D2/D3, UNI-01) : recherche un ticket **actif** (statut ∈
+    /// {EnAttenteDePriseEnCharge, EnCours, EnAttenteClient}) pour un numéro de BL donné, portée
+    /// globale (CLAR-BL-01) — pré-vérification applicative, avant toute tentative d'insertion. La
+    /// garantie effective sous concurrence réelle reste l'index unique filtré SQL Server (D3).
+    /// </summary>
+    Task<Ticket?> ObtenirTicketActifParNumeroBlAsync(string numeroBl, CancellationToken ct = default);
 }
 
 public interface IDossierRepository
@@ -141,6 +148,14 @@ public interface IPeriodeAttenteClientRepository
     Task<PeriodeAttenteClient?> ObtenirDerniereOuvertePourTicketAsync(Guid ticketId, CancellationToken ct = default);
 
     Task<IReadOnlyList<PeriodeAttenteClient>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 003 (research.md D8) : port du suivi des branches IES (IMP-40, IMP-41).</summary>
+public interface ISuiviBrancheIesRepository
+{
+    Task AjouterAsync(SuiviBrancheIes suivi, CancellationToken ct = default);
+
+    Task<IReadOnlyList<SuiviBrancheIes>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
 }
 
 /// <summary>Unité de travail EF Core (D3) — les cas d'usage ne connaissent que cette abstraction,

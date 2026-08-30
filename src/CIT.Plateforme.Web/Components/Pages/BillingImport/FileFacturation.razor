@@ -1,0 +1,101 @@
+@page "/billing-import/facturation"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Documents
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Documents
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@using Microsoft.AspNetCore.Components.Forms
+@inject EditerFactureCommand EditerFacture
+@inject ConsulterFileBillingImportQuery ConsulterFile
+
+<PageTitle>File Facturation</PageTitle>
+
+<h1>File Facturation</h1>
+
+<p class="text-muted">Contrat C3-09 (IMP-11). L'édition de la facture aiguille automatiquement le
+ticket selon le type de client (D6) : Normal → Validation Paiement ; En Compte → Contrôle
+Documentaire direct ; Deposit → Comptabilité Client.</p>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
+        <input id="agent" class="form-control" @bind="agentId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
+    </div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@if (tickets.Count > 0)
+{
+    <table class="table">
+        <thead><tr><th>Numéro</th><th>BL</th><th>Statut</th><th>Facture</th></tr></thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.NumeroBl</td>
+                    <td>@ticket.Statut</td>
+                    <td><InputFile OnChange="e => EditerFactureAsync(ticket.Id, e)" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private static readonly ReglesDepotDocument ReglesDemonstration = new(
+        ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
+
+    private string agentId = string.Empty;
+    private List<Ticket> tickets = [];
+    private string? message;
+    private bool erreur;
+
+    private async Task ChargerAsync()
+    {
+        message = null;
+        try
+        {
+            tickets = [.. await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), NomsFiles.Facturation, [Permission.BillingImportFacturationEditer])];
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            tickets = [];
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task EditerFactureAsync(Guid ticketId, InputFileChangeEventArgs e)
+    {
+        message = null;
+        try
+        {
+            await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            await EditerFacture.ExecuterAsync(
+                Guid.Parse(agentId), ticketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
+
+            message = "Facture éditée et ticket aiguillé.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

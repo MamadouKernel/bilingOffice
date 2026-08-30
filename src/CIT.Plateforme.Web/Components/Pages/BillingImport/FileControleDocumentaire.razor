@@ -1,0 +1,99 @@
+@page "/billing-import/controle-documentaire"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Documents
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@using Microsoft.AspNetCore.Components.Forms
+@inject DeposerDocumentsControleEtCloturerCommand ControleEtCloturer
+@inject ConsulterFileBillingImportQuery ConsulterFile
+
+<PageTitle>File Contrôle Documentaire</PageTitle>
+
+<h1>File Contrôle Documentaire</h1>
+
+<p class="text-muted">Contrat C3-12 (IMP-14). Le dépôt des pièces de contrôle (BS/BADT — PC-08 non
+résolu, liste paramétrable) clôture immédiatement le ticket.</p>
+
+<div class="row mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
+        <input id="agent" class="form-control" @bind="agentId" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
+    </div>
+</div>
+
+@if (message is not null)
+{
+    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+}
+
+@if (tickets.Count > 0)
+{
+    <table class="table">
+        <thead><tr><th>Numéro</th><th>BL</th><th>Statut</th><th>Pièce de contrôle (BS/BADT)</th></tr></thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.Numero</td>
+                    <td>@ticket.NumeroBl</td>
+                    <td>@ticket.Statut</td>
+                    <td><InputFile OnChange="e => DeposerEtCloturerAsync(ticket.Id, e)" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private static readonly ReglesDepotDocument ReglesDemonstration = new(
+        ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
+
+    private string agentId = string.Empty;
+    private List<Ticket> tickets = [];
+    private string? message;
+    private bool erreur;
+
+    private async Task ChargerAsync()
+    {
+        message = null;
+        try
+        {
+            tickets = [.. await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), NomsFiles.ControleDocumentaire, [Permission.BillingImportControleDocumentaireTraiter])];
+            erreur = false;
+        }
+        catch (Exception ex)
+        {
+            tickets = [];
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+
+    private async Task DeposerEtCloturerAsync(Guid ticketId, InputFileChangeEventArgs e)
+    {
+        message = null;
+        try
+        {
+            await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            await ControleEtCloturer.ExecuterAsync(
+                Guid.Parse(agentId), ticketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
+
+            message = "Pièce déposée — ticket clôturé.";
+            erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            erreur = true;
+        }
+    }
+}

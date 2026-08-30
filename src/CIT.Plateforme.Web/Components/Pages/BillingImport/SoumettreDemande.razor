@@ -1,0 +1,108 @@
+@page "/billing-import/soumettre"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@inject SoumettreDemandeImportCommand Soumettre
+
+<PageTitle>Soumettre une demande IMPORT</PageTitle>
+
+<h1>Soumettre une demande IMPORT</h1>
+
+<p class="text-muted">
+    Contrat C3-01/C3-02 (IMP-01, IMP-02, IMP-03, UNI-01→03). Chaque BL génère un ticket indépendant,
+    contrôlé individuellement pour l'unicité (portée globale, CLAR-BL-01). PC-19 (une éventuelle
+    limite du nombre de BL par demande) reste un point ouvert non tranché — aucune limite n'est
+    appliquée par le serveur en l'état.
+</p>
+
+<EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-demande-import">
+    <div class="mb-3">
+        <label class="form-label" for="societe">Identifiant de la société (démonstration)</label>
+        <InputText id="societe" class="form-control" @bind-Value="modele.SocieteId" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="auteur">Identifiant de l'utilisateur soumetteur (démonstration)</label>
+        <InputText id="auteur" class="form-control" @bind-Value="modele.AuteurId" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="numeros-bl">Numéros de BL (un par ligne)</label>
+        <InputTextArea id="numeros-bl" class="form-control" rows="5" @bind-Value="modele.NumerosBl" />
+    </div>
+    <button type="submit" class="btn btn-primary">Soumettre</button>
+</EditForm>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger mt-3">@erreur</div>
+}
+
+@if (resultat is not null)
+{
+    <div class="alert alert-success mt-3">
+        Dossier <strong>@resultat.Dossier.Numero</strong> créé.
+        @if (resultat.TicketsCrees.Count > 0)
+        {
+            <p>Tickets créés : @string.Join(", ", resultat.TicketsCrees.Select(t => $"{t.Numero} (BL {t.NumeroBl})"))</p>
+        }
+        @if (resultat.BlRefuses.Count > 0)
+        {
+            <p class="text-danger">
+                BL refusés (déjà actifs) :
+                @foreach (var refus in resultat.BlRefuses)
+                {
+                    @if (refus.TicketExistantId is Guid ticketId)
+                    {
+                        <span>@refus.NumeroBl (ticket existant : @ticketId) </span>
+                    }
+                    else
+                    {
+                        <span>@refus.NumeroBl (une demande est déjà en cours) </span>
+                    }
+                }
+            </p>
+        }
+    </div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    private ModeleSoumission? modeleFormulaire { get; set; }
+
+    private ModeleSoumission modele = new();
+    private SoumettreDemandeImportResultat? resultat;
+    private string? erreur;
+
+    protected override void OnInitialized() => modele = modeleFormulaire ?? modele;
+
+    private async Task SoumettreAsync()
+    {
+        erreur = null;
+        resultat = null;
+
+        if (!Guid.TryParse(modele.SocieteId, out var societeId) || !Guid.TryParse(modele.AuteurId, out var auteurId))
+        {
+            erreur = "Identifiants invalides.";
+            return;
+        }
+
+        var numerosBl = modele.NumerosBl
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        try
+        {
+            resultat = await Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societeId, auteurId, numerosBl));
+        }
+        catch (AccesRefuseException ex)
+        {
+            erreur = ex.Message;
+        }
+    }
+
+    private sealed class ModeleSoumission
+    {
+        public string SocieteId { get; set; } = string.Empty;
+        public string AuteurId { get; set; } = string.Empty;
+        public string NumerosBl { get; set; } = string.Empty;
+    }
+}

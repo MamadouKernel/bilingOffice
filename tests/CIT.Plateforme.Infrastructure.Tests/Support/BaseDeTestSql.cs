@@ -1,3 +1,5 @@
+using CIT.Plateforme.Application.BillingImport;
+using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +48,20 @@ public static class BaseDeTestSql
                     // de la suite de tests.
                     contexte.Database.EnsureDeleted();
                     contexte.Database.EnsureCreated();
+
+                    // REMÉDIATION AUDIT (post-implementation-audit.md §10.4) : plusieurs classes
+                    // de test Billing IMPORT ont chacune besoin de la file « Pilote Manifeste »
+                    // paramétrée et l'inséraient auparavant elles-mêmes, sans contrôle
+                    // d'existence — deux classes insérant chacune leur propre ligne produisaient
+                    // un doublon détecté par un `SingleOrDefault` dans `SoumettreDemandeImportCommand`.
+                    // Semée une seule fois ici, dans la même section protégée par le verrou de
+                    // création de la base : donnée de référence désormais idempotente/unique pour
+                    // tout l'assembly, plutôt qu'une sérialisation qui ne suffirait pas à elle
+                    // seule (deux insertions inconditionnelles produisent un doublon qu'elles
+                    // s'exécutent en parallèle ou en séquence).
+                    contexte.Files.Add(FileDeTraitement.Creer(SoumettreDemandeImportCommand.Module, SoumettreDemandeImportCommand.FilePiloteManifeste));
+                    contexte.SaveChanges();
+
                     baseDejaCreee = true;
                 }
             }
