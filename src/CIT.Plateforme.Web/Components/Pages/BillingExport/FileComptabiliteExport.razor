@@ -1,0 +1,169 @@
+@page "/billing-export/comptabilite"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingExport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject ConfirmerLettrageExportCommand ConfirmerLettrage
+@inject ConsulterFileBillingExportQuery ConsulterFile
+
+<PageTitle>File Comptabilité Client EXPORT — CIT</PageTitle>
+
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">File Comptabilité Client EXPORT</h2>
+            <div class="text-muted small">Rapprochement et confirmation du lettrage des comptes clients Deposit Export</div>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
+        </div>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des dossiers Deposit Export en attente de lettrage..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_message is not null)
+        {
+            <div class="alert @(_erreur ? "alert-danger" : "alert-success") mb-3">@_message</div>
+        }
+
+        @if (_tickets.Count == 0)
+        {
+            <EtatVide Titre="Aucun dossier en attente de lettrage"
+                      Description="Tous les dossiers Deposit Export ont été lettrés."
+                      Icone="💰" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Ticket</th>
+                                <th>Numéro Booking</th>
+                                <th>Statut</th>
+                                <th>Arrivée en file</th>
+                                <th class="text-end">Action Comptabilité</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in _tickets)
+                            {
+                                var t = ticket;
+                                <tr>
+                                    <td>
+                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
+                                            @t.Numero
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">@t.NumeroBooking</span>
+                                    </td>
+                                    <td>
+                                        <StatutBadge Statut="@t.Statut" />
+                                    </td>
+                                    <td class="small text-muted">
+                                        @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
+                                                🔍 Fiche
+                                            </a>
+                                            <button class="btn btn-outline-success" @onclick="() => ConfirmerLettrageAsync(t.Id)" title="Confirmer le lettrage">
+                                                ✅ Confirmer le lettrage
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private Guid _agentId;
+
+    private IReadOnlyList<Ticket> _tickets = [];
+    private string? _message;
+    private bool _erreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _message = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || contexte.Nature == NatureUtilisateur.Client)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Cet espace est strictement réservé aux agents de comptabilité client.";
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            _tickets = await ConsulterFile.ExecuterAsync(
+                _agentId,
+                NomsFilesExport.ComptabiliteClient,
+                [Permission.BillingExportComptabiliteConfirmerLettrage]);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = true;
+            _message = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ConfirmerLettrageAsync(Guid ticketId)
+    {
+        _message = null;
+        _erreur = false;
+        try
+        {
+            await ConfirmerLettrage.ExecuterAsync(_agentId, ticketId);
+            _message = "Le lettrage a été confirmé. Le ticket a été orienté vers le Contrôle Documentaire.";
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = true;
+            _message = ex.Message;
+        }
+    }
+}

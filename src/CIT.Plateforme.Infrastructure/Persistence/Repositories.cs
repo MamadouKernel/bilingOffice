@@ -60,6 +60,16 @@ public sealed class TicketRepository(PlateformeDbContext dbContext) : ITicketRep
                   t.Statut == StatutTicket.EnCours ||
                   t.Statut == StatutTicket.EnAttenteClient),
             ct);
+
+    // FEATURE 004 (research.md D2/D3, UNI-04, CLAR-BOOK-01) : pré-vérification applicative pour booking actif
+    public Task<Ticket?> ObtenirTicketActifParNumeroBookingAsync(string numeroBooking, CancellationToken ct = default) =>
+        dbContext.Tickets.SingleOrDefaultAsync(
+            t => t.NumeroBooking == numeroBooking &&
+                 t.Module == "BillingExport" &&
+                 (t.Statut == StatutTicket.EnAttenteDePriseEnCharge ||
+                  t.Statut == StatutTicket.EnCours ||
+                  t.Statut == StatutTicket.EnAttenteClient),
+            ct);
 }
 
 /// <summary>FEATURE 003 (research.md D8).</summary>
@@ -313,12 +323,15 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
         }
         catch (DbUpdateException ex) when (EstViolationIndexNumeroBl(ex))
         {
-            // FEATURE 003 (research.md D3, T020) : violation de l'index unique filtré sur
-            // NumeroBl — fenêtre de course entre la pré-vérification applicative (T013/T015) et
-            // l'écriture. Seule traduction ici : jamais une exception technique brute exposée à
-            // l'appelant Application.
+            // FEATURE 003 (research.md D3, T020) : violation de l'index unique filtré sur NumeroBl
             var numeroBl = ExtraireNumeroBlEnEchec(ex);
             throw new BlDejaActifException(numeroBl ?? "inconnu");
+        }
+        catch (DbUpdateException ex) when (EstViolationIndexNumeroBooking(ex))
+        {
+            // FEATURE 004 (research.md D2, UNI-04) : violation de l'index unique filtré sur NumeroBooking
+            var numeroBooking = ExtraireNumeroBookingEnEchec(ex);
+            throw new Application.BillingExport.BookingDejaActifException(numeroBooking ?? "inconnu");
         }
     }
 
@@ -333,6 +346,14 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
 
     private static string? ExtraireNumeroBlEnEchec(DbUpdateException ex) =>
         ex.Entries.Select(e => e.Entity).OfType<Ticket>().FirstOrDefault()?.NumeroBl;
+
+    private static bool EstViolationIndexNumeroBooking(DbUpdateException ex) =>
+        ex.InnerException is Microsoft.Data.SqlClient.SqlException sql &&
+        (sql.Number == 2601 || sql.Number == 2627) &&
+        sql.Message.Contains("IX_Tickets_NumeroBooking", StringComparison.OrdinalIgnoreCase);
+
+    private static string? ExtraireNumeroBookingEnEchec(DbUpdateException ex) =>
+        ex.Entries.Select(e => e.Entity).OfType<Ticket>().FirstOrDefault()?.NumeroBooking;
 }
 
 /// <summary>FEATURE 002 (research.md D2).</summary>

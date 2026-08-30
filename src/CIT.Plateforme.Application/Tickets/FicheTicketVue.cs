@@ -63,5 +63,7 @@ public sealed record FicheTicketVue(
     bool PeutDeposerDocument,
     IReadOnlyList<ChronologieItemVue> Chronologie,
     IReadOnlyList<DocumentItemVue> Documents,
-    IReadOnlyList<MessageItemVue> Messages
+    IReadOnlyList<MessageItemVue> Messages,
+    string? NumeroBooking = null,
+    TypeAnnulationExport? TypeAnnulationExport = null
 );

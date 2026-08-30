@@ -29,11 +29,14 @@ public interface ITicketRepository
     Task<IReadOnlyList<Ticket>> ListerTousAsync(CancellationToken ct = default);
 
     /// <summary>FEATURE 003 (research.md D2/D3, UNI-01) : recherche un ticket **actif** (statut ∈
-    /// {EnAttenteDePriseEnCharge, EnCours, EnAttenteClient}) pour un numéro de BL donné, portée
-    /// globale (CLAR-BL-01) — pré-vérification applicative, avant toute tentative d'insertion. La
-    /// garantie effective sous concurrence réelle reste l'index unique filtré SQL Server (D3).
+    /// {EnAttenteDePriseEnCharge, EnCours, EnAttenteClient}) pour un numéro de BL donné.
     /// </summary>
     Task<Ticket?> ObtenirTicketActifParNumeroBlAsync(string numeroBl, CancellationToken ct = default);
+
+    /// <summary>FEATURE 004 (research.md D2, UNI-04, CLAR-BOOK-01) : recherche un ticket **actif**
+    /// pour un numéro de booking donné.
+    /// </summary>
+    Task<Ticket?> ObtenirTicketActifParNumeroBookingAsync(string numeroBooking, CancellationToken ct = default);
 }
 
 public interface IDossierRepository

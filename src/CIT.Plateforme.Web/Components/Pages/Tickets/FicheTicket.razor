@@ -44,7 +44,18 @@
                 </button>
                 <div>
                     <h3 class="fw-bold mb-0 text-dark">
-                        Ticket @(_fiche.NumeroBl ?? _fiche.NumeroTicket)
+                        @if (!string.IsNullOrWhiteSpace(_fiche.NumeroBooking))
+                        {
+                            <span>Booking @_fiche.NumeroBooking</span>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_fiche.NumeroBl))
+                        {
+                            <span>BL @_fiche.NumeroBl</span>
+                        }
+                        else
+                        {
+                            <span>Ticket @_fiche.NumeroTicket</span>
+                        }
                     </h3>
                     <div class="small text-muted">
                         Dossier : <a href="/dossiers/@_fiche.DossierId" class="text-decoration-none fw-semibold">@_fiche.NumeroDossier</a> • Ref : @_fiche.NumeroTicket
@@ -53,6 +64,10 @@
             </div>
             <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
                 <StatutBadge Statut="@_fiche.Statut" />
+                @if (_fiche.TypeAnnulationExport == TypeAnnulationExport.RejetBackOffice)
+                {
+                    <span class="badge bg-danger">❌ Rejet Back Office</span>
+                }
                 @if (_fiche.DeclarationPresentielle)
                 {
                     <span class="badge bg-dark">🏛️ Finalisation Présentielle</span>
@@ -99,6 +114,20 @@
                             <span class="text-muted">Module :</span>
                             <span class="fw-semibold">@_fiche.Module</span>
                         </li>
+                        @if (!string.IsNullOrWhiteSpace(_fiche.NumeroBooking))
+                        {
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Booking :</span>
+                                <span class="fw-semibold text-primary">@_fiche.NumeroBooking</span>
+                            </li>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(_fiche.NumeroBl))
+                        {
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Connaissement BL :</span>
+                                <span class="fw-semibold text-primary">@_fiche.NumeroBl</span>
+                            </li>
+                        }
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">File actuelle :</span>
                             <span class="badge bg-light text-dark border">@_fiche.FileNom</span>

@@ -8,6 +8,7 @@ namespace CIT.Plateforme.Application.Client;
 public enum TypeActionRequise
 {
     ComplementManifeste,
+    ComplementExport,
     PaiementAttendu,
     NouvellePreuveRequise
 }
@@ -21,7 +22,8 @@ public sealed record ActionRequiseItemVue(
     string Description,
     string ActionLibelle,
     string UrlCible,
-    DateTime DateDeclenchementUtc
+    DateTime DateDeclenchementUtc,
+    string? NumeroBooking = null
 );
 
 public enum StatutVisuelDossier
@@ -39,7 +41,8 @@ public sealed record TicketResumeVue(
     string NumeroTicket,
     string? NumeroBl,
     StatutTicket Statut,
-    DateTime DateDerniereActiviteUtc
+    DateTime DateDerniereActiviteUtc,
+    string? NumeroBooking = null
 );
 
 public sealed record DossierResumeVue(

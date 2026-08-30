@@ -35,7 +35,10 @@
                     <span>📁</span> Mes demandes
                 </NavLink>
                 <NavLink class="cit-nav-item" href="/billing-import/soumettre">
-                    <span>➕</span> Nouvelle demande IMPORT
+                    <span>📥</span> Demande IMPORT (BL)
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/soumettre">
+                    <span>📤</span> Demande EXPORT (Booking)
                 </NavLink>
                 <div class="cit-nav-group-title mt-3">Compte & Sécurité</div>
                 <NavLink class="cit-nav-item" href="/comptes/profil">
@@ -57,6 +60,9 @@
                 <NavLink class="cit-nav-item" href="/client/demandes?vue=societe">
                     <span>📂</span> Demandes de la société
                 </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/soumettre">
+                    <span>📤</span> Nouvelle demande EXPORT
+                </NavLink>
                 <div class="cit-nav-group-title mt-3">Compte</div>
                 <NavLink class="cit-nav-item" href="/comptes/profil">
                     <span>⚙️</span> Profil de l'entreprise
@@ -68,24 +74,43 @@
                 <NavLink class="cit-nav-item" href="/agent/dashboard" Match="NavLinkMatch.All">
                     <span>📋</span> Tableau de bord Agent
                 </NavLink>
-                <div class="cit-nav-group-title mt-3">Files de Traitement</div>
+                <div class="cit-nav-group-title mt-3">Billing IMPORT</div>
                 <NavLink class="cit-nav-item" href="/billing-import/manifeste">
                     <span>📜</span> Pilote Manifeste
                 </NavLink>
                 <NavLink class="cit-nav-item" href="/billing-import/facturation">
-                    <span>💳</span> Facturation
+                    <span>💳</span> Facturation Import
                 </NavLink>
                 <NavLink class="cit-nav-item" href="/billing-import/validation-paiement">
-                    <span>💰</span> Validation Caisse
+                    <span>💰</span> Validation Caisse Import
                 </NavLink>
                 <NavLink class="cit-nav-item" href="/billing-import/controle-documentaire">
-                    <span>📑</span> Contrôle Documentaire
+                    <span>📑</span> Contrôle Doc Import
                 </NavLink>
                 <NavLink class="cit-nav-item" href="/billing-import/comptabilite-client">
-                    <span>💼</span> Comptabilité Client
+                    <span>💼</span> Comptabilité Deposit Import
                 </NavLink>
                 <NavLink class="cit-nav-item" href="/billing-import/ies">
-                    <span>⚡</span> Traitement IES
+                    <span>⚡</span> Traitement IES Import
+                </NavLink>
+                <div class="cit-nav-group-title mt-3">Billing EXPORT</div>
+                <NavLink class="cit-nav-item" href="/billing-export/back-office">
+                    <span>📦</span> Back Office Export
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/facturation">
+                    <span>💳</span> Facturation Export
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/validation-paiement">
+                    <span>💰</span> Validation Caisse Export
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/controle-documentaire">
+                    <span>📑</span> Contrôle Doc Export (BEE)
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/comptabilite">
+                    <span>💼</span> Comptabilité Deposit Export
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-export/ies">
+                    <span>⚡</span> Traitement IES Export
                 </NavLink>
                 break;
 

@@ -60,6 +60,7 @@ public static class BaseDeTestSql
                     // seule (deux insertions inconditionnelles produisent un doublon qu'elles
                     // s'exécutent en parallèle ou en séquence).
                     contexte.Files.Add(FileDeTraitement.Creer(SoumettreDemandeImportCommand.Module, SoumettreDemandeImportCommand.FilePiloteManifeste));
+                    contexte.Files.Add(FileDeTraitement.Creer("BillingExport", "Back Office Export"));
                     contexte.SaveChanges();
 
                     baseDejaCreee = true;

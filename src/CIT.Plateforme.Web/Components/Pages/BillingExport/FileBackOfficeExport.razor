@@ -1,0 +1,289 @@
+@page "/billing-export/back-office"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingExport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject ValiderTicketExportCommand Valider
+@inject RejeterTicketExportCommand Rejeter
+@inject GestionComplementExportCommand Complement
+@inject ConsulterFileBillingExportQuery ConsulterFile
+
+<PageTitle>File Back Office EXPORT — CIT</PageTitle>
+
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">File Back Office EXPORT</h2>
+            <div class="text-muted small">Instruction initiale et contrôle des réservations Export (Bookings)</div>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
+        </div>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des tickets de la file Back Office Export..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-3">@_erreur</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_actionSuccess))
+        {
+            <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        }
+
+        @if (_tickets.Count == 0)
+        {
+            <EtatVide Titre="Aucun ticket en instance"
+                      Description="Tous les dossiers de la file Back Office Export ont été traités."
+                      Icone="📦" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Ticket</th>
+                                <th>Numéro Booking</th>
+                                <th>Statut</th>
+                                <th>Arrivée en file</th>
+                                <th class="text-end">Actions d'instruction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in _tickets)
+                            {
+                                var t = ticket;
+                                <tr>
+                                    <td>
+                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
+                                            @t.Numero
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">@t.NumeroBooking</span>
+                                    </td>
+                                    <td>
+                                        <StatutBadge Statut="@t.Statut" />
+                                    </td>
+                                    <td class="small text-muted">
+                                        @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
+                                                🔍 Fiche
+                                            </a>
+                                            <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="Valider le Booking">
+                                                ✅ Valider
+                                            </button>
+                                            <button class="btn btn-outline-warning" @onclick="() => OuvrirModalComplement(t.Id)" title="Demander un complément">
+                                                💬 Complément
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => OuvrirModalRejet(t.Id)" title="Rejeter la demande">
+                                                ❌ Rejeter
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@if (_ticketIdPourAction.HasValue && _modeModal == "rejet")
+{
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger">Rejet du Booking Export</h5>
+                    <button type="button" class="btn-close" @onclick="FermerModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Ce motif sera consigné dans l'historique et le ticket sera annulé.</p>
+                    <label class="form-label fw-semibold">Motif du rejet (obligatoire)</label>
+                    <textarea class="form-control" rows="3" @bind="_texteAction" placeholder="Indiquer la raison du rejet..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="FermerModal">Annuler</button>
+                    <button type="button" class="btn btn-danger fw-bold" disabled="@string.IsNullOrWhiteSpace(_texteAction)" @onclick="ConfirmerRejetAsync">
+                        Confirmer le rejet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_ticketIdPourAction.HasValue && _modeModal == "complement")
+{
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-warning text-dark">Demande de complément</h5>
+                    <button type="button" class="btn-close" @onclick="FermerModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Le ticket passera en attente client et le SLA interne sera suspendu.</p>
+                    <label class="form-label fw-semibold">Éléments attendus</label>
+                    <textarea class="form-control" rows="3" @bind="_texteAction" placeholder="Préciser les informations ou pièces demandées..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="FermerModal">Annuler</button>
+                    <button type="button" class="btn btn-warning fw-bold" disabled="@string.IsNullOrWhiteSpace(_texteAction)" @onclick="ConfirmerComplementAsync">
+                        Envoyer la demande
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private Guid _agentId;
+
+    private IReadOnlyList<Ticket> _tickets = [];
+    private string? _erreur;
+    private string? _actionSuccess;
+
+    private Guid? _ticketIdPourAction;
+    private string _modeModal = string.Empty;
+    private string _texteAction = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || contexte.Nature == NatureUtilisateur.Client)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Cet espace est strictement réservé aux opérateurs habilités du Billing Office.";
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            _tickets = await ConsulterFile.ExecuterAsync(
+                _agentId,
+                NomsFilesExport.BackOfficeExport,
+                [Permission.BillingExportBackOfficeInstruire]);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ValiderAsync(Guid ticketId)
+    {
+        _erreur = null;
+        _actionSuccess = null;
+        try
+        {
+            await Valider.ExecuterAsync(_agentId, ticketId);
+            _actionSuccess = "Le ticket a été validé et transmis à l'étape suivante.";
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private void OuvrirModalRejet(Guid ticketId)
+    {
+        _ticketIdPourAction = ticketId;
+        _modeModal = "rejet";
+        _texteAction = string.Empty;
+    }
+
+    private void OuvrirModalComplement(Guid ticketId)
+    {
+        _ticketIdPourAction = ticketId;
+        _modeModal = "complement";
+        _texteAction = string.Empty;
+    }
+
+    private void FermerModal()
+    {
+        _ticketIdPourAction = null;
+        _modeModal = string.Empty;
+        _texteAction = string.Empty;
+    }
+
+    private async Task ConfirmerRejetAsync()
+    {
+        if (!_ticketIdPourAction.HasValue || string.IsNullOrWhiteSpace(_texteAction)) return;
+        _erreur = null;
+        try
+        {
+            await Rejeter.ExecuterAsync(_agentId, _ticketIdPourAction.Value, _texteAction);
+            _actionSuccess = "La demande a été rejetée.";
+            FermerModal();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private async Task ConfirmerComplementAsync()
+    {
+        if (!_ticketIdPourAction.HasValue || string.IsNullOrWhiteSpace(_texteAction)) return;
+        _erreur = null;
+        try
+        {
+            await Complement.DemanderComplementAsync(_agentId, _ticketIdPourAction.Value, _texteAction);
+            _actionSuccess = "La demande de complément a été transmise au client.";
+            FermerModal();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+}

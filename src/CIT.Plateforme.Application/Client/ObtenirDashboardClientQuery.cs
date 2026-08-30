@@ -57,16 +57,24 @@ public sealed class ObtenirDashboardClientQuery(
         {
             if (ticket.Statut == StatutTicket.EnAttenteClient)
             {
+                var estExport = ticket.Module == "BillingExport";
+                var typeAction = estExport ? TypeActionRequise.ComplementExport : TypeActionRequise.ComplementManifeste;
+                var referenceMetier = estExport
+                    ? $"Booking {ticket.NumeroBooking ?? ticket.Numero}"
+                    : $"BL {ticket.NumeroBl ?? ticket.Numero}";
+                var roleInstructeur = estExport ? "Le Back Office Export" : "Le Pilote Manifeste";
+
                 actionsRequises.Add(new ActionRequiseItemVue(
                     TicketId: ticket.Id,
                     NumeroTicket: ticket.Numero,
                     NumeroBl: ticket.NumeroBl,
-                    TypeAction: TypeActionRequise.ComplementManifeste,
-                    Titre: $"Complément demandé pour le BL {ticket.NumeroBl ?? ticket.Numero}",
-                    Description: "Le Pilote Manifeste a sollicité un complément d'information ou des pièces justificatives.",
+                    TypeAction: typeAction,
+                    Titre: $"Complément demandé pour le {referenceMetier}",
+                    Description: $"{roleInstructeur} a sollicité un complément d'information ou des pièces justificatives.",
                     ActionLibelle: "Déposer le complément",
                     UrlCible: $"/tickets/{ticket.Id}#complement",
-                    DateDeclenchementUtc: ticket.DateCreationUtc
+                    DateDeclenchementUtc: ticket.DateCreationUtc,
+                    NumeroBooking: ticket.NumeroBooking
                 ));
             }
             else if (ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge || ticket.Statut == StatutTicket.EnCours)
@@ -87,7 +95,8 @@ public sealed class ObtenirDashboardClientQuery(
                 NumeroTicket: t.Numero,
                 NumeroBl: t.NumeroBl,
                 Statut: t.Statut,
-                DateDerniereActiviteUtc: t.DateCreationUtc
+                DateDerniereActiviteUtc: t.DateCreationUtc,
+                NumeroBooking: t.NumeroBooking
             )).ToList();
 
             var premierTicket = ticketsDossier.FirstOrDefault();

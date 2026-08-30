@@ -174,7 +174,9 @@ public sealed class ObtenirFicheTicketQuery(
             PeutDeposerDocument: peutDeposerDocument,
             Chronologie: chronologie,
             Documents: documents,
-            Messages: messages
+            Messages: messages,
+            NumeroBooking: ticket.NumeroBooking,
+            TypeAnnulationExport: ticket.TypeAnnulationExport
         );
     }
 

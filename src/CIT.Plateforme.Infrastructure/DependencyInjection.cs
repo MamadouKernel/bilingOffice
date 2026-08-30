@@ -196,6 +196,21 @@ public static class DependencyInjection
         services.AddScoped<Application.BillingImport.ConsulterFileBillingImportQuery>();
         services.AddScoped<Application.BillingImport.ConsulterSuivisBranchesIesQuery>();
 
+        // FEATURE 004 — Billing Office EXPORT
+        services.AddScoped<Application.BillingExport.SoumettreDemandeExportCommand>();
+        services.AddScoped<Application.BillingExport.ConsulterFileBillingExportQuery>();
+        services.AddScoped<Application.BillingExport.ValiderTicketExportCommand>();
+        services.AddScoped<Application.BillingExport.RejeterTicketExportCommand>();
+        services.AddScoped<Application.BillingExport.GestionComplementExportCommand>();
+        services.AddScoped<Application.BillingExport.EditerFactureExportCommand>();
+        services.AddScoped<Application.BillingExport.ValiderPreuvePaiementExportCommand>();
+        services.AddScoped<Application.BillingExport.DeposerPreuvePaiementExportCommand>();
+        services.AddScoped<Application.BillingExport.ConfirmerLettrageExportCommand>();
+        services.AddScoped<Application.BillingExport.FinaliserControleDocumentaireExportCommand>();
+        services.AddScoped<Application.BillingExport.InstruireBrancheIesExportCommand>();
+        services.AddScoped<Application.BillingExport.ConstaterJointureIesExportEtFinaliserCommand>();
+        services.AddScoped<Application.BillingExport.ConsulterSuivisBranchesIesExportQuery>();
+
         return services;
     }
 }

@@ -61,4 +61,14 @@ public static class Permission
     public const string BillingImportControleDocumentaireTraiter = "billing_import.controle_documentaire.traiter";
     public const string BillingImportIesManifesteInstruire = "billing_import.ies.manifeste.instruire";
     public const string BillingImportIesControleDocumentaireInstruire = "billing_import.ies.controle_documentaire.instruire";
+
+    // FEATURE 004 (research.md D5/D7) — Billing Office EXPORT
+    public const string BillingExportSoumettre = "billing_export.soumettre";
+    public const string BillingExportBackOfficeInstruire = "billing_export.back_office.instruire";
+    public const string BillingExportFacturationEditer = "billing_export.facturation.editer";
+    public const string BillingExportPaiementValider = "billing_export.paiement.valider";
+    public const string BillingExportComptabiliteConfirmerLettrage = "billing_export.comptabilite.confirmer_lettrage";
+    public const string BillingExportControleDocumentaireTraiter = "billing_export.controle_documentaire.traiter";
+    public const string BillingExportIesBackOfficeInstruire = "billing_export.ies.back_office.instruire";
+    public const string BillingExportIesControleDocumentaireInstruire = "billing_export.ies.controle_documentaire.instruire";
 }

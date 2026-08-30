@@ -702,6 +702,11 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(64)")
                         .UseCollation("Latin1_General_CI_AS");
 
+                    b.Property<string>("NumeroBooking")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .UseCollation("Latin1_General_CI_AS");
+
                     b.Property<Guid?>("OperateurAssigneId")
                         .HasColumnType("uniqueidentifier");
 
@@ -710,6 +715,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("Statut")
                         .HasColumnType("int");
+
+                    b.Property<string>("TypeAnnulationExport")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("TypeAnnulationImport")
                         .HasMaxLength(32)
@@ -734,6 +743,11 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("NumeroBl")
                         .IsUnique()
                         .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+
+                    b.HasIndex("NumeroBooking")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tickets_NumeroBooking_Actif")
+                        .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (0, 1, 2)");
 
                     b.ToTable("Tickets");
                 });

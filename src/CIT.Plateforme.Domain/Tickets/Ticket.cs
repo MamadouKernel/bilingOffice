@@ -72,6 +72,13 @@ public sealed class Ticket
     public string? NumeroBl { get; private set; }
 
     /// <summary>
+    /// EXTENSION FEATURE 004 (research.md D1) : numéro de booking métier fourni par le client.
+    /// Nullable, uniquement renseigné pour les tickets du module Billing EXPORT.
+    /// Portée d'unicité globale garantie par un index SQL Server filtré dédié (D2).
+    /// </summary>
+    public string? NumeroBooking { get; private set; }
+
+    /// <summary>
     /// EXTENSION FEATURE 003 (research.md D12, IMP-15) : le client a déclaré vouloir finaliser
     /// physiquement au Billing Office à l'issue du contrôle BL. Point d'extension pour la future
     /// Feature Continuité Digital/Présentiel — aucun mécanisme de rendez-vous n'est porté ici.
@@ -86,9 +93,23 @@ public sealed class Ticket
     /// </summary>
     public TypeAnnulationImport? TypeAnnulationImport { get; private set; }
 
+    /// <summary>
+    /// EXTENSION FEATURE 004 (research.md D5bis) : distingue un rejet Back Office Export (EXP-02)
+    /// d'une annulation client ordinaire (CYC-01). Nullable.
+    /// </summary>
+    public TypeAnnulationExport? TypeAnnulationExport { get; private set; }
+
     private Ticket() { }
 
-    public static Ticket Creer(string numero, string module, string typeDemande, Guid fileCibleId, Guid dossierId, DateTime maintenantUtc, string? numeroBl = null)
+    public static Ticket Creer(
+        string numero,
+        string module,
+        string typeDemande,
+        Guid fileCibleId,
+        Guid dossierId,
+        DateTime maintenantUtc,
+        string? numeroBl = null,
+        string? numeroBooking = null)
     {
         if (string.IsNullOrWhiteSpace(numero))
         {
@@ -108,6 +129,7 @@ public sealed class Ticket
             DateArriveeEnFileUtc = maintenantUtc,
             DateDerniereActiviteUtc = maintenantUtc,
             NumeroBl = numeroBl,
+            NumeroBooking = numeroBooking,
         };
     }
 
@@ -243,6 +265,28 @@ public sealed class Ticket
         Statut = StatutTicket.Annule;
         TypeAnnulationImport = Tickets.TypeAnnulationImport.RejetManifeste;
         DateDerniereActiviteUtc = maintenantUtc;
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 004 (research.md D5bis, EXP-02) : rejet d'un ticket Billing EXPORT par le
+    /// Back Office. Réutilise le statut générique <see cref="StatutTicket.Annule"/>.
+    /// </summary>
+    public void RejeterExport(DateTime maintenantUtc)
+    {
+        MarquerRejetExport(Tickets.TypeAnnulationExport.RejetBackOffice, maintenantUtc);
+    }
+
+    public void MarquerRejetExport(TypeAnnulationExport type, DateTime maintenantUtc)
+    {
+        if (Statut is StatutTicket.Cloture or StatutTicket.Annule)
+        {
+            throw new InvalidOperationException($"Le ticket {Numero} est déjà {Statut} et ne peut plus être rejeté.");
+        }
+
+        Statut = StatutTicket.Annule;
+        TypeAnnulationExport = type;
+        DateDerniereActiviteUtc = maintenantUtc;
+        DateClotureUtc = maintenantUtc;
     }
 
     /// <summary>

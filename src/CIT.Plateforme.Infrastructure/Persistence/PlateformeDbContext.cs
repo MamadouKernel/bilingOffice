@@ -102,6 +102,14 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // FEATURE 003 (research.md D13bis) : distingue Rejeté d'un Annulé ordinaire sans
             // modifier StatutTicket.
             b.Property(t => t.TypeAnnulationImport).HasConversion<string>().HasMaxLength(32);
+
+            // FEATURE 004 (research.md D1/D2, UNI-04, CLAR-BOOK-01) : index unique filtré sur NumeroBooking actif
+            b.Property(t => t.NumeroBooking).HasMaxLength(64).UseCollation("Latin1_General_CI_AS");
+            b.HasIndex(t => t.NumeroBooking)
+                .IsUnique()
+                .HasDatabaseName("IX_Tickets_NumeroBooking_Actif")
+                .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+            b.Property(t => t.TypeAnnulationExport).HasConversion<string>().HasMaxLength(32);
         });
 
         // REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : entité autonome, sans relation

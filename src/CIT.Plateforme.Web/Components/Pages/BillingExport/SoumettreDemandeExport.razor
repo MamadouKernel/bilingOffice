@@ -1,0 +1,247 @@
+@page "/billing-export/soumettre"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.BillingExport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject SoumettreDemandeExportCommand Soumettre
+@inject NavigationManager Navigation
+
+<PageTitle>Soumettre une demande EXPORT — CIT</PageTitle>
+
+<div class="container-fluid py-3" style="max-width: 900px;">
+    <!-- En-tête -->
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Nouvelle demande EXPORT</h2>
+            <div class="text-muted small">Déposez vos numéros de Booking pour instruction et facturation Export</div>
+        </div>
+        <a href="/client/dashboard" class="btn btn-outline-secondary btn-sm">⬅ Retour au tableau de bord</a>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Vérification de vos habilitations..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        <!-- Récapitulatif du compte émetteur -->
+        <div class="cit-card mb-4 bg-light border-0">
+            <h6 class="fw-bold text-dark mb-2">Compte émetteur</h6>
+            <div class="row g-2 small">
+                <div class="col-12 col-md-6">
+                    <span class="text-muted">Entreprise :</span>
+                    <strong class="ms-1 text-dark">@_societeNom</strong>
+                </div>
+                <div class="col-12 col-md-6">
+                    <span class="text-muted">Dépositaire :</span>
+                    <strong class="ms-1 text-dark">@_auteurNom</strong>
+                </div>
+            </div>
+        </div>
+
+        <EditForm Model="_modele" OnValidSubmit="SoumettreAsync">
+            <div class="cit-card mb-4">
+                <h6 class="fw-bold text-dark mb-3">Numéros de Booking (Réservations Export)</h6>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark" for="numeros-booking">Numéros de Booking (un par ligne)</label>
+                    <InputTextArea id="numeros-booking" class="form-control font-monospace" rows="6"
+                                   placeholder="Exemple :&#10;BKG-2026-001&#10;BKG-2026-002"
+                                   @bind-Value="_modele.NumerosBooking" />
+                    <div class="form-text small text-muted">
+                        Chaque numéro de booking sera contrôlé pour unicité active (UNI-04) et créera un ticket indépendant.
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold text-dark" for="marchandises">Nature des marchandises (optionnel)</label>
+                        <InputText id="marchandises" class="form-control" placeholder="Ex. Cacao, Café, Bois..." @bind-Value="_modele.Marchandises" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold text-dark" for="port-destination">Port de destination (optionnel)</label>
+                        <InputText id="port-destination" class="form-control" placeholder="Ex. Le Havre, Rotterdam..." @bind-Value="_modele.PortDestination" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="/client/dashboard" class="btn btn-outline-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBooking) || _soumissionEnCours)">
+                        @if (_soumissionEnCours)
+                        {
+                            <span>Soumission en cours...</span>
+                        }
+                        else
+                        {
+                            <span>🚀 Valider et soumettre la demande Export</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mt-3">@_erreur</div>
+        }
+
+        @if (_resultat is not null)
+        {
+            <div class="cit-card border-success mt-4">
+                <div class="d-flex align-items-center gap-2 text-success mb-3">
+                    <span class="fs-4">✅</span>
+                    <h5 class="fw-bold mb-0">Demande EXPORT enregistrée avec succès !</h5>
+                </div>
+
+                <p class="mb-2">
+                    Votre dossier <a href="/dossiers/@_resultat.Dossier.Id" class="fw-bold text-primary">@_resultat.Dossier.Numero</a> a été créé.
+                </p>
+
+                @if (_resultat.TicketsCrees.Count > 0)
+                {
+                    <h6 class="fw-bold text-dark mt-3 mb-2">Tickets créés :</h6>
+                    <div class="list-group mb-3">
+                        @foreach (var t in _resultat.TicketsCrees)
+                        {
+                            <a href="/tickets/@t.Id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Booking @t.NumeroBooking</strong>
+                                    <span class="text-muted small ms-2">(Ref : @t.Numero)</span>
+                                </div>
+                                <span class="badge bg-primary">En attente prise en charge</span>
+                            </a>
+                        }
+                    </div>
+                }
+
+                @if (_resultat.BookingRefuses.Count > 0)
+                {
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <strong class="d-block mb-1">⚠️ Bookings non pris en compte (doublons déjà actifs) :</strong>
+                        <ul class="mb-0 small ps-3">
+                            @foreach (var refus in _resultat.BookingRefuses)
+                            {
+                                <li>
+                                    <strong>@refus.NumeroBooking</strong> :
+                                    @if (refus.TicketExistantId is Guid ticketId)
+                                    {
+                                        <span>Demande déjà existante (<a href="/tickets/@ticketId">consulter le ticket</a>).</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Une demande est déjà en cours de traitement pour ce Booking.</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private bool _soumissionEnCours = false;
+
+    private Guid _societeId;
+    private string _societeNom = string.Empty;
+    private Guid _auteurId;
+    private string _auteurNom = string.Empty;
+
+    private ModeleFormulaire _modele = new();
+    private SoumettreDemandeExportResultat? _resultat;
+    private string? _erreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Vous devez être connecté et rattaché à une entreprise pour soumettre une demande Export.";
+                return;
+            }
+
+            if (contexte.DroitSoumission != true)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Votre profil collaborateur ne dispose pas des droits de soumission pour cette entreprise.";
+                return;
+            }
+
+            _societeId = contexte.SocieteId.Value;
+            _societeNom = contexte.SocieteNom ?? string.Empty;
+            _auteurId = contexte.UtilisateurId;
+            _auteurNom = contexte.NomAffiche ?? contexte.Email;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task SoumettreAsync()
+    {
+        _erreur = null;
+        _resultat = null;
+        _soumissionEnCours = true;
+
+        try
+        {
+            var bookings = (_modele.NumerosBooking ?? string.Empty)
+                .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(b => b.Trim())
+                .Where(b => !string.IsNullOrWhiteSpace(b))
+                .Distinct()
+                .ToList();
+
+            if (bookings.Count == 0)
+            {
+                _erreur = "Veuillez renseigner au moins un numéro de Booking valide.";
+                return;
+            }
+
+            var requete = new SoumettreDemandeExportRequete(
+                _societeId,
+                _auteurId,
+                bookings,
+                _modele.Marchandises,
+                _modele.PortDestination);
+
+            _resultat = await Soumettre.ExecuterAsync(requete);
+            _modele = new ModeleFormulaire();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = $"Une erreur est survenue lors de la soumission : {ex.Message}";
+        }
+        finally
+        {
+            _soumissionEnCours = false;
+        }
+    }
+
+    private sealed class ModeleFormulaire
+    {
+        public string? NumerosBooking { get; set; }
+        public string? Marchandises { get; set; }
+        public string? PortDestination { get; set; }
+    }
+}
