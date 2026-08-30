@@ -1,0 +1,150 @@
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@implements IDisposable
+
+<div class="cit-sidebar">
+    @if (_contexte is null)
+    {
+        <div class="p-3 text-muted small">Chargement du menu...</div>
+    }
+    else if (!_contexte.EstAuthentifie)
+    {
+        <div class="cit-nav-group-title">Accueil</div>
+        <NavLink class="cit-nav-item" href="/" Match="NavLinkMatch.All">
+            <span>🏠</span> Accueil
+        </NavLink>
+        <NavLink class="cit-nav-item" href="/comptes/connexion">
+            <span>🔑</span> Se connecter
+        </NavLink>
+        <NavLink class="cit-nav-item" href="/comptes/soumettre">
+            <span>📝</span> Créer un compte société
+        </NavLink>
+    }
+    else
+    {
+        @switch (_contexte.EspaceActif)
+        {
+            case EspaceFonctionnel.Client:
+                <div class="cit-nav-group-title">Espace Client</div>
+                <NavLink class="cit-nav-item" href="/client/dashboard" Match="NavLinkMatch.All">
+                    <span>📊</span> Tableau de bord
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/client/demandes">
+                    <span>📁</span> Mes demandes
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-import/soumettre">
+                    <span>➕</span> Nouvelle demande IMPORT
+                </NavLink>
+                <div class="cit-nav-group-title mt-3">Compte & Sécurité</div>
+                <NavLink class="cit-nav-item" href="/comptes/profil">
+                    <span>🏢</span> Profil société
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/comptes/double-authentification">
+                    <span>🛡️</span> Sécurité (2FA)
+                </NavLink>
+                break;
+
+            case EspaceFonctionnel.AdministrateurSociete:
+                <div class="cit-nav-group-title">Espace Entreprise</div>
+                <NavLink class="cit-nav-item" href="/societe/dashboard" Match="NavLinkMatch.All">
+                    <span>🏢</span> Tableau de bord Société
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/societe/collaborateurs">
+                    <span>👥</span> Collaborateurs
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/client/demandes?vue=societe">
+                    <span>📂</span> Demandes de la société
+                </NavLink>
+                <div class="cit-nav-group-title mt-3">Compte</div>
+                <NavLink class="cit-nav-item" href="/comptes/profil">
+                    <span>⚙️</span> Profil de l'entreprise
+                </NavLink>
+                break;
+
+            case EspaceFonctionnel.Agent:
+                <div class="cit-nav-group-title">Espace Opérateur</div>
+                <NavLink class="cit-nav-item" href="/agent/dashboard" Match="NavLinkMatch.All">
+                    <span>📋</span> Tableau de bord Agent
+                </NavLink>
+                <div class="cit-nav-group-title mt-3">Files de Traitement</div>
+                <NavLink class="cit-nav-item" href="/billing-import/manifeste">
+                    <span>📜</span> Pilote Manifeste
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-import/facturation">
+                    <span>💳</span> Facturation
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-import/validation-paiement">
+                    <span>💰</span> Validation Caisse
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-import/controle-documentaire">
+                    <span>📑</span> Contrôle Documentaire
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-import/comptabilite-client">
+                    <span>💼</span> Comptabilité Client
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/billing-import/ies">
+                    <span>⚡</span> Traitement IES
+                </NavLink>
+                break;
+
+            case EspaceFonctionnel.Supervision:
+                <div class="cit-nav-group-title">Supervision CIT</div>
+                <NavLink class="cit-nav-item" href="/supervision" Match="NavLinkMatch.All">
+                    <span>📈</span> Supervision en direct
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/administration/disponibilite">
+                    <span>🟢</span> Disponibilité agents
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/administration/strategie-file">
+                    <span>⚙️</span> Stratégie des files
+                </NavLink>
+                <div class="cit-nav-group-title mt-3">Administration</div>
+                <NavLink class="cit-nav-item" href="/administration/comptes-a-valider">
+                    <span>📝</span> Demandes de compte
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/administration/audit">
+                    <span>🔒</span> Journal d'audit technique
+                </NavLink>
+                break;
+
+            case EspaceFonctionnel.AdministrationCit:
+                <div class="cit-nav-group-title">Administration CIT</div>
+                <NavLink class="cit-nav-item" href="/administration/comptes-a-valider" Match="NavLinkMatch.All">
+                    <span>📝</span> Demandes de compte
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/administration/modifier-type-client">
+                    <span>🏷️</span> Modifier type de client
+                </NavLink>
+                <NavLink class="cit-nav-item" href="/administration/audit">
+                    <span>🔒</span> Journal d'audit
+                </NavLink>
+                break;
+        }
+    }
+</div>
+
+@code {
+    private ContexteUtilisateurVue? _contexte;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ContexteService.SurChangementContexte += StateHasChangedWrapper;
+        _contexte = await ContexteService.ObtenirContexteAsync();
+    }
+
+    private void StateHasChangedWrapper()
+    {
+        InvokeAsync(async () =>
+        {
+            _contexte = await ContexteService.ObtenirContexteAsync();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        ContexteService.SurChangementContexte -= StateHasChangedWrapper;
+    }
+}

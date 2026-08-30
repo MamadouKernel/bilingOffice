@@ -1,0 +1,198 @@
+@page "/agent/dashboard"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Agent
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirDashboardAgentQuery DashboardQuery
+
+<PageTitle>Tableau de bord Opérateur — CIT</PageTitle>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de votre espace de travail..." />
+}
+else if (_nonAutorise)
+{
+    <div class="container py-4">
+        <PermissionDenied Message="@_messageNonAutorise" />
+    </div>
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger m-3">@_erreur</div>
+}
+else if (_dashboard is not null)
+{
+    <div class="container-fluid py-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold m-0 text-primary">Tableau de bord Opérateur</h2>
+                <div class="text-secondary small">Bienvenue, <strong>@_dashboard.AgentNom</strong></div>
+            </div>
+        </div>
+
+        <!-- Bandeau DIS-01 -->
+        <BandeauDisponibiliteAgent AgentId="@_dashboard.AgentId" EstDisponibleInitial="@_dashboard.EstDisponible" />
+
+        <!-- Métriques -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+                <div class="cit-card h-100 border-start border-4 border-primary">
+                    <div class="text-muted small fw-semibold text-uppercase">Mes tickets en cours</div>
+                    <div class="fs-2 fw-bold text-primary my-1">@_dashboard.TotalTicketsEnCoursAgent</div>
+                    <div class="small text-muted">Dossiers pris en charge sous votre responsabilité</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="cit-card h-100 border-start border-4 border-secondary">
+                    <div class="text-muted small fw-semibold text-uppercase">Files de traitement actives</div>
+                    <div class="fs-2 fw-bold text-dark my-1">@_dashboard.FilesHabilitees.Count</div>
+                    <div class="small text-muted">Files où vous disposez d'une habilitation d'instruction</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Synthèse des files de traitement -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-dark m-0">Files de traitement habilitées</h5>
+            <span class="badge bg-light text-dark border">Temps réel</span>
+        </div>
+
+        @if (_dashboard.FilesHabilitees.Count == 0)
+        {
+            <EtatVide Titre="Aucune file habilitée"
+                      Description="Vous n'êtes actuellement affecté à aucune file de traitement active. Veuillez contacter votre superviseur."
+                      Icone="🗂️" />
+        }
+        else
+        {
+            <div class="row g-3 mb-4">
+                @foreach (var file in _dashboard.FilesHabilitees)
+                {
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="cit-card h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="fw-bold text-dark m-0">@file.Nom</h6>
+                                    <span class="badge bg-secondary-subtle text-secondary small">@file.Module</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between py-2 border-top border-bottom small">
+                                    <span class="text-muted">En attente :</span>
+                                    <strong class="@(file.TicketsEnAttente > 0 ? "text-warning" : "text-muted")">
+                                        @file.TicketsEnAttente
+                                    </strong>
+                                </div>
+                                <div class="d-flex justify-content-between py-2 border-bottom small mb-3">
+                                    <span class="text-muted">En cours :</span>
+                                    <strong class="text-primary">@file.TicketsEnCours</strong>
+                                </div>
+                            </div>
+
+                            <a href="@file.UrlFile" class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                                Accéder à la file ➔
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Mes tickets en cours de traitement -->
+        @if (_dashboard.MesTicketsEnCours.Count > 0)
+        {
+            <h5 class="fw-bold text-dark mb-3">Mes dossiers en cours d'instruction</h5>
+            <div class="cit-card p-0 overflow-hidden mb-4">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Ticket</th>
+                            <th>Numéro BL</th>
+                            <th>File</th>
+                            <th>Statut</th>
+                            <th>Prise en charge</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in _dashboard.MesTicketsEnCours)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="/tickets/@ticket.TicketId" class="fw-bold text-decoration-none">
+                                        @ticket.NumeroTicket
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">@ticket.NumeroBl</span>
+                                </td>
+                                <td class="small text-muted">@ticket.FileNom</td>
+                                <td>
+                                    <StatutBadge Statut="@ticket.Statut" />
+                                </td>
+                                <td class="small text-muted">
+                                    @ticket.DatePriseEnChargeUtc.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-end">
+                                    <a href="/tickets/@ticket.TicketId" class="btn btn-primary btn-sm">
+                                        Traiter ➔
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private DashboardAgentVue? _dashboard;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à cet espace.";
+                return;
+            }
+
+            if (contexte.Nature != NatureUtilisateur.Agent)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Cet espace de travail est exclusivement réservé aux opérateurs et agents CIT.";
+                return;
+            }
+
+            _dashboard = await DashboardQuery.ExecuterAsync(contexte.UtilisateurId);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+}

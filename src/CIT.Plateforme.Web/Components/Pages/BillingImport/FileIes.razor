@@ -4,123 +4,240 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
 @inject InstruireBrancheIesCommand Instruire
 @inject ConstaterJointureIesEtFinaliserCommand ConstaterJointure
 @inject ConsulterFileBillingImportQuery ConsulterFile
 @inject ConsulterSuivisBranchesIesQuery ConsulterSuivis
 
-<PageTitle>File IES</PageTitle>
+<PageTitle>File IES — CIT</PageTitle>
 
-<h1>File IES</h1>
-
-<p class="text-muted">Contrats C3-16/C3-17/C3-18 (IMP-40, IMP-41, IMP-42). Les deux branches
-progressent indépendamment (research.md D8/D9) ; la finalisation n'est possible qu'après jointure
-des deux — le mécanisme de séparation par permission est générique, la liste exacte des champs
-réservés à chaque rôle reste PC-05 (non résolu).</p>
-
-<div class="row mb-3">
-    <div class="col-auto">
-        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
-        <input id="agent" class="form-control" @bind="agentId" />
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">File IES (Clients Spécifiques)</h2>
+            <div class="text-muted small">Double instruction parallèle (Manifeste & Contrôle Documentaire) et constatation de jointure</div>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
+        </div>
     </div>
-    <div class="col-auto align-self-end">
-        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
-    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des dossiers de la file IES..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_message is not null)
+        {
+            <div class="alert @(_erreur ? "alert-danger" : "alert-success") mb-3">@_message</div>
+        }
+
+        @if (_tickets.Count == 0)
+        {
+            <EtatVide Titre="Aucun dossier IES en attente"
+                      Description="Tous les dossiers clients IES ont été finalisés et délivrés."
+                      Icone="🚢" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Ticket</th>
+                                <th>Numéro BL</th>
+                                <th>Branche Manifeste</th>
+                                <th>Branche Contrôle Doc.</th>
+                                <th class="text-end">Actions d'instruction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in _tickets)
+                            {
+                                var t = ticket;
+                                var suivis = _suivisParTicket.TryGetValue(t.Id, out var s) ? s : [];
+                                var manifeste = suivis.SingleOrDefault(x => x.Branche == BrancheIes.Manifeste);
+                                var controleDoc = suivis.SingleOrDefault(x => x.Branche == BrancheIes.ControleDocumentaire);
+                                bool manifAchevee = manifeste?.EstTerminee == true;
+                                bool docAchevee = controleDoc?.EstTerminee == true;
+
+                                <tr>
+                                    <td>
+                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
+                                            @t.Numero
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">@t.NumeroBl</span>
+                                    </td>
+                                    <td>
+                                        @if (manifAchevee)
+                                        {
+                                            <span class="badge bg-success text-white">✅ Achevée</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">⏳ En cours</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (docAchevee)
+                                        {
+                                            <span class="badge bg-success text-white">✅ Achevée</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">⏳ En cours</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
+                                                🔍 Fiche
+                                            </a>
+                                            @if (!manifAchevee)
+                                            {
+                                                <button class="btn btn-outline-primary" @onclick="() => AcheverAsync(t.Id, BrancheIes.Manifeste)">
+                                                    Achever Manifeste
+                                                </button>
+                                            }
+                                            @if (!docAchevee)
+                                            {
+                                                <button class="btn btn-outline-primary" @onclick="() => AcheverAsync(t.Id, BrancheIes.ControleDocumentaire)">
+                                                    Achever Contrôle Doc
+                                                </button>
+                                            }
+                                            @if (manifAchevee && docAchevee)
+                                            {
+                                                <button class="btn btn-success" @onclick="() => FinaliserAsync(t.Id)">
+                                                    🔗 Constater jointure & Clôturer
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
 </div>
 
-@if (message is not null)
-{
-    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
-}
-
-@if (tickets.Count > 0)
-{
-    <table class="table">
-        <thead><tr><th>Numéro</th><th>BL</th><th>Branche Manifeste</th><th>Branche Contrôle Documentaire</th><th>Actions</th></tr></thead>
-        <tbody>
-            @foreach (var ticket in tickets)
-            {
-                var suivis = suivisParTicket.TryGetValue(ticket.Id, out var s) ? s : [];
-                var manifeste = suivis.SingleOrDefault(x => x.Branche == BrancheIes.Manifeste);
-                var controleDocumentaire = suivis.SingleOrDefault(x => x.Branche == BrancheIes.ControleDocumentaire);
-                <tr>
-                    <td>@ticket.Numero</td>
-                    <td>@ticket.NumeroBl</td>
-                    <td>@(manifeste?.EstTerminee == true ? "Achevée" : "En cours")</td>
-                    <td>@(controleDocumentaire?.EstTerminee == true ? "Achevée" : "En cours")</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => AcheverAsync(ticket.Id, BrancheIes.Manifeste)">Achever Manifeste</button>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => AcheverAsync(ticket.Id, BrancheIes.ControleDocumentaire)">Achever Contrôle Documentaire</button>
-                        <button class="btn btn-sm btn-outline-success" @onclick="() => FinaliserAsync(ticket.Id)">Constater jointure et finaliser</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
 @code {
-    private string agentId = string.Empty;
-    private List<Ticket> tickets = [];
-    private Dictionary<Guid, List<SuiviBrancheIes>> suivisParTicket = [];
-    private string? message;
-    private bool erreur;
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
 
-    private async Task ChargerAsync()
+    private Guid _agentId;
+    private List<Ticket> _tickets = [];
+    private Dictionary<Guid, List<SuiviBrancheIes>> _suivisParTicket = [];
+    private string? _message;
+    private bool _erreur;
+
+    protected override async Task OnInitializedAsync()
     {
-        message = null;
+        _chargement = true;
         try
         {
-            tickets = [.. await ConsulterFile.ExecuterAsync(
-                Guid.Parse(agentId), NomsFiles.FileIes,
-                [Permission.BillingImportIesManifesteInstruire, Permission.BillingImportIesControleDocumentaireInstruire])];
-            erreur = false;
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette file.";
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            await ChargerAsync();
         }
         catch (Exception ex)
         {
-            tickets = [];
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _message = null;
+        try
+        {
+            var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
+                _agentId, NomsFiles.FileIes,
+                [Permission.BillingImportIesManifesteInstruire, Permission.BillingImportIesControleDocumentaireInstruire]);
+            _tickets = [.. ticketsDeLaFile.Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+            _erreur = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _tickets = [];
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+            return;
+        }
+        catch (Exception ex)
+        {
+            _tickets = [];
+            _message = ex.Message;
+            _erreur = true;
+            return;
         }
 
-        suivisParTicket = [];
-        foreach (var ticket in tickets)
+        _suivisParTicket = [];
+        foreach (var ticket in _tickets)
         {
-            suivisParTicket[ticket.Id] = [.. await ConsulterSuivis.ExecuterAsync(Guid.Parse(agentId), ticket.Id)];
+            _suivisParTicket[ticket.Id] = [.. await ConsulterSuivis.ExecuterAsync(_agentId, ticket.Id)];
         }
     }
 
     private async Task AcheverAsync(Guid ticketId, BrancheIes branche)
     {
-        message = null;
+        _message = null;
         try
         {
-            await Instruire.ExecuterAsync(Guid.Parse(agentId), ticketId, branche);
-            message = $"Branche {branche} achevée.";
-            erreur = false;
+            await Instruire.ExecuterAsync(_agentId, ticketId, branche);
+            _message = $"Branche {branche} achevée avec succès.";
+            _erreur = false;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
         }
     }
 
     private async Task FinaliserAsync(Guid ticketId)
     {
-        message = null;
+        _message = null;
         try
         {
-            await ConstaterJointure.ExecuterAsync(Guid.Parse(agentId), ticketId);
-            message = "Jointure constatée — ticket IES clôturé.";
-            erreur = false;
+            await ConstaterJointure.ExecuterAsync(_agentId, ticketId);
+            _message = "Jointure constatée avec succès — Ticket IES clôturé.";
+            _erreur = false;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
         }
     }
 }

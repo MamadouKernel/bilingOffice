@@ -4,132 +4,245 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
 @inject ValiderTicketImportCommand Valider
 @inject RejeterTicketImportCommand Rejeter
 @inject GestionComplementManifesteCommand Complement
 @inject ConsulterFileBillingImportQuery ConsulterFile
 
-<PageTitle>File Pilote Manifeste</PageTitle>
+<PageTitle>File Pilote Manifeste — CIT</PageTitle>
 
-<h1>File Pilote Manifeste</h1>
-
-<p class="text-muted">
-    Contrats C3-03→C3-06 (IMP-04, IMP-05). Chaque décision est indépendante des autres tickets du
-    même dossier (IMP-02).
-</p>
-
-<div class="row mb-3">
-    <div class="col">
-        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
-        <InputText id="agent" class="form-control" @bind-Value="agentId" />
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">File Pilote Manifeste</h2>
+            <div class="text-muted small">Contrôle initial de conformité des connaissements (BL) et recevabilité manifeste</div>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
+        </div>
     </div>
-    <div class="col align-self-end">
-        <button class="btn btn-primary" @onclick="ChargerAsync">Charger les tickets en instance</button>
-    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des tickets de la file Manifeste..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-3">@_erreur</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_actionSuccess))
+        {
+            <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        }
+
+        @if (_tickets.Count == 0)
+        {
+            <EtatVide Titre="Aucun ticket en instance"
+                      Description="Tous les dossiers de la file Pilote Manifeste ont été instruits ou pris en charge."
+                      Icone="📋" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Ticket</th>
+                                <th>Numéro BL</th>
+                                <th>Statut</th>
+                                <th>Arrivée en file</th>
+                                <th class="text-end">Actions d'instruction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in _tickets)
+                            {
+                                var t = ticket;
+                                <tr>
+                                    <td>
+                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
+                                            @t.Numero
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">@t.NumeroBl</span>
+                                        @if (t.DeclarationPresentielle)
+                                        {
+                                            <span class="badge bg-dark ms-1 small">Présentiel</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <StatutBadge Statut="@t.Statut" />
+                                    </td>
+                                    <td class="small text-muted">
+                                        @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
+                                                🔍 Fiche
+                                            </a>
+                                            <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="Valider le BL">
+                                                ✅ Valider
+                                            </button>
+                                            <button class="btn btn-outline-warning" @onclick="() => DemanderComplementAsync(t.Id)" title="Demander un complément">
+                                                ⏳ Complément
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => OuvrirModaleRejet(t.Id)" title="Rejeter la demande">
+                                                ❌ Rejeter
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @if (_ticketEnRejet == t.Id)
+                                {
+                                    <tr class="table-danger">
+                                        <td colspan="5" class="p-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input class="form-control form-control-sm" placeholder="Motif obligatoire de rejet du manifeste..." @bind="_motifRejet" />
+                                                <button class="btn btn-danger btn-sm text-nowrap" @onclick="() => ConfirmerRejetAsync(t.Id)" disabled="@string.IsNullOrWhiteSpace(_motifRejet)">
+                                                    Confirmer le rejet
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerRejet">
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
 </div>
 
-@if (erreur is not null)
-{
-    <div class="alert alert-danger">@erreur</div>
-}
-
-@if (tickets.Count > 0)
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Numéro</th>
-                <th>BL</th>
-                <th>Statut</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var ticket in tickets)
-            {
-                <tr>
-                    <td>@ticket.Numero</td>
-                    <td>@ticket.NumeroBl</td>
-                    <td>@ticket.Statut</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(ticket.Id)">Valider</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => AfficherRejetAsync(ticket.Id)">Rejeter</button>
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => DemanderComplementAsync(ticket.Id)">Demander complément</button>
-                    </td>
-                </tr>
-                @if (ticketEnRejet == ticket.Id)
-                {
-                    <tr>
-                        <td colspan="4">
-                            <div class="input-group">
-                                <input class="form-control" placeholder="Motif obligatoire" @bind="motifRejet" />
-                                <button class="btn btn-danger" @onclick="() => ConfirmerRejetAsync(ticket.Id)">Confirmer le rejet</button>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-}
-
 @code {
-    private string agentId = string.Empty;
-    private List<Ticket> tickets = [];
-    private string? erreur;
-    private Guid? ticketEnRejet;
-    private string motifRejet = string.Empty;
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _actionSuccess;
+
+    private Guid _agentId;
+    private List<Ticket> _tickets = [];
+    private Guid? _ticketEnRejet;
+    private string _motifRejet = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitialiserEtChargerAsync();
+    }
+
+    private async Task InitialiserEtChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette file.";
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
 
     private async Task ChargerAsync()
     {
-        erreur = null;
-        if (!Guid.TryParse(agentId, out var agentGuid))
-        {
-            erreur = "Identifiant invalide.";
-            return;
-        }
-
+        _erreur = null;
         try
         {
             var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
-                agentGuid, SoumettreDemandeImportCommand.FilePiloteManifeste, [Permission.BillingImportManifesteInstruire]);
-            tickets = [.. ticketsDeLaFile.Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+                _agentId, SoumettreDemandeImportCommand.FilePiloteManifeste, [Permission.BillingImportManifesteInstruire]);
+            _tickets = ticketsDeLaFile
+                .Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)
+                .OrderBy(t => t.DateArriveeEnFileUtc)
+                .ToList();
         }
         catch (AccesRefuseException ex)
         {
-            tickets = [];
-            erreur = ex.Message;
+            _tickets = [];
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
         }
     }
 
-    private async Task ExecuterAsync(Func<Task> action)
+    private async Task ExecuterActionAsync(Func<Task> action, string messageSucces)
     {
-        erreur = null;
+        _erreur = null;
+        _actionSuccess = null;
         try
         {
             await action();
+            _actionSuccess = messageSucces;
             await ChargerAsync();
         }
-        catch (AccesRefuseException ex)
+        catch (Exception ex)
         {
-            erreur = ex.Message;
+            _erreur = ex.Message;
         }
     }
 
-    private Task ValiderAsync(Guid ticketId) => ExecuterAsync(() => Valider.ExecuterAsync(Guid.Parse(agentId), ticketId));
+    private Task ValiderAsync(Guid ticketId) =>
+        ExecuterActionAsync(() => Valider.ExecuterAsync(_agentId, ticketId), "BL validé avec succès. Le ticket poursuit son workflow.");
 
-    private void AfficherRejetAsync(Guid ticketId)
+    private Task DemanderComplementAsync(Guid ticketId) =>
+        ExecuterActionAsync(() => Complement.DemanderComplementAsync(_agentId, ticketId, "Complément d'information demandé"), "Complément notifié au client.");
+
+    private void OuvrirModaleRejet(Guid ticketId)
     {
-        ticketEnRejet = ticketId;
-        motifRejet = string.Empty;
+        _ticketEnRejet = ticketId;
+        _motifRejet = string.Empty;
     }
 
-    private Task ConfirmerRejetAsync(Guid ticketId) => ExecuterAsync(async () =>
+    private void AnnulerRejet()
     {
-        await Rejeter.ExecuterAsync(Guid.Parse(agentId), ticketId, motifRejet);
-        ticketEnRejet = null;
-    });
+        _ticketEnRejet = null;
+        _motifRejet = string.Empty;
+    }
 
-    private Task DemanderComplementAsync(Guid ticketId) => ExecuterAsync(() =>
-        Complement.DemanderComplementAsync(Guid.Parse(agentId), ticketId, "Pièce complémentaire requise"));
+    private async Task ConfirmerRejetAsync(Guid ticketId)
+    {
+        if (string.IsNullOrWhiteSpace(_motifRejet)) return;
+
+        await ExecuterActionAsync(async () =>
+        {
+            await Rejeter.ExecuterAsync(_agentId, ticketId, _motifRejet);
+            _ticketEnRejet = null;
+            _motifRejet = string.Empty;
+        }, "Ticket rejeté conformément au motif indiqué.");
+    }
 }

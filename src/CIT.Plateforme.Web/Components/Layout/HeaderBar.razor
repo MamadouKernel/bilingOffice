@@ -1,0 +1,62 @@
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject NavigationManager NavigationManager
+
+<header class="cit-header">
+    <div class="d-flex align-items-center gap-3">
+        <!-- Bouton Burger Mobile -->
+        <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" @onclick="ToggleMobileMenu" aria-label="Menu">
+            ☰
+        </button>
+
+        <a href="/" class="cit-brand">
+            <span class="fs-4">🚢</span>
+            <span>CIT Plateforme Digitale</span>
+        </a>
+
+        @if (Contexte?.SocieteNom is not null)
+        {
+            <span class="badge bg-light text-dark border ms-2 d-none d-md-inline-block">
+                🏢 @Contexte.SocieteNom @(Contexte.SocieteProfil.HasValue ? $"({Contexte.SocieteProfil})" : "")
+            </span>
+        }
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <PersonaSwitcher Contexte="@Contexte" />
+
+        @if (Contexte?.EstAuthentifie == true)
+        {
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary small d-none d-sm-inline">
+                    👤 <strong>@Contexte.NomAffiche</strong>
+                </span>
+
+                <form method="post" action="/comptes/deconnexion">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        Déconnexion
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex gap-2">
+                <a href="/comptes/connexion" class="btn btn-primary btn-sm">
+                    Connexion
+                </a>
+            </div>
+        }
+    </div>
+</header>
+
+@code {
+    [Parameter]
+    public ContexteUtilisateurVue? Contexte { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggleMobileMenu { get; set; }
+
+    private async Task ToggleMobileMenu() => await OnToggleMobileMenu.InvokeAsync();
+}

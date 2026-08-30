@@ -1,0 +1,55 @@
+@if (EstVisible)
+{
+    <div class="cit-toast-container">
+        <div class="cit-toast border-start border-4 @ToastClass">
+            <span class="fs-5">@Icone</span>
+            <div class="flex-grow-1">
+                @if (!string.IsNullOrWhiteSpace(Titre))
+                {
+                    <div class="fw-bold fs-6">@Titre</div>
+                }
+                <div class="small text-muted">@Message</div>
+            </div>
+            <button type="button" class="btn-close ms-2" @onclick="Fermer" aria-label="Close"></button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool EstVisible { get; set; }
+
+    [Parameter]
+    public string? Titre { get; set; }
+
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    [Parameter]
+    public string TypeToast { get; set; } = "success"; // "success", "danger", "warning", "info"
+
+    [Parameter]
+    public EventCallback OnFermer { get; set; }
+
+    private string ToastClass => TypeToast switch
+    {
+        "danger" => "border-danger",
+        "warning" => "border-warning",
+        "info" => "border-info",
+        _ => "border-success"
+    };
+
+    private string Icone => TypeToast switch
+    {
+        "danger" => "❌",
+        "warning" => "⚠️",
+        "info" => "ℹ️",
+        _ => "✅"
+    };
+
+    private async Task Fermer()
+    {
+        EstVisible = false;
+        await OnFermer.InvokeAsync();
+    }
+}

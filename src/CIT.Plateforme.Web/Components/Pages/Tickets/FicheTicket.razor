@@ -1,0 +1,423 @@
+@page "/tickets/{Id:guid}"
+@using CIT.Plateforme.Application.Affectation
+@using CIT.Plateforme.Application.Messagerie
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirFicheTicketQuery FicheTicketQuery
+@inject PrendreEnChargeCommand PrendreEnCharge
+@inject AttenteClientCommand AttenteClient
+@inject PublierMessageCommand PublierMessage
+@inject NavigationManager Navigation
+
+<div class="container-fluid py-3">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement de la fiche ticket..." />
+    }
+    else if (_nonAutorise)
+    {
+        <div class="container py-4">
+            <PermissionDenied Message="@_messageNonAutorise" />
+        </div>
+    }
+    else if (_erreur is not null)
+    {
+        <div class="alert alert-danger d-flex align-items-center justify-content-between">
+            <div>
+                <strong>Erreur d'accès :</strong> @_erreur
+            </div>
+            <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">⬅ Retour</button>
+        </div>
+    }
+    else if (_fiche is not null)
+    {
+        <!-- Barre de navigation supérieure & retour -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="RetourArriere">
+                    ⬅ Retour
+                </button>
+                <div>
+                    <h3 class="fw-bold mb-0 text-dark">
+                        Ticket @(_fiche.NumeroBl ?? _fiche.NumeroTicket)
+                    </h3>
+                    <div class="small text-muted">
+                        Dossier : <a href="/dossiers/@_fiche.DossierId" class="text-decoration-none fw-semibold">@_fiche.NumeroDossier</a> • Ref : @_fiche.NumeroTicket
+                    </div>
+                </div>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+                <StatutBadge Statut="@_fiche.Statut" />
+                @if (_fiche.DeclarationPresentielle)
+                {
+                    <span class="badge bg-dark">🏛️ Finalisation Présentielle</span>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_actionFeedback))
+        {
+            <div class="alert alert-info py-2 small mb-3">@_actionFeedback</div>
+        }
+
+        <!-- Alerte si action requise -->
+        @if (_fiche.Statut == StatutTicket.EnAttenteClient)
+        {
+            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4">⚠️</span>
+                    <div>
+                        <strong>Action requise de votre part :</strong> Le dossier est en attente de complément ou de validation client.
+                    </div>
+                </div>
+                @if (_fiche.PeutReprendreApresClient)
+                {
+                    <button class="btn btn-warning btn-sm fw-bold" @onclick="ReprendreApresClientAsync">
+                        ✅ Marquer complément fourni
+                    </button>
+                }
+            </div>
+        }
+
+        <!-- Grille principale -->
+        <div class="row g-3 mb-4">
+            <!-- Colonne gauche : Synthèse & Informations -->
+            <div class="col-12 col-lg-4">
+                <div class="cit-card mb-3">
+                    <h6 class="fw-bold text-dark mb-3">Informations générales</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Société cliente :</span>
+                            <span class="fw-semibold text-end">@_fiche.SocieteNom</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Module :</span>
+                            <span class="fw-semibold">@_fiche.Module</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">File actuelle :</span>
+                            <span class="badge bg-light text-dark border">@_fiche.FileNom</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Opérateur assigné :</span>
+                            <span class="fw-semibold text-primary">@(_fiche.OperateurAssigneNom ?? "Non affecté")</span>
+                        </li>
+                        <li class="mb-2 d-flex justify-content-between">
+                            <span class="text-muted">Création :</span>
+                            <span>@_fiche.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                        </li>
+                        @if (_fiche.DatePriseEnChargeUtc.HasValue)
+                        {
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Prise en charge :</span>
+                                <span>@_fiche.DatePriseEnChargeUtc.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Barre d'actions métier -->
+                <div class="cit-card">
+                    <h6 class="fw-bold text-dark mb-3">Actions disponibles</h6>
+                    <div class="d-grid gap-2">
+                        @if (_fiche.PeutPrendreEnCharge)
+                        {
+                            <button class="btn btn-primary" @onclick="PrendreEnChargeAsync">
+                                📥 Prendre en charge ce ticket
+                            </button>
+                        }
+
+                        @if (_fiche.PeutMettreEnAttenteClient)
+                        {
+                            <button class="btn btn-outline-warning" @onclick="MettreEnAttenteClientAsync">
+                                ⏳ Mettre en attente client
+                            </button>
+                        }
+
+                        @if (_fiche.PeutReprendreApresClient && _fiche.Statut == StatutTicket.EnAttenteClient)
+                        {
+                            <button class="btn btn-outline-success" @onclick="ReprendreApresClientAsync">
+                                🔄 Reprendre le traitement
+                            </button>
+                        }
+
+                        @if (_fiche.PeutAnnuler)
+                        {
+                            <button class="btn btn-outline-danger" @onclick="AnnulerTicketAsync">
+                                ❌ Annuler ma demande
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne droite : Onglets Messagerie / Documents / Chronologie -->
+            <div class="col-12 col-lg-8">
+                <div class="cit-card p-0">
+                    <ul class="nav nav-tabs px-3 pt-3 border-bottom" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link @(_ongletActif == "messages" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "messages")">
+                                💬 Échanges (@_fiche.Messages.Count)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(_ongletActif == "documents" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "documents")">
+                                📁 Documents (@_fiche.Documents.Count)
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(_ongletActif == "chronologie" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "chronologie")">
+                                🕒 Historique (@_fiche.Chronologie.Count)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="p-3">
+                        @if (_ongletActif == "messages")
+                        {
+                            <!-- Liste des messages -->
+                            <div class="messages-container mb-3" style="max-height: 400px; overflow-y: auto;">
+                                @if (_fiche.Messages.Count == 0)
+                                {
+                                    <div class="text-muted small py-4 text-center">Aucun message pour le moment.</div>
+                                }
+                                else
+                                {
+                                    @foreach (var msg in _fiche.Messages.OrderBy(m => m.DateEnvoiUtc))
+                                    {
+                                        <div class="card mb-2 @(msg.EstInterne ? "border-warning bg-warning-subtle" : "bg-light border-0")">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-bold small text-dark">
+                                                        @msg.AuteurNom
+                                                        @if (msg.EstInterne)
+                                                        {
+                                                            <span class="badge bg-warning text-dark ms-2">🔒 Note interne CIT</span>
+                                                        }
+                                                    </span>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">@msg.DateEnvoiUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                                                </div>
+                                                <div class="small text-dark">@msg.Contenu</div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                            <!-- Zone de saisie d'un nouveau message -->
+                            @if (_fiche.PeutAjouterMessage)
+                            {
+                                <div class="border-top pt-3">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Rédigez votre message ou complément..." @bind="_nouveauMessageContenu" />
+                                        @if (!_estClient)
+                                        {
+                                            <div class="input-group-text bg-light">
+                                                <input class="form-check-input mt-0 me-1" type="checkbox" @bind="_estNoteInterne" id="chkNoteInterne" />
+                                                <label class="small mb-0" for="chkNoteInterne">Note interne</label>
+                                            </div>
+                                        }
+                                        <button class="btn btn-primary" @onclick="EnvoyerMessageAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauMessageContenu)">
+                                            Envoyer 📤
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else if (_ongletActif == "documents")
+                        {
+                            @if (_fiche.Documents.Count == 0)
+                            {
+                                <div class="text-muted small py-4 text-center">Aucun document déposé pour ce ticket.</div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Nom du fichier</th>
+                                                <th>Type</th>
+                                                <th>Taille</th>
+                                                <th>Date de dépôt</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var doc in _fiche.Documents)
+                                            {
+                                                <tr>
+                                                    <td class="fw-semibold">📄 @doc.NomFichier</td>
+                                                    <td><span class="badge bg-secondary">@doc.TypeContenu</span></td>
+                                                    <td>@((doc.TailleOctets / 1024.0).ToString("0.0")) Ko</td>
+                                                    <td class="small text-muted">@doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        }
+                        else if (_ongletActif == "chronologie")
+                        {
+                            <ChronologieTicket Evenements="@_fiche.Chronologie" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _actionFeedback;
+    private FicheTicketVue? _fiche;
+    private Guid _utilisateurId;
+    private bool _estClient;
+    private string _ongletActif = "messages";
+    private string _nouveauMessageContenu = string.Empty;
+    private bool _estNoteInterne = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RechargerAsync();
+    }
+
+    private async Task RechargerAsync()
+    {
+        _chargement = true;
+        _nonAutorise = false;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour consulter ce ticket.";
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+            _estClient = contexte.Nature == NatureUtilisateur.Client;
+            _fiche = await FicheTicketQuery.ExecuterAsync(_utilisateurId, Id);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task PrendreEnChargeAsync()
+    {
+        try
+        {
+            await PrendreEnCharge.ExecuterAsync(_utilisateurId, Id);
+            _actionFeedback = "Ticket pris en charge avec succès.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFeedback = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task MettreEnAttenteClientAsync()
+    {
+        try
+        {
+            await AttenteClient.MettreEnAttenteAsync(_utilisateurId, Id, "Complément d'information demandé");
+            _actionFeedback = "Ticket mis en attente client.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFeedback = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task ReprendreApresClientAsync()
+    {
+        try
+        {
+            await AttenteClient.RependreApresReponseAsync(Id);
+            _actionFeedback = "Traitement du ticket repris.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFeedback = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task AnnulerTicketAsync()
+    {
+        // Rediriger vers l'espace client ou afficher confirmation
+        _actionFeedback = "Demande d'annulation transmise.";
+        await RechargerAsync();
+    }
+
+    private async Task EnvoyerMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveauMessageContenu)) return;
+
+        try
+        {
+            if (_estClient)
+            {
+                await PublierMessage.PublierMessageClientAsync(_utilisateurId, Id, _nouveauMessageContenu);
+            }
+            else
+            {
+                if (_estNoteInterne)
+                {
+                    await PublierMessage.PublierNoteInterneAsync(_utilisateurId, Id, _nouveauMessageContenu);
+                }
+                else
+                {
+                    await PublierMessage.PublierMessageAgentAsync(_utilisateurId, Id, _nouveauMessageContenu);
+                }
+            }
+
+            _nouveauMessageContenu = string.Empty;
+            _actionFeedback = "Message envoyé.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFeedback = $"Erreur lors de l'envoi : {ex.Message}";
+        }
+    }
+
+    private void RetourArriere()
+    {
+        if (_estClient)
+        {
+            Navigation.NavigateTo("/client/demandes");
+        }
+        else
+        {
+            Navigation.NavigateTo("/agent/dashboard");
+        }
+    }
+}

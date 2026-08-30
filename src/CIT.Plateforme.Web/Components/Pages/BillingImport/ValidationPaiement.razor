@@ -6,163 +6,235 @@
 @using CIT.Plateforme.Domain.Documents
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Components.Forms
+@inject IContexteUtilisateurWeb ContexteService
 @inject DeposerPreuvePaiementCommand DeposerPreuve
 @inject ValiderPreuvePaiementCommand ValiderPreuve
 @inject ConsulterFileBillingImportQuery ConsulterFile
 
-<PageTitle>Validation Paiement</PageTitle>
+<PageTitle>Validation Paiement — CIT</PageTitle>
 
-<h1>File Validation Paiement</h1>
-
-<p class="text-muted">Contrats C3-10/C3-11 (IMP-12, IMP-13). CLAR-PAIEMENT-01 : une preuve refusée
-renvoie le ticket en attente d'une nouvelle preuve du client — jamais un rejet définitif.</p>
-
-<h2>Dépôt d'une preuve de paiement (client)</h2>
-<p class="text-muted">
-REMÉDIATION AUDIT (post-implementation-audit.md §8.3) : le client dépose sur SON ticket, connu de
-lui (numéro communiqué à la soumission) — il ne parcourt jamais la file interne des Pilotes
-Paiement, réservée aux agents habilités ci-dessous.
-</p>
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Identifiant société (client)" @bind="clientId" /></div>
-    <div class="col-auto"><input class="form-control" placeholder="Identifiant du ticket" @bind="ticketIdClient" /></div>
-    <div class="col-auto"><InputFile OnChange="DeposerPreuveAsync" /></div>
-</div>
-
-<h2>File des Pilotes Paiement (agent habilité)</h2>
-<div class="row mb-3">
-    <div class="col-auto">
-        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
-        <input id="agent" class="form-control" @bind="agentId" />
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">File Validation Paiement</h2>
+            <div class="text-muted small">Instruction des preuves de virement / chèque et validation des encaissements</div>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
+        </div>
     </div>
-    <div class="col-auto align-self-end">
-        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
-    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des preuves de paiement en attente..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_message is not null)
+        {
+            <div class="alert @(_erreur ? "alert-danger" : "alert-success") mb-3">@_message</div>
+        }
+
+        @if (_tickets.Count == 0)
+        {
+            <EtatVide Titre="Aucun paiement en attente"
+                      Description="Toutes les preuves de paiement ont été validées ou instruites."
+                      Icone="💳" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Ticket</th>
+                                <th>Numéro BL</th>
+                                <th>Statut</th>
+                                <th>Arrivée en file</th>
+                                <th class="text-end">Décision de validation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in _tickets)
+                            {
+                                var t = ticket;
+                                <tr>
+                                    <td>
+                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
+                                            @t.Numero
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">@t.NumeroBl</span>
+                                    </td>
+                                    <td>
+                                        <StatutBadge Statut="@t.Statut" />
+                                    </td>
+                                    <td class="small text-muted">
+                                        @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la preuve sur la fiche">
+                                                🔍 Fiche
+                                            </a>
+                                            <button class="btn btn-outline-success" @onclick="() => ValiderPaiementAsync(t.Id)">
+                                                ✅ Valider encaissement
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => OuvrirRefus(t.Id)">
+                                                ❌ Refuser preuve
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @if (_ticketEnRefus == t.Id)
+                                {
+                                    <tr class="table-danger">
+                                        <td colspan="5" class="p-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input class="form-control form-control-sm" placeholder="Motif obligatoire de refus de la preuve..." @bind="_motifRefus" />
+                                                <button class="btn btn-danger btn-sm text-nowrap" @onclick="() => ConfirmerRefusAsync(t.Id)" disabled="@string.IsNullOrWhiteSpace(_motifRefus)">
+                                                    Confirmer le refus
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerRefus">
+                                                    Annuler
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
 </div>
-
-@if (message is not null)
-{
-    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
-}
-
-@if (tickets.Count > 0)
-{
-    <table class="table">
-        <thead><tr><th>Numéro</th><th>BL</th><th>Statut</th><th>Décision agent</th></tr></thead>
-        <tbody>
-            @foreach (var ticket in tickets)
-            {
-                <tr>
-                    <td>@ticket.Numero</td>
-                    <td>@ticket.NumeroBl</td>
-                    <td>@ticket.Statut</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(ticket.Id)">Valider</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => AfficherRefusAsync(ticket.Id)">Refuser</button>
-                        @if (ticketEnRefus == ticket.Id)
-                        {
-                            <div class="input-group mt-1">
-                                <input class="form-control" placeholder="Motif obligatoire" @bind="motifRefus" />
-                                <button class="btn btn-danger" @onclick="() => ConfirmerRefusAsync(ticket.Id)">Confirmer</button>
-                            </div>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
     private static readonly ReglesDepotDocument ReglesDemonstration = new(
         ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
 
-    private string agentId = string.Empty;
-    private string clientId = string.Empty;
-    private string ticketIdClient = string.Empty;
-    private List<Ticket> tickets = [];
-    private string? message;
-    private bool erreur;
-    private Guid? ticketEnRefus;
-    private string motifRefus = string.Empty;
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
 
-    private async Task ChargerAsync()
+    private Guid _agentId;
+    private List<Ticket> _tickets = [];
+    private string? _message;
+    private bool _erreur;
+    private Guid? _ticketEnRefus;
+    private string _motifRefus = string.Empty;
+
+    protected override async Task OnInitializedAsync()
     {
-        message = null;
+        _chargement = true;
         try
         {
-            tickets = [.. await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), NomsFiles.ValidationPaiement, [Permission.BillingImportPaiementValider])];
-            erreur = false;
-        }
-        catch (Exception ex)
-        {
-            tickets = [];
-            message = ex.Message;
-            erreur = true;
-        }
-    }
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette file.";
+                return;
+            }
 
-    private async Task DeposerPreuveAsync(InputFileChangeEventArgs e)
-    {
-        message = null;
-        try
-        {
-            await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
-            await using var memoire = new MemoryStream();
-            await flux.CopyToAsync(memoire);
-
-            await DeposerPreuve.ExecuterAsync(
-                Guid.Parse(clientId), Guid.Parse(ticketIdClient), e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
-
-            message = "Preuve de paiement déposée.";
-            erreur = false;
-        }
-        catch (Exception ex)
-        {
-            message = ex.Message;
-            erreur = true;
-        }
-    }
-
-    private async Task ValiderAsync(Guid ticketId)
-    {
-        message = null;
-        try
-        {
-            await ValiderPreuve.ValiderAsync(Guid.Parse(agentId), ticketId);
-            message = "Paiement validé — ticket transféré au Contrôle Documentaire.";
-            erreur = false;
+            _agentId = contexte.UtilisateurId;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
+        }
+        finally
+        {
+            _chargement = false;
         }
     }
 
-    private void AfficherRefusAsync(Guid ticketId)
+    private async Task ChargerAsync()
     {
-        ticketEnRefus = ticketId;
-        motifRefus = string.Empty;
+        _message = null;
+        try
+        {
+            var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
+                _agentId, NomsFiles.ValidationPaiement, [Permission.BillingImportPaiementValider]);
+            _tickets = [.. ticketsDeLaFile.Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+            _erreur = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _tickets = [];
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _tickets = [];
+            _message = ex.Message;
+            _erreur = true;
+        }
+    }
+
+    private async Task ValiderPaiementAsync(Guid ticketId)
+    {
+        _message = null;
+        try
+        {
+            await ValiderPreuve.ValiderAsync(_agentId, ticketId);
+            _message = "Paiement validé avec succès. Le ticket poursuit vers le Contrôle Documentaire.";
+            _erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _message = ex.Message;
+            _erreur = true;
+        }
+    }
+
+    private void OuvrirRefus(Guid ticketId)
+    {
+        _ticketEnRefus = ticketId;
+        _motifRefus = string.Empty;
+    }
+
+    private void AnnulerRefus()
+    {
+        _ticketEnRefus = null;
+        _motifRefus = string.Empty;
     }
 
     private async Task ConfirmerRefusAsync(Guid ticketId)
     {
-        message = null;
+        if (string.IsNullOrWhiteSpace(_motifRefus)) return;
+
+        _message = null;
         try
         {
-            await ValiderPreuve.RefuserAsync(Guid.Parse(agentId), ticketId, motifRefus);
-            ticketEnRefus = null;
-            message = "Preuve refusée — ticket en attente d'une nouvelle preuve du client.";
-            erreur = false;
+            await ValiderPreuve.RefuserAsync(_agentId, ticketId, _motifRefus);
+            _ticketEnRefus = null;
+            _motifRefus = string.Empty;
+            _message = "Preuve refusée. Le ticket repasse en attente client pour dépôt d'une nouvelle preuve.";
+            _erreur = false;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
         }
     }
 }

@@ -1,9 +1,71 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@implements IDisposable
 
-@Body
+<div class="d-flex flex-column min-vh-100">
+    <HeaderBar Contexte="@_contexte" OnToggleMobileMenu="ToggleMobileMenu" />
+
+    <div class="cit-layout-wrapper">
+        <!-- Desktop Sidebar -->
+        <div class="d-none d-lg-block">
+            <NavMenu />
+        </div>
+
+        <!-- Mobile Offcanvas Sidebar -->
+        @if (_mobileMenuOuvert)
+        {
+            <div class="cit-modal-backdrop d-lg-none" @onclick="ToggleMobileMenu">
+                <div class="bg-white h-100 p-3" style="width: 280px;" @onclick:stopPropagation>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="fw-bold fs-5">Menu</span>
+                        <button type="button" class="btn-close" @onclick="ToggleMobileMenu" aria-label="Fermer"></button>
+                    </div>
+                    <NavMenu />
+                </div>
+            </div>
+        }
+
+        <!-- Main Content Area -->
+        <main class="cit-main-content">
+            @Body
+        </main>
+    </div>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
+    Une erreur inattendue est survenue.
+    <a href="." class="reload">Recharger</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private ContexteUtilisateurVue? _contexte;
+    private bool _mobileMenuOuvert;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ContexteService.SurChangementContexte += ActualiserContexte;
+        _contexte = await ContexteService.ObtenirContexteAsync();
+    }
+
+    private void ActualiserContexte()
+    {
+        InvokeAsync(async () =>
+        {
+            _contexte = await ContexteService.ObtenirContexteAsync();
+            StateHasChanged();
+        });
+    }
+
+    private void ToggleMobileMenu()
+    {
+        _mobileMenuOuvert = !_mobileMenuOuvert;
+    }
+
+    public void Dispose()
+    {
+        ContexteService.SurChangementContexte -= ActualiserContexte;
+    }
+}

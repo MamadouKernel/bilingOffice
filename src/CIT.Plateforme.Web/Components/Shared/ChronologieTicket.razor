@@ -1,0 +1,39 @@
+@using CIT.Plateforme.Application.Tickets
+
+<div class="timeline-container">
+    @if (Evenements == null || Evenements.Count == 0)
+    {
+        <div class="text-muted small py-2">Aucun événement enregistré dans la chronologie.</div>
+    }
+    else
+    {
+        <div class="position-relative ps-4 border-start border-2 border-primary-subtle my-3">
+            @foreach (var ev in Evenements.OrderByDescending(e => e.HorodatageUtc))
+            {
+                <div class="position-relative mb-3">
+                    <!-- Point indicateur -->
+                    <span class="position-absolute top-0 start-0 translate-middle p-1 bg-primary border border-light rounded-circle" style="left: -17px !important;"></span>
+
+                    <div class="card bg-light border-0 shadow-none p-2 mb-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark small">@ev.Evenement</span>
+                            <span class="text-muted small" style="font-size: 0.75rem;">@ev.HorodatageUtc.ToString("dd/MM/yyyy HH:mm") UTC</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(ev.Detail))
+                        {
+                            <div class="small text-secondary mb-1">@ev.Detail</div>
+                        }
+                        <div class="text-muted small" style="font-size: 0.75rem;">
+                            Par : <span class="fw-semibold">@ev.AuteurNom</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<ChronologieItemVue> Evenements { get; set; } = new List<ChronologieItemVue>();
+}

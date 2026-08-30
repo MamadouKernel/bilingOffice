@@ -5,6 +5,7 @@ using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Messagerie;
+using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Supervision;
 using CIT.Plateforme.Domain.Tickets;
 using Microsoft.EntityFrameworkCore;
@@ -25,11 +26,26 @@ public sealed class TicketRepository(PlateformeDbContext dbContext) : ITicketRep
     public async Task<IReadOnlyList<Ticket>> ListerParDossierAsync(Guid dossierId, CancellationToken ct = default) =>
         await dbContext.Tickets.Where(t => t.DossierId == dossierId).ToListAsync(ct).ConfigureAwait(false);
 
+    public async Task<IReadOnlyList<Ticket>> ListerParDossiersAsync(IEnumerable<Guid> dossierIds, CancellationToken ct = default)
+    {
+        var ids = dossierIds.ToList();
+        return await dbContext.Tickets.Where(t => ids.Contains(t.DossierId)).ToListAsync(ct).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<Ticket>> ListerParFileAsync(Guid fileId, CancellationToken ct = default) =>
         await dbContext.Tickets.Where(t => t.FileCouranteId == fileId).ToListAsync(ct).ConfigureAwait(false);
 
     public async Task<IReadOnlyList<Ticket>> ListerParOperateurAsync(Guid operateurId, CancellationToken ct = default) =>
         await dbContext.Tickets.Where(t => t.OperateurAssigneId == operateurId).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Ticket>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default)
+    {
+        var dossierIds = await dbContext.Dossiers.Where(d => d.ClientId == societeId).Select(d => d.Id).ToListAsync(ct).ConfigureAwait(false);
+        return await dbContext.Tickets.Where(t => dossierIds.Contains(t.DossierId)).ToListAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Ticket>> ListerTousAsync(CancellationToken ct = default) =>
+        await dbContext.Tickets.ToListAsync(ct).ConfigureAwait(false);
 
     // FEATURE 003 (research.md D3, UNI-01, UNI-03) : pré-vérification applicative — statuts
     // bloquants par INCLUSION explicite, jamais NOT IN (cohérent avec le prédicat de l'index unique
@@ -63,6 +79,9 @@ public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierR
 
     public Task<Dossier?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
         dbContext.Dossiers.SingleOrDefaultAsync(d => d.Id == id, ct);
+
+    public async Task<IReadOnlyList<Dossier>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default) =>
+        await dbContext.Dossiers.Where(d => d.ClientId == societeId).ToListAsync(ct).ConfigureAwait(false);
 }
 
 public sealed class FileDeTraitementRepository(PlateformeDbContext dbContext) : IFileDeTraitementRepository
@@ -343,4 +362,47 @@ public sealed class UtilisateurSocieteRepository(PlateformeDbContext dbContext) 
 
     public async Task<IReadOnlyList<UtilisateurSociete>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default) =>
         await dbContext.UtilisateursSociete.Where(u => u.SocieteId == societeId).ToListAsync(ct).ConfigureAwait(false);
+}
+
+/// <summary>FEATURE 003.5.</summary>
+public sealed class HabilitationRepository(PlateformeDbContext dbContext) : IHabilitationRepository
+{
+    public async Task AjouterAsync(HabilitationUtilisateur habilitation, CancellationToken ct = default) =>
+        await dbContext.Habilitations.AddAsync(habilitation, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default) =>
+        await dbContext.Habilitations.Where(h => h.UtilisateurId == utilisateurId).ToListAsync(ct).ConfigureAwait(false);
+}
+
+/// <summary>FEATURE 003.5 : consultation légère des métadonnées utilisateur Identity.</summary>
+public sealed class UtilisateurInfoRepository(PlateformeDbContext dbContext) : IUtilisateurInfoRepository
+{
+    public async Task<UtilisateurInfo?> ObtenirInfoAsync(Guid utilisateurId, CancellationToken ct = default)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(u => u.Id == utilisateurId, ct).ConfigureAwait(false);
+        if (user is null) return null;
+        return new UtilisateurInfo(user.Id, user.UserName ?? string.Empty, user.Email ?? string.Empty, user.NomAffiche, user.EstActif, user.Nature);
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, UtilisateurInfo>> ObtenirInfosAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default)
+    {
+        var ids = utilisateursIds.Distinct().ToList();
+        var users = await dbContext.Users
+            .Where(u => ids.Contains(u.Id))
+            .Select(u => new UtilisateurInfo(u.Id, u.UserName ?? string.Empty, u.Email ?? string.Empty, u.NomAffiche, u.EstActif, u.Nature))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        return users.ToDictionary(u => u.Id);
+    }
+}
+
+public sealed class HistoriqueTicketRepository(PlateformeDbContext dbContext) : IHistoriqueTicketRepository
+{
+    public async Task<IReadOnlyList<Domain.Audit.EntreeHistorique>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        await dbContext.HistoriqueTickets
+            .Where(h => h.TicketId == ticketId)
+            .OrderBy(h => h.HorodatageUtc)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 }

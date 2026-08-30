@@ -1,0 +1,210 @@
+@page "/dossiers/{Id:guid}"
+@using CIT.Plateforme.Application.Client
+@using CIT.Plateforme.Application.Dossiers
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirFicheDossierQuery FicheDossierQuery
+@inject NavigationManager Navigation
+
+<div class="container-fluid py-3">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement du dossier..." />
+    }
+    else if (_erreur is not null)
+    {
+        <div class="alert alert-danger d-flex align-items-center justify-content-between">
+            <div>
+                <strong>Erreur d'accès :</strong> @_erreur
+            </div>
+            <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">⬅ Retour</button>
+        </div>
+    }
+    else if (_fiche is not null)
+    {
+        <!-- En-tête Dossier -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="RetourArriere">
+                    ⬅ Retour
+                </button>
+                <div>
+                    <h3 class="fw-bold mb-0 text-dark">
+                        Dossier @_fiche.NumeroDossier
+                    </h3>
+                    <div class="small text-muted">
+                        Société : @_fiche.SocieteNom • Créé par @_fiche.AuteurNom le @_fiche.DateCreationUtc.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+                <span class="badge @BadgeClassDossier(_fiche.StatutGlobal) fs-6">
+                    @LibelleEtatDossier(_fiche.StatutGlobal)
+                </span>
+            </div>
+        </div>
+
+        <!-- Métriques du dossier -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="cit-card d-flex align-items-center gap-3">
+                    <div class="fs-2 text-primary">📑</div>
+                    <div>
+                        <div class="text-muted small">Total des tickets</div>
+                        <div class="fs-4 fw-bold text-dark">@_fiche.TotalTickets</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="cit-card d-flex align-items-center gap-3">
+                    <div class="fs-2 text-warning">⏳</div>
+                    <div>
+                        <div class="text-muted small">Tickets en cours / action</div>
+                        <div class="fs-4 fw-bold text-warning">@_fiche.TotalTicketsEnCours</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="cit-card d-flex align-items-center gap-3">
+                    <div class="fs-2 text-success">✅</div>
+                    <div>
+                        <div class="text-muted small">Tickets clôturés</div>
+                        <div class="fs-4 fw-bold text-success">@_fiche.TotalTicketsClotures</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des tickets du dossier -->
+        <div class="cit-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-dark mb-0">Tickets et étapes du dossier</h5>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Ticket & BL</th>
+                            <th>Module & Type</th>
+                            <th>File courante</th>
+                            <th>Statut</th>
+                            <th>Opérateur</th>
+                            <th>Date de création</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in _fiche.Tickets)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">@(t.NumeroBl ?? t.NumeroTicket)</div>
+                                    <div class="small text-muted">Ref: @t.NumeroTicket</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@t.Module</span>
+                                    <span class="small text-muted ms-1">@t.TypeDemande</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@t.FileNom</span>
+                                </td>
+                                <td>
+                                    <StatutBadge Statut="@t.Statut" />
+                                </td>
+                                <td>
+                                    <span class="small text-muted">@(t.OperateurAssigneNom ?? "Non assigné")</span>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">@t.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="/tickets/@t.TicketId" class="btn btn-outline-primary btn-sm">
+                                        Consulter 🔍
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private bool _chargement = true;
+    private string? _erreur;
+    private FicheDossierVue? _fiche;
+    private Guid _utilisateurId;
+    private bool _estClient;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RechargerAsync();
+    }
+
+    private async Task RechargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _erreur = "Veuillez vous connecter pour consulter ce dossier.";
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+            _estClient = contexte.Nature == NatureUtilisateur.Client;
+            _fiche = await FicheDossierQuery.ExecuterAsync(_utilisateurId, Id);
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private static string BadgeClassDossier(StatutVisuelDossier etat) => etat switch
+    {
+        StatutVisuelDossier.ClotureTermine => "bg-success text-white",
+        StatutVisuelDossier.EnAttenteClient => "bg-warning text-dark",
+        StatutVisuelDossier.EnCoursTraitement => "bg-primary text-white",
+        StatutVisuelDossier.Annule => "bg-secondary text-white",
+        StatutVisuelDossier.Rejete => "bg-danger text-white",
+        _ => "bg-info text-dark"
+    };
+
+    private static string LibelleEtatDossier(StatutVisuelDossier etat) => etat switch
+    {
+        StatutVisuelDossier.ClotureTermine => "Clôturé / Terminé",
+        StatutVisuelDossier.EnAttenteClient => "Action requise",
+        StatutVisuelDossier.EnCoursTraitement => "En cours CIT",
+        StatutVisuelDossier.Annule => "Annulé",
+        StatutVisuelDossier.Rejete => "Rejeté",
+        _ => "En attente CIT"
+    };
+
+    private void RetourArriere()
+    {
+        if (_estClient)
+        {
+            Navigation.NavigateTo("/client/demandes");
+        }
+        else
+        {
+            Navigation.NavigateTo("/agent/dashboard");
+        }
+    }
+}

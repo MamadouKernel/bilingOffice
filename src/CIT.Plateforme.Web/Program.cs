@@ -25,6 +25,8 @@ builder.Services.AddCascadingAuthenticationState();
 // tant que le paramétrage métier n'a pas été administré.
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.LoginPath = "/comptes/connexion";
+    options.AccessDeniedPath = "/comptes/acces-refuse";
     options.ExpireTimeSpan = TimeSpan.FromMinutes(builder.Configuration.GetValue("Securite:ExpirationSessionMinutes", 30));
     options.SlidingExpiration = true;
     options.Cookie.HttpOnly = true;
@@ -32,6 +34,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AjouterInfrastructure(builder.Configuration);
+builder.Services.AddScoped<CIT.Plateforme.Web.Services.IContexteUtilisateurWeb, CIT.Plateforme.Web.Services.ContexteUtilisateurWebService>();
 
 var app = builder.Build();
 
@@ -54,6 +57,12 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 app.MapHub<SupervisionHub>(SupervisionHub.CheminHub);
+
+app.MapPost("/comptes/deconnexion", async (SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager) =>
+{
+    await signInManager.SignOutAsync();
+    return Results.Redirect("/comptes/connexion");
+});
 
 app.Run();
 

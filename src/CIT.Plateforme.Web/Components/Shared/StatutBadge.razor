@@ -1,0 +1,33 @@
+@using CIT.Plateforme.Domain.Tickets
+
+<span class="cit-badge @BadgeClass">
+    @Libelle
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public StatutTicket Statut { get; set; }
+
+    [Parameter]
+    public bool EstRejetManifeste { get; set; }
+
+    private string BadgeClass => EstRejetManifeste ? "cit-badge-rejet" : Statut switch
+    {
+        StatutTicket.EnAttenteDePriseEnCharge => "cit-badge-attente",
+        StatutTicket.EnCours => "cit-badge-encours",
+        StatutTicket.EnAttenteClient => "cit-badge-client",
+        StatutTicket.Cloture => "cit-badge-cloture",
+        StatutTicket.Annule => "cit-badge-annule",
+        _ => "cit-badge-annule"
+    };
+
+    private string Libelle => EstRejetManifeste ? "Rejeté" : Statut switch
+    {
+        StatutTicket.EnAttenteDePriseEnCharge => "En attente",
+        StatutTicket.EnCours => "En cours",
+        StatutTicket.EnAttenteClient => "En attente client",
+        StatutTicket.Cloture => "Clôturé",
+        StatutTicket.Annule => "Annulé",
+        _ => Statut.ToString()
+    };
+}

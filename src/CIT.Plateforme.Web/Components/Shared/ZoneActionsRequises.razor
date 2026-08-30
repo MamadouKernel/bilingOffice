@@ -1,0 +1,45 @@
+@using CIT.Plateforme.Application.Client
+
+@if (Actions is not null && Actions.Count > 0)
+{
+    <div class="cit-action-box mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-4">⚠️</span>
+                <h5 class="m-0 fw-bold text-dark">
+                    Mes actions requises (@Actions.Count)
+                </h5>
+            </div>
+            <span class="badge bg-warning text-dark px-3 py-1 fw-semibold">Action client requise</span>
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            @foreach (var action in Actions)
+            {
+                <div class="card border-0 bg-white shadow-sm p-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-secondary">Ticket #@action.NumeroTicket</span>
+                                @if (!string.IsNullOrWhiteSpace(action.NumeroBl))
+                                {
+                                    <span class="badge bg-primary">BL @action.NumeroBl</span>
+                                }
+                            </div>
+                            <h6 class="fw-bold m-0 text-dark">@action.Titre</h6>
+                            <p class="small text-muted m-0 mt-1">@action.Description</p>
+                        </div>
+                        <a href="@action.UrlCible" class="btn btn-warning btn-sm text-dark fw-semibold text-nowrap px-3 py-2">
+                            👉 @action.ActionLibelle
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public IReadOnlyList<ActionRequiseItemVue>? Actions { get; set; }
+}

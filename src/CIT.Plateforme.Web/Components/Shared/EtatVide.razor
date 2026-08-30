@@ -1,0 +1,30 @@
+<div class="cit-card text-center py-5 my-4">
+    <div class="mb-3 text-muted" style="font-size: 2.5rem;">
+        @(Icone ?? "📂")
+    </div>
+    <h5 class="fw-bold mb-2">@Titre</h5>
+    <p class="text-muted mb-4 max-w-md mx-auto">@Message</p>
+    @if (!string.IsNullOrWhiteSpace(ActionLibelle) && !string.IsNullOrWhiteSpace(ActionUrl))
+    {
+        <a href="@ActionUrl" class="btn btn-primary px-4 py-2">
+            @ActionLibelle
+        </a>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? Titre { get; set; } = "Aucun élément";
+
+    [Parameter]
+    public string Message { get; set; } = "Aucune donnée n'est disponible pour le moment.";
+
+    [Parameter]
+    public string? Icone { get; set; }
+
+    [Parameter]
+    public string? ActionLibelle { get; set; }
+
+    [Parameter]
+    public string? ActionUrl { get; set; }
+}

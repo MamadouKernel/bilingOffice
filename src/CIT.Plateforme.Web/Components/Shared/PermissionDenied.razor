@@ -1,0 +1,25 @@
+<div class="cit-card text-center py-5 my-5 max-w-lg mx-auto border-danger-subtle">
+    <div class="mb-3 text-danger" style="font-size: 3rem;">
+        🚫
+    </div>
+    <h4 class="fw-bold text-danger mb-2">Accès Refusé (403)</h4>
+    <p class="text-muted mb-4">
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            @Message
+        }
+        else
+        {
+            <span>Vous ne disposez pas des habilitations nécessaires pour accéder à cette ressource ou effectuer cette action.</span>
+        }
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="/" class="btn btn-outline-primary px-4">
+            Retour à l'accueil
+        </a>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Message { get; set; }
+}

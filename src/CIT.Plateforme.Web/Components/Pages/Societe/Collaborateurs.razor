@@ -1,0 +1,324 @@
+@page "/societe/collaborateurs"
+@page "/comptes/collaborateurs"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Societe
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Comptes
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirDashboardSocieteQuery DashboardQuery
+@inject RattacherUtilisateurCommand Rattacher
+@inject ActiverDesactiverUtilisateurCommand ActiverDesactiver
+@inject ModifierDroitsUtilisateurCommand ModifierDroits
+@inject GererRoleAdministrateurCommand GererRole
+
+<PageTitle>Gestion des Collaborateurs — CIT</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold m-0 text-primary">Gestion des Collaborateurs</h2>
+        <div class="text-secondary small">
+            @if (_dashboard is not null)
+            {
+                <span>Société <strong>@_dashboard.SocieteNom</strong> · Administrateurs actifs : <strong>@_dashboard.NombreAdministrateursActifs</strong></span>
+            }
+        </div>
+    </div>
+    <a href="/societe/dashboard" class="btn btn-outline-secondary btn-sm">
+        ← Retour Espace Entreprise
+    </a>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des collaborateurs..." />
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger">@_erreur</div>
+}
+else if (_dashboard is not null)
+{
+    <!-- Formulaire d'ajout / rattachement de collaborateur -->
+    <div class="cit-card mb-4">
+        <h5 class="fw-bold mb-3 text-dark">Rattacher un nouveau collaborateur</h5>
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-8">
+                <input type="text" class="form-control" placeholder="Identifiant UUID du collaborateur..." @bind="_nouveauCollaborateurId" />
+            </div>
+            <div class="col-12 col-md-4">
+                <button type="button" class="btn btn-primary w-100" @onclick="RattacherAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauCollaborateurId)">
+                    ➕ Rattacher à l'entreprise
+                </button>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_actionMessage))
+        {
+            <div class="alert alert-info mt-3 py-2 small">@_actionMessage</div>
+        }
+    </div>
+
+    <!-- Liste des collaborateurs avec actions -->
+    <div class="cit-card mb-4">
+        <h5 class="fw-bold mb-3 text-dark">Collaborateurs actifs et historiques</h5>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom & E-mail</th>
+                        <th>Rôle</th>
+                        <th>Droit Soumission</th>
+                        <th>Périmètre Consultation</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions Administrateur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _dashboard.Collaborateurs)
+                    {
+                        var col = c;
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">@col.NomAffiche</div>
+                                <div class="small text-muted">@col.Email</div>
+                            </td>
+                            <td>
+                                @if (col.EstAdministrateur)
+                                {
+                                    <span class="badge bg-primary">Administrateur</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark border">Collaborateur</span>
+                                }
+                            </td>
+                            <td>
+                                @if (col.DroitSoumission)
+                                {
+                                    <span class="text-success fw-semibold">✅ Autorisé</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">❌ Bloqué</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="small">
+                                    @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? "🌐 Toute la société" : "👤 Propres dossiers")
+                                </span>
+                            </td>
+                            <td>
+                                @if (col.EstActif)
+                                {
+                                    <span class="badge bg-success text-white">Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary text-white">Désactivé</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <!-- Rôle Admin -->
+                                    @if (col.EstAdministrateur)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary" title="Retirer droits admin" @onclick="() => RetirerRoleAdminAsync(col.Id)">
+                                            Rétrograder
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-primary" title="Nommer administrateur" @onclick="() => NommerAdminAsync(col.Id)">
+                                            Nommer admin
+                                        </button>
+                                    }
+
+                                    <!-- Droit Soumission -->
+                                    <button type="button" class="btn btn-outline-secondary" title="Basculer droit soumission" @onclick="() => BasculerSoumissionAsync(col)">
+                                        @(col.DroitSoumission ? "Bloquer soumission" : "Autoriser soumission")
+                                    </button>
+
+                                    <!-- Droit Consultation -->
+                                    <button type="button" class="btn btn-outline-secondary" title="Basculer consultation" @onclick="() => BasculerConsultationAsync(col)">
+                                        @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? "Restreindre visibilité" : "Étendre visibilité")
+                                    </button>
+
+                                    <!-- Activation / Désactivation -->
+                                    @if (col.EstActif)
+                                    {
+                                        <button type="button" class="btn btn-outline-danger" title="Désactiver collaborateur" @onclick="() => DesactiverAsync(col.Id)">
+                                            Désactiver
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-success" title="Réactiver collaborateur" @onclick="() => ActiverAsync(col.Id)">
+                                            Réactiver
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _chargement = true;
+    private string? _erreur;
+    private string? _actionMessage;
+    private DashboardSocieteVue? _dashboard;
+    private string _nouveauCollaborateurId = string.Empty;
+    private Guid _appelantId;
+    private Guid _societeId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RechargerAsync();
+    }
+
+    private async Task RechargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue || !contexte.EstAdministrateurSociete)
+            {
+                _erreur = "Accès réservé aux administrateurs de la société.";
+                return;
+            }
+
+            _appelantId = contexte.UtilisateurId;
+            _societeId = contexte.SocieteId.Value;
+            _dashboard = await DashboardQuery.ExecuterAsync(_appelantId, _societeId);
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task RattacherAsync()
+    {
+        if (!Guid.TryParse(_nouveauCollaborateurId, out var nouvId))
+        {
+            _actionMessage = "Format d'identifiant UUID invalide.";
+            return;
+        }
+
+        try
+        {
+            await Rattacher.ExecuterAsync(_appelantId, _societeId, nouvId);
+            _nouveauCollaborateurId = string.Empty;
+            _actionMessage = "Collaborateur rattaché avec succès.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task NommerAdminAsync(Guid rattachementId)
+    {
+        try
+        {
+            await GererRole.AttribuerRoleAsync(_appelantId, rattachementId);
+            _actionMessage = "Rôle administrateur attribué.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task RetirerRoleAdminAsync(Guid rattachementId)
+    {
+        try
+        {
+            await GererRole.RetirerRoleAsync(_appelantId, rattachementId);
+            _actionMessage = "Rôle administrateur retiré.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task BasculerSoumissionAsync(CollaborateurVue col)
+    {
+        try
+        {
+            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, col.DroitConsultation, !col.DroitSoumission);
+            _actionMessage = "Droits de soumission mis à jour.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task BasculerConsultationAsync(CollaborateurVue col)
+    {
+        try
+        {
+            var nouvConsultation = col.DroitConsultation == DroitConsultation.ToutesDemandesSociete
+                ? DroitConsultation.PropresDemandesUniquement
+                : DroitConsultation.ToutesDemandesSociete;
+            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, nouvConsultation, col.DroitSoumission);
+            _actionMessage = "Périmètre de consultation mis à jour.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task ActiverAsync(Guid rattachementId)
+    {
+        try
+        {
+            await ActiverDesactiver.ActiverAsync(_appelantId, rattachementId);
+            _actionMessage = "Collaborateur réactivé.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task DesactiverAsync(Guid rattachementId)
+    {
+        try
+        {
+            await ActiverDesactiver.DesactiverAsync(_appelantId, rattachementId);
+            _actionMessage = "Collaborateur désactivé.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"Erreur : {ex.Message}";
+        }
+    }
+}

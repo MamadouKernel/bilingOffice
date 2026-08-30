@@ -1,7 +1,60 @@
-﻿@page "/"
+@page "/"
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject NavigationManager NavigationManager
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Accueil — Plateforme Digitale CIT</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (_chargement)
+{
+    <div class="d-flex justify-content-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Chargement...</span>
+        </div>
+    </div>
+}
+else if (_contexte?.EstAuthentifie != true)
+{
+    <div class="py-5 text-center">
+        <div class="cit-card max-w-2xl mx-auto p-5 shadow-sm">
+            <div class="mb-3" style="font-size: 3.5rem;">🚢</div>
+            <h1 class="fw-bold text-primary mb-3">Plateforme Digitale CIT</h1>
+            <p class="text-secondary fs-5 mb-4 max-w-lg mx-auto">
+                Guichet unique digital pour les opérations maritimes, le traitement du fret et le dédouanement des connaissements (BL).
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/comptes/connexion" class="btn btn-primary btn-lg px-4">
+                    Se connecter
+                </a>
+                <a href="/comptes/soumettre" class="btn btn-outline-secondary btn-lg px-4">
+                    Créer un compte société
+                </a>
+            </div>
+        </div>
+    </div>
+}
 
-Welcome to your new app.
+@code {
+    private bool _chargement = true;
+    private ContexteUtilisateurVue? _contexte;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _contexte = await ContexteService.ObtenirContexteAsync();
+        _chargement = false;
+
+        if (_contexte.EstAuthentifie)
+        {
+            var destination = _contexte.EspaceActif switch
+            {
+                EspaceFonctionnel.Supervision => "/supervision",
+                EspaceFonctionnel.AdministrationCit => "/administration/comptes-a-valider",
+                EspaceFonctionnel.Agent => "/agent/dashboard",
+                EspaceFonctionnel.AdministrateurSociete => "/societe/dashboard",
+                _ => "/client/dashboard"
+            };
+            NavigationManager.NavigateTo(destination);
+        }
+    }
+}

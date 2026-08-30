@@ -1,77 +1,131 @@
 @page "/billing-import/ticket-cloture"
+@page "/billing-import/ticket-cloture/{TicketId:guid}"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.BillingImport
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Documents
-
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterDocumentsTicketClotureQuery ConsulterDocuments
+@inject NavigationManager Navigation
 
-<PageTitle>Ticket clôturé — documents</PageTitle>
+<PageTitle>Consultation des pièces délivrées — CIT</PageTitle>
 
-<h1>Consultation d'un ticket clôturé</h1>
-
-<p class="text-muted">Contrat C3-14 (IMP-22). Le client en compte récupère l'ensemble des documents
-du ticket clôturé (facture, BS, BADT — PC-08 non résolu, liste paramétrable).</p>
-
-<div class="row mb-3">
-    <div class="col-auto">
-        <label class="form-label" for="client">Identifiant du client (société)</label>
-        <input id="client" class="form-control" @bind="clientId" />
+<div class="container-fluid py-3" style="max-width: 900px;">
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Pièces et délivrance (Ticket clôturé)</h2>
+            <div class="text-muted small">Téléchargement sécurisé des factures, BS et bons à délivrer (BADT)</div>
+        </div>
+        <a href="/client/demandes" class="btn btn-outline-secondary btn-sm">⬅ Retour à mes demandes</a>
     </div>
-    <div class="col-auto">
-        <label class="form-label" for="ticket">Identifiant du ticket</label>
-        <input id="ticket" class="form-control" @bind="ticketId" />
-    </div>
-    <div class="col-auto align-self-end">
-        <button class="btn btn-primary" @onclick="ChargerAsync">Consulter</button>
-    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Récupération des documents délivrés..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else if (_erreur is not null)
+    {
+        <div class="alert alert-danger">@_erreur</div>
+    }
+    else if (_documents is not null)
+    {
+        @if (_documents.Count == 0)
+        {
+            <EtatVide Titre="Aucun document rattaché"
+                      Description="Ce ticket ne contient aucun document archivé pour le moment."
+                      Icone="📂" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nom du fichier</th>
+                                <th>Taille</th>
+                                <th>Date de délivrance (UTC)</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var document in _documents)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold text-dark">📄 @document.NomFichier</span>
+                                    </td>
+                                    <td class="small text-muted">@((document.TailleOctets / 1024.0).ToString("0.0")) Ko</td>
+                                    <td class="small text-muted">@document.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => Telecharger(document)">
+                                            ⬇ Télécharger
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
 </div>
 
-@if (erreur is not null)
-{
-    <div class="alert alert-danger">@erreur</div>
-}
-
-@if (documents is not null)
-{
-    <table class="table">
-        <thead><tr><th>Fichier</th><th>Taille</th><th>Déposé le (UTC)</th></tr></thead>
-        <tbody>
-            @foreach (var document in documents)
-            {
-                <tr>
-                    <td>@document.NomFichier</td>
-                    <td>@document.TailleOctets octets</td>
-                    <td>@document.DateDepotUtc</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
 @code {
-    private string clientId = string.Empty;
-    private string ticketId = string.Empty;
-    private IReadOnlyList<Document>? documents;
-    private string? erreur;
+    [Parameter] public Guid? TicketId { get; set; }
 
-    private async Task ChargerAsync()
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
+    private IReadOnlyList<Document>? _documents;
+    private string? _erreur;
+
+    protected override async Task OnParametersSetAsync()
     {
-        erreur = null;
-        documents = null;
-        if (!Guid.TryParse(clientId, out var clientGuid) || !Guid.TryParse(ticketId, out var ticketGuid))
-        {
-            erreur = "Identifiants invalides.";
-            return;
-        }
-
+        _chargement = true;
+        _erreur = null;
         try
         {
-            documents = await ConsulterDocuments.ExecuterAsync(clientGuid, ticketGuid);
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Vous devez être authentifié et rattaché à une entreprise pour consulter ces documents.";
+                return;
+            }
+
+            if (!TicketId.HasValue)
+            {
+                Navigation.NavigateTo("/client/demandes");
+                return;
+            }
+
+            _documents = await ConsulterDocuments.ExecuterAsync(contexte.SocieteId.Value, TicketId.Value);
         }
         catch (AccesRefuseException ex)
         {
-            erreur = ex.Message;
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
         }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private void Telecharger(Document doc)
+    {
+        // Document accessible
     }
 }

@@ -18,9 +18,15 @@ public interface ITicketRepository
 
     Task<IReadOnlyList<Ticket>> ListerParDossierAsync(Guid dossierId, CancellationToken ct = default);
 
+    Task<IReadOnlyList<Ticket>> ListerParDossiersAsync(IEnumerable<Guid> dossierIds, CancellationToken ct = default);
+
     Task<IReadOnlyList<Ticket>> ListerParFileAsync(Guid fileId, CancellationToken ct = default);
 
     Task<IReadOnlyList<Ticket>> ListerParOperateurAsync(Guid operateurId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Ticket>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Ticket>> ListerTousAsync(CancellationToken ct = default);
 
     /// <summary>FEATURE 003 (research.md D2/D3, UNI-01) : recherche un ticket **actif** (statut ∈
     /// {EnAttenteDePriseEnCharge, EnCours, EnAttenteClient}) pour un numéro de BL donné, portée
@@ -35,6 +41,8 @@ public interface IDossierRepository
     Task AjouterAsync(Dossier dossier, CancellationToken ct = default);
 
     Task<Dossier?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Dossier>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
 }
 
 public interface IFileDeTraitementRepository
@@ -197,4 +205,35 @@ public interface IUtilisateurSocieteRepository
     Task<CIT.Plateforme.Domain.Comptes.UtilisateurSociete?> ObtenirParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
 
     Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.UtilisateurSociete>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 003.5 : port des habilitations pour la déduction des profils/files dans les dashboards.</summary>
+public interface IHabilitationRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Securite.HabilitationUtilisateur habilitation, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Securite.HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 003.5 : port d'accès en lecture aux informations de base utilisateur (email, nom, état actif).</summary>
+public interface IUtilisateurInfoRepository
+{
+    Task<UtilisateurInfo?> ObtenirInfoAsync(Guid utilisateurId, CancellationToken ct = default);
+
+    Task<IReadOnlyDictionary<Guid, UtilisateurInfo>> ObtenirInfosAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default);
+}
+
+public sealed record UtilisateurInfo(
+    Guid Id,
+    string UserName,
+    string Email,
+    string? NomAffiche,
+    bool EstActif,
+    CIT.Plateforme.Domain.Securite.NatureUtilisateur Nature
+);
+
+/// <summary>Port de l'historique fonctionnel d'un ticket (SOC-02, SOC-09).</summary>
+public interface IHistoriqueTicketRepository
+{
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Audit.EntreeHistorique>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
 }

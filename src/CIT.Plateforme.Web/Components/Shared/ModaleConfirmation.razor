@@ -1,0 +1,57 @@
+@if (EstOuvert)
+{
+    <div class="cit-modal-backdrop" @onclick="Annuler">
+        <div class="cit-modal-dialog" @onclick:stopPropagation>
+            <div class="p-4 border-bottom">
+                <h5 class="modal-title fw-bold m-0 text-dark">@Titre</h5>
+            </div>
+            <div class="p-4">
+                <p class="text-secondary m-0 mb-3">@Message</p>
+                @ChildContent
+            </div>
+            <div class="p-3 bg-light border-top d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" @onclick="Annuler">
+                    @BoutonAnnulerLibelle
+                </button>
+                <button type="button" class="btn @BoutonConfirmerClass" @onclick="Confirmer" disabled="@Desactive">
+                    @BoutonConfirmerLibelle
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool EstOuvert { get; set; }
+
+    [Parameter]
+    public string Titre { get; set; } = "Confirmation";
+
+    [Parameter]
+    public string Message { get; set; } = "Êtes-vous sûr de vouloir effectuer cette action ?";
+
+    [Parameter]
+    public string BoutonConfirmerLibelle { get; set; } = "Confirmer";
+
+    [Parameter]
+    public string BoutonAnnulerLibelle { get; set; } = "Annuler";
+
+    [Parameter]
+    public string BoutonConfirmerClass { get; set; } = "btn-danger";
+
+    [Parameter]
+    public bool Desactive { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnConfirmer { get; set; }
+
+    [Parameter]
+    public EventCallback OnAnnuler { get; set; }
+
+    private async Task Confirmer() => await OnConfirmer.InvokeAsync();
+    private async Task Annuler() => await OnAnnuler.InvokeAsync();
+}

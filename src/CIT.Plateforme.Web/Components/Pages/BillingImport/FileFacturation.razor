@@ -6,79 +6,170 @@
 @using CIT.Plateforme.Domain.Documents
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Components.Forms
+@inject IContexteUtilisateurWeb ContexteService
 @inject EditerFactureCommand EditerFacture
 @inject ConsulterFileBillingImportQuery ConsulterFile
 
-<PageTitle>File Facturation</PageTitle>
+<PageTitle>File Facturation — CIT</PageTitle>
 
-<h1>File Facturation</h1>
-
-<p class="text-muted">Contrat C3-09 (IMP-11). L'édition de la facture aiguille automatiquement le
-ticket selon le type de client (D6) : Normal → Validation Paiement ; En Compte → Contrôle
-Documentaire direct ; Deposit → Comptabilité Client.</p>
-
-<div class="row mb-3">
-    <div class="col-auto">
-        <label class="form-label" for="agent">Identifiant de l'agent (démonstration)</label>
-        <input id="agent" class="form-control" @bind="agentId" />
+<div class="container-fluid py-3">
+    <!-- En-tête -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">File Facturation</h2>
+            <div class="text-muted small">Édition des factures et aiguillage automatique selon le profil client (Normal, En Compte, Deposit)</div>
+        </div>
+        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
+        </div>
     </div>
-    <div class="col-auto align-self-end">
-        <button class="btn btn-primary" @onclick="ChargerAsync">Charger la file</button>
-    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des tickets en attente de facturation..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_message is not null)
+        {
+            <div class="alert @(_erreur ? "alert-danger" : "alert-success") mb-3">@_message</div>
+        }
+
+        @if (_tickets.Count == 0)
+        {
+            <EtatVide Titre="Aucun ticket à facturer"
+                      Description="Tous les connaissements validés ont déjà été facturés."
+                      Icone="🧾" />
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Ticket</th>
+                                <th>Numéro BL</th>
+                                <th>Statut</th>
+                                <th>Arrivée en file</th>
+                                <th>Déposer facture</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in _tickets)
+                            {
+                                var t = ticket;
+                                <tr>
+                                    <td>
+                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
+                                            @t.Numero
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">@t.NumeroBl</span>
+                                    </td>
+                                    <td>
+                                        <StatutBadge Statut="@t.Statut" />
+                                    </td>
+                                    <td class="small text-muted">
+                                        @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <InputFile class="form-control form-control-sm" OnChange="e => EditerFactureAsync(t.Id, e)" />
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="Consulter la fiche">
+                                            🔍 Fiche
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
 </div>
-
-@if (message is not null)
-{
-    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
-}
-
-@if (tickets.Count > 0)
-{
-    <table class="table">
-        <thead><tr><th>Numéro</th><th>BL</th><th>Statut</th><th>Facture</th></tr></thead>
-        <tbody>
-            @foreach (var ticket in tickets)
-            {
-                <tr>
-                    <td>@ticket.Numero</td>
-                    <td>@ticket.NumeroBl</td>
-                    <td>@ticket.Statut</td>
-                    <td><InputFile OnChange="e => EditerFactureAsync(ticket.Id, e)" /></td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
     private static readonly ReglesDepotDocument ReglesDemonstration = new(
         ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
 
-    private string agentId = string.Empty;
-    private List<Ticket> tickets = [];
-    private string? message;
-    private bool erreur;
+    private bool _chargement = true;
+    private bool _nonAutorise = false;
+    private string _messageNonAutorise = string.Empty;
 
-    private async Task ChargerAsync()
+    private Guid _agentId;
+    private List<Ticket> _tickets = [];
+    private string? _message;
+    private bool _erreur;
+
+    protected override async Task OnInitializedAsync()
     {
-        message = null;
+        _chargement = true;
         try
         {
-            tickets = [.. await ConsulterFile.ExecuterAsync(Guid.Parse(agentId), NomsFiles.Facturation, [Permission.BillingImportFacturationEditer])];
-            erreur = false;
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette file.";
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            await ChargerAsync();
         }
         catch (Exception ex)
         {
-            tickets = [];
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _message = null;
+        try
+        {
+            var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
+                _agentId, NomsFiles.Facturation, [Permission.BillingImportFacturationEditer]);
+            _tickets = [.. ticketsDeLaFile.Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+            _erreur = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _tickets = [];
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _tickets = [];
+            _message = ex.Message;
+            _erreur = true;
         }
     }
 
     private async Task EditerFactureAsync(Guid ticketId, InputFileChangeEventArgs e)
     {
-        message = null;
+        _message = null;
         try
         {
             await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
@@ -86,16 +177,16 @@ Documentaire direct ; Deposit → Comptabilité Client.</p>
             await flux.CopyToAsync(memoire);
 
             await EditerFacture.ExecuterAsync(
-                Guid.Parse(agentId), ticketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
+                _agentId, ticketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
 
-            message = "Facture éditée et ticket aiguillé.";
-            erreur = false;
+            _message = "Facture éditée avec succès et ticket aiguillé vers l'étape suivante.";
+            _erreur = false;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            message = ex.Message;
-            erreur = true;
+            _message = ex.Message;
+            _erreur = true;
         }
     }
 }

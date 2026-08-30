@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IJournalisationService, JournalisationService>();
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IDossierRepository, DossierRepository>();
+        services.AddScoped<IHistoriqueTicketRepository, HistoriqueTicketRepository>();
         services.AddScoped<IFileDeTraitementRepository, FileDeTraitementRepository>();
         services.AddScoped<IAutorisationService, AutorisationService>();
         services.AddScoped<CloisonnementService>();
@@ -178,6 +179,16 @@ public static class DependencyInjection
 
         // FEATURE 003 — Phase 11 (US9) : bascule présentielle (IMP-15).
         services.AddScoped<Application.BillingImport.DeclarerFinalisationPresentielleCommand>();
+
+        // FEATURE 003.5 (UI/UX Consolidation)
+        services.AddScoped<IHabilitationRepository, HabilitationRepository>();
+        services.AddScoped<IUtilisateurInfoRepository, UtilisateurInfoRepository>();
+        services.AddScoped<Application.Web.ObtenirContexteUtilisateurQuery>();
+        services.AddScoped<Application.Client.ObtenirDashboardClientQuery>();
+        services.AddScoped<Application.Agent.ObtenirDashboardAgentQuery>();
+        services.AddScoped<Application.Societe.ObtenirDashboardSocieteQuery>();
+        services.AddScoped<Application.Tickets.ObtenirFicheTicketQuery>();
+        services.AddScoped<Application.Dossiers.ObtenirFicheDossierQuery>();
 
         // FEATURE 003 — REMÉDIATION AUDIT (post-implementation-audit.md §8.3) : consultation
         // autorisée du contenu d'une file (remplace la lecture directe de PlateformeDbContext dans
