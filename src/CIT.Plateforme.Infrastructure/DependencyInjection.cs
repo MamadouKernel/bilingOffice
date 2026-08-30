@@ -30,7 +30,12 @@ public static class DependencyInjection
             })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<PlateformeDbContext>()
-            .AddSignInManager();
+            .AddSignInManager()
+            // FEATURE 002 (CPT-03 : récupération de mot de passe en autonomie ; CPT-07 : 2FA
+            // optionnelle) : Feature 001 n'enregistrait aucun fournisseur de jeton (fonctionnalité
+            // explicitement hors périmètre de son propre socle) — extension additive pure, sans
+            // impact sur le comportement d'authentification déjà validé.
+            .AddDefaultTokenProviders();
 
         services.AddScoped<IHorloge, HorlogeSysteme>();
         services.AddScoped<IUniteDeTravail, UniteDeTravail>();
@@ -118,6 +123,32 @@ public static class DependencyInjection
         // User Story 11 — audit des actions.
         services.AddScoped<Application.Securite.IJournalAuditLecture, JournalAuditLecture>();
         services.AddScoped<Application.Securite.ConsulterJournalAuditQuery>();
+
+        // Feature 002 — Comptes clients, sociétés et utilisateurs rattachés (fondations transverses ;
+        // les commandes/requêtes par User Story sont ajoutées au fil de leur implémentation).
+        services.AddScoped<ISocieteClienteRepository, SocieteClienteRepository>();
+        services.AddScoped<IUtilisateurSocieteRepository, UtilisateurSocieteRepository>();
+
+        // User Story 1 — création et validation d'un compte société.
+        services.AddScoped<Application.Comptes.SoumettreDemandeCompteCommand>();
+        services.AddScoped<Application.Comptes.ValiderOuRejeterDemandeCompteCommand>();
+        services.AddScoped<Application.Comptes.ListerDemandesEnAttenteQuery>();
+
+        // User Story 2 — authentification et accès au compte.
+        services.AddScoped<Application.Comptes.VerifierAccesCompteQuery>();
+
+        // User Story 3 — gestion des utilisateurs rattachés à une société.
+        services.AddScoped<Application.Comptes.RattacherUtilisateurCommand>();
+        services.AddScoped<Application.Comptes.ModifierDroitsUtilisateurCommand>();
+        services.AddScoped<Application.Comptes.ActiverDesactiverUtilisateurCommand>();
+        services.AddScoped<Application.Comptes.GererRoleAdministrateurCommand>();
+
+        // User Story 4 — cloisonnement et visibilité selon le compte et les droits.
+        services.AddScoped<Application.Comptes.DeterminerVisibiliteDemandesQuery>();
+        services.AddScoped<Application.Comptes.ConsulterProfilSocieteQuery>();
+
+        // User Story 5 — modification tracée du type de client.
+        services.AddScoped<Application.Comptes.ModifierTypeClientCommand>();
 
         return services;
     }

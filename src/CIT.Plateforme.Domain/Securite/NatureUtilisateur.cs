@@ -38,4 +38,16 @@ public static class Permission
     /// <summary>REMÉDIATION AUDIT (post-implementation-audit.md §3.C) : administration des
     /// compétences opérateur (AFF-06).</summary>
     public const string CompetenceGerer = "competence.gerer";
+
+    /// <summary>FEATURE 002 (research.md D4) : validation/rejet d'une demande de compte société
+    /// (CPT-01), réservé à l'administrateur fonctionnel CIT.</summary>
+    public const string CompteValider = "compte.valider";
+
+    /// <summary>FEATURE 002 (research.md D4) : modification du type de client (CPT-06), réservé à
+    /// l'administrateur fonctionnel CIT.</summary>
+    public const string CompteTypeModifier = "compte.type_modifier";
+
+    /// <summary>FEATURE 002 (research.md D4) : gestion des collaborateurs d'une société (ENT-02),
+    /// réservé à l'administrateur de la société concernée.</summary>
+    public const string CompteGererCollaborateurs = "compte.gerer_collaborateurs";
 }

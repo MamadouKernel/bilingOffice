@@ -1,4 +1,5 @@
 using CIT.Plateforme.Domain.Audit;
+using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
@@ -53,6 +54,12 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     public DbSet<HabilitationUtilisateur> Habilitations => Set<HabilitationUtilisateur>();
 
+    /// <summary>FEATURE 002 (research.md D2) : référentiel des sociétés clientes.</summary>
+    public DbSet<SocieteCliente> Societes => Set<SocieteCliente>();
+
+    /// <summary>FEATURE 002 (research.md D2) : rattachements utilisateur↔société.</summary>
+    public DbSet<UtilisateurSociete> UtilisateursSociete => Set<UtilisateurSociete>();
+
     public DbSet<EntreeHistorique> HistoriqueTickets => Set<EntreeHistorique>();
 
     public DbSet<EntreeJournalAudit> JournalAudit => Set<EntreeJournalAudit>();
@@ -96,6 +103,11 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasKey(d => d.Id);
             b.Property(d => d.Numero).IsRequired().HasMaxLength(64);
             b.HasIndex(d => d.Numero).IsUnique();
+            // EXTENSION FEATURE 002 (CLAR-01, D5/D11) : colonne nullable additive, aucun dossier
+            // existant affecté.
+            b.Property(d => d.AuteurId);
+            // REMÉDIATION POST-AUDIT (CPT-06) : snapshot du TypeClient à la création du dossier.
+            b.Property(d => d.TypeClient).HasConversion<string>().HasMaxLength(32);
         });
 
         builder.Entity<FileDeTraitement>(b =>
@@ -236,6 +248,34 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasIndex(d => d.TicketId);
             b.Property(d => d.NomFichier).IsRequired().HasMaxLength(260);
             b.Property(d => d.CleStockage).IsRequired();
+        });
+
+        // FEATURE 002 (research.md D2, D3, D6) : référentiel des comptes clients/sociétés.
+        builder.Entity<SocieteCliente>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.InformationsDeclarees).IsRequired();
+            b.Property(s => s.Profil).HasConversion<string>().HasMaxLength(32);
+            b.Property(s => s.Etat).HasConversion<string>().HasMaxLength(32);
+            b.HasIndex(s => s.Etat);
+            // Jeton de concurrence optimiste (D6/D7) — garantit l'invariant du dernier
+            // administrateur actif et l'unicité d'une décision de validation/rejet.
+            b.Property(s => s.VersionConcurrence).IsRowVersion();
+        });
+
+        builder.Entity<UtilisateurSociete>(b =>
+        {
+            b.HasKey(u => u.Id);
+            // Un utilisateur est rattaché à exactement une société à la fois (spec.md § Assumptions).
+            b.HasIndex(u => u.UtilisateurId).IsUnique();
+            b.HasIndex(u => u.SocieteId);
+            b.Property(u => u.DroitConsultation).HasConversion<string>().HasMaxLength(32);
+            // REMÉDIATION POST-AUDIT (dette technique FK) : contrainte d'intégrité référentielle
+            // avec suppression restreinte (aucun risque de cascade destructive).
+            b.HasOne<SocieteCliente>()
+                .WithMany()
+                .HasForeignKey(u => u.SocieteId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

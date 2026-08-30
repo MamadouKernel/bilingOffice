@@ -157,3 +157,29 @@ public interface IServiceNumerotation
 
     Task<string> ProchainNumeroDossierAsync(CancellationToken ct = default);
 }
+
+/// <summary>FEATURE 002 (research.md D2) : port du référentiel des sociétés clientes (CPT-01,
+/// CPT-02).</summary>
+public interface ISocieteClienteRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Comptes.SocieteCliente societe, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Comptes.SocieteCliente?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>Alimente la file de l'administrateur fonctionnel CIT (contrat C2-02) — consultation
+    /// des demandes en attente, corollaire nécessaire de CPT-01 (déduit, non une FR séparée).</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.SocieteCliente>> ListerParEtatAsync(CIT.Plateforme.Domain.Comptes.EtatSociete etat, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 002 (research.md D2) : port des rattachements utilisateur↔société (ENT-01,
+/// ENT-02, ENT-03).</summary>
+public interface IUtilisateurSocieteRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Comptes.UtilisateurSociete rattachement, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Comptes.UtilisateurSociete?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Comptes.UtilisateurSociete?> ObtenirParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.UtilisateurSociete>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
+}

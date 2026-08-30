@@ -1,0 +1,128 @@
+@page "/comptes/valider"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Comptes
+@inject ListerDemandesEnAttenteQuery ListerDemandes
+@inject ValiderOuRejeterDemandeCompteCommand ValiderOuRejeter
+
+<PageTitle>Valider les demandes de compte</PageTitle>
+
+<h1>Demandes de compte en attente</h1>
+
+<p class="text-muted">
+    Contrat C2-02 (CPT-01, CPT-02). Réservé à l'administrateur fonctionnel CIT (permission
+    <code>compte.valider</code>, vérifiée côté serveur — Principe VII). REMÉDIATION POST-AUDIT
+    (§19, IDOR) : la liste elle-même n'est plus jamais chargée sans autorisation vérifiée — saisir
+    un identifiant, puis charger, pour qu'un visiteur non habilité ne découvre aucune donnée avant
+    même toute tentative d'action.
+</p>
+
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label" for="appelant">Identifiant de l'administrateur fonctionnel (démonstration)</label>
+        <InputText id="appelant" class="form-control" @bind-Value="appelantId" />
+    </div>
+    <div class="col align-self-end">
+        <button class="btn btn-primary" @onclick="ChargerAsync">Charger les demandes</button>
+    </div>
+</div>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger">@erreur</div>
+}
+
+@if (demandes.Count == 0)
+{
+    <p>Aucune demande en attente.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Société</th>
+                <th>Profil déclaré</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var demande in demandes)
+            {
+                <tr>
+                    <td>@demande.Id</td>
+                    <td>@demande.Profil</td>
+                    <td>
+                        <button class="btn btn-success btn-sm" @onclick="() => ValiderAsync(demande.Id)">Valider</button>
+                        <InputText class="form-control d-inline-block w-auto" placeholder="Motif de rejet" @bind-Value="motifsRejet[demande.Id]" />
+                        <button class="btn btn-danger btn-sm" @onclick="() => RejeterAsync(demande.Id)">Rejeter</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SocieteCliente> demandes = [];
+    private readonly Dictionary<Guid, string> motifsRejet = [];
+    private string appelantId = string.Empty;
+    private string? erreur;
+
+    // REMÉDIATION POST-AUDIT (§19, IDOR) : aucun chargement automatique à l'ouverture de la page —
+    // la liste n'est chargée qu'après saisie d'un identifiant et vérification de l'habilitation
+    // par ListerDemandesEnAttenteQuery (Permission.CompteValider, côté serveur).
+    private async Task ChargerAsync()
+    {
+        erreur = null;
+        if (!Guid.TryParse(appelantId, out var appelant))
+        {
+            erreur = "Identifiant invalide.";
+            return;
+        }
+
+        try
+        {
+            demandes = (await ListerDemandes.ExecuterAsync(appelant)).ToList();
+            foreach (var demande in demandes)
+            {
+                motifsRejet.TryAdd(demande.Id, string.Empty);
+            }
+        }
+        catch (AccesRefuseException ex)
+        {
+            demandes = [];
+            erreur = ex.Message;
+        }
+    }
+
+    private async Task ValiderAsync(Guid societeId)
+    {
+        erreur = null;
+        try
+        {
+            await ValiderOuRejeter.ValiderAsync(societeId, Guid.Parse(appelantId));
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            erreur = ex.Message;
+        }
+    }
+
+    private async Task RejeterAsync(Guid societeId)
+    {
+        erreur = null;
+        try
+        {
+            await ValiderOuRejeter.RejeterAsync(societeId, Guid.Parse(appelantId), motifsRejet.GetValueOrDefault(societeId, string.Empty));
+            await ChargerAsync();
+        }
+        catch (Exception ex) when (ex is AccesRefuseException or ArgumentException)
+        {
+            erreur = ex.Message;
+        }
+    }
+}

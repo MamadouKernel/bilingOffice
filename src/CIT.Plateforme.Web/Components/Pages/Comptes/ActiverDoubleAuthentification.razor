@@ -1,0 +1,68 @@
+@page "/comptes/double-authentification"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Authentification renforcée</PageTitle>
+
+<h1>Authentification renforcée</h1>
+
+<p class="text-muted">
+    Contrat C2-05 (CPT-07, Could). Capacité optionnelle : jamais imposée par défaut. Utilise les
+    capacités natives ASP.NET Core Identity (research.md D9).
+</p>
+
+@if (deuxFacteursActifs)
+{
+    <div class="alert alert-success">Le second facteur est activé sur ce compte.</div>
+    <button class="btn btn-outline-secondary" @onclick="DesactiverAsync">Désactiver</button>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="ActiverAsync">Activer le second facteur</button>
+}
+
+@code {
+    private bool deuxFacteursActifs;
+    private ApplicationUser? utilisateurCourant;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var etatAuthentification = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        utilisateurCourant = await UserManager.GetUserAsync(etatAuthentification.User);
+        if (utilisateurCourant is not null)
+        {
+            deuxFacteursActifs = await UserManager.GetTwoFactorEnabledAsync(utilisateurCourant);
+        }
+    }
+
+    private async Task ActiverAsync()
+    {
+        if (utilisateurCourant is null)
+        {
+            return;
+        }
+
+        // Un second facteur réellement opérant suppose un fournisseur configuré — ici
+        // l'authentificateur TOTP natif Identity — pas seulement le drapeau TwoFactorEnabled.
+        await UserManager.ResetAuthenticatorKeyAsync(utilisateurCourant);
+        await UserManager.SetTwoFactorEnabledAsync(utilisateurCourant, true);
+        deuxFacteursActifs = true;
+    }
+
+    private async Task DesactiverAsync()
+    {
+        if (utilisateurCourant is null)
+        {
+            return;
+        }
+
+        await UserManager.SetTwoFactorEnabledAsync(utilisateurCourant, false);
+        deuxFacteursActifs = false;
+    }
+}

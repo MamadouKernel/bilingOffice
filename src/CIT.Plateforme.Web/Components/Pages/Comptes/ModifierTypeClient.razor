@@ -1,0 +1,79 @@
+@page "/comptes/modifier-type"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Comptes
+@inject ModifierTypeClientCommand ModifierType
+
+<PageTitle>Modifier le type de client</PageTitle>
+
+<h1>Modifier le type de client</h1>
+
+<p class="text-muted">
+    Contrat C2-12 (CPT-06). Réservé à l'administrateur fonctionnel CIT. Tracé (ancien type, nouveau
+    type, auteur, date/heure) ; sans effet rétroactif sur les dossiers déjà créés.
+</p>
+
+<EditForm Model="modele" OnValidSubmit="ModifierAsync" FormName="modifier-type-client">
+    <div class="mb-3">
+        <label class="form-label" for="appelant">Identifiant de l'administrateur fonctionnel (démonstration)</label>
+        <InputText id="appelant" class="form-control" @bind-Value="modele.AppelantId" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="societe">Identifiant de la société</label>
+        <InputText id="societe" class="form-control" @bind-Value="modele.SocieteId" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="nouveau-type">Nouveau type de client</label>
+        <InputSelect id="nouveau-type" class="form-select" @bind-Value="modele.NouveauType">
+            @foreach (var valeur in Enum.GetValues<TypeClient>())
+            {
+                <option value="@valeur">@valeur</option>
+            }
+        </InputSelect>
+    </div>
+    <button type="submit" class="btn btn-primary">Modifier</button>
+</EditForm>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger mt-3">@erreur</div>
+}
+
+@if (succes)
+{
+    <div class="alert alert-success mt-3">Type de client modifié et tracé.</div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    private ModeleModification? modeleFormulaire { get; set; }
+
+    private ModeleModification modele = new();
+    private string? erreur;
+    private bool succes;
+
+    protected override void OnInitialized() => modele = modeleFormulaire ?? modele;
+
+    private async Task ModifierAsync()
+    {
+        erreur = null;
+        succes = false;
+        try
+        {
+            await ModifierType.ExecuterAsync(Guid.Parse(modele.AppelantId), Guid.Parse(modele.SocieteId), modele.NouveauType);
+            succes = true;
+        }
+        catch (AccesRefuseException ex)
+        {
+            erreur = ex.Message;
+        }
+    }
+
+    private sealed class ModeleModification
+    {
+        public string AppelantId { get; set; } = string.Empty;
+        public string SocieteId { get; set; } = string.Empty;
+        public TypeClient NouveauType { get; set; } = TypeClient.Normal;
+    }
+}

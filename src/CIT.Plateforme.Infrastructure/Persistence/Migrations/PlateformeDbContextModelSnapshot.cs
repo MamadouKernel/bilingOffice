@@ -161,6 +161,87 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("JournalEvenements");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.SocieteCliente", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateCreationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DemandeurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Etat")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("InformationsDeclarees")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NombreAdministrateursActifs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Profil")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<byte[]>("VersionConcurrence")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Etat");
+
+                    b.ToTable("Societes");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.UtilisateurSociete", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateRattachementUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DroitConsultation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("DroitSoumission")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EstAdministrateur")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("SocieteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UtilisateurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SocieteId");
+
+                    b.HasIndex("UtilisateurId")
+                        .IsUnique();
+
+                    b.ToTable("UtilisateursSociete");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Documents.Document", b =>
                 {
                     b.Property<Guid>("Id")
@@ -406,6 +487,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AuteurId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("ClientId")
                         .HasColumnType("uniqueidentifier");
 
@@ -416,6 +500,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("TypeClient")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
@@ -809,6 +897,15 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.UtilisateurSociete", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.SocieteCliente", null)
+                        .WithMany()
+                        .HasForeignKey("SocieteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

@@ -1,3 +1,5 @@
+using CIT.Plateforme.Domain.Comptes;
+
 namespace CIT.Plateforme.Domain.Tickets;
 
 /// <summary>
@@ -16,15 +18,32 @@ public sealed class Dossier
     /// <summary>Client propriétaire — fonde le cloisonnement (SEC-01, CPT-04 cité).</summary>
     public Guid ClientId { get; private set; }
 
+    /// <summary>
+    /// EXTENSION FEATURE 002 (CLAR-01, research.md D5/D11) : utilisateur individuel à l'origine de
+    /// la demande, distinct de <see cref="ClientId"/> qui identifie la société propriétaire dès
+    /// lors qu'un compte société existe (Feature 002). Nullable et non renseigné pour tout dossier
+    /// créé avant cette extension — jamais rétroactif. Ne remplace jamais <see cref="ClientId"/>.
+    /// </summary>
+    public Guid? AuteurId { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 002 (CPT-06, research.md D3) : instantané du type de client applicable au
+    /// moment de la création du dossier. Garantit la non-rétroactivité : un changement ultérieur du
+    /// profil de la société cliente ne modifie jamais le type sous lequel ce dossier a été créé.
+    /// </summary>
+    public TypeClient? TypeClient { get; private set; }
+
     public DateTime DateCreationUtc { get; private set; }
 
     private Dossier() { }
 
-    public static Dossier Creer(string numero, Guid clientId, DateTime maintenantUtc) => new()
+    public static Dossier Creer(string numero, Guid clientId, DateTime maintenantUtc, Guid? auteurId = null, TypeClient? typeClient = null) => new()
     {
         Id = Guid.NewGuid(),
         Numero = numero,
         ClientId = clientId,
+        AuteurId = auteurId,
+        TypeClient = typeClient,
         DateCreationUtc = maintenantUtc,
     };
 }

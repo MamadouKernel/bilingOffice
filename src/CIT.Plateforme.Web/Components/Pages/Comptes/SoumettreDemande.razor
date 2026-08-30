@@ -1,0 +1,100 @@
+@page "/comptes/soumettre"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Domain.Comptes
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@inject SoumettreDemandeCompteCommand SoumettreDemandeCommande
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Créer un compte société</PageTitle>
+
+<h1>Créer un compte société</h1>
+
+<p class="text-muted">
+    Contrat C2-01 (CPT-01, CPT-02). Un compte créé ici reste inutilisable pour s'authentifier tant
+    qu'un administrateur fonctionnel CIT ne l'a pas validé (SC-002).
+</p>
+
+<EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-demande-compte">
+    <div class="mb-3">
+        <label class="form-label" for="email">Identifiant de connexion (e-mail)</label>
+        <InputText id="email" class="form-control" @bind-Value="modele.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="mot-de-passe">Mot de passe</label>
+        <InputText id="mot-de-passe" type="password" class="form-control" @bind-Value="modele.MotDePasse" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="profil">Profil déclaré</label>
+        <InputSelect id="profil" class="form-select" @bind-Value="modele.Profil">
+            @foreach (var valeur in Enum.GetValues<TypeClient>())
+            {
+                <option value="@valeur">@valeur</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="informations">Informations et justificatifs déclarés</label>
+        <InputTextArea id="informations" class="form-control" @bind-Value="modele.InformationsDeclarees" />
+    </div>
+    <button type="submit" class="btn btn-primary">Soumettre la demande</button>
+</EditForm>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger mt-3">@erreur</div>
+}
+
+@if (societeCreee is not null)
+{
+    <div class="alert alert-success mt-3">
+        Demande enregistrée, en attente de validation par un administrateur fonctionnel CIT
+        (identifiant société : <strong>@societeCreee</strong>).
+    </div>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    private ModeleSoumission? modeleFormulaire { get; set; }
+
+    private ModeleSoumission modele = new();
+    private Guid? societeCreee;
+    private string? erreur;
+
+    protected override void OnInitialized() => modele = modeleFormulaire ?? modele;
+
+    private async Task SoumettreAsync()
+    {
+        erreur = null;
+
+        var demandeur = new ApplicationUser
+        {
+            UserName = modele.Email,
+            Email = modele.Email,
+            NomAffiche = modele.Email,
+            Nature = NatureUtilisateur.Client,
+        };
+        var resultat = await UserManager.CreateAsync(demandeur, modele.MotDePasse);
+        if (!resultat.Succeeded)
+        {
+            erreur = string.Join(" ", resultat.Errors.Select(e => e.Description));
+            return;
+        }
+
+        var societe = await SoumettreDemandeCommande.ExecuterAsync(new SoumettreDemandeCompteRequete(
+            demandeur.Id, modele.InformationsDeclarees, modele.Profil));
+
+        societeCreee = societe.Id;
+        modele = new ModeleSoumission();
+    }
+
+    private sealed class ModeleSoumission
+    {
+        public string Email { get; set; } = string.Empty;
+        public string MotDePasse { get; set; } = string.Empty;
+        public TypeClient Profil { get; set; } = TypeClient.Normal;
+        public string InformationsDeclarees { get; set; } = string.Empty;
+    }
+}

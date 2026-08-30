@@ -1,0 +1,115 @@
+@page "/comptes/connexion"
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject VerifierAccesCompteQuery VerifierAcces
+@inject NavigationManager Navigation
+
+<PageTitle>Connexion</PageTitle>
+
+<h1>Connexion</h1>
+
+<p class="text-muted">
+    Contrat C2-03 (CPT-03). L'authentification Identity (D1, inchangée) est complétée d'une
+    vérification propre au compte société : société active et rattachement actif (D10). En cas de
+    refus, le message reste générique — il ne révèle jamais l'état exact du compte (US2 scénario 2).
+    Si un second facteur est activé (CPT-07 — remédiation post-audit), le mot de passe seul ne
+    suffit jamais : <code>PasswordSignInAsync</code> (Identity natif) détecte le besoin de second
+    facteur et redirige vers le défi TOTP avant toute connexion effective.
+</p>
+
+<EditForm Model="Modele" OnValidSubmit="ConnecterAsync" FormName="connexion">
+    <div class="mb-3">
+        <label class="form-label" for="email">Identifiant de connexion (e-mail)</label>
+        <InputText id="email" class="form-control" @bind-Value="Modele.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="mot-de-passe">Mot de passe</label>
+        <InputText id="mot-de-passe" type="password" class="form-control" @bind-Value="Modele.MotDePasse" />
+    </div>
+    <button type="submit" class="btn btn-primary">Se connecter</button>
+</EditForm>
+
+<p class="mt-3"><a href="/comptes/mot-de-passe-oublie">Mot de passe oublié ?</a></p>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger mt-3">@erreur</div>
+}
+
+@code {
+    // REMÉDIATION POST-AUDIT (2026-08-29) : le champ [SupplyParameterFromForm] doit être LE MÊME
+    // identifiant que celui utilisé comme Model de l'EditForm et dans les expressions @bind-Value —
+    // sinon les noms de champs rendus (dérivés de l'expression @bind-Value, ex. "modele.Email") ne
+    // correspondent jamais aux noms que le mappage de formulaire recherche pour ce paramètre (ex.
+    // "modeleFormulaire.Email"), et les valeurs postées reviennent silencieusement vides. Bug
+    // découvert par le test HTTP réel `ParcoursConnexion2FaTests` (browser + WebApplicationFactory),
+    // jamais visible dans les tests précédents qui appelaient UserManager/SignInManager directement.
+    [SupplyParameterFromForm]
+    private ModeleConnexion Modele { get; set; } = default!;
+
+    private string? erreur;
+
+    protected override void OnInitialized() => Modele ??= new();
+
+    private async Task ConnecterAsync()
+    {
+        erreur = null;
+        // Message volontairement générique quel que soit le cas de refus (identifiants invalides,
+        // société non validée/désactivée, rattachement désactivé) — ne révèle aucune information
+        // sensible sur l'état exact du compte (US2 scénario 2).
+        const string messageRefusGenerique = "Identifiants incorrects ou compte non accessible.";
+
+        var utilisateur = await UserManager.FindByEmailAsync(Modele.Email);
+        if (utilisateur is null)
+        {
+            erreur = messageRefusGenerique;
+            return;
+        }
+
+        // REMÉDIATION POST-AUDIT (post-implementation-audit.md §11, CPT-07) : PasswordSignInAsync
+        // (Identity natif) est la seule primitive qui déclenche réellement RequiresTwoFactor quand
+        // un second facteur est activé — CheckPasswordSignInAsync (ancien code) ne le fait jamais,
+        // ce qui rendait la 2FA inerte en production.
+        var resultat = await SignInManager.PasswordSignInAsync(utilisateur, Modele.MotDePasse, isPersistent: false, lockoutOnFailure: true);
+
+        if (resultat.RequiresTwoFactor)
+        {
+            // Refus avant le défi 2FA si le compte est désactivé (E : refus dès que possible dans
+            // le parcours, sans exposer l'existence d'un second facteur à un compte non autorisé).
+            if (!await VerifierAcces.AccesAutoriseAsync(utilisateur.Id))
+            {
+                await SignInManager.SignOutAsync();
+                erreur = messageRefusGenerique;
+                return;
+            }
+
+            Navigation.NavigateTo("/comptes/verifier-code");
+            return;
+        }
+
+        if (!resultat.Succeeded)
+        {
+            erreur = messageRefusGenerique;
+            return;
+        }
+
+        // Connexion directe réussie (aucun second facteur activé) : PasswordSignInAsync a déjà
+        // écrit le cookie d'authentification — vérifier l'accès société après coup et annuler la
+        // connexion si le compte n'est pas autorisé (US2 scénario 2).
+        if (!await VerifierAcces.AccesAutoriseAsync(utilisateur.Id))
+        {
+            await SignInManager.SignOutAsync();
+            erreur = messageRefusGenerique;
+            return;
+        }
+    }
+
+    private sealed class ModeleConnexion
+    {
+        public string Email { get; set; } = string.Empty;
+        public string MotDePasse { get; set; } = string.Empty;
+    }
+}

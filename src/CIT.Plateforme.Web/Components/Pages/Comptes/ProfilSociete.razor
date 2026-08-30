@@ -1,0 +1,79 @@
+@page "/comptes/profil"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@inject ConsulterProfilSocieteQuery ConsulterProfil
+
+<PageTitle>Profil de la société</PageTitle>
+
+<h1>Profil de la société</h1>
+
+<p class="text-muted">
+    Contrat C2-10 (CPT-04, ENT-01, ENT-03). Le cloisonnement inter-société est vérifié côté serveur,
+    indépendamment de l'interface utilisée.
+</p>
+
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label" for="appelant">Identifiant de l'utilisateur (démonstration)</label>
+        <InputText id="appelant" class="form-control" @bind-Value="appelantId" />
+    </div>
+    <div class="col">
+        <label class="form-label" for="societe">Identifiant de la société consultée</label>
+        <InputText id="societe" class="form-control" @bind-Value="societeId" />
+    </div>
+    <div class="col align-self-end">
+        <button class="btn btn-primary" @onclick="ConsulterAsync">Consulter</button>
+    </div>
+</div>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger">@erreur</div>
+}
+
+@if (resultat is not null)
+{
+    <h2>@resultat.Societe.Profil — @resultat.Societe.Etat</h2>
+    <p>@resultat.Societe.InformationsDeclarees</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Utilisateur</th>
+                <th>Administrateur</th>
+                <th>Actif</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var utilisateur in resultat.UtilisateursRattaches)
+            {
+                <tr>
+                    <td>@utilisateur.UtilisateurId</td>
+                    <td>@utilisateur.EstAdministrateur</td>
+                    <td>@utilisateur.EstActif</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string appelantId = string.Empty;
+    private string societeId = string.Empty;
+    private ProfilSocieteResultat? resultat;
+    private string? erreur;
+
+    private async Task ConsulterAsync()
+    {
+        erreur = null;
+        resultat = null;
+        try
+        {
+            resultat = await ConsulterProfil.ExecuterAsync(Guid.Parse(appelantId), Guid.Parse(societeId));
+        }
+        catch (AccesRefuseException ex)
+        {
+            erreur = ex.Message;
+        }
+    }
+}

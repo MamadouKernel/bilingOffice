@@ -1,0 +1,86 @@
+@page "/comptes/reinitialiser-mot-de-passe"
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Text
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Réinitialiser le mot de passe</PageTitle>
+
+<h1>Réinitialiser le mot de passe</h1>
+
+<p class="text-muted">
+    Contrat C2-04 (CPT-03). La politique de robustesse déjà configurée (Feature 001,
+    <code>AddIdentityCore</code>) s'applique sans changement (US2 scénario 4).
+</p>
+
+<EditForm Model="Modele" OnValidSubmit="ReinitialiserAsync" FormName="reinitialiser-mot-de-passe">
+    <input type="hidden" @bind-value="Modele.UtilisateurId" />
+    <input type="hidden" @bind-value="Modele.Jeton" />
+    <div class="mb-3">
+        <label class="form-label" for="nouveau-mot-de-passe">Nouveau mot de passe</label>
+        <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" />
+    </div>
+    <button type="submit" class="btn btn-primary">Réinitialiser</button>
+</EditForm>
+
+@if (erreur is not null)
+{
+    <div class="alert alert-danger mt-3">@erreur</div>
+}
+
+@if (succes)
+{
+    <div class="alert alert-success mt-3">Mot de passe redéfini avec succès.</div>
+}
+
+@code {
+    // REMÉDIATION POST-AUDIT (2026-08-29) : voir Connexion.razor pour la justification — le
+    // paramètre [SupplyParameterFromForm] doit être le même identifiant que le Model de l'EditForm.
+    [SupplyParameterFromForm]
+    private ModeleReinitialisation Modele { get; set; } = default!;
+
+    [SupplyParameterFromQuery(Name = "utilisateurId")]
+    private string? UtilisateurIdParametre { get; set; }
+
+    [SupplyParameterFromQuery(Name = "jeton")]
+    private string? JetonParametre { get; set; }
+
+    private string? erreur;
+    private bool succes;
+
+    protected override void OnInitialized()
+    {
+        Modele ??= new();
+        Modele.UtilisateurId ??= UtilisateurIdParametre ?? string.Empty;
+        Modele.Jeton ??= JetonParametre ?? string.Empty;
+    }
+
+    private async Task ReinitialiserAsync()
+    {
+        erreur = null;
+        var utilisateur = await UserManager.FindByIdAsync(Modele.UtilisateurId);
+        if (utilisateur is null)
+        {
+            erreur = "Lien de réinitialisation invalide.";
+            return;
+        }
+
+        var jeton = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Modele.Jeton));
+        var resultat = await UserManager.ResetPasswordAsync(utilisateur, jeton, Modele.NouveauMotDePasse);
+        if (!resultat.Succeeded)
+        {
+            erreur = string.Join(" ", resultat.Errors.Select(e => e.Description));
+            return;
+        }
+
+        succes = true;
+    }
+
+    private sealed class ModeleReinitialisation
+    {
+        public string UtilisateurId { get; set; } = string.Empty;
+        public string Jeton { get; set; } = string.Empty;
+        public string NouveauMotDePasse { get; set; } = string.Empty;
+    }
+}

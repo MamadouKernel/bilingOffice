@@ -1,6 +1,7 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Affectation;
 using CIT.Plateforme.Domain.Affectation;
+using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Messagerie;
@@ -268,4 +269,33 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
             };
         }
     }
+}
+
+/// <summary>FEATURE 002 (research.md D2).</summary>
+public sealed class SocieteClienteRepository(PlateformeDbContext dbContext) : ISocieteClienteRepository
+{
+    public async Task AjouterAsync(SocieteCliente societe, CancellationToken ct = default) =>
+        await dbContext.Societes.AddAsync(societe, ct).ConfigureAwait(false);
+
+    public Task<SocieteCliente?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        dbContext.Societes.SingleOrDefaultAsync(s => s.Id == id, ct);
+
+    public async Task<IReadOnlyList<SocieteCliente>> ListerParEtatAsync(EtatSociete etat, CancellationToken ct = default) =>
+        await dbContext.Societes.Where(s => s.Etat == etat).ToListAsync(ct).ConfigureAwait(false);
+}
+
+/// <summary>FEATURE 002 (research.md D2).</summary>
+public sealed class UtilisateurSocieteRepository(PlateformeDbContext dbContext) : IUtilisateurSocieteRepository
+{
+    public async Task AjouterAsync(UtilisateurSociete rattachement, CancellationToken ct = default) =>
+        await dbContext.UtilisateursSociete.AddAsync(rattachement, ct).ConfigureAwait(false);
+
+    public Task<UtilisateurSociete?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        dbContext.UtilisateursSociete.SingleOrDefaultAsync(u => u.Id == id, ct);
+
+    public Task<UtilisateurSociete?> ObtenirParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default) =>
+        dbContext.UtilisateursSociete.SingleOrDefaultAsync(u => u.UtilisateurId == utilisateurId, ct);
+
+    public async Task<IReadOnlyList<UtilisateurSociete>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default) =>
+        await dbContext.UtilisateursSociete.Where(u => u.SocieteId == societeId).ToListAsync(ct).ConfigureAwait(false);
 }

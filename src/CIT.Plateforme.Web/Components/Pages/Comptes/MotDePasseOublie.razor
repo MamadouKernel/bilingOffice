@@ -1,0 +1,61 @@
+@page "/comptes/mot-de-passe-oublie"
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using System.Text
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Mot de passe oublié</PageTitle>
+
+<h1>Mot de passe oublié</h1>
+
+<p class="text-muted">
+    Contrat C2-04 (CPT-03). Redéfinition autonome du mot de passe, sans intervention d'un agent CIT
+    (mécanisme Identity natif — D9/D1, inchangé).
+</p>
+
+<EditForm Model="Modele" OnValidSubmit="DemanderAsync" FormName="mot-de-passe-oublie">
+    <div class="mb-3">
+        <label class="form-label" for="email">Identifiant de connexion (e-mail)</label>
+        <InputText id="email" class="form-control" @bind-Value="Modele.Email" />
+    </div>
+    <button type="submit" class="btn btn-primary">Envoyer le lien de réinitialisation</button>
+</EditForm>
+
+@if (lienGenere is not null)
+{
+    <div class="alert alert-info mt-3">
+        Lien de réinitialisation (démonstration — le canal d'envoi effectif relève d'une future
+        feature Notifications, hors périmètre) : <code>@lienGenere</code>
+    </div>
+}
+
+@code {
+    // REMÉDIATION POST-AUDIT (2026-08-29) : voir Connexion.razor pour la justification — le
+    // paramètre [SupplyParameterFromForm] doit être le même identifiant que le Model de l'EditForm.
+    [SupplyParameterFromForm]
+    private ModeleDemande Modele { get; set; } = default!;
+
+    private string? lienGenere;
+
+    protected override void OnInitialized() => Modele ??= new();
+
+    private async Task DemanderAsync()
+    {
+        var utilisateur = await UserManager.FindByEmailAsync(Modele.Email);
+        if (utilisateur is null)
+        {
+            // Ne révèle jamais si l'e-mail existe ou non (même principe que la connexion).
+            return;
+        }
+
+        var jeton = await UserManager.GeneratePasswordResetTokenAsync(utilisateur);
+        var jetonEncode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(jeton));
+        lienGenere = $"/comptes/reinitialiser-mot-de-passe?utilisateurId={utilisateur.Id}&jeton={jetonEncode}";
+    }
+
+    private sealed class ModeleDemande
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+}
