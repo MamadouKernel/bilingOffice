@@ -17,7 +17,8 @@ public sealed record SoumettreDemandeExportRequete(
     IReadOnlyList<string> NumerosBooking,
     string? Marchandises = null,
     string? PortDestination = null,
-    IReadOnlyList<PieceJointeExport>? Documents = null);
+    IReadOnlyList<PieceJointeExport>? Documents = null,
+    string? ReferenceSimulationProforma = null);
 
 /// <summary>
 /// UNI-04, CPT-04 : un booking refusé (déjà actif) ne révèle <see cref="TicketExistantId"/> que si le
@@ -69,7 +70,13 @@ public sealed class SoumettreDemandeExportCommand(
             ?? throw new InvalidOperationException($"File « {FileBackOfficeExport} » (module {Module}) non paramétrée.");
 
         var numeroDossier = await numerotation.ProchainNumeroDossierAsync(ct).ConfigureAwait(false);
-        var dossier = Dossier.Creer(numeroDossier, requete.SocieteId, maintenant, requete.AuteurId, societe.Profil);
+        var dossier = Dossier.Creer(
+            numeroDossier,
+            requete.SocieteId,
+            maintenant,
+            requete.AuteurId,
+            societe.Profil,
+            requete.ReferenceSimulationProforma);
         await dossiers.AjouterAsync(dossier, ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

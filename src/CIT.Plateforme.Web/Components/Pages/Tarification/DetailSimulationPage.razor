@@ -1,0 +1,181 @@
+@page "/simulation/{Id:guid}"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Tarification
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject ConsulterSimulationProformaQueryHandler Consulter
+@inject GenererDocumentProformaPdfQueryHandler GenererPdf
+@inject IJSRuntime Js
+
+<PageTitle>Détail simulation — CIT</PageTitle>
+
+<div class="container-fluid py-3" style="max-width: 1100px;">
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Détail de la simulation</h2>
+            <div class="text-muted small">Instantané figé au moment de l'enregistrement — jamais recalculé rétroactivement</div>
+        </div>
+        <a href="/simulation/historique" class="btn btn-outline-secondary btn-sm">⬅ Retour à l'historique</a>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement de la simulation..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else if (_detail is null)
+    {
+        <EtatVide Titre="Simulation introuvable" Message="Cette simulation n'existe pas ou a été supprimée." Icone="❓" />
+    }
+    else
+    {
+        @if (_detail.EstGrilleObsolete)
+        {
+            <div class="alert alert-warning">
+                ⚠️ La grille tarifaire a été révisée depuis cette simulation (version active actuelle :
+                <strong>@_detail.VersionActiveActuelleLibelle</strong>). Ce détail reste celui calculé avec
+                <strong>@_detail.VersionGrilleLibelle</strong> et n'est pas recalculé automatiquement.
+            </div>
+        }
+
+        <div class="cit-card mb-4">
+            <div class="row g-2 small mb-3">
+                <div class="col-md-3"><span class="text-muted">Référence :</span> <strong>@_detail.Reference</strong></div>
+                <div class="col-md-3"><span class="text-muted">Date :</span> <strong>@_detail.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                <div class="col-md-3"><span class="text-muted">Sens :</span> <strong>@_detail.Sens</strong></div>
+                <div class="col-md-3"><span class="text-muted">Séjour :</span> <strong>@_detail.DureeSejourJours j</strong></div>
+                @if (!string.IsNullOrWhiteSpace(_detail.NomNavire))
+                {
+                    <div class="col-md-3"><span class="text-muted">Navire :</span> <strong>@_detail.NomNavire</strong></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_detail.NumeroBlOuBooking))
+                {
+                    <div class="col-md-3"><span class="text-muted">BL / Booking :</span> <strong>@_detail.NumeroBlOuBooking</strong></div>
+                }
+                <div class="col-md-3"><span class="text-muted">Grille appliquée :</span> <strong>@_detail.VersionGrilleLibelle</strong></div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Conteneur</th>
+                            <th class="text-end">Acconage</th>
+                            <th class="text-end">Relevage</th>
+                            <th class="text-end">Branchement Frigo</th>
+                            <th class="text-end">Maj. Lourd</th>
+                            <th class="text-end">Maj. Dangereux</th>
+                            <th class="text-end">Maj. OOG</th>
+                            <th class="text-end">Stationnement</th>
+                            <th class="text-end fw-bold">Total ligne</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var l in _detail.Lignes)
+                        {
+                            <tr>
+                                <td>@l.NumeroConteneur</td>
+                                <td class="text-end">@l.Acconage.ToString("N0") XOF</td>
+                                <td class="text-end">@l.Relevage.ToString("N0") XOF</td>
+                                <td class="text-end">@l.BranchementFrigorifique.ToString("N0") XOF</td>
+                                <td class="text-end">@l.MajorationLourd.ToString("N0") XOF</td>
+                                <td class="text-end">@l.MajorationDangereux.ToString("N0") XOF</td>
+                                <td class="text-end">@l.MajorationHorsGabarit.ToString("N0") XOF</td>
+                                <td class="text-end">@l.Stationnement.ToString("N0") XOF</td>
+                                <td class="text-end fw-bold">@l.TotalLigne.ToString("N0") XOF</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="8" class="text-end fw-bold">Total général</td>
+                            <td class="text-end fw-bold fs-5 text-primary">@_detail.MontantTotalXof.ToString("N0") XOF</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="alert alert-secondary small mt-3 mb-0">@_detail.MentionLegale</div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <button type="button" class="btn btn-outline-primary px-4" disabled="@_telechargementEnCours" @onclick="TelechargerPdfAsync">
+                    @(_telechargementEnCours ? "Génération..." : "📄 Télécharger le PDF")
+                </button>
+            </div>
+
+            @if (_erreur is not null)
+            {
+                <div class="alert alert-danger mt-3 mb-0">@_erreur</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private Guid _societeId;
+    private Guid _appelantId;
+    private SimulationProformaDetailVue? _detail;
+    private bool _telechargementEnCours;
+    private string? _erreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Vous devez être connecté et rattaché à une entreprise pour consulter cette simulation.";
+                return;
+            }
+
+            _societeId = contexte.SocieteId.Value;
+            _appelantId = contexte.UtilisateurId;
+
+            try
+            {
+                _detail = await Consulter.HandleAsync(new ConsulterSimulationProformaRequete(_appelantId, _societeId, Id));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Cette simulation appartient à une autre entreprise.";
+            }
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task TelechargerPdfAsync()
+    {
+        _erreur = null;
+        _telechargementEnCours = true;
+        try
+        {
+            var pdf = await GenererPdf.HandleAsync(new GenererDocumentProformaPdfRequete(_appelantId, _societeId, Id));
+            await Js.InvokeVoidAsync("telechargerFichier", pdf.NomFichier, pdf.TypeContenu, Convert.ToBase64String(pdf.Contenu));
+        }
+        catch (Exception ex)
+        {
+            _erreur = $"Erreur lors de la génération du PDF : {ex.Message}";
+        }
+        finally
+        {
+            _telechargementEnCours = false;
+        }
+    }
+}

@@ -9,10 +9,9 @@
 
 <h1>Modifier le type de client</h1>
 
-<p class="text-muted">
-    Contrat C2-12 (CPT-06). Réservé à l'administrateur fonctionnel CIT. Tracé (ancien type, nouveau
-    type, auteur, date/heure) ; sans effet rétroactif sur les dossiers déjà créés.
-</p>
+@* Contrat C2-12 (CPT-06). Réservé à l'administrateur fonctionnel CIT. Tracé (ancien type, nouveau
+   type, auteur, date/heure) ; sans effet rétroactif sur les dossiers déjà créés. *@
+<p class="text-muted">Le changement est tracé et n'affecte que les nouveaux dossiers — les dossiers déjà créés conservent leur type d'origine.</p>
 
 <EditForm Model="modele" OnValidSubmit="ModifierAsync" FormName="modifier-type-client">
     <div class="mb-3">

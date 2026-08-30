@@ -9,7 +9,11 @@ namespace CIT.Plateforme.Application.BillingImport;
 /// Contrat C3-01/C3-02 — Soumettre une demande IMPORT multi-BL, avec contrôle d'unicité par BL.
 /// CDC : IMP-01, IMP-02, IMP-03, UNI-01, UNI-02, UNI-03.
 /// </summary>
-public sealed record SoumettreDemandeImportRequete(Guid SocieteId, Guid AuteurId, IReadOnlyList<string> NumerosBl);
+public sealed record SoumettreDemandeImportRequete(
+    Guid SocieteId,
+    Guid AuteurId,
+    IReadOnlyList<string> NumerosBl,
+    string? ReferenceSimulationProforma = null);
 
 /// <summary>
 /// UNI-01, CPT-04 : un BL refusé (déjà actif) ne révèle <see cref="TicketExistantId"/> que si le
@@ -65,7 +69,13 @@ public sealed class SoumettreDemandeImportCommand(
             ?? throw new InvalidOperationException($"File « {FilePiloteManifeste} » (module {Module}) non paramétrée — voir quickstart.md §3.");
 
         var numeroDossier = await numerotation.ProchainNumeroDossierAsync(ct).ConfigureAwait(false);
-        var dossier = Dossier.Creer(numeroDossier, requete.SocieteId, maintenant, requete.AuteurId, societe.Profil);
+        var dossier = Dossier.Creer(
+            numeroDossier,
+            requete.SocieteId,
+            maintenant,
+            requete.AuteurId,
+            societe.Profil,
+            requete.ReferenceSimulationProforma);
         await dossiers.AjouterAsync(dossier, ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

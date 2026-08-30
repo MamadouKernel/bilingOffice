@@ -1,0 +1,299 @@
+@page "/simulation/proforma"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Tarification
+@using CIT.Plateforme.Domain.Tarification
+@using CIT.Plateforme.Domain.Tarification.Exceptions
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject CalculerSimulationProformaQueryHandler Calculer
+@inject SauvegarderSimulationProformaCommandHandler Sauvegarder
+@inject NavigationManager Navigation
+
+<PageTitle>Simulation de Proforma — CIT</PageTitle>
+
+<div class="container-fluid py-3" style="max-width: 1100px;">
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Simulation de Proforma</h2>
+            <div class="text-muted small">Estimation indicative des frais portuaires — aucun engagement contractuel</div>
+        </div>
+        <a href="/simulation/historique" class="btn btn-outline-secondary btn-sm">🕒 Mes simulations</a>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Vérification de vos habilitations..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        <div class="cit-card mb-4">
+            <h6 class="fw-bold text-dark mb-3">Dossier</h6>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Sens</label>
+                    <select class="form-select" @bind="_sens">
+                        @foreach (var s in Enum.GetValues<SensTrafic>())
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Date d'arrivée</label>
+                    <input type="date" class="form-control" @bind="_dateArrivee" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Date d'enlèvement prévisionnel</label>
+                    <input type="date" class="form-control" @bind="_dateEnlevement" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">N° navire (optionnel)</label>
+                    <input class="form-control" @bind="_nomNavire" />
+                </div>
+            </div>
+        </div>
+
+        <div class="cit-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-dark mb-0">Conteneurs</h6>
+                <button type="button" class="btn btn-outline-primary btn-sm" @onclick="AjouterConteneur">➕ Ajouter un conteneur</button>
+            </div>
+
+            @for (var i = 0; i < _conteneurs.Count; i++)
+            {
+                var index = i;
+                var c = _conteneurs[index];
+                <div class="border rounded p-3 mb-2">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label small">N° conteneur</label>
+                            <input class="form-control form-control-sm" @bind="c.NumeroConteneur" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Taille</label>
+                            <select class="form-select form-select-sm" @bind="c.Taille">
+                                @foreach (var t in Enum.GetValues<TailleConteneur>())
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Type</label>
+                            <select class="form-select form-select-sm" @bind="c.Type">
+                                @foreach (var t in Enum.GetValues<TypeConteneur>())
+                                {
+                                    <option value="@t">@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Poids (t)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" @bind="c.PoidsTonnes" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Catégorie</label>
+                            <input class="form-control form-control-sm" @bind="c.CategorieMarchandise" />
+                        </div>
+                        <div class="col-md-1 form-check">
+                            <input type="checkbox" class="form-check-input" id="dang-@index" @bind="c.EstDangereux" />
+                            <label class="form-check-label small" for="dang-@index">Dangereux</label>
+                        </div>
+                        <div class="col-md-1 form-check">
+                            <input type="checkbox" class="form-check-input" id="oog-@index" @bind="c.EstHorsGabarit" />
+                            <label class="form-check-label small" for="oog-@index">OOG</label>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button type="button" class="btn btn-link btn-sm text-danger p-0" @onclick="() => SupprimerConteneur(index)">Retirer ce conteneur</button>
+                    </div>
+                </div>
+            }
+
+            @if (_conteneurs.Count == 0)
+            {
+                <EtatVide Titre="Aucun conteneur" Message="Ajoutez au moins un conteneur pour lancer le calcul." Icone="📦" />
+            }
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-4">
+            <button type="button" class="btn btn-primary px-4 fw-bold" disabled="@(_conteneurs.Count == 0 || _calculEnCours)" @onclick="CalculerAsync">
+                @(_calculEnCours ? "Calcul en cours..." : "🧮 Calculer")
+            </button>
+        </div>
+
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger">@_erreur</div>
+        }
+
+        @if (_resultat is not null)
+        {
+            <div class="cit-card mb-4">
+                <h6 class="fw-bold text-dark mb-3">Décomposition du calcul</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Conteneur</th>
+                                <th class="text-end">Acconage</th>
+                                <th class="text-end">Relevage</th>
+                                <th class="text-end">Branchement Frigo</th>
+                                <th class="text-end">Maj. Lourd</th>
+                                <th class="text-end">Maj. Dangereux</th>
+                                <th class="text-end">Maj. OOG</th>
+                                <th class="text-end">Stationnement</th>
+                                <th class="text-end fw-bold">Total ligne</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var l in _resultat.Lignes)
+                            {
+                                <tr>
+                                    <td>@l.NumeroConteneur</td>
+                                    <td class="text-end">@l.Acconage.ToString("N0") XOF</td>
+                                    <td class="text-end">@l.Relevage.ToString("N0") XOF</td>
+                                    <td class="text-end">@l.BranchementFrigorifique.ToString("N0") XOF</td>
+                                    <td class="text-end">@l.MajorationLourd.ToString("N0") XOF</td>
+                                    <td class="text-end">@l.MajorationDangereux.ToString("N0") XOF</td>
+                                    <td class="text-end">@l.MajorationHorsGabarit.ToString("N0") XOF</td>
+                                    <td class="text-end">@l.Stationnement.ToString("N0") XOF</td>
+                                    <td class="text-end fw-bold">@l.TotalLigne.ToString("N0") XOF</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <td colspan="8" class="text-end fw-bold">Total général</td>
+                                <td class="text-end fw-bold fs-5 text-primary">@_resultat.TotalGeneralXof.ToString("N0") XOF</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="alert alert-secondary small mt-3 mb-0">@_resultat.MentionLegale</div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button" class="btn btn-success px-4 fw-bold" disabled="@_sauvegardeEnCours" @onclick="SauvegarderAsync">
+                        @(_sauvegardeEnCours ? "Enregistrement..." : "💾 Enregistrer cette simulation")
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private Guid _societeId;
+    private Guid _auteurId;
+
+    private SensTrafic _sens = SensTrafic.ImportLocal;
+    private DateTime _dateArrivee = DateTime.Today;
+    private DateTime _dateEnlevement = DateTime.Today;
+    private string? _nomNavire;
+    private readonly List<ConteneurSaisie> _conteneurs = [];
+
+    private bool _calculEnCours;
+    private bool _sauvegardeEnCours;
+    private string? _erreur;
+    private ResultatSimulationProformaVue? _resultat;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Vous devez être connecté et rattaché à une entreprise pour simuler une proforma.";
+                return;
+            }
+
+            _societeId = contexte.SocieteId.Value;
+            _auteurId = contexte.UtilisateurId;
+            AjouterConteneur();
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private void AjouterConteneur() => _conteneurs.Add(new ConteneurSaisie
+    {
+        NumeroConteneur = $"CONT{_conteneurs.Count + 1:00}",
+    });
+
+    private void SupprimerConteneur(int index) => _conteneurs.RemoveAt(index);
+
+    private CalculerSimulationProformaRequete ConstruireRequete() => new(
+        _sens,
+        DateOnly.FromDateTime(_dateArrivee),
+        DateOnly.FromDateTime(_dateEnlevement),
+        _conteneurs.Select(c => new ConteneurSimulationRequete(
+            c.NumeroConteneur, c.Taille, c.Type, c.PoidsTonnes, c.EstDangereux, c.EstHorsGabarit, c.CategorieMarchandise)).ToList(),
+        _nomNavire);
+
+    private async Task CalculerAsync()
+    {
+        _erreur = null;
+        _resultat = null;
+        _calculEnCours = true;
+        try
+        {
+            _resultat = await Calculer.HandleAsync(ConstruireRequete());
+        }
+        catch (TarifNonTrouveException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = $"Erreur lors du calcul : {ex.Message}";
+        }
+        finally
+        {
+            _calculEnCours = false;
+        }
+    }
+
+    private async Task SauvegarderAsync()
+    {
+        _sauvegardeEnCours = true;
+        _erreur = null;
+        try
+        {
+            var enregistree = await Sauvegarder.HandleAsync(new SauvegarderSimulationProformaCommande(_auteurId, _societeId, ConstruireRequete()));
+            Navigation.NavigateTo($"/simulation/{enregistree.Id}");
+        }
+        catch (Exception ex)
+        {
+            _erreur = $"Erreur lors de l'enregistrement : {ex.Message}";
+        }
+        finally
+        {
+            _sauvegardeEnCours = false;
+        }
+    }
+
+    private sealed class ConteneurSaisie
+    {
+        public string NumeroConteneur { get; set; } = string.Empty;
+        public TailleConteneur Taille { get; set; } = TailleConteneur.VingtPieds;
+        public TypeConteneur Type { get; set; } = TypeConteneur.Dry;
+        public decimal PoidsTonnes { get; set; }
+        public bool EstDangereux { get; set; }
+        public bool EstHorsGabarit { get; set; }
+        public string CategorieMarchandise { get; set; } = string.Empty;
+    }
+}

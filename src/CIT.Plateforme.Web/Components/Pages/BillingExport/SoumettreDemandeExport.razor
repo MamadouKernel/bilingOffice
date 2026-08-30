@@ -70,6 +70,15 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark" for="ref-simulation-export">Référence de simulation de proforma (optionnel)</label>
+                    <InputText id="ref-simulation-export" class="form-control" placeholder="Ex : SIM-20260830-1234" @bind-Value="_modele.ReferenceSimulationProforma" />
+                    <div class="form-text small text-muted">
+                        Si vous avez déjà réalisé une <a href="/simulation/proforma" target="_blank">simulation de proforma</a>,
+                        vous pouvez la rattacher ici à titre indicatif — cela ne déclenche aucune conversion automatique.
+                    </div>
+                </div>
+
                 <div class="d-flex justify-content-end gap-2">
                     <a href="/client/dashboard" class="btn btn-outline-secondary">Annuler</a>
                     <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBooking) || _soumissionEnCours)">
@@ -219,7 +228,8 @@
                 _auteurId,
                 bookings,
                 _modele.Marchandises,
-                _modele.PortDestination);
+                _modele.PortDestination,
+                ReferenceSimulationProforma: string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim());
 
             _resultat = await Soumettre.ExecuterAsync(requete);
             _modele = new ModeleFormulaire();
@@ -243,5 +253,6 @@
         public string? NumerosBooking { get; set; }
         public string? Marchandises { get; set; }
         public string? PortDestination { get; set; }
+        public string? ReferenceSimulationProforma { get; set; }
     }
 }

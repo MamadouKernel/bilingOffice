@@ -69,6 +69,18 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 003 (research.md D8) : suivi des branches IES.</summary>
     public DbSet<SuiviBrancheIes> SuivisBranchesIes => Set<SuiviBrancheIes>();
 
+    /// <summary>FEATURE 005 (research.md D4) : versions de grilles tarifaires.</summary>
+    public DbSet<Domain.Tarification.VersionGrilleTarifaire> VersionsGrillesTarifaires => Set<Domain.Tarification.VersionGrilleTarifaire>();
+
+    /// <summary>FEATURE 005 (research.md D4) : lignes tarifaires de base.</summary>
+    public DbSet<Domain.Tarification.LigneTarifaire> LignesTarifaires => Set<Domain.Tarification.LigneTarifaire>();
+
+    /// <summary>FEATURE 005 (research.md D6) : simulations de proforma enregistrées.</summary>
+    public DbSet<Domain.Tarification.SimulationProforma> SimulationsProforma => Set<Domain.Tarification.SimulationProforma>();
+
+    /// <summary>FEATURE 005 (research.md D6) : lignes de résultat des conteneurs de simulation.</summary>
+    public DbSet<Domain.Tarification.LigneResultatSimulationConteneur> LignesResultatsSimulation => Set<Domain.Tarification.LigneResultatSimulationConteneur>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -311,6 +323,81 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .WithMany()
                 .HasForeignKey(u => u.SocieteId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // FEATURE 005 (research.md D4, D6, D12) : Tarification et Simulation de Proforma.
+        builder.Entity<Domain.Tarification.VersionGrilleTarifaire>(b =>
+        {
+            b.HasKey(v => v.Id);
+            b.Property(v => v.NumeroVersion).IsRequired().HasMaxLength(32);
+            b.HasIndex(v => v.DateEffetUtc);
+            b.OwnsOne(v => v.Parametres, p =>
+            {
+                p.Property(x => x.TauxMajorationLourd).HasPrecision(5, 2);
+                p.Property(x => x.TauxMajorationDangereux).HasPrecision(5, 2);
+                p.Property(x => x.TauxMajorationOog).HasPrecision(5, 2);
+                p.Property(x => x.SeuilPoidsLourd20Pieds).HasPrecision(8, 2);
+                p.Property(x => x.SeuilPoidsLourd40Pieds).HasPrecision(8, 2);
+                p.Property(x => x.FranchiseBranchementJours);
+                p.Property(x => x.FranchiseStationnementImportLocalJours);
+                p.Property(x => x.FranchiseStationnementImportTransitJours);
+                p.Property(x => x.TarifStationnementTranche1Jour).HasPrecision(18, 2);
+                p.Property(x => x.TarifStationnementTranche2Jour).HasPrecision(18, 2);
+                p.Property(x => x.TarifStationnementTranche3Jour).HasPrecision(18, 2);
+                p.Property(x => x.QuotePartCit).HasPrecision(5, 2);
+                p.Property(x => x.QuotePartOic).HasPrecision(5, 2);
+                p.Property(x => x.QuotePartPaa).HasPrecision(5, 2);
+            });
+            b.HasMany(v => v.Lignes)
+                .WithOne()
+                .HasForeignKey(l => l.VersionGrilleTarifaireId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Domain.Tarification.LigneTarifaire>(b =>
+        {
+            b.HasKey(l => l.Id);
+            b.Property(l => l.CategorieMarchandise).IsRequired().HasMaxLength(64);
+            b.Property(l => l.Acconage).HasPrecision(18, 2);
+            b.Property(l => l.Relevage).HasPrecision(18, 2);
+            b.Property(l => l.TarifJourBranchement).HasPrecision(18, 2);
+            b.HasIndex(l => new { l.VersionGrilleTarifaireId, l.Sens, l.Taille, l.CategorieMarchandise }).IsUnique();
+        });
+
+        builder.Entity<Domain.Tarification.SimulationProforma>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Reference).IsRequired().HasMaxLength(64);
+            b.Property(s => s.VersionGrilleLibelle).IsRequired().HasMaxLength(32);
+            b.Property(s => s.NomNavire).HasMaxLength(128);
+            b.Property(s => s.NumeroVoyage).HasMaxLength(64);
+            b.Property(s => s.NumeroBlOuBooking).HasMaxLength(64);
+            b.Property(s => s.MontantTotalXof).HasPrecision(18, 2);
+            b.HasIndex(s => s.Reference).IsUnique();
+            b.HasIndex(s => new { s.SocieteId, s.DateCreationUtc });
+            b.HasMany(s => s.LignesConteneurs)
+                .WithOne()
+                .HasForeignKey(l => l.SimulationProformaId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Domain.Tarification.LigneResultatSimulationConteneur>(b =>
+        {
+            b.HasKey(l => l.Id);
+            b.Property(l => l.NumeroConteneur).IsRequired().HasMaxLength(32);
+            b.Property(l => l.CategorieMarchandise).IsRequired().HasMaxLength(64);
+            b.Property(l => l.PoidsTonnes).HasPrecision(8, 2);
+            b.Property(l => l.MontantAcconage).HasPrecision(18, 2);
+            b.Property(l => l.MontantRelevage).HasPrecision(18, 2);
+            b.Property(l => l.MontantBranchement).HasPrecision(18, 2);
+            b.Property(l => l.MontantMajorationLourd).HasPrecision(18, 2);
+            b.Property(l => l.MontantMajorationDangereux).HasPrecision(18, 2);
+            b.Property(l => l.MontantMajorationOog).HasPrecision(18, 2);
+            b.Property(l => l.MontantStationnement).HasPrecision(18, 2);
+            b.Property(l => l.PartCit).HasPrecision(18, 2);
+            b.Property(l => l.PartOic).HasPrecision(18, 2);
+            b.Property(l => l.PartPaa).HasPrecision(18, 2);
+            b.Property(l => l.TotalLigneXof).HasPrecision(18, 2);
         });
     }
 }

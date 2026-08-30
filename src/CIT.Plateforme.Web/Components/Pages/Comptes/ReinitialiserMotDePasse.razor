@@ -9,10 +9,9 @@
 
 <h1>Réinitialiser le mot de passe</h1>
 
-<p class="text-muted">
-    Contrat C2-04 (CPT-03). La politique de robustesse déjà configurée (Feature 001,
-    <code>AddIdentityCore</code>) s'applique sans changement (US2 scénario 4).
-</p>
+@* Contrat C2-04 (CPT-03). La politique de robustesse déjà configurée (Feature 001,
+   AddIdentityCore) s'applique sans changement (US2 scénario 4). *@
+<p class="text-muted">Choisissez un nouveau mot de passe pour votre compte.</p>
 
 <EditForm Model="Modele" OnValidSubmit="ReinitialiserAsync" FormName="reinitialiser-mot-de-passe">
     <input type="hidden" @bind-value="Modele.UtilisateurId" />

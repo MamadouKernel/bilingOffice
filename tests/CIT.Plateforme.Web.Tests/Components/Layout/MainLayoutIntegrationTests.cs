@@ -23,7 +23,8 @@ public sealed class MainLayoutIntegrationTests : BunitContext
         var cut = Render<MainLayout>(parameters => parameters
             .Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "Contenu de test"))));
 
-        Assert.Contains("CIT Plateforme Digitale", cut.Markup);
+        Assert.Contains("Côte d'Ivoire Terminal", cut.Markup);
+        Assert.Contains("Plateforme Digitale", cut.Markup);
         Assert.Contains("TRANS-AFRIQUE", cut.Markup);
         Assert.Contains("Contenu de test", cut.Markup);
         Assert.Contains("/client/dashboard", cut.Markup);

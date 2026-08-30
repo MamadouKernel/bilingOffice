@@ -14,13 +14,12 @@
 
 <h1>Gestion des collaborateurs</h1>
 
-<p class="text-muted">
-    Contrats C2-06→09 (ENT-01, ENT-02). Réservé à un administrateur actif de la société concernée
-    (vérifié côté serveur, cloisonné à cette société — CPT-04). REMÉDIATION POST-AUDIT (§19, IDOR) :
-    la liste des collaborateurs n'est plus jamais chargée en accédant au dépôt directement — elle
-    passe systématiquement par <code>ConsulterProfilSocieteQuery</code>, qui vérifie que l'appelant
-    est membre de la société consultée (ou administrateur fonctionnel CIT habilité).
-</p>
+@* Contrats C2-06→09 (ENT-01, ENT-02). Réservé à un administrateur actif de la société concernée
+   (vérifié côté serveur, cloisonné à cette société — CPT-04). REMÉDIATION POST-AUDIT (§19, IDOR) :
+   la liste des collaborateurs n'est plus jamais chargée en accédant au dépôt directement — elle
+   passe systématiquement par ConsulterProfilSocieteQuery, qui vérifie que l'appelant est membre de
+   la société consultée (ou administrateur fonctionnel CIT habilité). *@
+<p class="text-muted">Gérez les droits et l'accès des collaborateurs rattachés à votre entreprise.</p>
 
 <div class="row mb-3">
     <div class="col">

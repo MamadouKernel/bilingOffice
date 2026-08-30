@@ -35,15 +35,34 @@ public sealed class Dossier
 
     public DateTime DateCreationUtc { get; private set; }
 
+    /// <summary>
+    /// EXTENSION FEATURE 005 (CLAR-SIM-05, research.md D12) : référence facultative vers une simulation
+    /// de proforma enregistrée (SIM-08) rattachée lors de la soumission de la demande.
+    /// </summary>
+    public string? ReferenceSimulationProforma { get; private set; }
+
     private Dossier() { }
 
-    public static Dossier Creer(string numero, Guid clientId, DateTime maintenantUtc, Guid? auteurId = null, TypeClient? typeClient = null) => new()
+    public static Dossier Creer(
+        string numero,
+        Guid clientId,
+        DateTime maintenantUtc,
+        Guid? auteurId = null,
+        TypeClient? typeClient = null,
+        string? referenceSimulationProforma = null) => new()
     {
         Id = Guid.NewGuid(),
         Numero = numero,
         ClientId = clientId,
         AuteurId = auteurId,
         TypeClient = typeClient,
+        ReferenceSimulationProforma = string.IsNullOrWhiteSpace(referenceSimulationProforma) ? null : referenceSimulationProforma.Trim(),
         DateCreationUtc = maintenantUtc,
     };
+
+    public void AssocierSimulationProforma(string referenceSimulation)
+    {
+        if (string.IsNullOrWhiteSpace(referenceSimulation)) return;
+        ReferenceSimulationProforma = referenceSimulation.Trim();
+    }
 }

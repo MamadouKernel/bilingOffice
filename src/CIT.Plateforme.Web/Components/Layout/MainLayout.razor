@@ -4,12 +4,11 @@
 @inject IContexteUtilisateurWeb ContexteService
 @implements IDisposable
 
-<div class="d-flex flex-column min-vh-100">
-    <HeaderBar Contexte="@_contexte" OnToggleMobileMenu="ToggleMobileMenu" />
-
-    <div class="cit-layout-wrapper">
+<div class="cit-app-container d-flex min-vh-100">
+    @if (_contexte?.EstAuthentifie == true)
+    {
         <!-- Desktop Sidebar -->
-        <div class="d-none d-lg-block">
+        <div class="cit-desktop-sidebar d-none d-lg-block">
             <NavMenu />
         </div>
 
@@ -17,19 +16,28 @@
         @if (_mobileMenuOuvert)
         {
             <div class="cit-modal-backdrop d-lg-none" @onclick="ToggleMobileMenu">
-                <div class="bg-white h-100 p-3" style="width: 280px;" @onclick:stopPropagation>
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <span class="fw-bold fs-5">Menu</span>
-                        <button type="button" class="btn-close" @onclick="ToggleMobileMenu" aria-label="Fermer"></button>
+                <div class="cit-mobile-sidebar h-100 p-3" @onclick:stopPropagation>
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
+                        <span class="fw-bold fs-5 text-white">Menu</span>
+                        <button type="button" class="btn-close btn-close-white" @onclick="ToggleMobileMenu" aria-label="Fermer"></button>
                     </div>
                     <NavMenu />
                 </div>
             </div>
         }
+    }
 
-        <!-- Main Content Area -->
-        <main class="cit-main-content">
-            @Body
+    <!-- Main Content Wrapper -->
+    <div class="cit-main-wrapper flex-grow-1 d-flex flex-column min-w-0">
+        @if (_contexte?.EstAuthentifie == true)
+        {
+            <HeaderBar Contexte="@_contexte" OnToggleMobileMenu="ToggleMobileMenu" />
+        }
+        
+        <main class="cit-main-content @(_contexte?.EstAuthentifie != true ? "d-flex align-items-center justify-content-center" : "")">
+            <div class="container-fluid p-0">
+                @Body
+            </div>
         </main>
     </div>
 </div>

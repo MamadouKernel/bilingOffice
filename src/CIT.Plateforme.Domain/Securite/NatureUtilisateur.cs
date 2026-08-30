@@ -71,4 +71,7 @@ public static class Permission
     public const string BillingExportControleDocumentaireTraiter = "billing_export.controle_documentaire.traiter";
     public const string BillingExportIesBackOfficeInstruire = "billing_export.ies.back_office.instruire";
     public const string BillingExportIesControleDocumentaireInstruire = "billing_export.ies.controle_documentaire.instruire";
+
+    // FEATURE 005 (research.md D15) — Tarification et Simulation de Proforma
+    public const string TarificationAdministrer = "tarification.administrer";
 }

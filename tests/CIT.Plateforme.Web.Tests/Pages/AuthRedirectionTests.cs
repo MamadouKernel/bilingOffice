@@ -15,17 +15,17 @@ namespace CIT.Plateforme.Web.Tests.Pages;
 public sealed class AuthRedirectionTests : BunitContext
 {
     [Fact]
-    public void Visiteur_AffichePageAccueil_AvecBoutonConnexion()
+    public void Visiteur_AffichePageAccueil_RedirigeVersConnexion()
     {
         var fakeContexte = new FakeContexteUtilisateurWeb();
         fakeContexte.Contexte = fakeContexte.Contexte with { EstAuthentifie = false };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        
+        var navMan = Services.GetRequiredService<NavigationManager>();
 
         var cut = Render<Home>();
 
-        Assert.Contains("Plateforme Digitale CIT", cut.Markup);
-        Assert.Contains("/comptes/connexion", cut.Markup);
-        Assert.Contains("/comptes/soumettre", cut.Markup);
+        Assert.Equal("http://localhost/comptes/connexion", navMan.Uri);
     }
 
     [Theory]

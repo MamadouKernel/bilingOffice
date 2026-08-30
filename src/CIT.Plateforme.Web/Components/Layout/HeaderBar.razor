@@ -5,36 +5,39 @@
 
 <header class="cit-header">
     <div class="d-flex align-items-center gap-3">
-        <!-- Bouton Burger Mobile -->
-        <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" @onclick="ToggleMobileMenu" aria-label="Menu">
-            ☰
-        </button>
+        <!-- Bouton Burger Mobile (Visible uniquement si authentifié) -->
+        @if (Contexte?.EstAuthentifie == true)
+        {
+            <button class="btn btn-light d-lg-none shadow-sm" type="button" @onclick="ToggleMobileMenu" aria-label="Menu">
+                ☰
+            </button>
+        }
 
         <a href="/" class="cit-brand">
-            <span class="fs-4">🚢</span>
-            <span>CIT Plateforme Digitale</span>
+            <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" class="cit-brand-logo" />
+            <span class="cit-brand-sub d-none d-sm-inline-block">Plateforme Digitale</span>
         </a>
 
         @if (Contexte?.SocieteNom is not null)
         {
-            <span class="badge bg-light text-dark border ms-2 d-none d-md-inline-block">
+            <span class="badge bg-white text-dark shadow-sm ms-2 d-none d-md-inline-block px-3 py-2 rounded-pill">
                 🏢 @Contexte.SocieteNom @(Contexte.SocieteProfil.HasValue ? $"({Contexte.SocieteProfil})" : "")
             </span>
         }
     </div>
 
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-3">
         <PersonaSwitcher Contexte="@Contexte" />
 
         @if (Contexte?.EstAuthentifie == true)
         {
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-secondary small d-none d-sm-inline">
-                    👤 <strong>@Contexte.NomAffiche</strong>
+            <div class="d-flex align-items-center gap-3 ms-2 ps-3">
+                <span class="text-secondary small d-none d-sm-inline fw-bold text-uppercase" style="letter-spacing: 0.05em;">
+                    @Contexte.NomAffiche
                 </span>
 
                 <form method="post" action="/comptes/deconnexion">
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">
                         Déconnexion
                     </button>
                 </form>
@@ -42,8 +45,8 @@
         }
         else
         {
-            <div class="d-flex gap-2">
-                <a href="/comptes/connexion" class="btn btn-primary btn-sm">
+            <div class="d-flex gap-2 ms-2 ps-3">
+                <a href="/comptes/connexion" class="btn btn-primary btn-sm rounded-pill px-4">
                     Connexion
                 </a>
             </div>

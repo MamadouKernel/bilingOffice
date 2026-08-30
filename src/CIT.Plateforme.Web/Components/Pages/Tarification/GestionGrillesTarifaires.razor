@@ -1,0 +1,217 @@
+@page "/admin/tarification"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Tarification
+@using CIT.Plateforme.Domain.Tarification
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@inject IContexteUtilisateurWeb ContexteService
+@inject ConsulterVersionsGrillesTarifairesQueryHandler ConsulterVersions
+@inject ImporterGrilleTarifaireCsvCommandHandler ImporterCsv
+
+<PageTitle>Administration tarifaire — CIT</PageTitle>
+
+<div class="container-fluid py-3" style="max-width: 1100px;">
+    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Administration des grilles tarifaires</h2>
+            <div class="text-muted small">Versionnement et import CSV atomique — aucune valeur tarifaire codée en dur dans l'application</div>
+        </div>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Vérification de vos habilitations..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        <div class="cit-card mb-4">
+            <h6 class="fw-bold text-dark mb-3">Importer une nouvelle version (CSV)</h6>
+            <p class="text-muted small">
+                Format attendu : UTF-8, séparateur point-virgule, en-tête
+                <code>Sens;Taille;Categorie;Acconage;Relevage;BranchementJour</code>.
+                L'import est atomique : la moindre erreur bloque la totalité du fichier, aucune version
+                partielle n'est jamais créée.
+            </p>
+            <div class="row g-2 align-items-end mb-2">
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">N° de version</label>
+                    <input class="form-control form-control-sm" @bind="_numeroVersion" placeholder="v2.0" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold">Date d'effet</label>
+                    <input type="date" class="form-control form-control-sm" @bind="_dateEffet" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Fichier CSV</label>
+                    <InputFile class="form-control form-control-sm" OnChange="ImporterAsync" />
+                </div>
+            </div>
+
+            @if (_resultatImport is not null)
+            {
+                @if (_resultatImport.Succes)
+                {
+                    <div class="alert alert-success mt-2 mb-0">
+                        ✅ Version <strong>@_numeroVersion</strong> créée avec @_resultatImport.NombreLignesImportees ligne(s) tarifaire(s).
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger mt-2 mb-0">
+                        <strong class="d-block mb-1">Import refusé — aucune donnée persistée :</strong>
+                        <ul class="mb-0 small ps-3">
+                            @foreach (var erreur in _resultatImport.Erreurs)
+                            {
+                                <li>@erreur</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            }
+
+            @if (_erreur is not null)
+            {
+                <div class="alert alert-danger mt-2 mb-0">@_erreur</div>
+            }
+        </div>
+
+        <div class="cit-card">
+            <h6 class="fw-bold text-dark mb-3">Versions existantes</h6>
+            @if (_versions.Count == 0)
+            {
+                <EtatVide Titre="Aucune grille tarifaire" Message="Importez un fichier CSV pour créer la première version." Icone="📊" />
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Date d'effet</th>
+                                <th>Créée le</th>
+                                <th class="text-end">Lignes</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var v in _versions)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@v.NumeroVersion</td>
+                                    <td>@v.DateEffetUtc.ToString("dd/MM/yyyy")</td>
+                                    <td>@v.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end">@v.NombreLignes</td>
+                                    <td>
+                                        @if (v.EstActive)
+                                        {
+                                            <span class="cit-badge cit-badge-encours">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="cit-badge cit-badge-cloture">Inactive</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private Guid _agentId;
+
+    private string _numeroVersion = string.Empty;
+    private DateTime _dateEffet = DateTime.Today;
+    private ResultatImportCsvVue? _resultatImport;
+    private string? _erreur;
+    private IReadOnlyList<VersionGrilleTarifaireSommaireVue> _versions = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Vous devez être connecté pour accéder à l'administration tarifaire.";
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            await ChargerVersionsAsync();
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerVersionsAsync()
+    {
+        try
+        {
+            _versions = await ConsulterVersions.HandleAsync(new ConsulterVersionsGrillesTarifairesRequete(_agentId));
+        }
+        catch (AccesRefuseException)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = "Vous ne disposez pas de l'habilitation d'administration tarifaire.";
+        }
+    }
+
+    private async Task ImporterAsync(Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs e)
+    {
+        _erreur = null;
+        _resultatImport = null;
+
+        if (string.IsNullOrWhiteSpace(_numeroVersion))
+        {
+            _erreur = "Veuillez renseigner le numéro de la nouvelle version avant d'importer le fichier.";
+            return;
+        }
+
+        try
+        {
+            await using var flux = e.File.OpenReadStream(5 * 1024 * 1024);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+            memoire.Position = 0;
+
+            _resultatImport = await ImporterCsv.HandleAsync(new ImporterGrilleTarifaireCsvCommande(
+                _agentId,
+                _numeroVersion,
+                DateTime.SpecifyKind(_dateEffet, DateTimeKind.Utc),
+                ParametresTarification.CreerDefautAnnexeA(),
+                memoire));
+
+            if (_resultatImport.Succes)
+            {
+                await ChargerVersionsAsync();
+            }
+        }
+        catch (AccesRefuseException)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = "Vous ne disposez pas de l'habilitation d'administration tarifaire.";
+        }
+        catch (Exception ex)
+        {
+            _erreur = $"Erreur lors de l'import : {ex.Message}";
+        }
+    }
+}

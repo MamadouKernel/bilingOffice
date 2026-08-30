@@ -211,6 +211,22 @@ public static class DependencyInjection
         services.AddScoped<Application.BillingExport.ConstaterJointureIesExportEtFinaliserCommand>();
         services.AddScoped<Application.BillingExport.ConsulterSuivisBranchesIesExportQuery>();
 
+        // FEATURE 005 (Simulation de Proforma) — moteur pur, grilles tarifaires, sauvegarde/historique,
+        // export PDF, import CSV atomique (research.md D4-D16).
+        services.AddScoped<Application.Abstractions.IVersionGrilleTarifaireRepository, VersionGrilleTarifaireRepository>();
+        services.AddScoped<Application.Abstractions.ISimulationProformaRepository, SimulationProformaRepository>();
+        services.AddScoped<Application.Abstractions.IGenerateurDocumentProformaPdf, Documents.GenerateurDocumentProformaPdf>();
+        services.AddScoped<Domain.Tarification.MoteurCalculProforma>();
+        services.AddScoped<Application.Tarification.ImportateurGrilleTarifaireCsv>();
+        services.AddScoped<Application.Tarification.CalculerSimulationProformaQueryHandler>();
+        services.AddScoped<Application.Tarification.SauvegarderSimulationProformaCommandHandler>();
+        services.AddScoped<Application.Tarification.ListerSimulationsProformaQueryHandler>();
+        services.AddScoped<Application.Tarification.ConsulterSimulationProformaQueryHandler>();
+        services.AddScoped<Application.Tarification.GenererDocumentProformaPdfQueryHandler>();
+        services.AddScoped<Application.Tarification.CreerVersionGrilleTarifaireCommandHandler>();
+        services.AddScoped<Application.Tarification.ConsulterVersionsGrillesTarifairesQueryHandler>();
+        services.AddScoped<Application.Tarification.ImporterGrilleTarifaireCsvCommandHandler>();
+
         return services;
     }
 }

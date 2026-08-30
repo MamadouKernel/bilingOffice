@@ -7,28 +7,60 @@
 
 <PageTitle>Mot de passe oublié</PageTitle>
 
-<h1>Mot de passe oublié</h1>
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="row g-0">
+                
+                <!-- Left Side: 3D Illustration -->
+                <div class="col-md-6 d-none d-md-block" style="background-color: #eaf4fc;">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
+                        <img src="images/login-illustration.jpg" alt="Terminal Maritime 3D" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
+                        <div class="mt-4">
+                            <h3 class="fw-bold text-uppercase" style="color: #1e3a8a;">Bienvenue au Billing Office</h3>
+                            <p class="text-muted mb-0">Gérez vos expéditions, conteneurs et facturations maritimes en toute simplicité grâce à la plateforme digitale.</p>
+                        </div>
+                    </div>
+                </div>
 
-<p class="text-muted">
-    Contrat C2-04 (CPT-03). Redéfinition autonome du mot de passe, sans intervention d'un agent CIT
-    (mécanisme Identity natif — D9/D1, inchangé).
-</p>
+                <!-- Right Side: Form -->
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="p-5 p-lg-5 w-100">
+                        <div class="mb-5 text-center text-md-start">
+                            <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
+                            <h2 class="fw-bold text-dark">Mot de passe oublié</h2>
+                            <p class="text-muted">Renseignez votre e-mail pour recevoir un lien de réinitialisation.</p>
+                        </div>
 
-<EditForm Model="Modele" OnValidSubmit="DemanderAsync" FormName="mot-de-passe-oublie">
-    <div class="mb-3">
-        <label class="form-label" for="email">Identifiant de connexion (e-mail)</label>
-        <InputText id="email" class="form-control" @bind-Value="Modele.Email" />
+                        <EditForm Model="Modele" OnValidSubmit="DemanderAsync" FormName="mot-de-passe-oublie">
+                            <div class="mb-4">
+                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">E-mail Professionnel</label>
+                                <InputText id="email" class="form-control form-control-lg bg-light border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3" style="border-radius: 0.75rem;">
+                                Recevoir le lien <span class="ms-2">✉</span>
+                            </button>
+                        </EditForm>
+                        
+                        <div class="mt-4 text-center text-md-start">
+                            <a href="/comptes/connexion" class="text-decoration-none fw-bold" style="color: var(--marine-600);">← Retour à la connexion</a>
+                        </div>
+
+                        @if (lienGenere is not null)
+                        {
+                            <div class="alert alert-info border-0 bg-info bg-opacity-10 mt-4 rounded-3 p-3 text-break">
+                                <strong class="d-block mb-1 text-info">Lien de réinitialisation généré (mode démo) :</strong>
+                                <code>@lienGenere</code>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Envoyer le lien de réinitialisation</button>
-</EditForm>
-
-@if (lienGenere is not null)
-{
-    <div class="alert alert-info mt-3">
-        Lien de réinitialisation (démonstration — le canal d'envoi effectif relève d'une future
-        feature Notifications, hors périmètre) : <code>@lienGenere</code>
-    </div>
-}
+</div>
 
 @code {
     // REMÉDIATION POST-AUDIT (2026-08-29) : voir Connexion.razor pour la justification — le

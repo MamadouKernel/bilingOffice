@@ -1,52 +1,290 @@
-/* Design System & Variables Plateforme Digitale CIT */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ==========================================================================
+   Système de design — Plateforme Digitale CIT (Premium UI/UX)
+   ========================================================================== */
+
 :root {
-    --cit-primary: #0d47a1;
-    --cit-primary-dark: #082c66;
-    --cit-primary-light: #e3f2fd;
-    --cit-secondary: #1565c0;
-    --cit-accent: #ff6f00;
-    --cit-bg: #f8fafc;
-    --cit-surface: #ffffff;
-    --cit-text: #1e293b;
-    --cit-text-muted: #64748b;
-    --cit-border: #e2e8f0;
+    /* Palette Option: Ultimate Soft UI (Inspired by Creative Tim / Tailwind UI) */
+    --ink: #344767; /* Soft dark gray/blue for text */
+    --marine-900: #252f40; /* Headings */
+    --marine-800: #344767;
+    --marine-700: #67748e; /* Subtext */
+    --marine-600: #8392ab;
+    --marine-100: #e9ecef;
+    --marine-50: #f8f9fa;
+
+    --sidebar-bg: transparent;
+    --sidebar-hover: #ffffff;
+
+    --signal: #f5365c;
+    --signal-dark: #830b2c;
+    --signal-100: #fcd5ce;
+
+    --steel-900: #252f40;
+    --steel-700: #67748e;
+    --steel-500: #8392ab;
+    --steel-300: #d2d6da;
+    --steel-200: #e9ecef;
+    --steel-100: #f8f9fa;
+
+    --gold-strong: #fbcf33;
+
+    --paper: #f8f9fa; /* Main app background - Soft Gray */
+    --surface: #ffffff; /* Cards background - Pure White */
+
+    /* Gradients and Soft Accents */
+    --primary-grad: linear-gradient(310deg, #2152ff, #21d4fd);
+    --primary-grad-hover: linear-gradient(310deg, #0f3dcc, #0fbbd9);
     
+    --success: #82d616;
+    --success-bg: #e5f7cf;
+    --success-border: transparent;
+    --warning: #f53939; /* They often use vibrant red/orange for warning/danger in soft UI */
+    --warning-bg: #fcdbd8;
+    --warning-border: transparent;
+    --danger: #ea0606;
+    --danger-bg: #fcdbd8;
+    --danger-border: transparent;
+    --info: #17c1e8;
+    --info-bg: #d9f7fc;
+    --info-border: transparent;
+
+    --cit-border: transparent; /* No borders in Soft UI */
+    
+    /* Ultimate Soft Shadows */
+    --shadow-card: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-pop: 0 20px 27px 0 rgba(0, 0, 0, 0.15);
+    --shadow-primary: 0 4px 7px -1px rgba(33, 82, 255, 0.35);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-blur: blur(20px);
+
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    /* Primary Action Buttons */
+    --action-primary: var(--marine-600); /* Bright Blue */
+    --action-primary-hover: var(--marine-700);
+    --action-success: var(--success);
+    --action-success-hover: #059669;
+    --action-danger: var(--danger);
+    --action-danger-hover: #dc2626;
+
+    /* Anciens alias conservés pour compatibilité avec le CSS existant */
+    --cit-primary: var(--marine-800);
+    --cit-primary-dark: var(--marine-900);
+    --cit-primary-light: var(--marine-50);
+    --cit-secondary: var(--marine-700);
+    --cit-accent: var(--signal);
+    --cit-bg: var(--paper);
+    --cit-surface: var(--surface);
+    --cit-text: var(--ink);
+    --cit-text-muted: var(--steel-500);
+    --cit-border: var(--steel-200);
+
     /* Statut Badges Tokens */
-    --badge-attente-bg: #e0f2fe;
-    --badge-attente-text: #0369a1;
-    --badge-encours-bg: #fef3c7;
-    --badge-encours-text: #92400e;
-    --badge-client-bg: #ffedd5;
-    --badge-client-text: #c2410c;
-    --badge-cloture-bg: #dcfce7;
-    --badge-cloture-text: #166534;
-    --badge-rejet-bg: #fee2e2;
-    --badge-rejet-text: #991b1b;
-    --badge-annule-bg: #f1f5f9;
-    --badge-annule-text: #475569;
+    --badge-attente-bg: var(--info-bg);
+    --badge-attente-text: var(--info);
+    --badge-encours-bg: var(--warning-bg);
+    --badge-encours-text: var(--warning);
+    --badge-client-bg: var(--signal-100);
+    --badge-client-text: var(--signal-dark);
+    --badge-cloture-bg: var(--success-bg);
+    --badge-cloture-text: var(--success);
+    --badge-rejet-bg: var(--danger-bg);
+    --badge-rejet-text: var(--danger);
+    --badge-annule-bg: var(--steel-100);
+    --badge-annule-text: var(--steel-500);
+
+    /* Bootstrap 5 — variables de thème (surchargent les valeurs par défaut) */
+    --bs-body-font-family: var(--font-ui);
+    --bs-body-color: var(--ink);
+    --bs-body-bg: var(--paper);
+    --bs-border-color: var(--cit-border);
+    --bs-border-radius: var(--radius-md);
+    --bs-border-radius-sm: var(--radius-sm);
+    --bs-border-radius-lg: var(--radius-lg);
+    --bs-emphasis-color: var(--ink);
+    --bs-secondary-color: var(--steel-500);
+    --bs-tertiary-bg: var(--steel-100);
+
+    --bs-primary: var(--marine-800);
+    --bs-primary-rgb: 18, 58, 94;
+    --bs-primary-text-emphasis: var(--marine-800);
+    --bs-primary-bg-subtle: var(--marine-50);
+    --bs-primary-border-subtle: var(--marine-100);
+
+    --bs-secondary: var(--steel-500);
+    --bs-secondary-rgb: 107, 118, 136;
+
+    --bs-success: var(--success);
+    --bs-success-rgb: 30, 122, 76;
+    --bs-success-bg-subtle: var(--success-bg);
+    --bs-success-border-subtle: var(--success-border);
+    --bs-success-text-emphasis: var(--success);
+
+    --bs-danger: var(--danger);
+    --bs-danger-rgb: 178, 59, 59;
+    --bs-danger-bg-subtle: var(--danger-bg);
+    --bs-danger-border-subtle: var(--danger-border);
+    --bs-danger-text-emphasis: var(--danger);
+
+    --bs-warning: var(--warning);
+    --bs-warning-rgb: 161, 102, 15;
+    --bs-warning-bg-subtle: var(--warning-bg);
+    --bs-warning-border-subtle: var(--warning-border);
+    --bs-warning-text-emphasis: var(--warning);
+
+    --bs-info: var(--info);
+    --bs-info-rgb: 42, 111, 151;
+    --bs-info-bg-subtle: var(--info-bg);
+    --bs-info-border-subtle: var(--info-border);
+    --bs-info-text-emphasis: var(--info);
+
+    --bs-light: var(--paper);
+    --bs-dark: var(--ink);
+    --bs-link-color: var(--marine-700);
+    --bs-link-color-rgb: 35, 69, 106;
+    --bs-link-hover-color: var(--marine-900);
+    --bs-link-hover-color-rgb: 18, 35, 54;
+    --bs-focus-ring-color: rgba(47, 93, 142, 0.25);
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ink: #e4edf6;
+        --marine-900: #d1e0f0;
+        --marine-800: #b2cbe6;
+        --marine-700: #8cb2d9;
+        --marine-600: #5e93ca;
+        --marine-100: #14283d;
+        --marine-50: #0e1c2a;
+
+        --signal: #dbb957;
+        --signal-dark: #e8ce84;
+        --signal-100: #2e2712;
+
+        --steel-900: #eef0f2;
+        --steel-700: #bac2c9;
+        --steel-500: #8794a1;
+        --steel-300: #4c5661;
+        --steel-200: #31383f;
+        --steel-100: #24292e;
+
+        --paper: #0e1520;
+        --surface: #151d2a;
+
+        --success: #4bb583;
+        --success-bg: #12291f;
+        --success-border: #1e4232;
+        --warning: #d9a84a;
+        --warning-bg: #2e2410;
+        --warning-border: #4a3a18;
+        --danger: #e28080;
+        --danger-bg: #2e1616;
+        --danger-border: #4a2323;
+        --info: #6cb2dd;
+        --info-bg: #132531;
+        --info-border: #1e3a4a;
+
+        --cit-border: var(--steel-200);
+        --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px -8px rgba(0, 0, 0, 0.5);
+        --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+
+        --bs-primary-bg-subtle: var(--marine-50);
+        --bs-primary-border-subtle: var(--marine-100);
+        --bs-success-bg-subtle: var(--success-bg);
+        --bs-success-border-subtle: var(--success-border);
+        --bs-danger-bg-subtle: var(--danger-bg);
+        --bs-danger-border-subtle: var(--danger-border);
+        --bs-warning-bg-subtle: var(--warning-bg);
+        --bs-warning-border-subtle: var(--warning-border);
+        --bs-info-bg-subtle: var(--info-bg);
+        --bs-info-border-subtle: var(--info-border);
+
+        /* Bootstrap lit ces triplets RGB directement (.text-*, .bg-*, .btn-*,
+           anneaux de focus) — la seule redéfinition des variables hex
+           ci-dessus ne suffit pas, sans quoi ces classes restent calées sur
+           les teintes claires en thème sombre (texte sombre sur fond sombre). */
+        --bs-primary-rgb: 178, 203, 230;
+        --bs-secondary-rgb: 135, 148, 161;
+        --bs-success-rgb: 75, 181, 131;
+        --bs-danger-rgb: 226, 128, 128;
+        --bs-warning-rgb: 217, 168, 74;
+        --bs-info-rgb: 108, 178, 221;
+        --bs-link-color-rgb: 140, 178, 217;
+        --bs-link-hover-color-rgb: 209, 224, 240;
+        --bs-focus-ring-color: rgba(94, 147, 202, 0.3);
+
+        /* Les remplissages de bouton restent saturés (texte blanc dessus)
+           plutôt que de suivre l'éclaircissement des jetons texte en sombre. */
+        --action-primary: #2f6fa8;
+        --action-primary-hover: #3f82bd;
+        --action-success: #1e7a4c;
+        --action-success-hover: #26955c;
+        --action-danger: #a83e3e;
+        --action-danger-hover: #c24a4a;
+    }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-ui);
     background-color: var(--cit-bg);
     color: var(--cit-text);
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Header Bar */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+a { color: var(--bs-link-color); }
+a:hover { color: var(--bs-link-hover-color); }
+
+code, .font-monospace, .cit-mono {
+    font-family: var(--font-mono) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+::selection {
+    background: var(--marine-100);
+    color: var(--marine-900);
+}
+
+/* Header Bar - Floating Soft UI */
 .cit-header {
-    height: 64px;
-    background-color: var(--cit-surface);
-    border-bottom: 1px solid var(--cit-border);
+    height: 70px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: none;
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 1.5rem;
     position: sticky;
-    top: 0;
+    top: 1rem;
+    margin: 1rem 1.5rem 0 1.5rem;
     z-index: 1020;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-soft);
 }
 
 .cit-brand {
@@ -54,126 +292,179 @@ body {
     align-items: center;
     gap: 0.75rem;
     font-weight: 700;
-    font-size: 1.2rem;
-    color: var(--cit-primary);
+    font-size: 1.15rem;
+    color: var(--ink);
     text-decoration: none;
+    letter-spacing: -0.02em;
 }
 
-.cit-brand:hover {
-    color: var(--cit-primary-dark);
+.cit-brand:hover { color: var(--ink); }
+
+.cit-brand-logo {
+    height: 48px;
+    width: auto;
+    display: block;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
 }
 
-/* Sidebar Layout */
-.cit-layout-wrapper {
-    display: flex;
-    min-height: calc(100vh - 64px);
+.cit-brand-sub {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--steel-500);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.cit-brand-sub::before {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: var(--cit-border);
+    margin-right: 0.75rem;
+    vertical-align: -4px;
+    border-radius: 2px;
+}
+
+/* Sidebar Layout - Floating Soft UI */
+.cit-app-container {
+    background-color: var(--paper);
+}
+
+.cit-desktop-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    margin: 1rem 0 1rem 1rem;
+    border-radius: var(--radius-lg);
+    background: transparent;
+}
+
+.cit-mobile-sidebar {
+    width: 280px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
 }
 
 .cit-sidebar {
-    width: 260px;
-    background-color: var(--cit-surface);
-    border-right: 1px solid var(--cit-border);
-    padding: 1.25rem 0.75rem;
-    flex-shrink: 0;
+    height: calc(100vh - 2rem);
+    position: sticky;
+    top: 1rem;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+}
+
+.cit-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cit-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .cit-nav-group-title {
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: var(--cit-text-muted);
+    color: var(--marine-900);
+    opacity: 0.6;
     letter-spacing: 0.05em;
-    padding: 0.75rem 0.75rem 0.25rem;
+    padding: 1.5rem 0.75rem 0.5rem;
 }
 
 .cit-nav-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 0.75rem;
-    color: var(--cit-text);
+    gap: 0.85rem;
+    padding: 0.8rem 1rem;
+    color: var(--marine-700);
     text-decoration: none;
-    border-radius: 0.375rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-bottom: 0.2rem;
 }
 
 .cit-nav-item:hover {
-    background-color: var(--cit-primary-light);
-    color: var(--cit-primary);
+    background-color: #ffffff;
+    color: var(--marine-900);
+    box-shadow: var(--shadow-soft);
 }
 
 .cit-nav-item.active {
-    background-color: var(--cit-primary);
-    color: #ffffff;
+    background: #ffffff;
+    color: var(--marine-900);
+    font-weight: 700;
+    box-shadow: var(--shadow-soft);
+}
+.cit-nav-item.active span {
+    background: var(--primary-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.cit-main-wrapper {
+    min-height: 100vh;
+    background-color: var(--cit-bg);
 }
 
 .cit-main-content {
-    flex: 1;
-    padding: 1.75rem;
-    max-width: 1400px;
+    padding: 2.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
 }
 
-/* Badges de statut */
+/* Badges de statut — puce à pastille */
 .cit-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.3rem 0.65rem;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem 0.3rem 0.55rem;
     border-radius: 9999px;
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
     font-weight: 600;
     line-height: 1;
 }
 
-.cit-badge-attente {
-    background-color: var(--badge-attente-bg);
-    color: var(--badge-attente-text);
+.cit-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
 }
 
-.cit-badge-encours {
-    background-color: var(--badge-encours-bg);
-    color: var(--badge-encours-text);
-}
-
-.cit-badge-client {
-    background-color: var(--badge-client-bg);
-    color: var(--badge-client-text);
-}
-
-.cit-badge-cloture {
-    background-color: var(--badge-cloture-bg);
-    color: var(--badge-cloture-text);
-}
-
-.cit-badge-rejet {
-    background-color: var(--badge-rejet-bg);
-    color: var(--badge-rejet-text);
-}
-
-.cit-badge-annule {
-    background-color: var(--badge-annule-bg);
-    color: var(--badge-annule-text);
-}
+.cit-badge-attente { background-color: var(--badge-attente-bg); color: var(--badge-attente-text); }
+.cit-badge-encours { background-color: var(--badge-encours-bg); color: var(--badge-encours-text); }
+.cit-badge-client { background-color: var(--badge-client-bg); color: var(--badge-client-text); }
+.cit-badge-cloture { background-color: var(--badge-cloture-bg); color: var(--badge-cloture-text); }
+.cit-badge-rejet { background-color: var(--badge-rejet-bg); color: var(--badge-rejet-text); }
+.cit-badge-annule { background-color: var(--badge-annule-bg); color: var(--badge-annule-text); }
 
 /* ACR-01 Widget */
 .cit-action-box {
-    border-left: 4px solid var(--cit-accent);
-    background-color: #fffbeb;
-    border-radius: 0.5rem;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: none;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-card);
 }
 
 /* Cards & Surface */
 .cit-card {
-    background: var(--cit-surface);
-    border: 1px solid var(--cit-border);
-    border-radius: 0.5rem;
-    padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    background: var(--surface);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
 }
 
 /* Modale */
@@ -183,7 +474,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(15, 23, 42, 0.5);
+    background-color: rgba(10, 22, 38, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -192,10 +483,10 @@ body {
 
 .cit-modal-dialog {
     background: var(--cit-surface);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     max-width: 500px;
     width: 90%;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-pop);
     overflow: hidden;
 }
 
@@ -213,17 +504,169 @@ body {
 .cit-toast {
     background-color: var(--cit-surface);
     border: 1px solid var(--cit-border);
-    border-radius: 0.375rem;
+    border-radius: var(--radius-md);
     padding: 0.75rem 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-pop);
     display: flex;
     align-items: center;
     gap: 0.75rem;
     min-width: 280px;
 }
 
+/* ==========================================================================
+   Affinage des composants Bootstrap effectivement utilisés
+   ========================================================================== */
+
+.btn {
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.025em;
+    padding: 0.625rem 1.25rem;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--primary-grad);
+    color: #fff;
+    box-shadow: var(--shadow-primary);
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background: var(--primary-grad-hover);
+    color: #fff;
+    box-shadow: var(--shadow-primary);
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--action-primary);
+    --bs-btn-border-color: var(--action-primary);
+    --bs-btn-hover-bg: var(--action-primary);
+    --bs-btn-hover-border-color: var(--action-primary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--action-primary);
+    --bs-btn-active-border-color: var(--action-primary);
+    --bs-btn-active-color: #fff;
+}
+
+.btn-success {
+    --bs-btn-bg: var(--action-success);
+    --bs-btn-border-color: var(--action-success);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-bg: var(--action-success-hover);
+    --bs-btn-hover-border-color: var(--action-success-hover);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--action-success-hover);
+    --bs-btn-active-border-color: var(--action-success-hover);
+    --bs-btn-active-color: #fff;
+}
+
+.btn-danger {
+    --bs-btn-bg: var(--action-danger);
+    --bs-btn-border-color: var(--action-danger);
+    --bs-btn-color: #fff;
+    --bs-btn-hover-bg: var(--action-danger-hover);
+    --bs-btn-hover-border-color: var(--action-danger-hover);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--action-danger-hover);
+    --bs-btn-active-border-color: var(--action-danger-hover);
+    --bs-btn-active-color: #fff;
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--steel-700);
+    --bs-btn-border-color: var(--steel-300);
+    --bs-btn-hover-bg: var(--steel-700);
+    --bs-btn-hover-border-color: var(--steel-700);
+}
+
+.card {
+    border-radius: var(--radius-lg);
+    border-color: var(--cit-border);
+    box-shadow: var(--shadow-card);
+}
+
+.alert {
+    border-radius: var(--radius-md);
+    border-width: 1px;
+    font-size: 0.875rem;
+}
+
+.badge {
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+/* De nombreux badges du code existant combinent bg-{role} et text-white en
+   dur (ex. bg-success text-white) : ces utilitaires Bootstrap standard
+   suivent --bs-{role}-rgb, éclairci en thème sombre pour rester lisible en
+   TEXTE — mauvais contraste combiné à du texte blanc. On fige donc les fonds
+   pleins sur des teintes saturées dédiées, dans les deux thèmes. */
+.bg-primary { background-color: var(--action-primary) !important; }
+.bg-success { background-color: var(--action-success) !important; }
+.bg-danger { background-color: var(--action-danger) !important; }
+.bg-secondary { background-color: #3d4757 !important; }
+
+.table {
+    font-size: 0.875rem;
+    --bs-table-hover-bg: var(--marine-50);
+}
+
+.table > thead {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--steel-500);
+    background-color: var(--paper);
+}
+
+.table-light {
+    --bs-table-bg: var(--paper);
+    --bs-table-color: var(--ink);
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--radius-sm);
+    border: 1px solid #d2d6da;
+    background-color: #fff;
+    font-size: 0.875rem;
+    color: var(--marine-700);
+    transition: all 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--steel-700);
+}
+
+.form-text { color: var(--steel-500); }
+
+.list-group-item { border-color: var(--cit-border); }
+
+.modal-content {
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: var(--shadow-pop);
+}
+
+.spinner-border.text-primary { color: var(--marine-800) !important; }
+
+.nav-link { font-weight: 600; }
+
 /* Utilitaires natifs Blazor */
 h1:focus { outline: none; }
-.valid.modified:not([type=checkbox]) { outline: 1px solid #26b050; }
-.invalid { outline: 1px solid #e50000; }
-.validation-message { color: #e50000; font-size: 0.875rem; margin-top: 0.25rem; }
+.valid.modified:not([type=checkbox]) { outline: 1px solid var(--success); }
+.invalid { outline: 1px solid var(--danger); }
+.validation-message { color: var(--danger); font-size: 0.875rem; margin-top: 0.25rem; }
