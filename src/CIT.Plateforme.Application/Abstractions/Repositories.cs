@@ -240,3 +240,21 @@ public interface IHistoriqueTicketRepository
 {
     Task<IReadOnlyList<CIT.Plateforme.Domain.Audit.EntreeHistorique>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
 }
+
+/// <summary>FEATURE 006 : Customer Complaint (REC-02) — référentiel des catégories.</summary>
+public interface ICategorieReclamationRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Reclamations.CategorieReclamation categorie, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Reclamations.CategorieReclamation?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>REMÉDIATION REC-02 (closure-review.md "REMÉDIATION FINALE REC-02 — AJOUT
+    /// CATÉGORIE") : vérification d'unicité logique du code avant création (l'index unique SQL
+    /// existe déjà en base — cette méthode permet de refuser proprement au niveau applicatif plutôt
+    /// que de laisser remonter une exception SQL brute).</summary>
+    Task<CIT.Plateforme.Domain.Reclamations.CategorieReclamation?> ObtenirParCodeAsync(string code, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Reclamations.CategorieReclamation>> ListerActivesAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Reclamations.CategorieReclamation>> ListerToutesAsync(CancellationToken ct = default);
+}

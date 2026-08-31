@@ -70,11 +70,12 @@ public sealed class ParcoursCloisonnementMultiTenantE2ETests
         var docRepo = new DocumentRepository(db);
         var msgRepo = new MessageRepository(db);
         var habRepo = new HabilitationRepository(db);
+        var catRepo = new CategorieReclamationRepository(db);
 
         var dashboardClientQuery = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
         var dashboardSocieteQuery = new ObtenirDashboardSocieteQuery(dossierRepo, ticketRepo, socRepo, userSocRepo, userInfoRepo);
         var ficheDossierQuery = new ObtenirFicheDossierQuery(dossierRepo, ticketRepo, fileRepo, socRepo, userSocRepo, userInfoRepo);
-        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo);
+        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
 
         // 1. User A tente d'accéder au dashboard de Société B -> Refusé
         await Assert.ThrowsAsync<AccesRefuseException>(() => dashboardClientQuery.ExecuterAsync(userAId, socBId));

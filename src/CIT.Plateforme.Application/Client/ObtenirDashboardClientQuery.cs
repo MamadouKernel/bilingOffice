@@ -58,18 +58,29 @@ public sealed class ObtenirDashboardClientQuery(
             if (ticket.Statut == StatutTicket.EnAttenteClient)
             {
                 var estExport = ticket.Module == "BillingExport";
-                var typeAction = estExport ? TypeActionRequise.ComplementExport : TypeActionRequise.ComplementManifeste;
-                var referenceMetier = estExport
-                    ? $"Booking {ticket.NumeroBooking ?? ticket.Numero}"
-                    : $"BL {ticket.NumeroBl ?? ticket.Numero}";
-                var roleInstructeur = estExport ? "Le Back Office Export" : "Le Pilote Manifeste";
+                var estComplaint = ticket.Module == "CustomerComplaint";
+                
+                var typeAction = estComplaint ? TypeActionRequise.ComplementReclamation :
+                                 estExport ? TypeActionRequise.ComplementExport : 
+                                 TypeActionRequise.ComplementManifeste;
+                                 
+                var referenceMetier = estComplaint ? $"Réclamation {ticket.Numero}" :
+                                      estExport ? $"Booking {ticket.NumeroBooking ?? ticket.Numero}" : 
+                                      $"BL {ticket.NumeroBl ?? ticket.Numero}";
+                                      
+                var roleInstructeur = estComplaint ? "Le Service Client" :
+                                      estExport ? "Le Back Office Export" : 
+                                      "Le Pilote Manifeste";
+
+                var titre = estComplaint ? $"Complément demandé pour votre {referenceMetier}" :
+                            $"Complément demandé pour le {referenceMetier}";
 
                 actionsRequises.Add(new ActionRequiseItemVue(
                     TicketId: ticket.Id,
                     NumeroTicket: ticket.Numero,
                     NumeroBl: ticket.NumeroBl,
                     TypeAction: typeAction,
-                    Titre: $"Complément demandé pour le {referenceMetier}",
+                    Titre: titre,
                     Description: $"{roleInstructeur} a sollicité un complément d'information ou des pièces justificatives.",
                     ActionLibelle: "Déposer le complément",
                     UrlCible: $"/tickets/{ticket.Id}#complement",

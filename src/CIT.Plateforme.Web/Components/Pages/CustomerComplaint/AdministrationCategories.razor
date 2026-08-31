@@ -1,0 +1,244 @@
+@page "/reclamations/administration-categories"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.CustomerComplaint
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerToutesCategoriesReclamationQuery ListerToutesCategories
+@inject ModifierCategoriesReclamationCommand ModifierCategorie
+@inject CreerCategorieReclamationCommand CreerCategorie
+
+<PageTitle>Administration des catégories de réclamation — CIT</PageTitle>
+
+<div class="container-fluid py-3">
+    <div class="mb-3 pb-2 border-bottom">
+        <h2 class="fw-bold mb-0 text-dark">Catégories de réclamation</h2>
+        <div class="text-muted small">Paramétrage sans développement des catégories (REC-02) — activation, désactivation, libellé, file cible.</div>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement des catégories..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-3">@_erreur</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_actionSuccess))
+        {
+            <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        }
+
+        <div class="cit-card mb-3">
+            @if (!_formulaireCreationOuvert)
+            {
+                <button class="btn btn-primary btn-sm" @onclick="() => _formulaireCreationOuvert = true">➕ Nouvelle catégorie</button>
+            }
+            else
+            {
+                <h6 class="fw-bold text-dark mb-3">Nouvelle catégorie</h6>
+                <div class="row g-2 align-items-end">
+                    <div class="col-auto">
+                        <label class="form-label small" for="nouveauCode">Code</label>
+                        <input id="nouveauCode" class="form-control form-control-sm" placeholder="Ex : URGENT" @bind="_nouveauCode" @bind:event="oninput" maxlength="50" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label small" for="nouveauLibelle">Libellé</label>
+                        <input id="nouveauLibelle" class="form-control form-control-sm" placeholder="Ex : Demande urgente" @bind="_nouveauLibelle" @bind:event="oninput" maxlength="100" />
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-success btn-sm" @onclick="CreerCategorieAsync" disabled="@(string.IsNullOrWhiteSpace(_nouveauCode) || string.IsNullOrWhiteSpace(_nouveauLibelle))">
+                            Créer
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerCreation">Annuler</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Code</th>
+                            <th>Libellé</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cat in _categories)
+                        {
+                            <tr>
+                                <td class="fw-bold">@cat.Code</td>
+                                <td>
+                                    @if (_categorieEnEdition == cat.Id)
+                                    {
+                                        <input class="form-control form-control-sm" @bind="_libelleEnEdition" />
+                                    }
+                                    else
+                                    {
+                                        @cat.Libelle
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(cat.EstActif ? "bg-success" : "bg-secondary")">
+                                        @(cat.EstActif ? "Active" : "Désactivée")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    @if (_categorieEnEdition == cat.Id)
+                                    {
+                                        <button class="btn btn-primary btn-sm" @onclick="() => EnregistrerLibelleAsync(cat)">Enregistrer</button>
+                                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => _categorieEnEdition = null">Annuler</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => CommencerEditionAsync(cat)">Modifier le libellé</button>
+                                        @if (cat.EstActif)
+                                        {
+                                            <button class="btn btn-outline-secondary btn-sm" @onclick="() => BasculerActifAsync(cat, false)">Désactiver</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-success btn-sm" @onclick="() => BasculerActifAsync(cat, true)">Activer</button>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _actionSuccess;
+
+    private Guid _appelantId;
+    private IReadOnlyList<CategorieAdminVue> _categories = [];
+    private Guid? _categorieEnEdition;
+    private string _libelleEnEdition = string.Empty;
+
+    // REMÉDIATION FINALE REC-02 (closure-review.md "REMÉDIATION FINALE REC-02 — AJOUT CATÉGORIE").
+    private bool _formulaireCreationOuvert;
+    private string _nouveauCode = string.Empty;
+    private string _nouveauLibelle = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette page.";
+                return;
+            }
+
+            _appelantId = contexte.UtilisateurId;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _erreur = null;
+        try
+        {
+            _categories = await ListerToutesCategories.ExecuterAsync(_appelantId);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _categories = [];
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+    }
+
+    private void CommencerEditionAsync(CategorieAdminVue cat)
+    {
+        _categorieEnEdition = cat.Id;
+        _libelleEnEdition = cat.Libelle;
+    }
+
+    private async Task EnregistrerLibelleAsync(CategorieAdminVue cat)
+    {
+        await AppliquerAsync(cat, _libelleEnEdition, cat.EstActif, "Libellé mis à jour.");
+        _categorieEnEdition = null;
+    }
+
+    private Task BasculerActifAsync(CategorieAdminVue cat, bool actif) =>
+        AppliquerAsync(cat, cat.Libelle, actif, actif ? "Catégorie activée." : "Catégorie désactivée.");
+
+    private async Task CreerCategorieAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveauCode) || string.IsNullOrWhiteSpace(_nouveauLibelle)) return;
+
+        _erreur = null;
+        _actionSuccess = null;
+        try
+        {
+            await CreerCategorie.ExecuterAsync(new CreerCategorieReclamationRequete(_appelantId, _nouveauCode, _nouveauLibelle, null));
+            _actionSuccess = $"Catégorie « {_nouveauLibelle} » créée.";
+            AnnulerCreation();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private void AnnulerCreation()
+    {
+        _formulaireCreationOuvert = false;
+        _nouveauCode = string.Empty;
+        _nouveauLibelle = string.Empty;
+    }
+
+    private async Task AppliquerAsync(CategorieAdminVue cat, string libelle, bool actif, string messageSucces)
+    {
+        _erreur = null;
+        _actionSuccess = null;
+        try
+        {
+            await ModifierCategorie.ExecuterAsync(new ModifierCategoriesReclamationRequete(_appelantId, cat.Id, libelle, cat.FileCibleDefautId, actif));
+            _actionSuccess = messageSucces;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+}

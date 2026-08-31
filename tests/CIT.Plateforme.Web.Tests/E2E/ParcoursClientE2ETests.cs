@@ -91,6 +91,7 @@ public sealed class ParcoursClientE2ETests : BunitContext
         var docRepo = new DocumentRepository(db);
         var msgRepo = new MessageRepository(db);
         var habRepo = new HabilitationRepository(db);
+        var catRepo = new CategorieReclamationRepository(db);
 
         var horloge = new HorlogeSysteme();
         var journalisation = new JournalisationService(db, horloge);
@@ -102,11 +103,15 @@ public sealed class ParcoursClientE2ETests : BunitContext
         var soumettreCmd = new SoumettreDemandeImportCommand(ticketRepo, dossierRepo, socRepo, userSocRepo, fileRepo, numService, journalisation, horloge, uow);
         var dashboardClientQuery = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
         var ficheDossierQuery = new ObtenirFicheDossierQuery(dossierRepo, ticketRepo, fileRepo, socRepo, userSocRepo, userInfoRepo);
-        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo);
+        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
 
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);
         var publierMessage = new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow);
+        // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : FicheTicket.razor injecte
+        // désormais ces deux contrats pour afficher/clôturer/évaluer une réclamation.
+        var clotureReclamation = new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow);
+        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation);
 
         Services.AddSingleton(soumettreCmd);
         Services.AddSingleton(dashboardClientQuery);
@@ -115,6 +120,8 @@ public sealed class ParcoursClientE2ETests : BunitContext
         Services.AddSingleton(prendreEnCharge);
         Services.AddSingleton(attenteClient);
         Services.AddSingleton(publierMessage);
+        Services.AddSingleton(clotureReclamation);
+        Services.AddSingleton(evaluerReclamation);
 
         // 1. Étape 1 : Rendu Soumission (Zéro champ GUID)
         var cutSoumission = Render<SoumettreDemande>();

@@ -74,4 +74,16 @@ public static class Permission
 
     // FEATURE 005 (research.md D15) — Tarification et Simulation de Proforma
     public const string TarificationAdministrer = "tarification.administrer";
+
+    // FEATURE 006 (Customer Complaint)
+    public const string ComplaintSoumettre = "complaint.soumettre";
+    public const string ComplaintInstruire = "complaint.instruire";
+    public const string AdministrationCategoriesReclamation = "administration.categories_reclamation";
+
+    /// <summary>
+    /// REMÉDIATION POST-AUDIT FEATURE 006 (post-implementation-audit.md §2.4) : documentée dans
+    /// spec.md §6 et use-cases.md C7-03 ("Autorisation : Complaint.Repondre") mais jamais définie
+    /// ni vérifiée avant cette remédiation.
+    /// </summary>
+    public const string ComplaintRepondre = "complaint.repondre";
 }

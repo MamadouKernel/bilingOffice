@@ -365,6 +365,40 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("Messages");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("FileCibleDefautId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("EstActif");
+
+                    b.HasIndex("FileCibleDefautId");
+
+                    b.ToTable("CategoriesReclamation");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Securite.HabilitationUtilisateur", b =>
                 {
                     b.Property<Guid>("Id")
@@ -873,6 +907,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CategorieReclamationId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("DateArriveeEnFileUtc")
                         .HasColumnType("datetime2");
 
@@ -894,6 +931,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<bool>("DeclarationPresentielle")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("DossierId")
                         .HasColumnType("uniqueidentifier");
 
@@ -902,6 +942,15 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("EstEnEtatEngageant")
                         .HasColumnType("bit");
+
+                    b.Property<string>("EvaluationCommentaire")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EvaluationDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EvaluationNote")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("FileCouranteId")
                         .HasColumnType("uniqueidentifier");
@@ -932,11 +981,17 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(64)")
                         .UseCollation("Latin1_General_CI_AS");
 
+                    b.Property<string>("Objet")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid?>("OperateurAssigneId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("PrioriteId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReponseFormalisee")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Statut")
                         .HasColumnType("int");
@@ -961,6 +1016,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("rowversion");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategorieReclamationId");
 
                     b.HasIndex("Numero")
                         .IsUnique();
@@ -1193,6 +1250,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Files.FileDeTraitement", null)
+                        .WithMany()
+                        .HasForeignKey("FileCibleDefautId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", b =>
                 {
                     b.HasOne("CIT.Plateforme.Domain.Tarification.SimulationProforma", null)
@@ -1281,6 +1346,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Parametres")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.Ticket", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", null)
+                        .WithMany()
+                        .HasForeignKey("CategorieReclamationId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

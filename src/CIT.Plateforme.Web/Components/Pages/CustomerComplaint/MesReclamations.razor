@@ -1,0 +1,122 @@
+@page "/reclamations/mes-reclamations"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Client
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirDashboardClientQuery DashboardQuery
+
+<PageTitle>Mes réclamations — CIT</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold m-0 text-primary">Mes réclamations</h2>
+        <div class="text-secondary small">Suivi de vos réclamations soumises au Support Opérationnel CIT</div>
+    </div>
+    <a href="/reclamations/soumettre" class="btn btn-primary px-3 py-2 shadow-sm">➕ Nouvelle réclamation</a>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de vos réclamations..." />
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger">@_erreur</div>
+}
+else
+{
+    var reclamations = _dashboard?.DemandesRecentes.Where(d => d.Module == "CustomerComplaint").ToList() ?? [];
+
+    if (reclamations.Count == 0)
+    {
+        <EtatVide Titre="Aucune réclamation" Message="Vous n'avez soumis aucune réclamation pour le moment." Icone="📝" />
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Date de soumission</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in reclamations)
+                        {
+                            @foreach (var t in d.Tickets)
+                            {
+                                <tr>
+                                    <td class="fw-bold">
+                                        <a href="/tickets/@t.TicketId" class="text-decoration-none">@t.NumeroTicket</a>
+                                    </td>
+                                    <td class="text-muted small">@d.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td><span class="badge @BadgeClasse(d.EtatGlobal)">@Libelle(d.EtatGlobal)</span></td>
+                                    <td class="text-end">
+                                        <a href="/tickets/@t.TicketId" class="btn btn-outline-primary btn-sm">Détails</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargement = true;
+    private string? _erreur;
+    private DashboardClientVue? _dashboard;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _erreur = "Session invalide ou compte non rattaché.";
+                return;
+            }
+
+            _dashboard = await DashboardQuery.ExecuterAsync(contexte.UtilisateurId, contexte.SocieteId.Value);
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private static string BadgeClasse(StatutVisuelDossier etat) => etat switch
+    {
+        StatutVisuelDossier.ClotureTermine => "bg-success text-white",
+        StatutVisuelDossier.EnAttenteClient => "bg-warning text-dark",
+        StatutVisuelDossier.EnCoursTraitement => "bg-primary text-white",
+        StatutVisuelDossier.Annule => "bg-secondary text-white",
+        StatutVisuelDossier.Rejete => "bg-danger text-white",
+        _ => "bg-info text-dark"
+    };
+
+    private static string Libelle(StatutVisuelDossier etat) => etat switch
+    {
+        StatutVisuelDossier.ClotureTermine => "Clôturée",
+        StatutVisuelDossier.EnAttenteClient => "Action requise",
+        StatutVisuelDossier.EnCoursTraitement => "En cours",
+        StatutVisuelDossier.Annule => "Annulée",
+        StatutVisuelDossier.Rejete => "Rejetée",
+        _ => "En attente"
+    };
+}

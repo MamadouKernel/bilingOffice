@@ -10,7 +10,8 @@ public enum TypeActionRequise
     ComplementManifeste,
     ComplementExport,
     PaiementAttendu,
-    NouvellePreuveRequise
+    NouvellePreuveRequise,
+    ComplementReclamation
 }
 
 public sealed record ActionRequiseItemVue(

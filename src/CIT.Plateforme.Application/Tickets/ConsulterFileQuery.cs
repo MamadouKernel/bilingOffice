@@ -12,7 +12,13 @@ public sealed class ConsulterFileQuery(ITicketRepository tickets, IAutorisationS
 {
     public async Task<IReadOnlyList<Ticket>> ExecuterAsync(Guid agentId, Guid fileId, StatutTicket? filtreStatut = null, CancellationToken ct = default)
     {
-        await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, fileId, ct).ConfigureAwait(false);
+        bool peutStandard = await autorisation.EstAutoriseAsync(agentId, Permission.TicketPrendreEnCharge, fileId, ct).ConfigureAwait(false);
+        bool peutComplaint = await autorisation.EstAutoriseAsync(agentId, Permission.ComplaintInstruire, fileId, ct).ConfigureAwait(false);
+        
+        if (!peutStandard && !peutComplaint)
+        {
+            throw new AccesRefuseException($"L'agent {agentId} n'a pas les autorisations nécessaires pour consulter la file {fileId}.");
+        }
 
         var ticketsDeLaFile = await tickets.ListerParFileAsync(fileId, ct).ConfigureAwait(false);
 

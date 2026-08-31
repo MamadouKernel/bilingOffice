@@ -22,7 +22,14 @@ public sealed class PrendreEnChargeCommand(
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
-        await autorisation.ExigerAsync(operateurId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        if (ticket.Module == "CustomerComplaint")
+        {
+            await autorisation.ExigerAsync(operateurId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            await autorisation.ExigerAsync(operateurId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
 
         ticket.PrendreEnCharge(operateurId, horloge.MaintenantUtc);
 

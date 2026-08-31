@@ -65,5 +65,13 @@ public sealed record FicheTicketVue(
     IReadOnlyList<DocumentItemVue> Documents,
     IReadOnlyList<MessageItemVue> Messages,
     string? NumeroBooking = null,
-    TypeAnnulationExport? TypeAnnulationExport = null
+    TypeAnnulationExport? TypeAnnulationExport = null,
+    Guid? CategorieReclamationId = null,
+    string? CategorieReclamationLibelle = null,
+    string? Objet = null,
+    string? Description = null,
+    string? ReponseFormalisee = null,
+    int? EvaluationNote = null,
+    string? EvaluationCommentaire = null,
+    DateTime? EvaluationDateUtc = null
 );

@@ -227,6 +227,22 @@ public static class DependencyInjection
         services.AddScoped<Application.Tarification.ConsulterVersionsGrillesTarifairesQueryHandler>();
         services.AddScoped<Application.Tarification.ImporterGrilleTarifaireCsvCommandHandler>();
 
+        // Seeder for Development Environment
+        services.AddScoped<DevelopmentSeeder>();
+
+        // FEATURE 006 — Customer Complaint
+        services.AddScoped<ICategorieReclamationRepository, CategorieReclamationRepository>();
+        services.AddScoped<Application.CustomerComplaint.SoumettreReclamationCommand>();
+        services.AddScoped<Application.CustomerComplaint.ListerCategoriesReclamationQuery>();
+        services.AddScoped<Application.CustomerComplaint.ListerToutesCategoriesReclamationQuery>();
+        services.AddScoped<Application.CustomerComplaint.CreerCategorieReclamationCommand>();
+        // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : ces trois contrats existaient
+        // en code et en tests mais n'étaient jamais résolvables via le conteneur DI — donc jamais
+        // appelables par une page Razor réelle.
+        services.AddScoped<Application.Tickets.CloturerReclamationCommand>();
+        services.AddScoped<Application.Tickets.EvaluerReclamationCommand>();
+        services.AddScoped<Application.Tickets.ModifierCategoriesReclamationCommand>();
+
         return services;
     }
 }

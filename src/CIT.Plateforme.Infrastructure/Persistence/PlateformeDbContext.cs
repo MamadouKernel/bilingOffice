@@ -20,6 +20,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 {
     public DbSet<Ticket> Tickets => Set<Ticket>();
 
+    /// <summary>FEATURE 006 (Customer Complaint) : Catégories de réclamation (REC-02).</summary>
+    public DbSet<Domain.Reclamations.CategorieReclamation> CategoriesReclamation => Set<Domain.Reclamations.CategorieReclamation>();
+
     public DbSet<Dossier> Dossiers => Set<Dossier>();
 
     public DbSet<FileDeTraitement> Files => Set<FileDeTraitement>();
@@ -122,6 +125,26 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .HasDatabaseName("IX_Tickets_NumeroBooking_Actif")
                 .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (0, 1, 2)");
             b.Property(t => t.TypeAnnulationExport).HasConversion<string>().HasMaxLength(32);
+
+            // EXTENSIONS FEATURE 006 (Customer Complaint)
+            b.HasOne<Domain.Reclamations.CategorieReclamation>()
+                .WithMany()
+                .HasForeignKey(t => t.CategorieReclamationId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // FEATURE 006 (Customer Complaint) : référentiel des catégories.
+        builder.Entity<Domain.Reclamations.CategorieReclamation>(b =>
+        {
+            b.HasKey(c => c.Id);
+            b.Property(c => c.Code).IsRequired().HasMaxLength(50);
+            b.HasIndex(c => c.Code).IsUnique();
+            b.Property(c => c.Libelle).IsRequired().HasMaxLength(100);
+            b.HasIndex(c => c.EstActif);
+            b.HasOne<FileDeTraitement>()
+                .WithMany()
+                .HasForeignKey(c => c.FileCibleDefautId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : entité autonome, sans relation

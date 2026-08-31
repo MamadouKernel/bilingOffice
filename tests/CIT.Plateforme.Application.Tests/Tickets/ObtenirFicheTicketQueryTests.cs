@@ -10,6 +10,7 @@ using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Messagerie;
+using CIT.Plateforme.Domain.Reclamations;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 using CIT.Plateforme.Infrastructure.Identity;
@@ -68,10 +69,11 @@ public sealed class ObtenirFicheTicketQueryTests
         var docRepo = new DocumentRepository(db);
         var msgRepo = new MessageRepository(db);
         var habRepo = new HabilitationRepository(db);
+        var catRepo = new CategorieReclamationRepository(db);
 
         var query = new ObtenirFicheTicketQuery(
             ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo,
-            userInfoRepo, histRepo, docRepo, msgRepo, habRepo);
+            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
 
         return (db, query, socId, clientUserId, agentUserId);
     }
@@ -132,5 +134,62 @@ public sealed class ObtenirFicheTicketQueryTests
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(() => query.ExecuterAsync(clientUserId, ticketAutre.Id));
+    }
+
+    // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.3) — REC-REM-03 : le contenu réel de
+    // la réclamation (Objet/Description) doit être visible sur la fiche, pas seulement persisté.
+    [Fact]
+    public async Task REC_REM_03_FicheTicket_Complaint_ExposeObjetEtDescription()
+    {
+        var (db, query, socId, clientUserId, _) = ConstruireContexte();
+
+        var fileId = Guid.NewGuid();
+        var file = FileDeTraitement.Creer("CustomerComplaint", "Support Opérationnel");
+        typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
+        db.Files.Add(file);
+
+        var dossier = Dossier.Creer("DOS-REC-01", socId, DateTime.UtcNow, clientUserId);
+        var ticket = Ticket.Creer("TCK-REC-01", "CustomerComplaint", "Reclamation", fileId, dossier.Id, DateTime.UtcNow);
+        ticket.DefinirContenuReclamation("Facture erronée", "Le montant facturé ne correspond pas au devis signé.");
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        await db.SaveChangesAsync();
+
+        var fiche = await query.ExecuterAsync(clientUserId, ticket.Id);
+
+        Assert.Equal("Facture erronée", fiche.Objet);
+        Assert.Equal("Le montant facturé ne correspond pas au devis signé.", fiche.Description);
+    }
+
+    // T030 (closure-review.md "DÉCISION FINALE T030 / REC-02") — critère E : désactiver une
+    // catégorie ne doit jamais rendre illisibles les tickets historiques qui la référencent.
+    [Fact]
+    public async Task T030_E_TicketAvecCategorieDesormaisDesactivee_ResteLisible()
+    {
+        var (db, query, socId, clientUserId, _) = ConstruireContexte();
+
+        var fileId = Guid.NewGuid();
+        var file = FileDeTraitement.Creer("CustomerComplaint", "Support Opérationnel");
+        typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
+        db.Files.Add(file);
+
+        var categorie = CategorieReclamation.Creer("HIST", "Catégorie historique", fileId);
+        db.Set<CategorieReclamation>().Add(categorie);
+
+        var dossier = Dossier.Creer("DOS-HIST-01", socId, DateTime.UtcNow, clientUserId);
+        var ticket = Ticket.Creer("TCK-HIST-01", "CustomerComplaint", "Reclamation", fileId, dossier.Id, DateTime.UtcNow);
+        ticket.DefinirCategorieReclamation(categorie.Id);
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        await db.SaveChangesAsync();
+
+        // La catégorie est désactivée APRÈS la création du ticket.
+        categorie.Desactiver();
+        await db.SaveChangesAsync();
+
+        var fiche = await query.ExecuterAsync(clientUserId, ticket.Id);
+
+        Assert.Equal(categorie.Id, fiche.CategorieReclamationId);
+        Assert.Equal("Catégorie historique", fiche.CategorieReclamationLibelle);
     }
 }

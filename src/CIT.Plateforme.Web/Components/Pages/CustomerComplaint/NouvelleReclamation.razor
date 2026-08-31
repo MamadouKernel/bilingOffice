@@ -1,0 +1,143 @@
+@page "/reclamations/soumettre"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.CustomerComplaint
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject SoumettreReclamationCommand SoumettreReclamation
+@inject ListerCategoriesReclamationQuery ListerCategories
+@inject NavigationManager Navigation
+
+<PageTitle>Nouvelle réclamation — CIT</PageTitle>
+
+<div class="container-fluid py-3" style="max-width: 720px;">
+    <div class="mb-3 pb-2 border-bottom">
+        <h2 class="fw-bold mb-0 text-dark">Nouvelle réclamation</h2>
+        <div class="text-muted small">Décrivez votre demande — un ticket tracé de bout en bout sera créé pour votre société.</div>
+    </div>
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Chargement du formulaire..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else if (_ticketCreeNumero is not null)
+    {
+        <div class="alert alert-success">
+            <strong>Réclamation soumise avec succès.</strong> Numéro de suivi : <span class="fw-bold">@_ticketCreeNumero</span>
+        </div>
+        <a href="/reclamations/mes-reclamations" class="btn btn-primary">Voir mes réclamations</a>
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger">@_erreur</div>
+        }
+
+        <div class="cit-card">
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="categorie">Catégorie</label>
+                <select id="categorie" class="form-select" @bind="_categorieId">
+                    <option value="">-- Sélectionner --</option>
+                    @foreach (var cat in _categories)
+                    {
+                        <option value="@cat.Id">@cat.Libelle</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="objet">Objet</label>
+                <input id="objet" class="form-control" placeholder="Résumé court de votre réclamation" @bind="_objet" @bind:event="oninput" maxlength="200" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="description">Description</label>
+                <textarea id="description" class="form-control" rows="5" placeholder="Détaillez votre réclamation..." @bind="_description" @bind:event="oninput"></textarea>
+            </div>
+
+            <button class="btn btn-primary" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                @(_envoiEnCours ? "Envoi..." : "Soumettre la réclamation")
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private bool _envoiEnCours;
+    private string? _ticketCreeNumero;
+
+    private Guid _utilisateurId;
+    private Guid _societeId;
+    private IReadOnlyList<CategorieReclamationVue> _categories = [];
+    private string _categorieId = string.Empty;
+    private string _objet = string.Empty;
+    private string _description = string.Empty;
+
+    private bool PeutSoumettre =>
+        Guid.TryParse(_categorieId, out _) && !string.IsNullOrWhiteSpace(_objet) && !string.IsNullOrWhiteSpace(_description);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter avec un compte société pour soumettre une réclamation.";
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+            _societeId = contexte.SocieteId.Value;
+            _categories = await ListerCategories.ExecuterAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task SoumettreAsync()
+    {
+        if (!PeutSoumettre || !Guid.TryParse(_categorieId, out var categorieId))
+        {
+            return;
+        }
+
+        _envoiEnCours = true;
+        _erreur = null;
+        try
+        {
+            var resultat = await SoumettreReclamation.ExecuterAsync(
+                _utilisateurId,
+                new SoumettreReclamationRequete(_societeId, categorieId, _objet, _description));
+
+            _ticketCreeNumero = resultat.NumeroTicket;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _envoiEnCours = false;
+        }
+    }
+}

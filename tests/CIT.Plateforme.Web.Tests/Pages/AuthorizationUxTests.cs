@@ -59,6 +59,27 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
         Assert.Contains("ReturnUrl=%2Fclient%2Fdashboard", location);
     }
 
+    // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) — REC-SEC-01 : les 3 nouvelles
+    // routes F006 (absentes avant remédiation) doivent exiger une authentification.
+    [Theory]
+    [InlineData("/reclamations/soumettre")]
+    [InlineData("/reclamations/mes-reclamations")]
+    [InlineData("/reclamations/file")]
+    public async Task RecSec01_RoutesReclamations_UtilisateurAnonyme_RedirigeVersConnexion(string route)
+    {
+        var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+
+        var reponse = await client.GetAsync(route);
+
+        Assert.Equal(HttpStatusCode.Redirect, reponse.StatusCode);
+        var location = reponse.Headers.Location?.ToString();
+        Assert.NotNull(location);
+        Assert.Contains("/comptes/connexion", location);
+    }
+
     [Fact]
     public void CasA_ClientAuthentifie_SurDashboardAgent_AffichePermissionDeniedSansRedirection()
     {
@@ -216,16 +237,23 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
         var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var catRepo = new CategorieReclamationRepository(db);
 
-        var queryTicket = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo);
+        var queryTicket = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);
         var publierMessage = new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow);
+        // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : FicheTicket.razor injecte
+        // désormais ces deux contrats pour afficher/clôturer/évaluer une réclamation.
+        var clotureReclamation = new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow);
+        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation);
 
         Services.AddSingleton(queryTicket);
         Services.AddSingleton(prendreEnCharge);
         Services.AddSingleton(attenteClient);
         Services.AddSingleton(publierMessage);
+        Services.AddSingleton(clotureReclamation);
+        Services.AddSingleton(evaluerReclamation);
 
         var cut = Render<FicheTicket>(p => p.Add(x => x.Id, ticketB.Id));
 

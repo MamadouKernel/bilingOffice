@@ -27,7 +27,14 @@ public sealed class PublierMessageCommand(
     {
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
-        await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        if (ticket.Module == "CustomerComplaint")
+        {
+            await autorisation.ExigerAsync(agentId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
 
         return await PublierAsync(ticketId, agentId, TypeMessage.Externe, contenu, ct).ConfigureAwait(false);
     }
@@ -38,7 +45,14 @@ public sealed class PublierMessageCommand(
     {
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
-        await autorisation.ExigerAsync(agentId, Permission.MessageNoteInterne, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        if (ticket.Module == "CustomerComplaint")
+        {
+            await autorisation.ExigerAsync(agentId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            await autorisation.ExigerAsync(agentId, Permission.MessageNoteInterne, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
 
         return await PublierAsync(ticketId, agentId, TypeMessage.NoteInterne, contenu, ct).ConfigureAwait(false);
     }

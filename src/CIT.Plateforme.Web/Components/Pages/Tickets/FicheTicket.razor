@@ -1,4 +1,5 @@
 @page "/tickets/{Id:guid}"
+@rendermode InteractiveServer
 @using CIT.Plateforme.Application.Affectation
 @using CIT.Plateforme.Application.Messagerie
 @using CIT.Plateforme.Application.Securite
@@ -12,6 +13,8 @@
 @inject PrendreEnChargeCommand PrendreEnCharge
 @inject AttenteClientCommand AttenteClient
 @inject PublierMessageCommand PublierMessage
+@inject CloturerReclamationCommand ClotureReclamation
+@inject EvaluerReclamationCommand EvaluerReclamation
 @inject NavigationManager Navigation
 
 <div class="container-fluid py-3">
@@ -99,6 +102,74 @@
             </div>
         }
 
+        @if (_fiche.Module == "CustomerComplaint")
+        {
+            <!-- REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : contenu réel de la
+                 réclamation, réponse formalisée et évaluation — jamais affichés avant remédiation. -->
+            <div class="cit-card mb-4">
+                <h6 class="fw-bold text-dark mb-3">📝 Réclamation — @_fiche.NumeroTicket</h6>
+                @if (!string.IsNullOrWhiteSpace(_fiche.Objet))
+                {
+                    <div class="mb-2"><span class="text-muted small">Objet :</span> <span class="fw-semibold">@_fiche.Objet</span></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_fiche.Description))
+                {
+                    <div class="mb-3"><span class="text-muted small d-block">Description :</span> <span>@_fiche.Description</span></div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_fiche.ReponseFormalisee))
+                {
+                    <div class="alert alert-success mb-0">
+                        <strong>Réponse formalisée de CIT :</strong>
+                        <div>@_fiche.ReponseFormalisee</div>
+                    </div>
+                }
+                else if (!_estClient && _fiche.PeutCloturer)
+                {
+                    <div class="border-top pt-3">
+                        <label class="form-label fw-semibold small" for="reponseFormalisee">Réponse formalisée (obligatoire pour clôturer — REC-04)</label>
+                        <textarea id="reponseFormalisee" class="form-control mb-2" rows="3" @bind="_reponseFormalisee" @bind:event="oninput"></textarea>
+                        <button class="btn btn-success btn-sm" @onclick="ClotureReclamationAsync" disabled="@string.IsNullOrWhiteSpace(_reponseFormalisee)">
+                            ✅ Clôturer avec réponse formalisée
+                        </button>
+                    </div>
+                }
+
+                @if (_fiche.Statut == StatutTicket.Cloture && _estClient)
+                {
+                    <div class="border-top pt-3 mt-3">
+                        @if (_fiche.EvaluationNote.HasValue)
+                        {
+                            <div class="small text-muted">
+                                Votre évaluation : <span class="fw-bold">@(new string('★', _fiche.EvaluationNote.Value))@(new string('☆', 5 - _fiche.EvaluationNote.Value))</span>
+                                @if (!string.IsNullOrWhiteSpace(_fiche.EvaluationCommentaire))
+                                {
+                                    <div class="fst-italic">« @_fiche.EvaluationCommentaire »</div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <label class="form-label fw-semibold small">Votre satisfaction (REC-06)</label>
+                            <div class="d-flex gap-1 mb-2">
+                                @for (var n = 1; n <= 5; n++)
+                                {
+                                    var note = n;
+                                    <button type="button" class="btn btn-link p-0 fs-4 text-decoration-none" @onclick="() => _noteEvaluation = note">
+                                        @(note <= _noteEvaluation ? "★" : "☆")
+                                    </button>
+                                }
+                            </div>
+                            <input class="form-control form-control-sm mb-2" placeholder="Commentaire (facultatif)" @bind="_commentaireEvaluation" />
+                            <button class="btn btn-outline-primary btn-sm" @onclick="EvaluerAsync" disabled="@(_noteEvaluation == 0)">
+                                Envoyer mon évaluation
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
         <!-- Grille principale -->
         <div class="row g-3 mb-4">
             <!-- Colonne gauche : Synthèse & Informations -->
@@ -114,6 +185,13 @@
                             <span class="text-muted">Module :</span>
                             <span class="fw-semibold">@_fiche.Module</span>
                         </li>
+                        @if (_fiche.Module == "CustomerComplaint" && !string.IsNullOrWhiteSpace(_fiche.CategorieReclamationLibelle))
+                        {
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">Catégorie :</span>
+                                <span class="fw-semibold text-end">@_fiche.CategorieReclamationLibelle</span>
+                            </li>
+                        }
                         @if (!string.IsNullOrWhiteSpace(_fiche.NumeroBooking))
                         {
                             <li class="mb-2 d-flex justify-content-between">
@@ -318,6 +396,12 @@
     private string _nouveauMessageContenu = string.Empty;
     private bool _estNoteInterne = false;
 
+    // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : état local pour la clôture avec
+    // réponse formalisée (C7-02) et l'évaluation de satisfaction (C7-03).
+    private string _reponseFormalisee = string.Empty;
+    private int _noteEvaluation;
+    private string _commentaireEvaluation = string.Empty;
+
     protected override async Task OnParametersSetAsync()
     {
         await RechargerAsync();
@@ -414,7 +498,11 @@
         {
             if (_estClient)
             {
-                await PublierMessage.PublierMessageClientAsync(_utilisateurId, Id, _nouveauMessageContenu);
+                // REMÉDIATION FINALE UI (closure-review.md §9) : PublierMessageClientAsync vérifie
+                // la propriété via CloisonnementService, qui compare l'appelant à Dossier.ClientId —
+                // documenté comme portant la SocieteId (Dossier.cs), jamais l'UtilisateurId
+                // individuel. Passer _utilisateurId ici levait systématiquement AccesRefuseException.
+                await PublierMessage.PublierMessageClientAsync(_fiche!.SocieteId, Id, _nouveauMessageContenu);
             }
             else
             {
@@ -435,6 +523,39 @@
         catch (Exception ex)
         {
             _actionFeedback = $"Erreur lors de l'envoi : {ex.Message}";
+        }
+    }
+
+    private async Task ClotureReclamationAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_reponseFormalisee)) return;
+
+        try
+        {
+            await ClotureReclamation.ExecuterAsync(new CloturerReclamationRequete(_utilisateurId, Id, _reponseFormalisee));
+            _reponseFormalisee = string.Empty;
+            _actionFeedback = "Réclamation clôturée avec réponse formalisée.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFeedback = $"Erreur : {ex.Message}";
+        }
+    }
+
+    private async Task EvaluerAsync()
+    {
+        if (_noteEvaluation is < 1 or > 5) return;
+
+        try
+        {
+            await EvaluerReclamation.ExecuterAsync(new EvaluerReclamationRequete(_utilisateurId, Id, _noteEvaluation, _commentaireEvaluation));
+            _actionFeedback = "Merci pour votre évaluation.";
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionFeedback = $"Erreur : {ex.Message}";
         }
     }
 

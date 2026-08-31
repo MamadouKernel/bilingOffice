@@ -99,6 +99,43 @@ public sealed class Ticket
     /// </summary>
     public TypeAnnulationExport? TypeAnnulationExport { get; private set; }
 
+    /// <summary>
+    /// EXTENSION FEATURE 006 (Customer Complaint) : Identifiant de la catégorie métier.
+    /// </summary>
+    public Guid? CategorieReclamationId { get; private set; }
+
+    /// <summary>
+    /// REMÉDIATION POST-AUDIT FEATURE 006 (post-implementation-audit.md §2.3, use-cases.md C7-01) :
+    /// objet court de la réclamation, jamais capturé avant cette remédiation.
+    /// </summary>
+    public string? Objet { get; private set; }
+
+    /// <summary>
+    /// REMÉDIATION POST-AUDIT FEATURE 006 (post-implementation-audit.md §2.3, use-cases.md C7-01) :
+    /// description détaillée de la réclamation, jamais capturée avant cette remédiation.
+    /// </summary>
+    public string? Description { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 (Customer Complaint) : Réponse textuelle officielle de CIT saisie par l'agent à la clôture (REC-04, CLAR-REC-01).
+    /// </summary>
+    public string? ReponseFormalisee { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 (Customer Complaint) : Note de satisfaction (REC-06). 1 à 5.
+    /// </summary>
+    public int? EvaluationNote { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 (Customer Complaint) : Commentaire de satisfaction (REC-06).
+    /// </summary>
+    public string? EvaluationCommentaire { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 (Customer Complaint) : Date d'évaluation.
+    /// </summary>
+    public DateTime? EvaluationDateUtc { get; private set; }
+
     private Ticket() { }
 
     public static Ticket Creer(
@@ -363,4 +400,72 @@ public sealed class Ticket
     /// manuelle d'un agent habilité — cette méthode ne fait que qualifier l'éligibilité.</summary>
     public bool EstEligibleASuggestionDeCloture(int nombreRelancesMax) =>
         Statut == StatutTicket.EnAttenteClient && !EstEnEtatEngageant && NombreRelancesEnvoyees >= nombreRelancesMax;
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 : Définit la catégorie pour une réclamation.
+    /// </summary>
+    public void DefinirCategorieReclamation(Guid categorieId)
+    {
+        CategorieReclamationId = categorieId;
+    }
+
+    /// <summary>
+    /// REMÉDIATION POST-AUDIT FEATURE 006 (post-implementation-audit.md §2.3) : renseigne le
+    /// contenu réel de la réclamation (use-cases.md C7-01 — Objet et Description sont des entrées
+    /// obligatoires du contrat).
+    /// </summary>
+    public void DefinirContenuReclamation(string objet, string description)
+    {
+        if (string.IsNullOrWhiteSpace(objet))
+        {
+            throw new ArgumentException("L'objet de la réclamation est obligatoire.", nameof(objet));
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("La description de la réclamation est obligatoire.", nameof(description));
+        }
+
+        Objet = objet;
+        Description = description;
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 : Clôture avec une réponse formalisée obligatoire.
+    /// </summary>
+    public void CloturerAvecReponseFormalisee(string reponse, MotifClotureType motif, DateTime maintenantUtc)
+    {
+        if (string.IsNullOrWhiteSpace(reponse))
+        {
+            throw new InvalidOperationException($"Le ticket {Numero} ne peut être clôturé sans réponse formalisée (REC-04).");
+        }
+
+        ReponseFormalisee = reponse;
+        Cloturer(motif, maintenantUtc);
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 006 : Évalue un ticket de réclamation (REC-06).
+    /// </summary>
+    public void Evaluer(int note, string? commentaire, DateTime maintenantUtc)
+    {
+        if (Statut != StatutTicket.Cloture)
+        {
+            throw new InvalidOperationException($"Seul un ticket clôturé peut être évalué (statut actuel : {Statut}).");
+        }
+
+        if (EvaluationNote.HasValue)
+        {
+            throw new InvalidOperationException($"Le ticket {Numero} a déjà été évalué.");
+        }
+
+        if (note < 1 || note > 5)
+        {
+            throw new ArgumentOutOfRangeException(nameof(note), "La note doit être comprise entre 1 et 5.");
+        }
+
+        EvaluationNote = note;
+        EvaluationCommentaire = commentaire;
+        EvaluationDateUtc = maintenantUtc;
+    }
 }

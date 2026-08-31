@@ -20,7 +20,14 @@ public sealed class AttenteClientCommand(
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
-        await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        if (ticket.Module == "CustomerComplaint")
+        {
+            await autorisation.ExigerAsync(agentId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
 
         var maintenant = horloge.MaintenantUtc;
         ticket.MettreEnAttenteClient(maintenant);

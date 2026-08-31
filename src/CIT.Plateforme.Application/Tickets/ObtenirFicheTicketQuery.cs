@@ -22,7 +22,8 @@ public sealed class ObtenirFicheTicketQuery(
     IHistoriqueTicketRepository historiqueRepository,
     IDocumentRepository documentRepository,
     IMessageRepository messageRepository,
-    IHabilitationRepository habilitationRepository)
+    IHabilitationRepository habilitationRepository,
+    ICategorieReclamationRepository categorieReclamationRepository)
 {
     public async Task<FicheTicketVue> ExecuterAsync(Guid appelantId, Guid ticketId, CancellationToken ct = default)
     {
@@ -125,9 +126,9 @@ public sealed class ObtenirFicheTicketQuery(
 
         // 6. Détermination des permissions contextuelles
         var habilitations = await habilitationRepository.ListerParUtilisateurAsync(appelantId, ct).ConfigureAwait(false);
-        bool aDroitPriseEnCharge = habilitations.Any(h => h.PermissionCode == Permission.TicketPrendreEnCharge && (h.FileId == null || h.FileId == ticket.FileCouranteId));
-        bool aDroitTransferer = habilitations.Any(h => h.PermissionCode == Permission.TicketTransferer && (h.FileId == null || h.FileId == ticket.FileCouranteId));
-        bool aDroitCloturer = habilitations.Any(h => h.PermissionCode == Permission.TicketCloturer && (h.FileId == null || h.FileId == ticket.FileCouranteId));
+        bool aDroitPriseEnCharge = habilitations.Any(h => (h.PermissionCode == Permission.TicketPrendreEnCharge || h.PermissionCode == Permission.ComplaintInstruire) && (h.FileId == null || h.FileId == ticket.FileCouranteId));
+        bool aDroitTransferer = habilitations.Any(h => (h.PermissionCode == Permission.TicketTransferer || h.PermissionCode == Permission.ComplaintInstruire) && (h.FileId == null || h.FileId == ticket.FileCouranteId));
+        bool aDroitCloturer = habilitations.Any(h => (h.PermissionCode == Permission.TicketCloturer || h.PermissionCode == Permission.ComplaintInstruire) && (h.FileId == null || h.FileId == ticket.FileCouranteId));
 
         bool peutPrendreEnCharge = !estClient && ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge && aDroitPriseEnCharge;
         bool peutTransferer = !estClient && ticket.Statut == StatutTicket.EnCours && aDroitTransferer;
@@ -142,6 +143,14 @@ public sealed class ObtenirFicheTicketQuery(
         if (societeNom.Contains("RaisonSociale"))
         {
             societeNom = ExtraireNom(societeNom);
+        }
+
+        // 7. Métadonnées spécifiques Customer Complaint (REC-01, REC-02, REC-04, REC-06)
+        string? categorieLibelle = null;
+        if (ticket.CategorieReclamationId.HasValue)
+        {
+            var categorie = await categorieReclamationRepository.ObtenirParIdAsync(ticket.CategorieReclamationId.Value, ct).ConfigureAwait(false);
+            categorieLibelle = categorie?.Libelle;
         }
 
         return new FicheTicketVue(
@@ -176,7 +185,15 @@ public sealed class ObtenirFicheTicketQuery(
             Documents: documents,
             Messages: messages,
             NumeroBooking: ticket.NumeroBooking,
-            TypeAnnulationExport: ticket.TypeAnnulationExport
+            TypeAnnulationExport: ticket.TypeAnnulationExport,
+            CategorieReclamationId: ticket.CategorieReclamationId,
+            CategorieReclamationLibelle: categorieLibelle,
+            Objet: ticket.Objet,
+            Description: ticket.Description,
+            ReponseFormalisee: ticket.ReponseFormalisee,
+            EvaluationNote: ticket.EvaluationNote,
+            EvaluationCommentaire: ticket.EvaluationCommentaire,
+            EvaluationDateUtc: ticket.EvaluationDateUtc
         );
     }
 
