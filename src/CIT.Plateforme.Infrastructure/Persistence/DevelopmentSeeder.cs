@@ -27,6 +27,7 @@ public sealed class DevelopmentSeeder(
         await SeedSocietesEtComptesAsync(password);
         await SeedFilesEtAgentsAsync(password);
         await SeedTicketsDemoAsync();
+        await SeedEnrolementAsync(password);
         
         await context.SaveChangesAsync();
 
@@ -266,4 +267,31 @@ public sealed class DevelopmentSeeder(
             await context.SaveChangesAsync();
         }
     }
+
+    /// <summary>
+    /// FEATURE 008 (Enrôlement Transporteurs, research.md D4/D9, tasks.md T011-T013) : file
+    /// "Agent Gate" (Module="Enrolement"), un compte Agent Gate habilité EnrolementInstruire, et un
+    /// compte Transporteur/Chauffeur de démonstration — CLAR-ENR-01 : personne physique unique,
+    /// sans société rattachée (Nature=Client, aucun UtilisateurSociete créé pour ce compte).
+    /// </summary>
+    private async Task SeedEnrolementAsync(string password)
+    {
+        if (!await context.Files.AnyAsync(x => x.Nom == "Agent Gate"))
+        {
+            context.Files.Add(FileDeTraitement.Creer("Enrolement", "Agent Gate"));
+            await context.SaveChangesAsync();
+        }
+
+        await CreerAgentAsync("agent.gate@test.local", "Agent Gate", password, new (string, string?)[]
+        {
+            (Permission.EnrolementInstruire, "Agent Gate")
+        });
+
+        // Décision d'attribution tracée (research.md D3/D9, tasks.md T013) : EnrolementSoumettre
+        // est accordée par défaut à tout compte Nature=Client non rattaché à une société — mirroring
+        // ComplaintSoumettre/BillingImportSoumettre déjà accordés de façon équivalente.
+        var transporteur = await CreerUtilisateurDeBaseAsync("transporteur.chauffeur@test.local", "Transporteur Chauffeur Test", password);
+        if (!await context.Habilitations.AnyAsync(h => h.UtilisateurId == transporteur.Id && h.PermissionCode == Permission.EnrolementSoumettre))
+        {
+            context.Habilitations.Add(HabilitationUtilisateur.Attribuer(transporteur.Id, Permission.EnrolementSoumettre));
 }

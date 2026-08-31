@@ -46,6 +46,11 @@ public interface IDossierRepository
     Task<Dossier?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
 
     Task<IReadOnlyList<Dossier>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
+
+    /// <summary>FEATURE 008 (research.md D9) : extension générique, complémentaire de
+    /// <see cref="ListerParSocieteAsync"/> pour un propriétaire qui n'est pas une société
+    /// (ex. Transporteur/Chauffeur, personne physique — CLAR-ENR-01).</summary>
+    Task<IReadOnlyList<Dossier>> ListerParClientAsync(Guid clientId, CancellationToken ct = default);
 }
 
 public interface IFileDeTraitementRepository

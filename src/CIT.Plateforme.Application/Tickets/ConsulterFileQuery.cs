@@ -14,8 +14,9 @@ public sealed class ConsulterFileQuery(ITicketRepository tickets, IAutorisationS
     {
         bool peutStandard = await autorisation.EstAutoriseAsync(agentId, Permission.TicketPrendreEnCharge, fileId, ct).ConfigureAwait(false);
         bool peutComplaint = await autorisation.EstAutoriseAsync(agentId, Permission.ComplaintInstruire, fileId, ct).ConfigureAwait(false);
-        
-        if (!peutStandard && !peutComplaint)
+        bool peutEnrolement = await autorisation.EstAutoriseAsync(agentId, Permission.EnrolementInstruire, fileId, ct).ConfigureAwait(false);
+
+        if (!peutStandard && !peutComplaint && !peutEnrolement)
         {
             throw new AccesRefuseException($"L'agent {agentId} n'a pas les autorisations nécessaires pour consulter la file {fileId}.");
         }

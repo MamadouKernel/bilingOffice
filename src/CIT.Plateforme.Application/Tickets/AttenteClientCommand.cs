@@ -24,6 +24,10 @@ public sealed class AttenteClientCommand(
         {
             await autorisation.ExigerAsync(agentId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
         }
+        else if (ticket.Module == "Enrolement")
+        {
+            await autorisation.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
         else
         {
             await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);

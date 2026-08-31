@@ -86,4 +86,10 @@ public static class Permission
     /// ni vérifiée avant cette remédiation.
     /// </summary>
     public const string ComplaintRepondre = "complaint.repondre";
+
+    // FEATURE 008 (Enrôlement Transporteurs, research.md D3) — permission bundlée unique pour
+    // l'Agent Gate (prise en charge, vérification, complément, validation, convocation,
+    // constatation de remise de badge), mirroring ComplaintInstruire.
+    public const string EnrolementSoumettre = "enrolement.soumettre";
+    public const string EnrolementInstruire = "enrolement.instruire";
 }

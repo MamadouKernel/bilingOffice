@@ -92,6 +92,9 @@ public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierR
 
     public async Task<IReadOnlyList<Dossier>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default) =>
         await dbContext.Dossiers.Where(d => d.ClientId == societeId).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Dossier>> ListerParClientAsync(Guid clientId, CancellationToken ct = default) =>
+        await dbContext.Dossiers.Where(d => d.ClientId == clientId).ToListAsync(ct).ConfigureAwait(false);
 }
 
 public sealed class FileDeTraitementRepository(PlateformeDbContext dbContext) : IFileDeTraitementRepository

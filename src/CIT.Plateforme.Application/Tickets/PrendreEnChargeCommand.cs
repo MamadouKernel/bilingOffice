@@ -26,6 +26,10 @@ public sealed class PrendreEnChargeCommand(
         {
             await autorisation.ExigerAsync(operateurId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
         }
+        else if (ticket.Module == "Enrolement")
+        {
+            await autorisation.ExigerAsync(operateurId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
         else
         {
             await autorisation.ExigerAsync(operateurId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);

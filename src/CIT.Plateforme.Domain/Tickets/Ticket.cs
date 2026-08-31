@@ -445,6 +445,27 @@ public sealed class Ticket
     }
 
     /// <summary>
+    /// EXTENSION FEATURE 008 (Enrôlement Transporteurs, research.md D8, data-model.md §2.1) :
+    /// renseigne les informations d'enrôlement (ENR-01) en réutilisant les colonnes génériques
+    /// <see cref="Objet"/>/<see cref="Description"/> déjà existantes — aucune nouvelle propriété.
+    /// </summary>
+    public void DefinirInformationsEnrolement(string objet, string description)
+    {
+        if (string.IsNullOrWhiteSpace(objet))
+        {
+            throw new ArgumentException("L'objet de l'enrôlement est obligatoire (ENR-01).", nameof(objet));
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("La description de l'enrôlement est obligatoire (ENR-01).", nameof(description));
+        }
+
+        Objet = objet;
+        Description = description;
+    }
+
+    /// <summary>
     /// EXTENSION FEATURE 006 : Évalue un ticket de réclamation (REC-06).
     /// </summary>
     public void Evaluer(int note, string? commentaire, DateTime maintenantUtc)

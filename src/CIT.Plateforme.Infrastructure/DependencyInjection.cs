@@ -238,10 +238,19 @@ public static class DependencyInjection
         services.AddScoped<Application.CustomerComplaint.CreerCategorieReclamationCommand>();
         // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : ces trois contrats existaient
         // en code et en tests mais n'étaient jamais résolvables via le conteneur DI — donc jamais
-        // appelables par une page Razor réelle.
+        services.AddScoped<Application.CustomerComplaint.ConsulterFileReclamationsQuery>();
         services.AddScoped<Application.Tickets.CloturerReclamationCommand>();
         services.AddScoped<Application.Tickets.EvaluerReclamationCommand>();
         services.AddScoped<Application.Tickets.ModifierCategoriesReclamationCommand>();
+
+        // FEATURE 008 — Enrôlement Transporteurs
+        services.AddScoped<Application.Enrolement.SoumettreEnrolementCommand>();
+        services.AddScoped<Application.Enrolement.ListerMesEnrolementsQuery>();
+        services.AddScoped<Application.Enrolement.ValiderEnrolementCommand>();
+        services.AddScoped<Application.Enrolement.DeclencherConvocationCommand>();
+        services.AddScoped<Application.Enrolement.ConstaterRemiseBadgeCommand>();
+        services.AddScoped<Application.Enrolement.ConsulterFileAgentGateQuery>();
+        services.AddScoped<Application.Enrolement.ObtenirFicheEnrolementQuery>();
 
         return services;
     }
