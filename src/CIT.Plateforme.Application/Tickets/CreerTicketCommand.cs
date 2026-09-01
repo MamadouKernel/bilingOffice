@@ -27,7 +27,8 @@ public sealed class CreerTicketCommand(
     IServiceNumerotation numerotation,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    IPrioriteRepository? priorites = null)
 {
     public async Task<Ticket> ExecuterAsync(CreerTicketRequete requete, CancellationToken ct = default)
     {
@@ -53,6 +54,17 @@ public sealed class CreerTicketCommand(
 
         var numeroTicket = await numerotation.ProchainNumeroTicketAsync(requete.Module, requete.TypeDemande, ct).ConfigureAwait(false);
         var ticket = Ticket.Creer(numeroTicket, requete.Module, requete.TypeDemande, requete.FileCibleId, dossier.Id, maintenant);
+
+        if (priorites is not null)
+        {
+            var niveaux = await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false);
+            var niveauDefaut = niveaux.OrderBy(n => n.Rang).FirstOrDefault();
+            if (niveauDefaut is not null)
+            {
+                ticket.DefinirPriorite(niveauDefaut.Id);
+            }
+        }
+
         await tickets.AjouterAsync(ticket, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", $"numero={ticket.Numero}", requete.ClientId, ct).ConfigureAwait(false);

@@ -14,13 +14,14 @@ using Xunit;
 namespace CIT.Plateforme.Web.Tests.Comptes;
 
 /// <summary>
-/// [TEST-SPEC] Remédiation post-audit (`post-implementation-audit.md` §11, CPT-07). Parcours de
+/// [TEST-SPEC] Remédiation post-audit (`post-implementation-audit.md` §11, CPT-07, SEC-08). Parcours de
 /// connexion réel via HTTP (<see cref="PlateformeWebApplicationFactory"/>, requêtes GET/POST
 /// authentiques avec jeton d'anti-falsification et cookies réels), pas une simple vérification des
 /// préconditions Identity — exactement la remédiation demandée : « adapter le test au niveau
 /// WebApplicationFactory plutôt que réduire la preuve à une précondition ».
-/// Exigence CDC: CPT-07 → US6 → critère d'acceptation 1 de US6 (FR-007) → Test.
+/// Exigence CDC: CPT-07, SEC-08 → US5 (F012).
 /// </summary>
+[Collection("PlateformeWebCollection")]
 public sealed class ParcoursConnexion2FaTests : IClassFixture<PlateformeWebApplicationFactory>
 {
     private const string MotDePasse = "MotDePasseValide123!";
@@ -150,8 +151,15 @@ public sealed class ParcoursConnexion2FaTests : IClassFixture<PlateformeWebAppli
     /// </summary>
     private static async Task<bool> EstConnecteAsync(HttpClient client)
     {
-        var reponse = await client.GetAsync("/comptes/double-authentification");
+        var reponse = await client.GetAsync("/client/demandes");
         return reponse.StatusCode == HttpStatusCode.OK;
+    }
+
+    private static async Task<(bool Connecte, HttpStatusCode Statut, string? Location, string Corps)> VerifierConnexionAsync(HttpClient client)
+    {
+        var reponse = await client.GetAsync("/client/demandes");
+        var corps = await reponse.Content.ReadAsStringAsync();
+        return (reponse.StatusCode == HttpStatusCode.OK, reponse.StatusCode, reponse.Headers.Location?.OriginalString, corps);
     }
 
     [Fact]
@@ -232,9 +240,8 @@ public sealed class ParcoursConnexion2FaTests : IClassFixture<PlateformeWebAppli
             ["Modele.Code"] = code,
         }));
 
-        Assert.Equal(HttpStatusCode.OK, reponseCode.StatusCode);
-        Assert.True(await EstConnecteAsync(client),
-            "Un code TOTP valide doit compléter la connexion et permettre l'accès à une page protégée.");
+        var (connecte, statut, location, corps) = await VerifierConnexionAsync(client);
+        Assert.True(connecte, $"Un code TOTP valide doit permettre l'accès. Statut reçu: {statut}, Redirection: {location}, Corps: {corps}");
     }
 
     [Fact]

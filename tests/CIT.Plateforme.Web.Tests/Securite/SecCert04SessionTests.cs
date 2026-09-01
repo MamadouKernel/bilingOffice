@@ -98,7 +98,7 @@ public sealed class SecCert04SessionTests : IClassFixture<PlateformeWebApplicati
 
     private async Task<bool> EstConnecteAsync(HttpClient client)
     {
-        var reponse = await client.GetAsync("/comptes/double-authentification");
+        var reponse = await client.GetAsync("/client/demandes");
         return reponse.StatusCode == HttpStatusCode.OK;
     }
 

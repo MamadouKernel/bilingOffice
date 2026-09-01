@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<ConsulterStatutQuery>();
         services.AddScoped<ConsulterFileQuery>();
         services.AddScoped<PriseLibreCommand>();
+        services.AddScoped<ExporterTicketsCsvQuery>();
 
         // User Story 2 — affectation, réaffectation, transfert.
         services.AddScoped<ITransitionAutoriseeRepository, TransitionAutoriseeRepository>();

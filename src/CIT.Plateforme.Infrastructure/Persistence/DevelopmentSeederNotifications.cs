@@ -58,6 +58,10 @@ public sealed partial class DevelopmentSeeder
         // MSG-04 (Should, exigence F001 NON RECOMPTÉE) : raccordement In-App livré par F009
         // (Option B). L'e-mail reste « selon paramétrage » — AUCUNE règle Email n'est semée.
         ("CollaborateurMentionne", CanalNotification.InApp, false, "MSG-04 (F001) — raccordement In-App, Option B"),
+
+        // COM-06 (Could) : « Canaux de relance automatique paramétrables (InApp, Email) ».
+        ("RelanceEmise", CanalNotification.InApp, false, "COM-06 — relances automatiques multicanales paramétrables"),
+        ("RelanceEmise", CanalNotification.Email, false, "COM-06 — relances automatiques multicanales paramétrables"),
     ];
 
     private async Task SeedNotificationsAsync()
@@ -82,6 +86,7 @@ public sealed partial class DevelopmentSeeder
                 "FactureEditee" => "Votre facture est disponible",
                 "TicketTransfere" => "Votre dossier a été réorienté",
                 "CollaborateurMentionne" => "Vous avez été mentionné sur un ticket",
+                "RelanceEmise" => "Rappel concernant votre dossier",
                 _ => type,
             };
 

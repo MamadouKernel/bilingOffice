@@ -49,6 +49,7 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
                 {
                     if (!baseDejaCreee)
                     {
+                        Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
                         dbContext.Database.EnsureDeleted();
                         dbContext.Database.EnsureCreated();
                         baseDejaCreee = true;
@@ -60,4 +61,9 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
 
     private static readonly Lock VerrouCreation = new();
     private static bool baseDejaCreee;
+}
+
+[Xunit.CollectionDefinition("PlateformeWebCollection", DisableParallelization = true)]
+public class PlateformeWebCollection : Xunit.ICollectionFixture<PlateformeWebApplicationFactory>
+{
 }

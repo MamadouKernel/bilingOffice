@@ -38,7 +38,8 @@ public sealed class SoumettreDemandeImportCommand(
     IServiceNumerotation numerotation,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    IPrioriteRepository? priorites = null)
 {
     public const string Module = "BillingImport";
     public const string TypeDemande = "Import";
@@ -100,6 +101,17 @@ public sealed class SoumettreDemandeImportCommand(
 
             var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, TypeDemande, ct).ConfigureAwait(false);
             var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileManifeste.Id, dossier.Id, maintenant, numeroBl);
+
+            if (priorites is not null)
+            {
+                var niveaux = await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false);
+                var niveauDefaut = niveaux.OrderBy(n => n.Rang).FirstOrDefault();
+                if (niveauDefaut is not null)
+                {
+                    ticket.DefinirPriorite(niveauDefaut.Id);
+                }
+            }
+
             await tickets.AjouterAsync(ticket, ct).ConfigureAwait(false);
 
             try
@@ -121,6 +133,8 @@ public sealed class SoumettreDemandeImportCommand(
             ticketsCrees.Add(ticket);
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketImportCree", $"numeroBl={numeroBl}", requete.AuteurId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(requete.AuteurId, "TicketImportCree", nameof(Ticket), ticket.Id, null, numeroBl, ct).ConfigureAwait(false);
+            await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
+            await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
         }
 
         return new SoumettreDemandeImportResultat(dossier, ticketsCrees, blRefuses);

@@ -84,11 +84,12 @@ public class Imp11EtProducteursTests
             .ToList();
 
         // 19 fichiers producteurs AVANT F009 (research.md D1 : 21 sites d'appel sur 19
-        // fichiers) + les 2 commandes de facture, qui n'en étaient pas et le deviennent par
-        // IMP-11 → 21 fichiers, 23 sites d'appel. Aucun autre fichier ne devient producteur.
-        Assert.Equal(21, fichiersProducteurs.Count);
+        // fichiers) + les 2 commandes de facture (IMP-11) + la commande d'import (IMP-03 / F012)
+        // → 22 fichiers producteurs.
+        Assert.Equal(22, fichiersProducteurs.Count);
         Assert.Contains("EditerFactureCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureExportCommand.cs", fichiersProducteurs);
+        Assert.Contains("SoumettreDemandeImportCommand.cs", fichiersProducteurs);
 
         // Les producteurs sensibles de F001 sont présents et n'ont pas disparu.
         Assert.Contains("MentionnerCollaborateurCommand.cs", fichiersProducteurs);
