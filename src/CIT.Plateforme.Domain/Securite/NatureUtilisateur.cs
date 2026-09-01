@@ -114,4 +114,14 @@ public static class Permission
     /// et constatation de présence usager au guichet (statut Honore / NonPresente).
     /// </summary>
     public const string RendezVousGerer = "rendezvous.gerer";
+
+    /// <summary>
+    /// FEATURE 007 (AVE-02, research.md D9) — instruction et traitement des demandes Avoir & Exonération.
+    /// </summary>
+    public const string AvoirExonerationInstruire = "avoirexoneration.instruire";
+
+    /// <summary>
+    /// FEATURE 007 (AVE-03, research.md D9) — enregistrement de la décision finale (accord / rejet motivé).
+    /// </summary>
+    public const string AvoirExonerationDecider = "avoirexoneration.decider";
 }

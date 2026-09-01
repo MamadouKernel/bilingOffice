@@ -153,6 +153,27 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .WithMany()
                 .HasForeignKey(t => t.CategorieReclamationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // EXTENSIONS FEATURE 007 (Avoir & Exonération, research.md D3)
+            b.Property(t => t.DecisionAvoirExo)
+                .HasConversion<string>()
+                .HasMaxLength(32);
+
+            b.Property(t => t.MotifRejetAvoirExo)
+                .HasMaxLength(1000);
+
+            b.Property(t => t.MontantConteste)
+                .HasPrecision(18, 2);
+
+            b.Property(t => t.MontantAccorde)
+                .HasPrecision(18, 2);
+
+            b.Property(t => t.DateDecisionAvoirExoUtc);
+
+            b.Property(t => t.DecideurAvoirExoId);
+
+            b.HasIndex(t => new { t.Module, t.TypeDemande, t.Statut })
+                .HasDatabaseName("IX_Tickets_Module_TypeDemande_Statut");
         });
 
         // FEATURE 006 (Customer Complaint) : référentiel des catégories.

@@ -1,0 +1,409 @@
+@page "/avoir-exoneration/fiche/{TicketId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.AvoirExoneration
+@using CIT.Plateforme.Domain.AvoirExoneration
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirFicheAvoirExonerationQuery ObtenirFiche
+@inject PrendreEnChargeAvoirExoCommand PrendreEnCharge
+@inject DemanderComplementAvoirExoCommand DemanderComplement
+@inject DeciderDemandeAvoirExoCommand DeciderDemande
+@inject NavigationManager Navigation
+
+<PageTitle>Fiche Demande @(_fiche?.NumeroTicket ?? "Avoir & Exonération") — CIT</PageTitle>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de la fiche de demande..." />
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger">@_erreur</div>
+}
+else if (_fiche is not null)
+{
+    <div class="cit-page-header">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge @(_fiche.TypeDemande == "Avoir" ? "bg-info text-dark" : "bg-warning text-dark")">
+                    @_fiche.TypeDemande
+                </span>
+                <span class="badge @ObtenirBadgeStatut(_fiche.Statut)">@_fiche.Statut</span>
+            </div>
+            <h2 class="cit-page-title">
+                Demande @_fiche.NumeroTicket
+            </h2>
+            <div class="cit-page-subtitle">Dossier @_fiche.NumeroDossier — Client : <strong>@_fiche.ClientNom</strong></div>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+            @if (_estAgent)
+            {
+                <a href="/avoir-exoneration/file" class="btn btn-outline-secondary btn-sm shadow-sm">← File Avoir/Exo</a>
+            }
+            else
+            {
+                <a href="/avoir-exoneration/mes-demandes" class="btn btn-outline-secondary btn-sm shadow-sm">← Mes demandes</a>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_messageSucces))
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4">
+            @_messageSucces
+            <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
+        </div>
+    }
+
+    <!-- Décision / Statut Alerte -->
+    @if (_fiche.Decision == "Accorde")
+    {
+        <div class="alert alert-success d-flex align-items-center gap-3 mb-4 shadow-sm">
+            <span class="fs-2">🎉</span>
+            <div>
+                <h5 class="fw-bold mb-0">Demande accordée</h5>
+                <div>Montant accordé : <strong class="fs-5">@(_fiche.MontantAccorde?.ToString("N0") ?? "0") XOF</strong></div>
+                @if (_fiche.DateDecisionUtc.HasValue)
+                {
+                    <div class="small text-muted">Décision rendue le @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</div>
+                }
+            </div>
+        </div>
+    }
+    else if (_fiche.Decision == "Rejete")
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 shadow-sm">
+            <span class="fs-2">❌</span>
+            <div>
+                <h5 class="fw-bold mb-0">Demande rejetée</h5>
+                <div>Motif du rejet : <strong class="text-danger">@_fiche.MotifRejet</strong></div>
+                @if (_fiche.DateDecisionUtc.HasValue)
+                {
+                    <div class="small text-muted">Décision rendue le @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Colonne Principale -->
+        <div class="col-lg-8">
+            <!-- Détails de la demande -->
+            <div class="cit-card mb-4 p-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">📋 Détails de la demande</h5>
+                <div class="mb-3">
+                    <div class="text-muted small">Objet :</div>
+                    <div class="fw-bold fs-6">@_fiche.Objet</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small">Description / Justification :</div>
+                    <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-wrap;">@_fiche.Description</div>
+                </div>
+
+                <div class="row g-3 pt-2">
+                    <div class="col-sm-6">
+                        <div class="text-muted small">Montant contesté :</div>
+                        <div class="fw-semibold">@(_fiche.MontantConteste.HasValue ? $"{_fiche.MontantConteste.Value:N0} XOF" : "Non spécifié")</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small">Date de soumission :</div>
+                        <div class="fw-semibold">@_fiche.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                </div>
+
+                @if (_fiche.TicketParent != null)
+                {
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="text-muted small">Ticket lié / dossier parent (AVE-04) :</div>
+                        <div class="badge bg-light text-dark border p-2 mt-1">
+                            🔗 N° <strong>@_fiche.TicketParent.Numero</strong> (Module: @_fiche.TicketParent.Module - @_fiche.TicketParent.TypeDemande)
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Documents joints -->
+            <div class="cit-card mb-4 p-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">📎 Justificatifs & Documents déposés</h5>
+                @if (_fiche.Documents.Count == 0)
+                {
+                    <p class="text-muted small mb-0">Aucun document joint.</p>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var doc in _fiche.Documents)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <div class="fw-semibold">📄 @doc.NomFichier</div>
+                                    <div class="text-muted small">Catégorie : @doc.Categorie • @(doc.TailleOctets / 1024) Ko • Déposé le @doc.DateDepotUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Chronologie / Historique -->
+            <div class="cit-card mb-4 p-4 shadow-sm">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">🕒 Chronologie des événements</h5>
+                @if (_fiche.Chronologie.Count == 0)
+                {
+                    <p class="text-muted small mb-0">Aucun événement enregistré.</p>
+                }
+                else
+                {
+                    <div class="timeline">
+                        @foreach (var h in _fiche.Chronologie)
+                        {
+                            <div class="mb-2 pb-2 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-dark">@h.Evenement</strong>
+                                    <span class="small text-muted">@h.DateUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(h.Detail))
+                                {
+                                    <div class="small text-secondary mt-1">@h.Detail</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Colonne Actions (Agents CIT) -->
+        <div class="col-lg-4">
+            @if (_estAgent && _fiche.Statut != "Cloture" && _fiche.Statut != "Annule")
+            {
+                <div class="cit-card mb-4 p-4 shadow-sm border-primary">
+                    <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">⚙️ Actions Instructeur</h5>
+
+                    @if (_fiche.Statut == "EnAttenteDePriseEnCharge")
+                    {
+                        <div class="mb-3">
+                            <p class="small text-muted">Le ticket n'est pas encore pris en charge par un agent.</p>
+                            <button class="btn btn-primary w-100 fw-bold" @onclick="PrendreEnChargeAsync" disabled="@_actionEnCours">
+                                Prendre en charge le dossier
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Demande de complément -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-dark">Demander un complément (ACR-01)</label>
+                            <textarea class="form-control form-control-sm mb-2" rows="3" placeholder="Précisez les pièces ou explications manquantes..." @bind="_motifComplement"></textarea>
+                            <button class="btn btn-warning btn-sm w-100 fw-semibold text-dark" @onclick="DemanderComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_motifComplement) || _actionEnCours)">
+                                📩 Mettre en attente client
+                            </button>
+                        </div>
+
+                        <!-- Décision Finale (Accord / Rejet) -->
+                        <div class="pt-3 border-top">
+                            <h6 class="fw-bold text-dark mb-2">Décision Finale (AVE-03)</h6>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold text-muted">Verdict :</label>
+                                <select class="form-select form-select-sm" @bind="_decisionChoisie">
+                                    <option value="Accorde">✅ Accorder la demande</option>
+                                    <option value="Rejete">❌ Rejeter la demande</option>
+                                </select>
+                            </div>
+
+                            @if (_decisionChoisie == "Accorde")
+                            {
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold text-muted">Montant accordé (XOF) :</label>
+                                    <input type="number" step="1000" class="form-control form-control-sm" placeholder="Montant final accordé" @bind="_montantAccordeSaisi" />
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold text-danger">Motif du rejet * (Obligatoire AVE-03) :</label>
+                                    <textarea class="form-control form-control-sm border-danger" rows="3" placeholder="Expliquez formellement la cause du rejet..." @bind="_motifRejetSaisi"></textarea>
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">Document officiel de décision (optionnel) :</label>
+                                <InputFile class="form-control form-control-sm" OnChange="OnDecisionFileSelected" />
+                                @if (_decisionDoc != null)
+                                {
+                                    <div class="small text-success mt-1">📎 @_decisionDoc.NomFichier</div>
+                                }
+                            </div>
+
+                            <button class="btn btn-success btn-sm w-100 fw-bold shadow-sm" @onclick="EnregistrerDecisionAsync" disabled="@(!PeutValiderDecision || _actionEnCours)">
+                                ⚖️ Enregistrer la décision & Clôturer
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid TicketId { get; set; }
+
+    private bool _chargement = true;
+    private bool _actionEnCours;
+    private bool _estAgent;
+    private string? _erreur;
+    private string? _messageSucces;
+    private FicheAvoirExonerationDto? _fiche;
+
+    private string _motifComplement = string.Empty;
+    private string _decisionChoisie = "Accorde";
+    private decimal? _montantAccordeSaisi;
+    private string _motifRejetSaisi = string.Empty;
+    private PieceJointeSoumission? _decisionDoc;
+
+    private bool PeutValiderDecision =>
+        _decisionChoisie == "Accorde" ||
+        (_decisionChoisie == "Rejete" && !string.IsNullOrWhiteSpace(_motifRejetSaisi));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerFicheAsync();
+    }
+
+    private async Task ChargerFicheAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                Navigation.NavigateTo("/comptes/connexion", forceLoad: true);
+                return;
+            }
+
+            _estAgent = contexte.Nature == NatureUtilisateur.Agent ||
+                        contexte.EspaceActif == CIT.Plateforme.Application.Web.EspaceFonctionnel.Agent ||
+                        contexte.Permissions.Contains(Permission.AvoirExonerationInstruire);
+            _fiche = await ObtenirFiche.ExecuterAsync(contexte.UtilisateurId, TicketId);
+            if (_fiche.MontantConteste.HasValue && !_montantAccordeSaisi.HasValue)
+            {
+                _montantAccordeSaisi = _fiche.MontantConteste;
+            }
+        }
+        catch (Exception ex)
+        {
+            _erreur = $"Erreur lors du chargement de la fiche : {ex.Message}";
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task PrendreEnChargeAsync()
+    {
+        _actionEnCours = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null) return;
+
+            await PrendreEnCharge.ExecuterAsync(contexte.UtilisateurId, TicketId);
+            _messageSucces = "Dossier pris en charge avec succès.";
+            await ChargerFicheAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _actionEnCours = false;
+        }
+    }
+
+    private async Task DemanderComplementAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_motifComplement)) return;
+
+        _actionEnCours = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null) return;
+
+            await DemanderComplement.ExecuterAsync(contexte.UtilisateurId, TicketId, _motifComplement.Trim());
+            _motifComplement = string.Empty;
+            _messageSucces = "Demande de complément transmise au client.";
+            await ChargerFicheAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _actionEnCours = false;
+        }
+    }
+
+    private async Task OnDecisionFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(10 * 1024 * 1024).CopyToAsync(ms);
+            _decisionDoc = new PieceJointeSoumission(file.Name, file.ContentType, ms.ToArray());
+        }
+    }
+
+    private async Task EnregistrerDecisionAsync()
+    {
+        if (!PeutValiderDecision) return;
+
+        _actionEnCours = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null) return;
+
+            var decision = _decisionChoisie == "Accorde" ? DecisionAvoirExo.Accorde : DecisionAvoirExo.Rejete;
+            var requete = new DeciderDemandeAvoirExoRequete(
+                TicketId: TicketId,
+                Decision: decision,
+                MotifRejet: decision == DecisionAvoirExo.Rejete ? _motifRejetSaisi.Trim() : null,
+                MontantAccorde: decision == DecisionAvoirExo.Accorde ? _montantAccordeSaisi : null,
+                DocumentDecision: _decisionDoc);
+
+            await DeciderDemande.ExecuterAsync(contexte.UtilisateurId, requete);
+            _messageSucces = "Décision formelle enregistrée avec succès. Le ticket est clôturé.";
+            await ChargerFicheAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _actionEnCours = false;
+        }
+    }
+
+    private static string ObtenirBadgeStatut(string statut) => statut switch
+    {
+        "EnAttenteDePriseEnCharge" => "bg-secondary",
+        "EnCours" => "bg-primary",
+        "EnAttenteClient" => "bg-warning text-dark",
+        "Cloture" => "bg-success",
+        _ => "bg-dark"
+    };
+}

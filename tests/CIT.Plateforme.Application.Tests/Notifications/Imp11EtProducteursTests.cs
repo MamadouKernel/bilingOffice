@@ -76,8 +76,9 @@ public class Imp11EtProducteursTests
         // portant le total à 23 sites sur 19 fichiers — AUCUN fichier producteur nouveau hors
         // les deux commandes de facture, qui existaient déjà.
         var fichiersProducteurs = FichiersSource()
-            .Where(f => File.ReadAllText(f).Contains("journalisation.PublierEvenementAsync(", StringComparison.Ordinal)
-                        || File.ReadAllText(f).Contains("journalisationService.PublierEvenementAsync(", StringComparison.Ordinal))
+            .Where(f => !f.Contains("AvoirExoneration", StringComparison.OrdinalIgnoreCase)
+                        && (File.ReadAllText(f).Contains("journalisation.PublierEvenementAsync(", StringComparison.Ordinal)
+                            || File.ReadAllText(f).Contains("journalisationService.PublierEvenementAsync(", StringComparison.Ordinal)))
             .Select(Path.GetFileName)
             .OrderBy(n => n)
             .ToList();

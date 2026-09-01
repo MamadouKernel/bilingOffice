@@ -1188,11 +1188,21 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DateDebutAttenteClienteUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DateDecisionAvoirExoUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateDerniereActiviteUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DatePriseEnChargeUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DecideurAvoirExoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DecisionAvoirExo")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<bool>("DeclarationPresentielle")
                         .HasColumnType("bit");
@@ -1226,8 +1236,20 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<decimal?>("MontantAccorde")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MontantConteste")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int?>("MotifCloture")
                         .HasColumnType("int");
+
+                    b.Property<string>("MotifRejetAvoirExo")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("NombreRelancesEnvoyees")
                         .HasColumnType("int");
@@ -1296,6 +1318,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("IX_Tickets_NumeroBooking_Actif")
                         .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+
+                    b.HasIndex("Module", "TypeDemande", "Statut")
+                        .HasDatabaseName("IX_Tickets_Module_TypeDemande_Statut");
 
                     b.ToTable("Tickets");
                 });

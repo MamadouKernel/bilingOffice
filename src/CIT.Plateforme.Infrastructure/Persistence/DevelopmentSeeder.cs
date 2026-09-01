@@ -152,14 +152,16 @@ public sealed partial class DevelopmentSeeder(
             "Comptabilité Client",
             "Back Office Export",
             "IES",
-            "Support Opérationnel"
+            "Support Opérationnel",
+            "Avoir & Exonération"
         };
 
         foreach (var f in files)
         {
             if (!await context.Files.AnyAsync(x => x.Nom == f))
             {
-                context.Files.Add(FileDeTraitement.Creer("Billing Office", f));
+                var module = f == "Avoir & Exonération" ? "AvoirExoneration" : "Billing Office";
+                context.Files.Add(FileDeTraitement.Creer(module, f));
             }
         }
         await context.SaveChangesAsync();
@@ -181,7 +183,9 @@ public sealed partial class DevelopmentSeeder(
             (Permission.BillingImportFacturationEditer, "Facturation"),
             (Permission.BillingExportFacturationEditer, "Facturation"),
             (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null)
+            (Permission.RendezVousGerer, null),
+            (Permission.AvoirExonerationInstruire, "Avoir & Exonération"),
+            (Permission.AvoirExonerationDecider, null)
         });
 
         await CreerAgentAsync("agent.paiement@test.local", "Agent Paiement", password, new (string, string?)[]
@@ -201,7 +205,9 @@ public sealed partial class DevelopmentSeeder(
         await CreerAgentAsync("agent.compta@test.local", "Agent Compta", password, new (string, string?)[]
         {
             (Permission.BillingImportComptabiliteConfirmerLettrage, "Comptabilité Client"),
-            (Permission.BillingExportComptabiliteConfirmerLettrage, "Comptabilité Client")
+            (Permission.BillingExportComptabiliteConfirmerLettrage, "Comptabilité Client"),
+            (Permission.AvoirExonerationInstruire, "Avoir & Exonération"),
+            (Permission.AvoirExonerationDecider, null)
         });
 
         await CreerAgentAsync("agent.ies@test.local", "Agent IES", password, new (string, string?)[]

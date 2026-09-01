@@ -136,6 +136,36 @@ public sealed class Ticket
     /// </summary>
     public DateTime? EvaluationDateUtc { get; private set; }
 
+    /// <summary>
+    /// EXTENSION FEATURE 007 (Avoir & Exonération) : Décision finale enregistrée (AVE-03).
+    /// </summary>
+    public CIT.Plateforme.Domain.AvoirExoneration.DecisionAvoirExo? DecisionAvoirExo { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (Avoir & Exonération) : Motif de rejet obligatoire en cas de refus (AVE-03).
+    /// </summary>
+    public string? MotifRejetAvoirExo { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (Avoir & Exonération) : Montant réclamé / contesté en XOF (AVE-01).
+    /// </summary>
+    public decimal? MontantConteste { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (Avoir & Exonération) : Montant final accordé en XOF (AVE-03).
+    /// </summary>
+    public decimal? MontantAccorde { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (Avoir & Exonération) : Date UTC de prise de décision (AVE-03).
+    /// </summary>
+    public DateTime? DateDecisionAvoirExoUtc { get; private set; }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (Avoir & Exonération) : Identifiant de l'agent ayant enregistré la décision (AVE-03).
+    /// </summary>
+    public Guid? DecideurAvoirExoId { get; private set; }
+
     private Ticket() { }
 
     public static Ticket Creer(
@@ -488,5 +518,102 @@ public sealed class Ticket
         EvaluationNote = note;
         EvaluationCommentaire = commentaire;
         EvaluationDateUtc = maintenantUtc;
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (AVE-01) : Crée une demande d'Avoir ou d'Exonération.
+    /// </summary>
+    public static Ticket CreerDemandeAvoirExo(
+        string numero,
+        string typeDemande,
+        Guid fileCibleId,
+        Guid dossierId,
+        string objet,
+        string description,
+        decimal? montantConteste,
+        DateTime maintenantUtc)
+    {
+        if (string.IsNullOrWhiteSpace(numero))
+        {
+            throw new ArgumentException("Le numéro de ticket est obligatoire (SOC-01).", nameof(numero));
+        }
+
+        if (typeDemande is not ("Avoir" or "Exoneration"))
+        {
+            throw new ArgumentException("Le type de demande doit être 'Avoir' ou 'Exoneration' (AVE-01).", nameof(typeDemande));
+        }
+
+        if (string.IsNullOrWhiteSpace(objet))
+        {
+            throw new ArgumentException("L'objet de la demande est obligatoire.", nameof(objet));
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("La description de la demande est obligatoire.", nameof(description));
+        }
+
+        if (montantConteste.HasValue && montantConteste.Value < 0)
+        {
+            throw new ArgumentException("Le montant contesté ne peut pas être négatif.", nameof(montantConteste));
+        }
+
+        return new Ticket
+        {
+            Id = Guid.NewGuid(),
+            Numero = numero,
+            Module = "AvoirExoneration",
+            TypeDemande = typeDemande,
+            DossierId = dossierId,
+            FileCouranteId = fileCibleId,
+            Statut = StatutTicket.EnAttenteDePriseEnCharge,
+            Objet = objet,
+            Description = description,
+            MontantConteste = montantConteste,
+            DateCreationUtc = maintenantUtc,
+            DateArriveeEnFileUtc = maintenantUtc,
+            DateDerniereActiviteUtc = maintenantUtc
+        };
+    }
+
+    /// <summary>
+    /// EXTENSION FEATURE 007 (AVE-03) : Enregistre la décision finale d'accord ou de rejet motivé.
+    /// </summary>
+    public void EnregistrerDecisionAvoirExo(
+        CIT.Plateforme.Domain.AvoirExoneration.DecisionAvoirExo decision,
+        string? motifRejet,
+        decimal? montantAccorde,
+        Guid decideurId,
+        DateTime maintenantUtc)
+    {
+        if (Statut is StatutTicket.Cloture or StatutTicket.Annule)
+        {
+            throw new InvalidOperationException($"Impossible d'enregistrer une décision sur un ticket au statut {Statut}.");
+        }
+
+        if (decision == CIT.Plateforme.Domain.AvoirExoneration.DecisionAvoirExo.Rejete)
+        {
+            if (string.IsNullOrWhiteSpace(motifRejet))
+            {
+                throw new ArgumentException("Le motif de rejet est obligatoire en cas de refus (AVE-03).", nameof(motifRejet));
+            }
+
+            DecisionAvoirExo = CIT.Plateforme.Domain.AvoirExoneration.DecisionAvoirExo.Rejete;
+            MotifRejetAvoirExo = motifRejet.Trim();
+            MontantAccorde = 0m;
+        }
+        else if (decision == CIT.Plateforme.Domain.AvoirExoneration.DecisionAvoirExo.Accorde)
+        {
+            DecisionAvoirExo = CIT.Plateforme.Domain.AvoirExoneration.DecisionAvoirExo.Accorde;
+            MotifRejetAvoirExo = null;
+            MontantAccorde = montantAccorde;
+        }
+
+        Statut = StatutTicket.Cloture;
+        MotifCloture = MotifClotureType.Normale;
+        DecideurAvoirExoId = decideurId;
+        DateDecisionAvoirExoUtc = maintenantUtc;
+        DateDerniereActiviteUtc = maintenantUtc;
+        DateClotureUtc = maintenantUtc;
     }
 }

@@ -353,6 +353,17 @@ public static class DependencyInjection
         services.AddScoped<Application.Guichet.BasculerAlternativePresentielleCommand>();
         services.AddScoped<Application.Guichet.RegulariserModeDegradeCommand>();
 
+        // ====================================================================================
+        // FEATURE 007 — Avoir & Exonération (AVE-01..04).
+        // ====================================================================================
+        services.AddScoped<Application.AvoirExoneration.SoumettreDemandeAvoirExonerationCommand>();
+        services.AddScoped<Application.AvoirExoneration.PrendreEnChargeAvoirExoCommand>();
+        services.AddScoped<Application.AvoirExoneration.DemanderComplementAvoirExoCommand>();
+        services.AddScoped<Application.AvoirExoneration.DeciderDemandeAvoirExoCommand>();
+        services.AddScoped<Application.AvoirExoneration.ListerMesDemandesAvoirExonerationQuery>();
+        services.AddScoped<Application.AvoirExoneration.ConsulterFileAvoirExonerationQuery>();
+        services.AddScoped<Application.AvoirExoneration.ObtenirFicheAvoirExonerationQuery>();
+
         return services;
     }
 }
