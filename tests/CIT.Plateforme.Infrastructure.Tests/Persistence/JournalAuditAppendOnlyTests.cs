@@ -7,7 +7,26 @@ namespace CIT.Plateforme.Infrastructure.Tests.Persistence;
 
 /// <summary>[TEST-TECH] Decision: D8. Règle métier critique « audit » : le journal d'audit est
 /// append-only — aucune modification ni suppression n'est possible par un utilisateur métier
-/// ordinaire.</summary>
+/// ordinaire.
+///
+/// ═══════════════════════════════════════════════════════════════════════════════════════════
+/// FEATURE 011 — CERTIFICATION SEC-05 · suite TEST-SPEC « SEC-CERT-03 » (T004→T006).
+/// ═══════════════════════════════════════════════════════════════════════════════════════════
+///
+/// Texte CDC (SEC-05, Must) : « Journal d'audit complet et non modifiable des actions
+/// utilisateurs et administrateurs. »
+///
+/// RATTACHEMENT NOMINATIF, SANS TEST NOUVEAU (régime R1, research.md D2). Les trois cas
+/// ci-dessous démontrent déjà, SUR SQL SERVER RÉEL, l'intégralité du comportement exigé :
+///   - modification d'une entrée existante ......... IMPOSSIBLE
+///   - suppression d'une entrée existante .......... IMPOSSIBLE
+///   - ajout d'une nouvelle entrée ................. TOUJOURS POSSIBLE (« complet »)
+///
+/// Écrire ici un test supplémentaire constituerait une DUPLICATION de preuve, contraire au
+/// principe de non-duplication (Constitution, Principe IV) et à l'invariant I5 de tasks.md.
+///
+/// Aucun second journal n'est créé : SOC-13 et SEC-05 qualifient le MÊME journal unique.
+/// </summary>
 public sealed class JournalAuditAppendOnlyTests
 {
     [Fact]

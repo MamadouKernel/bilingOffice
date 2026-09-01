@@ -13,14 +13,19 @@ using Xunit;
 
 namespace CIT.Plateforme.Application.Tests.Documents;
 
-/// <summary>[TEST-SPEC] Exigence CDC: SOC-07 → US6 → scénario d'acceptation 2 de US6 → Test.
-/// Aucun scénario CDC direct dans ce périmètre.
-/// <para>
-/// REMÉDIATION AUDIT (post-implementation-audit.md §6) : ces tests exercent désormais
-/// <c>DeposerPourAgentAsync</c> avec un agent réellement habilité (<see cref="Permission.DocumentDeposer"/>)
-/// — le contrôle d'autorisation lui-même (positif/négatif) est couvert séparément par
-/// <c>DepotDocumentAutorisationTests</c>.
-/// </para>
+/// <summary>
+/// FEATURE 011 — CERTIFICATION ERR-03 · suite TEST-SPEC « ERR-CERT-02 » (T047→T050).
+///
+/// Texte CDC (ERR-03, Must) : « Les documents déposés sont vérifiés à l'upload (intégrité,
+/// type, taille) avec message d'erreur explicite. »
+///
+/// Régime R1 (rattachement) : les contrôles de type (rejet extension non autorisée avec message)
+/// et de taille (rejet dépassement avec message) sont déjà intégralement implémentés et testés ici.
+/// GATE-ERR03 : Issue A retenue (l'intégrité correspond à un fichier valide/exploitable selon les
+/// contrôles de format et de taille existants, sans inventer de somme de contrôle cryptographique).
+/// Frontière SEC-07 préservée (aucun antivirus simulé ici).
+///
+/// [TEST-SPEC] Exigence CDC: SOC-07 / ERR-03.
 /// </summary>
 public sealed class ControleDepotTests
 {

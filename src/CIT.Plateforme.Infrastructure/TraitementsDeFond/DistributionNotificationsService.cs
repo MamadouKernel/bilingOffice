@@ -75,9 +75,12 @@ public sealed class DistributionNotificationsService(
 /// </summary>
 public sealed class ReessaiEnvoisNotificationService(
     IServiceScopeFactory scopeFactory,
+    ParametresReessaiNotification parametres,
     ILogger<ReessaiEnvoisNotificationService> logger)
     : BackgroundService
 {
+    public ParametresReessaiNotification Parametres { get; } = parametres ?? throw new ArgumentNullException(nameof(parametres));
+
     /// <summary>Intervalle de scrutation — valeur technique. NE FIXE NI le délai entre
     /// tentatives, NI le nombre de tentatives : ces deux valeurs sont métier et configurées.</summary>
     public static readonly TimeSpan IntervalleParDefaut = TimeSpan.FromMinutes(1);

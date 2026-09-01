@@ -28,6 +28,10 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
             configBuilder.AddInMemoryCollection(
             [
                 new KeyValuePair<string, string?>("ConnectionStrings:PlateformeDb", ChaineConnexion),
+                // FEATURE 011 — configuration de reprise technique de test (T032, T033).
+                // Valeur technique de démonstration, explicitement non contractuelle (I4, CLAR-NOT-02 reste ouverte).
+                new KeyValuePair<string, string?>("Notifications:Reessai:NombreTentativesMax", "3"),
+                new KeyValuePair<string, string?>("Notifications:Reessai:DelaiEntreTentatives", "00:01:00"),
             ]);
         });
 
