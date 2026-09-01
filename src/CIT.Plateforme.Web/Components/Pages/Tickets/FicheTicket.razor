@@ -75,6 +75,12 @@
                 {
                     <span class="badge bg-dark">🏛️ Finalisation Présentielle</span>
                 }
+                @if (_fiche.Statut is not StatutTicket.Cloture and not StatutTicket.Annule)
+                {
+                    <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="Planifier un rendez-vous physique au guichet (CON-03)">
+                        📅 Prendre RDV Guichet
+                    </a>
+                }
             </div>
         </div>
 

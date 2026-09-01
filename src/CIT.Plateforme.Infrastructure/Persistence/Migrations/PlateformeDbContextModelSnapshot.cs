@@ -339,6 +339,75 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("TransitionsAutorisees");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Guichet.RendezVous", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CommentaireAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("DateCreationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateModificationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DemandeurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DossierId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeSpan>("HeureDebut")
+                        .HasColumnType("time(7)");
+
+                    b.Property<TimeSpan>("HeureFin")
+                        .HasColumnType("time(7)");
+
+                    b.Property<string>("Motif")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("VersionConcurrence")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DossierId")
+                        .HasDatabaseName("IX_RendezVous_DossierId");
+
+                    b.HasIndex("TicketId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_RendezVous_TicketId_ActifUnique")
+                        .HasFilter("[Statut] = 'Reserve'");
+
+                    b.HasIndex("DemandeurId", "DateCreationUtc")
+                        .HasDatabaseName("IX_RendezVous_DemandeurId");
+
+                    b.HasIndex("Date", "HeureDebut", "Statut")
+                        .HasDatabaseName("IX_RendezVous_Date_HeureDebut");
+
+                    b.ToTable("RendezVous", (string)null);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Messagerie.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1443,6 +1512,20 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasOne("CIT.Plateforme.Domain.Comptes.SocieteCliente", null)
                         .WithMany()
                         .HasForeignKey("SocieteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Guichet.RendezVous", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tickets.Dossier", null)
+                        .WithMany()
+                        .HasForeignKey("DossierId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CIT.Plateforme.Domain.Tickets.Ticket", null)
+                        .WithMany()
+                        .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

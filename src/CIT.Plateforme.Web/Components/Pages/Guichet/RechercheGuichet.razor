@@ -1,0 +1,381 @@
+@page "/guichet/recherche"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Guichet
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject RechercherGuichetQuery RechercheQuery
+@inject ConsulterDossierGuichetQuery ConsulterDossierQuery
+@inject RegulariserModeDegradeCommand RegulariserCommand
+@inject NavigationManager Navigation
+
+<PageTitle>Guichet — Recherche & Continuité de Service</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🏛️</span> Guichet Billing Office — Continuité de Service
+        </h2>
+        <div class="cit-page-subtitle">
+            Recherche rapide multicritère (CON-02) & Reprise de dossier sans ressaisie (CON-01)
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/guichet/agenda" class="btn btn-outline-primary">
+            📅 Agenda des Rendez-vous
+        </a>
+    </div>
+</div>
+
+@if (_chargementInitial)
+{
+    <IndicateurChargement Message="Vérification des habilitations..." />
+}
+else if (!_estHabilite)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Accès refusé :</strong> Vous devez disposer de l'habilitation <code>GuichetRecherche</code> pour accéder au guichet présentiel.
+    </div>
+}
+else
+{
+    @if (_messageErreur is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @_messageErreur
+            <button type="button" class="btn-close" @onclick="() => _messageErreur = null"></button>
+        </div>
+    }
+
+    @if (_messageSucces is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @_messageSucces
+            <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
+        </div>
+    }
+
+    @* Zone de recherche rapide (CON-02) *@
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <h5 class="card-title text-primary mb-3">🔍 Recherche Multicritère Rapide</h5>
+            <div class="row g-3">
+                <div class="col-md-7">
+                    <label class="form-label fw-bold">Numéro de Ticket, BL, Booking ou Dossier</label>
+                    <input type="text" class="form-control form-control-lg" placeholder="Ex: COSU1234567, CIT-IMP-2026-..., DOS-..."
+                           @bind="_termeRecherche" @bind:event="oninput" @onkeyup="GererToucheRecherche" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Module</label>
+                    <select class="form-select form-select-lg" @bind="_moduleFiltre">
+                        <option value="">Tous les modules</option>
+                        <option value="BillingImport">Billing Import</option>
+                        <option value="BillingExport">Billing Export</option>
+                        <option value="Enrolement">Enrôlement Gate</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary btn-lg w-100" @onclick="EffectuerRechercheAsync" disabled="@_enRecherche">
+                        @if (_enRecherche)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        else
+                        {
+                            <span>Rechercher</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Affichage du dossier sélectionné (CON-01) *@
+    @if (_dossierConsulte is not null)
+    {
+        <div class="card shadow border-primary mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    📂 Dossier Guichet — @_dossierConsulte.NumeroTicket (@_dossierConsulte.Module)
+                </h5>
+                <button class="btn btn-sm btn-light" @onclick="FermerDossier">✕ Fermer la vue détaillée</button>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Numéro Dossier</div>
+                        <div class="fw-bold fs-5">@_dossierConsulte.NumeroDossier</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">Société / Client</div>
+                        <div class="fw-bold fs-5">@_dossierConsulte.ClientNom</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">Référence Métier (BL / Booking)</div>
+                        <div class="fw-bold fs-5 text-primary">@_dossierConsulte.ReferenceBlOuBooking</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Statut Ticket</div>
+                        <span class="badge bg-info text-dark">@_dossierConsulte.Statut</span>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="text-muted small">Rendez-vous Actif</div>
+                        @if (_dossierConsulte.RendezVousActif is not null)
+                        {
+                            <span class="badge bg-success">
+                                📅 Le @_dossierConsulte.RendezVousActif.Date.ToString("dd/MM/yyyy") à @_dossierConsulte.RendezVousActif.HeureDebut.ToString(@"hh\:mm") (@_dossierConsulte.RendezVousActif.Motif)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Aucun rendez-vous actif.</span>
+                        }
+                    </div>
+                </div>
+
+                <hr />
+
+                <h6>📑 Pièces et Documents Déposés (CON-01 — Zéro Ressaisie)</h6>
+                @if (_dossierConsulte.Documents.Count == 0)
+                {
+                    <p class="text-muted fst-italic">Aucun document joint à ce dossier.</p>
+                }
+                else
+                {
+                    <ul class="list-group mb-3">
+                        @foreach (var doc in _dossierConsulte.Documents)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@doc.NomFichier</strong>
+                                    <span class="text-muted small ms-2">(Déposé le @doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm"))</span>
+                                </div>
+                                <span class="badge bg-secondary">@doc.TypeContenu</span>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @* Régularisation mode dégradé (ERR-04 / C10-11) *@
+                <div class="card bg-light mt-3 border-warning">
+                    <div class="card-body">
+                        <h6 class="card-title text-warning-emphasis">⚠️ Régularisation d'une Opération Physique (Mode Dégradé ERR-04)</h6>
+                        <p class="card-text small text-muted">
+                            Si cette opération a été traitée physiquement au guichet pendant une panne informatique, saisissez la régularisation :
+                        </p>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label small">Date et heure de l'opération physique</label>
+                                <input type="datetime-local" class="form-control form-control-sm" @bind="_dateOperationDegrade" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Description de l'opération physique effectuée</label>
+                                <input type="text" class="form-control form-control-sm" placeholder="Ex: Encaissement chèque au guichet n°3" @bind="_descriptionDegrade" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-warning btn-sm w-100" @onclick="RegulariserModeDegradeAsync" disabled="@_enRegularisation">
+                                    @if (_enRegularisation)
+                                    {
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    }
+                                    else
+                                    {
+                                        <span>Régulariser</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Tableau des résultats de recherche *@
+    @if (_resultats is not null)
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Résultats de la recherche (@_resultats.Count)</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (_resultats.Count == 0)
+                {
+                    <div class="p-4 text-center text-muted">
+                        Aucun dossier ou ticket ne correspond aux critères de recherche.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Dossier</th>
+                                    <th>Module</th>
+                                    <th>Client / Société</th>
+                                    <th>BL / Booking</th>
+                                    <th>Statut</th>
+                                    <th>RDV Actif</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in _resultats)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@r.NumeroTicket</td>
+                                        <td>@(r.NumeroDossier ?? "—")</td>
+                                        <td><span class="badge bg-secondary">@r.Module</span></td>
+                                        <td>@r.ClientNom</td>
+                                        <td class="text-primary fw-bold">@(r.ReferenceBlOuBooking ?? "—")</td>
+                                        <td><span class="badge bg-info text-dark">@r.StatutTicket</span></td>
+                                        <td>
+                                            @if (r.PossedeRendezVousActif)
+                                            {
+                                                <span class="badge bg-success">Oui 📅</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Non</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ConsulterDossierAsync(r.TicketId)">
+                                                Ouvrir Guichet 📂
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargementInitial = true;
+    private bool _estHabilite = false;
+    private Guid _agentId;
+
+    private string _termeRecherche = string.Empty;
+    private string _moduleFiltre = string.Empty;
+    private bool _enRecherche = false;
+    private IReadOnlyList<ResultatRechercheGuichetDto>? _resultats;
+
+    private DossierGuichetCompletDto? _dossierConsulte;
+    private DateTime _dateOperationDegrade = DateTime.UtcNow;
+    private string _descriptionDegrade = string.Empty;
+    private bool _enRegularisation = false;
+
+    private string? _messageErreur;
+    private string? _messageSucces;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            _agentId = contexte.UtilisateurId;
+            _estHabilite = contexte.Permissions.Contains(Permission.GuichetRecherche);
+        }
+        finally
+        {
+            _chargementInitial = false;
+        }
+    }
+
+    private async Task GererToucheRecherche(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await EffectuerRechercheAsync();
+        }
+    }
+
+    private async Task EffectuerRechercheAsync()
+    {
+        _enRecherche = true;
+        _messageErreur = null;
+        try
+        {
+            var criteres = new CriteresRechercheGuichet(
+                Terme: _termeRecherche,
+                Module: string.IsNullOrWhiteSpace(_moduleFiltre) ? null : _moduleFiltre,
+                Limite: 50
+            );
+            _resultats = await RechercheQuery.ExecuterAsync(_agentId, criteres);
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _enRecherche = false;
+        }
+    }
+
+    private async Task ConsulterDossierAsync(Guid ticketId)
+    {
+        _messageErreur = null;
+        try
+        {
+            _dossierConsulte = await ConsulterDossierQuery.ExecuterAsync(_agentId, ticketId);
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+    }
+
+    private void FermerDossier()
+    {
+        _dossierConsulte = null;
+    }
+
+    private async Task RegulariserModeDegradeAsync()
+    {
+        if (_dossierConsulte is null) return;
+        if (string.IsNullOrWhiteSpace(_descriptionDegrade))
+        {
+            _messageErreur = "Veuillez décrire l'opération effectuée en mode dégradé.";
+            return;
+        }
+
+        _enRegularisation = true;
+        _messageErreur = null;
+        _messageSucces = null;
+        try
+        {
+            await RegulariserCommand.ExecuterAsync(new RegulariserModeDegradeRequest(
+                _agentId,
+                _dossierConsulte.TicketId,
+                _dateOperationDegrade.ToUniversalTime(),
+                _descriptionDegrade
+            ));
+            _messageSucces = "Régularisation enregistrée avec succès dans l'historique et le journal d'audit.";
+            _descriptionDegrade = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _enRegularisation = false;
+        }
+    }
+}

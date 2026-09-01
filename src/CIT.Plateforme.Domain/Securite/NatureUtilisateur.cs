@@ -102,4 +102,16 @@ public static class Permission
     /// vis-à-vis d'un administrateur fonctionnel (spec.md §14, règle 1).
     /// </summary>
     public const string AdministrationNotifications = "administration.notifications";
+
+    /// <summary>
+    /// FEATURE 010 (CON-01, CON-02, research.md D11) — recherche rapide de ticket/dossier au guichet
+    /// et reprise sans ressaisie par un agent habilité.
+    /// </summary>
+    public const string GuichetRecherche = "guichet.recherche";
+
+    /// <summary>
+    /// FEATURE 010 (CON-03, CON-04, research.md D11) — gestion administrative des créneaux de rendez-vous
+    /// et constatation de présence usager au guichet (statut Honore / NonPresente).
+    /// </summary>
+    public const string RendezVousGerer = "rendezvous.gerer";
 }

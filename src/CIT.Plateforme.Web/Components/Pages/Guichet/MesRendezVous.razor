@@ -1,0 +1,393 @@
+@page "/rendez-vous/mes-rendez-vous"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Guichet
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Guichet
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerMesRendezVousQuery ListerMesRdvQuery
+@inject AnnulerRendezVousCommand AnnulerCommand
+@inject ReporterRendezVousCommand ReporterCommand
+@inject ListerCreneauxDisponiblesQuery ListerCreneauxQuery
+@inject NavigationManager Navigation
+
+<PageTitle>Mes Rendez-vous Guichet — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📅</span> Mes Rendez-vous Guichet (CON-03)
+        </h2>
+        <div class="cit-page-subtitle">
+            Suivi de vos rendez-vous physiques au Billing Office de Côte d'Ivoire Terminal
+        </div>
+    </div>
+</div>
+
+@if (_chargementInitial)
+{
+    <IndicateurChargement Message="Chargement de vos rendez-vous..." />
+}
+else
+{
+    @if (_messageErreur is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @_messageErreur
+            <button type="button" class="btn-close" @onclick="() => _messageErreur = null"></button>
+        </div>
+    }
+
+    @if (_messageSucces is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @_messageSucces
+            <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
+        </div>
+    }
+
+    @* Modal de report de rendez-vous *@
+    @if (_rdvEnReport is not null)
+    {
+        <div class="card shadow border-warning mb-4">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🔄 Reporter le rendez-vous du @_rdvEnReport.Date.ToString("dd/MM/yyyy") (@_rdvEnReport.NumeroTicket)</h5>
+                <button class="btn btn-sm btn-outline-dark" @onclick="FermerReport">✕ Fermer</button>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nouvelle date :</label>
+                        <input type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               value="@_nouvelleDateReport.ToString("yyyy-MM-dd")" @onchange="ChangerDateReportAsync" />
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button class="btn btn-outline-primary" @onclick="ChargerCreneauxReportAsync">
+                            🔄 Actualiser
+                        </button>
+                    </div>
+                </div>
+
+                @if (_chargementCreneauxReport)
+                {
+                    <IndicateurChargement Message="Recherche des créneaux disponibles..." />
+                }
+                else if (_creneauxReport.Count == 0)
+                {
+                    <div class="alert alert-info">Aucun créneau disponible pour cette date.</div>
+                }
+                else
+                {
+                    <label class="form-label fw-bold">Nouveau créneau horaire :</label>
+                    <div class="row g-2 mb-3">
+                        @foreach (var c in _creneauxReport)
+                        {
+                            var disponible = !c.EstComplet;
+                            <div class="col-md-4 col-sm-6">
+                                <button type="button"
+                                        class="btn w-100 p-2 text-center @(disponible ? (_nouvelleHeureReport == c.HeureDebut ? "btn-warning" : "btn-outline-secondary") : "btn-light disabled")"
+                                        @onclick="() => _nouvelleHeureReport = c.HeureDebut" disabled="@(!disponible)">
+                                    <div class="fw-bold">@c.HeureDebut.ToString(@"hh\:mm") - @c.HeureFin.ToString(@"hh\:mm")</div>
+                                    <small class="d-block @(disponible ? "text-success" : "text-danger")">
+                                        @(disponible ? $"{c.PlacesRestantes} place(s)" : "Complet")
+                                    </small>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-secondary" @onclick="FermerReport">Annuler</button>
+                    <button class="btn btn-warning" @onclick="ConfirmerReportAsync" disabled="@(_nouvelleHeureReport is null || _enAction)">
+                        @if (_enAction)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        <span>Valider le report</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Modal d'annulation de rendez-vous *@
+    @if (_rdvEnAnnulation is not null)
+    {
+        <div class="card shadow border-danger mb-4">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">⚠️ Confirmer l'annulation du rendez-vous (@_rdvEnAnnulation.NumeroTicket)</h5>
+                <button class="btn btn-sm btn-light" @onclick="FermerAnnulation">✕ Fermer</button>
+            </div>
+            <div class="card-body">
+                <p>Êtes-vous sûr de vouloir annuler votre rendez-vous du <strong>@_rdvEnAnnulation.Date.ToString("dd/MM/yyyy") à @_rdvEnAnnulation.HeureDebut.ToString(@"hh\:mm")</strong> ? Cette place sera immédiatement libérée.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Motif de l'annulation :</label>
+                    <input type="text" class="form-control" placeholder="Ex: Démarche effectuée en ligne / empêchement" @bind="_motifAnnulation" />
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-secondary" @onclick="FermerAnnulation">Conserver le RDV</button>
+                    <button class="btn btn-danger" @onclick="ConfirmerAnnulationAsync" disabled="@_enAction">
+                        @if (_enAction)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        <span>Confirmer l'annulation</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_rendezVousList.Count == 0)
+    {
+        <div class="card shadow-sm text-center p-5 border-0">
+            <div class="text-muted fs-5 mb-3">
+                Vous n'avez aucun rendez-vous guichet enregistré.
+            </div>
+            <div>
+                <a href="/client/mes-demandes" class="btn btn-primary">
+                    Consulter mes demandes pour prendre un rendez-vous
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Historique de vos rendez-vous (@_rendezVousList.Count)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Date & Heure</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                                <th>Réservé le</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in _rendezVousList)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@r.NumeroTicket</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">📅 @r.Date.ToString("dd/MM/yyyy")</div>
+                                        <small class="text-muted">⏱️ @r.HeureDebut.ToString(@"hh\:mm") - @r.HeureFin.ToString(@"hh\:mm")</small>
+                                    </td>
+                                    <td>@r.Motif</td>
+                                    <td>
+                                        @switch (r.Statut)
+                                        {
+                                            case "Reserve":
+                                                <span class="badge bg-primary">Réservé</span>
+                                                break;
+                                            case "Honore":
+                                                <span class="badge bg-success">Honoré ✅</span>
+                                                break;
+                                            case "Annule":
+                                                <span class="badge bg-secondary">Annulé</span>
+                                                break;
+                                            case "NonPresente":
+                                                <span class="badge bg-danger">Non présenté ❌</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary">@r.Statut</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-muted small">@r.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (r.Statut == "Reserve")
+                                        {
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-warning" @onclick="() => OuvrirReport(r)">
+                                                    🔄 Reporter
+                                                </button>
+                                                <button class="btn btn-outline-danger" @onclick="() => OuvrirAnnulation(r)">
+                                                    ❌ Annuler
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargementInitial = true;
+    private Guid _utilisateurId;
+    private IReadOnlyList<RendezVousClientDto> _rendezVousList = [];
+
+    private RendezVousClientDto? _rdvEnReport;
+    private DateOnly _nouvelleDateReport = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    private TimeSpan? _nouvelleHeureReport;
+    private bool _chargementCreneauxReport = false;
+    private IReadOnlyList<CreneauDisponibleDto> _creneauxReport = [];
+
+    private RendezVousClientDto? _rdvEnAnnulation;
+    private string _motifAnnulation = "Annulation par l'usager";
+
+    private bool _enAction = false;
+    private string? _messageErreur;
+    private string? _messageSucces;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            _utilisateurId = contexte.UtilisateurId;
+            await ChargerRendezVousAsync();
+        }
+        finally
+        {
+            _chargementInitial = false;
+        }
+    }
+
+    private async Task ChargerRendezVousAsync()
+    {
+        _messageErreur = null;
+        try
+        {
+            _rendezVousList = await ListerMesRdvQuery.ExecuterAsync(_utilisateurId);
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+    }
+
+    private async Task OuvrirReport(RendezVousClientDto rdv)
+    {
+        _rdvEnReport = rdv;
+        _rdvEnAnnulation = null;
+        _nouvelleDateReport = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+        _nouvelleHeureReport = null;
+        await ChargerCreneauxReportAsync();
+    }
+
+    private void FermerReport()
+    {
+        _rdvEnReport = null;
+    }
+
+    private async Task ChangerDateReportAsync(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d))
+        {
+            _nouvelleDateReport = d;
+            _nouvelleHeureReport = null;
+            await ChargerCreneauxReportAsync();
+        }
+    }
+
+    private async Task ChargerCreneauxReportAsync()
+    {
+        _chargementCreneauxReport = true;
+        _messageErreur = null;
+        try
+        {
+            _creneauxReport = await ListerCreneauxQuery.ExecuterAsync(_nouvelleDateReport);
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _chargementCreneauxReport = false;
+        }
+    }
+
+    private async Task ConfirmerReportAsync()
+    {
+        if (_rdvEnReport is null || _nouvelleHeureReport is null) return;
+
+        _enAction = true;
+        _messageErreur = null;
+        _messageSucces = null;
+        try
+        {
+            await ReporterCommand.ExecuterAsync(new ReporterRendezVousRequest(
+                _utilisateurId,
+                _rdvEnReport.Id,
+                _nouvelleDateReport,
+                _nouvelleHeureReport.Value
+            ));
+            _messageSucces = "Rendez-vous reporté avec succès.";
+            _rdvEnReport = null;
+            await ChargerRendezVousAsync();
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _enAction = false;
+        }
+    }
+
+    private void OuvrirAnnulation(RendezVousClientDto rdv)
+    {
+        _rdvEnAnnulation = rdv;
+        _rdvEnReport = null;
+        _motifAnnulation = "Annulation par l'usager";
+    }
+
+    private void FermerAnnulation()
+    {
+        _rdvEnAnnulation = null;
+    }
+
+    private async Task ConfirmerAnnulationAsync()
+    {
+        if (_rdvEnAnnulation is null) return;
+
+        _enAction = true;
+        _messageErreur = null;
+        _messageSucces = null;
+        try
+        {
+            await AnnulerCommand.ExecuterAsync(new AnnulerRendezVousRequest(
+                _utilisateurId,
+                _rdvEnAnnulation.Id,
+                _motifAnnulation
+            ));
+            _messageSucces = "Rendez-vous annulé avec succès. Le créneau a été libéré.";
+            _rdvEnAnnulation = null;
+            await ChargerRendezVousAsync();
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _enAction = false;
+        }
+    }
+}

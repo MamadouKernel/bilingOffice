@@ -97,15 +97,27 @@
                         <NavLink class="cit-nav-subitem" href="/client/demandes">
                             <span>📁</span> Mes demandes
                         </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/rendez-vous/mes-rendez-vous">
+                            <span>📅</span> Mes rendez-vous
+                        </NavLink>
                         break;
 
                     case EspaceFonctionnel.AdministrateurSociete:
                         <NavLink class="cit-nav-subitem" href="/client/demandes?vue=societe">
                             <span>📂</span> Demandes de la société
                         </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/rendez-vous/mes-rendez-vous">
+                            <span>📅</span> Mes rendez-vous
+                        </NavLink>
                         break;
 
                     case EspaceFonctionnel.Agent:
+                        <NavLink class="cit-nav-subitem" href="/guichet/recherche">
+                            <span>🏛️</span> Guichet Billing Office
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/guichet/agenda">
+                            <span>📅</span> Agenda Guichet
+                        </NavLink>
                         <NavLink class="cit-nav-subitem" href="/billing-import/manifeste">
                             <span>📜</span> Pilote Manifeste
                         </NavLink>

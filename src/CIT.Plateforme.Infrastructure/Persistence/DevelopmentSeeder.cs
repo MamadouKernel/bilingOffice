@@ -179,13 +179,17 @@ public sealed partial class DevelopmentSeeder(
         await CreerAgentAsync("agent.facturation@test.local", "Agent Facturation", password, new (string, string?)[]
         {
             (Permission.BillingImportFacturationEditer, "Facturation"),
-            (Permission.BillingExportFacturationEditer, "Facturation")
+            (Permission.BillingExportFacturationEditer, "Facturation"),
+            (Permission.GuichetRecherche, null),
+            (Permission.RendezVousGerer, null)
         });
 
         await CreerAgentAsync("agent.paiement@test.local", "Agent Paiement", password, new (string, string?)[]
         {
             (Permission.BillingImportPaiementValider, "Validation Paiement"),
-            (Permission.BillingExportPaiementValider, "Validation Paiement")
+            (Permission.BillingExportPaiementValider, "Validation Paiement"),
+            (Permission.GuichetRecherche, null),
+            (Permission.RendezVousGerer, null)
         });
 
         await CreerAgentAsync("agent.cd@test.local", "Agent CD", password, new (string, string?)[]
@@ -213,7 +217,9 @@ public sealed partial class DevelopmentSeeder(
             (Permission.SupervisionConsulter, null),
             (Permission.SupervisionAgir, null),
             (Permission.ActionDeMasse, null),
-            (Permission.AdministrationFiles, null)
+            (Permission.AdministrationFiles, null),
+            (Permission.GuichetRecherche, null),
+            (Permission.RendezVousGerer, null)
         });
 
         await CreerAgentAsync("tarification@test.local", "Admin Tarification", password, new (string, string?)[]
@@ -309,7 +315,9 @@ public sealed partial class DevelopmentSeeder(
 
         await CreerAgentAsync("agent.gate@test.local", "Agent Gate", password, new (string, string?)[]
         {
-            (Permission.EnrolementInstruire, "Agent Gate")
+            (Permission.EnrolementInstruire, "Agent Gate"),
+            (Permission.GuichetRecherche, null),
+            (Permission.RendezVousGerer, null)
         });
 
         // Décision d'attribution tracée (research.md D3/D9, tasks.md T013) : EnrolementSoumettre
@@ -346,6 +354,8 @@ public sealed partial class DevelopmentSeeder(
             (Permission.SupervisionConsulter, null),
             (Permission.SupervisionAgir, null),
             (Permission.ActionDeMasse, null),
+            (Permission.GuichetRecherche, null),
+            (Permission.RendezVousGerer, null)
         });
     }
 }

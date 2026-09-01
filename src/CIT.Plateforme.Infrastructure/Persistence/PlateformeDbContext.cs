@@ -88,6 +88,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 009 : préférences de canaux par utilisateur (COM-05).</summary>
     public DbSet<Domain.Notifications.PreferenceCanalUtilisateur> PreferencesCanalUtilisateur => Set<Domain.Notifications.PreferenceCanalUtilisateur>();
 
+    /// <summary>FEATURE 010 : gestion des rendez-vous et continuité guichet (CON-03, research.md D2).</summary>
+    public DbSet<Domain.Guichet.RendezVous> RendezVous => Set<Domain.Guichet.RendezVous>();
+
     /// <summary>FEATURE 003 (research.md D8) : suivi des branches IES.</summary>
     public DbSet<SuiviBrancheIes> SuivisBranchesIes => Set<SuiviBrancheIes>();
 
@@ -519,6 +522,53 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(l => l.PartOic).HasPrecision(18, 2);
             b.Property(l => l.PartPaa).HasPrecision(18, 2);
             b.Property(l => l.TotalLigneXof).HasPrecision(18, 2);
+        });
+
+        // FEATURE 010 (CON-03, research.md D2, data-model.md §2) — Rendez-vous guichet.
+        builder.Entity<Domain.Guichet.RendezVous>(b =>
+        {
+            b.ToTable("RendezVous");
+            b.HasKey(r => r.Id);
+            b.Property(r => r.TicketId).IsRequired();
+            b.Property(r => r.DemandeurId).IsRequired();
+            b.Property(r => r.Date).HasColumnType("date").IsRequired();
+            b.Property(r => r.HeureDebut).HasColumnType("time(7)").IsRequired();
+            b.Property(r => r.HeureFin).HasColumnType("time(7)").IsRequired();
+            b.Property(r => r.Motif).IsRequired().HasMaxLength(200);
+            b.Property(r => r.Statut).HasConversion<string>().HasMaxLength(32).IsRequired();
+            b.Property(r => r.DateCreationUtc).IsRequired();
+            b.Property(r => r.CommentaireAgent).HasMaxLength(500);
+            b.Property(r => r.VersionConcurrence).IsRowVersion();
+
+            // Clés étrangères vers Tickets et Dossiers avec suppression restreinte
+            b.HasOne<Ticket>()
+                .WithMany()
+                .HasForeignKey(r => r.TicketId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne<Dossier>()
+                .WithMany()
+                .HasForeignKey(r => r.DossierId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Index unique filtré : un seul rendez-vous actif (Reserve) par ticket à la fois
+            b.HasIndex(r => r.TicketId)
+                .IsUnique()
+                .HasFilter("[Statut] = 'Reserve'")
+                .HasDatabaseName("IX_RendezVous_TicketId_ActifUnique");
+
+            // Index composite de calcul instantané de capacité par créneau
+            b.HasIndex(r => new { r.Date, r.HeureDebut, r.Statut })
+                .HasDatabaseName("IX_RendezVous_Date_HeureDebut");
+
+            // Index de consultation par demandeur
+            b.HasIndex(r => new { r.DemandeurId, r.DateCreationUtc })
+                .HasDatabaseName("IX_RendezVous_DemandeurId");
+
+            // Index dossier
+            b.HasIndex(r => r.DossierId)
+                .HasDatabaseName("IX_RendezVous_DossierId");
         });
     }
 }

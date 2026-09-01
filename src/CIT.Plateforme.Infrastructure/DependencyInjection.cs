@@ -318,6 +318,41 @@ public static class DependencyInjection
         services.AddHostedService<TraitementsDeFond.DistributionNotificationsService>();
         services.AddHostedService<TraitementsDeFond.ReessaiEnvoisNotificationService>();
 
+        // ====================================================================================
+        // FEATURE 010 — Continuité Guichet & Rendez-vous (CON-01..04, IMP-15, ERR-04).
+        // ====================================================================================
+
+        services.AddScoped<Application.Abstractions.IRendezVousRepository, Persistence.RendezVousRepository>();
+        services.AddScoped<Application.Abstractions.IRechercheGuichetRepository, Persistence.RechercheGuichetRepository>();
+
+        services.AddSingleton(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var section = configuration.GetSection("Guichet:RendezVous");
+
+            var capacite = section.GetValue("CapaciteParCreneau", 5);
+            var duree = section.GetValue("DureeCreneau", TimeSpan.FromMinutes(30));
+            var ouverture = section.GetValue("HeureOuverture", new TimeSpan(8, 0, 0));
+            var fermeture = section.GetValue("HeureFermeture", new TimeSpan(16, 30, 0));
+            var limite = section.GetValue("LimiteResultatsRecherche", 50);
+
+            var parametres = new Application.Guichet.ParametresRendezVous(capacite, duree, ouverture, fermeture, limite);
+            parametres.Valider();
+            return parametres;
+        });
+
+        services.AddScoped<Application.Guichet.RechercherGuichetQuery>();
+        services.AddScoped<Application.Guichet.ConsulterDossierGuichetQuery>();
+        services.AddScoped<Application.Guichet.ListerCreneauxDisponiblesQuery>();
+        services.AddScoped<Application.Guichet.ReserverRendezVousCommand>();
+        services.AddScoped<Application.Guichet.AnnulerRendezVousCommand>();
+        services.AddScoped<Application.Guichet.ReporterRendezVousCommand>();
+        services.AddScoped<Application.Guichet.MarquerRendezVousHonoreCommand>();
+        services.AddScoped<Application.Guichet.MarquerRendezVousNonPresenteCommand>();
+        services.AddScoped<Application.Guichet.ListerMesRendezVousQuery>();
+        services.AddScoped<Application.Guichet.BasculerAlternativePresentielleCommand>();
+        services.AddScoped<Application.Guichet.RegulariserModeDegradeCommand>();
+
         return services;
     }
 }

@@ -1,0 +1,270 @@
+@page "/guichet/agenda"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Guichet
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Guichet
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject IRendezVousRepository RendezVousRepo
+@inject MarquerRendezVousHonoreCommand MarquerHonoreCommand
+@inject MarquerRendezVousNonPresenteCommand MarquerNonPresenteCommand
+@inject NavigationManager Navigation
+
+<PageTitle>Agenda Guichet — Rendez-vous</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📅</span> Agenda des Rendez-vous Guichet (CON-03)
+        </h2>
+        <div class="cit-page-subtitle">
+            Accueil et validation de la présence physique des usagers au Billing Office
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/guichet/recherche" class="btn btn-outline-secondary">
+            🔍 Recherche Guichet
+        </a>
+    </div>
+</div>
+
+@if (_chargementInitial)
+{
+    <IndicateurChargement Message="Vérification des habilitations..." />
+}
+else if (!_estHabilite)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Accès refusé :</strong> Vous devez disposer de l'habilitation <code>RendezVousGerer</code> pour consulter et gérer l'agenda du guichet.
+    </div>
+}
+else
+{
+    @if (_messageErreur is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @_messageErreur
+            <button type="button" class="btn-close" @onclick="() => _messageErreur = null"></button>
+        </div>
+    }
+
+    @if (_messageSucces is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @_messageSucces
+            <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label class="form-label fw-bold mb-0">Sélectionner la date :</label>
+                </div>
+                <div class="col-auto">
+                    <input type="date" class="form-control" value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-primary" @onclick="() => AllerAujourdhuiAsync()">Aujourd'hui</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (_chargementAgenda)
+    {
+        <IndicateurChargement Message="Chargement des rendez-vous de la journée..." />
+    }
+    else if (_rendezVousJournee.Count == 0)
+    {
+        <div class="card shadow-sm text-center p-5 border-0">
+            <div class="text-muted fs-5">
+                Aucun rendez-vous réservé pour le @_dateSelectionnee.ToString("dd/MM/yyyy").
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    Rendez-vous du @_dateSelectionnee.ToString("dddd dd MMMM yyyy") (@_rendezVousJournee.Count)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Créneau</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                                <th>Date Réservation</th>
+                                <th>Commentaire Agent</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rdv in _rendezVousJournee)
+                            {
+                                <tr>
+                                    <td class="fw-bold">
+                                        ⏱️ @rdv.HeureDebut.ToString(@"hh\:mm") - @rdv.HeureFin.ToString(@"hh\:mm")
+                                    </td>
+                                    <td>@rdv.Motif</td>
+                                    <td>
+                                        @switch (rdv.Statut)
+                                        {
+                                            case StatutRendezVous.Reserve:
+                                                <span class="badge bg-primary">Réservé</span>
+                                                break;
+                                            case StatutRendezVous.Honore:
+                                                <span class="badge bg-success">Honoré ✅</span>
+                                                break;
+                                            case StatutRendezVous.Annule:
+                                                <span class="badge bg-secondary">Annulé</span>
+                                                break;
+                                            case StatutRendezVous.NonPresente:
+                                                <span class="badge bg-danger">Non présenté ❌</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-muted small">@rdv.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-muted small">@(rdv.CommentaireAgent ?? "—")</td>
+                                    <td>
+                                        @if (rdv.Statut == StatutRendezVous.Reserve)
+                                        {
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="Valider la présence physique de l'usager">
+                                                    ✅ Présent
+                                                </button>
+                                                <button class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="Constater l'absence au créneau échu">
+                                                    ❌ Absent
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Traité</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargementInitial = true;
+    private bool _estHabilite = false;
+    private Guid _agentId;
+
+    private DateOnly _dateSelectionnee = DateOnly.FromDateTime(DateTime.Today);
+    private bool _chargementAgenda = false;
+    private IReadOnlyList<RendezVous> _rendezVousJournee = [];
+
+    private string? _messageErreur;
+    private string? _messageSucces;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            _agentId = contexte.UtilisateurId;
+            _estHabilite = contexte.Permissions.Contains(Permission.RendezVousGerer);
+
+            if (_estHabilite)
+            {
+                await ChargerAgendaAsync();
+            }
+        }
+        finally
+        {
+            _chargementInitial = false;
+        }
+    }
+
+    private async Task ChargerAgendaAsync()
+    {
+        _chargementAgenda = true;
+        _messageErreur = null;
+        try
+        {
+            _rendezVousJournee = await RendezVousRepo.ListerParDateAsync(_dateSelectionnee);
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _chargementAgenda = false;
+        }
+    }
+
+    private async Task ChangerDateAsync(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d))
+        {
+            _dateSelectionnee = d;
+            await ChargerAgendaAsync();
+        }
+    }
+
+    private async Task AllerAujourdhuiAsync()
+    {
+        _dateSelectionnee = DateOnly.FromDateTime(DateTime.Today);
+        await ChargerAgendaAsync();
+    }
+
+    private async Task ValiderPresenceAsync(Guid rdvId)
+    {
+        _messageErreur = null;
+        _messageSucces = null;
+        try
+        {
+            await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(
+                _agentId,
+                rdvId,
+                "Usager accueilli au guichet physique (CON-04)"
+            ));
+            _messageSucces = "Présence validée avec succès.";
+            await ChargerAgendaAsync();
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+    }
+
+    private async Task MarquerAbsenceAsync(Guid rdvId)
+    {
+        _messageErreur = null;
+        _messageSucces = null;
+        try
+        {
+            await MarquerNonPresenteCommand.ExecuterAsync(new MarquerNonPresenteRequest(
+                _agentId,
+                rdvId,
+                "Usager non présenté à l'heure du créneau"
+            ));
+            _messageSucces = "Absence constatée et enregistrée.";
+            await ChargerAgendaAsync();
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+    }
+}

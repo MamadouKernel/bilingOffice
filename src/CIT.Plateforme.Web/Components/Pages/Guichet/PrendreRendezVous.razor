@@ -1,0 +1,282 @@
+@page "/rendez-vous/prendre/{TicketId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Guichet
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ITicketRepository TicketRepo
+@inject ListerCreneauxDisponiblesQuery ListerCreneauxQuery
+@inject ReserverRendezVousCommand ReserverCommand
+@inject NavigationManager Navigation
+
+<PageTitle>Prendre un rendez-vous — Guichet CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📅</span> Prise de Rendez-vous Guichet (CON-03)
+        </h2>
+        <div class="cit-page-subtitle">
+            Planifiez votre passage physique au Billing Office de Côte d'Ivoire Terminal
+        </div>
+    </div>
+    <div>
+        <a href="/rendez-vous/mes-rendez-vous" class="btn btn-outline-secondary">
+            Mes rendez-vous
+        </a>
+    </div>
+</div>
+
+@if (_chargementInitial)
+{
+    <IndicateurChargement Message="Chargement des informations du ticket..." />
+}
+else if (_ticket is null)
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Erreur :</strong> Le ticket spécifié est introuvable.
+    </div>
+}
+else if (_ticket.Statut is StatutTicket.Cloture or StatutTicket.Annule)
+{
+    <div class="alert alert-warning" role="alert">
+        <strong>Attention :</strong> Impossible de réserver un rendez-vous pour un ticket clôturé ou annulé.
+    </div>
+}
+else
+{
+    @if (_messageErreur is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @_messageErreur
+            <button type="button" class="btn-close" @onclick="() => _messageErreur = null"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 fw-bold">🎫 Détails du Ticket</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <span class="text-muted small">Numéro :</span>
+                        <div class="fw-bold">@_ticket.Numero</div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-muted small">Module :</span>
+                        <div><span class="badge bg-secondary">@_ticket.Module</span></div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_ticket.NumeroBl))
+                    {
+                        <div class="mb-2">
+                            <span class="text-muted small">Numéro BL :</span>
+                            <div class="fw-bold text-primary">@_ticket.NumeroBl</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(_ticket.NumeroBooking))
+                    {
+                        <div class="mb-2">
+                            <span class="text-muted small">Numéro Booking :</span>
+                            <div class="fw-bold text-primary">@_ticket.NumeroBooking</div>
+                        </div>
+                    }
+                    <div class="mb-2">
+                        <span class="text-muted small">Statut :</span>
+                        <div><span class="badge bg-info text-dark">@_ticket.Statut</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 text-primary">1. Choisissez une date et un créneau</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-4 align-items-center">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Date du rendez-vous :</label>
+                            <input type="date" class="form-control form-control-lg" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                   value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button class="btn btn-outline-primary" @onclick="() => ChargerCreneauxAsync()">
+                                🔄 Actualiser les créneaux
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (_chargementCreneaux)
+                    {
+                        <IndicateurChargement Message="Recherche des créneaux disponibles..." />
+                    }
+                    else if (_creneaux.Count == 0)
+                    {
+                        <div class="alert alert-info">
+                            Aucun créneau disponible pour cette date. Veuillez choisir un autre jour ouvré (Lundi au Vendredi).
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="form-label fw-bold">Créneaux horaires disponibles :</label>
+                        <div class="row g-2 mb-4">
+                            @foreach (var c in _creneaux)
+                            {
+                                var disponible = !c.EstComplet;
+                                <div class="col-md-4 col-sm-6">
+                                    <button type="button"
+                                            class="btn w-100 p-2 text-center @(disponible ? (_heureSelectionnee == c.HeureDebut ? "btn-primary" : "btn-outline-primary") : "btn-light disabled")"
+                                            @onclick="() => ChoisirHeure(c.HeureDebut)" disabled="@(!disponible)">
+                                        <div class="fw-bold">@c.HeureDebut.ToString(@"hh\:mm") - @c.HeureFin.ToString(@"hh\:mm")</div>
+                                        <small class="d-block @(disponible ? "text-success" : "text-danger")">
+                                            @(disponible ? $"{c.PlacesRestantes} place(s)" : "Complet")
+                                        </small>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <hr />
+
+                    <h5 class="mb-3 text-primary">2. Motif et confirmation</h5>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Motif du déplacement physique :</label>
+                        <select class="form-select" @bind="_motifSelectionne">
+                            <option value="Paiement Caisse">Paiement Caisse (Espèces / Chèque certifié)</option>
+                            <option value="Dépôt Pièces Physiques">Dépôt ou présentation de documents originaux</option>
+                            <option value="Assistance Guichet">Assistance et conseil au guichet</option>
+                            <option value="Autre démarche">Autre démarche présentielle</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/rendez-vous/mes-rendez-vous" class="btn btn-secondary">Annuler</a>
+                        <button class="btn btn-success btn-lg" @onclick="ConfirmerReservationAsync"
+                                disabled="@(_heureSelectionnee is null || _enReservation)">
+                            @if (_enReservation)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                <span>Réservation en cours...</span>
+                            }
+                            else
+                            {
+                                <span>Confirmer le rendez-vous ✅</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid TicketId { get; set; }
+
+    private bool _chargementInitial = true;
+    private Guid _utilisateurId;
+    private Ticket? _ticket;
+
+    private DateOnly _dateSelectionnee = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+    private bool _chargementCreneaux = false;
+    private IReadOnlyList<CreneauDisponibleDto> _creneaux = [];
+    private TimeSpan? _heureSelectionnee;
+    private string _motifSelectionne = "Paiement Caisse";
+    private bool _enReservation = false;
+
+    private string? _messageErreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            _utilisateurId = contexte.UtilisateurId;
+
+            _ticket = await TicketRepo.ObtenirParIdAsync(TicketId);
+            if (_ticket is not null)
+            {
+                await ChargerCreneauxAsync();
+            }
+        }
+        finally
+        {
+            _chargementInitial = false;
+        }
+    }
+
+    private async Task ChangerDateAsync(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d))
+        {
+            _dateSelectionnee = d;
+            _heureSelectionnee = null;
+            await ChargerCreneauxAsync();
+        }
+    }
+
+    private async Task ChargerCreneauxAsync()
+    {
+        _chargementCreneaux = true;
+        _messageErreur = null;
+        try
+        {
+            _creneaux = await ListerCreneauxQuery.ExecuterAsync(_dateSelectionnee);
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _chargementCreneaux = false;
+        }
+    }
+
+    private void ChoisirHeure(TimeSpan heure)
+    {
+        _heureSelectionnee = heure;
+    }
+
+    private async Task ConfirmerReservationAsync()
+    {
+        if (_heureSelectionnee is null)
+        {
+            _messageErreur = "Veuillez sélectionner un créneau horaire.";
+            return;
+        }
+
+        _enReservation = true;
+        _messageErreur = null;
+        try
+        {
+            await ReserverCommand.ExecuterAsync(new ReserverRendezVousRequest(
+                _utilisateurId,
+                TicketId,
+                _dateSelectionnee,
+                _heureSelectionnee.Value,
+                _motifSelectionne
+            ));
+
+            Navigation.NavigateTo("/rendez-vous/mes-rendez-vous");
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = ex.Message;
+        }
+        finally
+        {
+            _enReservation = false;
+        }
+    }
+}
