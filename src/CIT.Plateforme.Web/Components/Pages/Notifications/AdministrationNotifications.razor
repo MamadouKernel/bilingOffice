@@ -1,0 +1,170 @@
+@page "/administration/notifications"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Notifications
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Notifications
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject AdministrerReglesDiffusionCommand ReglesCommand
+@inject AdministrerModelesNotificationCommand ModelesCommand
+
+@* FEATURE 009 — CONTRATS C9-06 (modèles, COM-03) et C9-07 (règles, NOT-02).
+
+   L'AUTORISATION EST VÉRIFIÉE CÔTÉ SERVEUR par les commandes : masquer l'écran ne suffit
+   jamais à protéger l'action (Constitution Principe VII). L'affichage conditionnel ci-dessous
+   n'est qu'un confort d'usage.
+
+   Le paramétrage s'applique aux événements SURVENANT ENSUITE, sans redéploiement ; les
+   notifications déjà émises ne sont jamais modifiées (rendu figé à la création).
+
+   Aucun contenu de modèle n'est imposé par la plateforme : les textes sont une donnée
+   d'administration, à valider par le métier (CLAR-NOT-05). *@
+
+<PageTitle>Administration des notifications — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title"><span>🛠️</span> Administration des notifications</h2>
+        <div class="cit-page-subtitle">Règles de diffusion (par événement et par canal) et modèles de messages</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement du paramétrage..." />
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger" role="alert">@_erreur</div>
+}
+else
+{
+    <div class="alert alert-warning" role="alert">
+        Le jeu de règles initial couvre les seuls événements <strong>imposés par le CDC</strong>.
+        La liste complète des déclencheurs et de leurs canaux reste à valider par le métier
+        (point à clarifier PC-17) : les valeurs présentes ne sont pas contractuelles.
+    </div>
+
+    <h3 class="h5 mt-4">Règles de diffusion</h3>
+    <div class="table-responsive shadow-sm">
+        <table class="table table-sm align-middle mb-0 bg-white">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Événement</th>
+                    <th scope="col">Canal</th>
+                    <th scope="col">Obligatoire</th>
+                    <th scope="col">Active</th>
+                    <th scope="col" class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var regle in _regles)
+                {
+                    <tr>
+                        <td><code>@regle.TypeEvenement</code></td>
+                        <td>@regle.Canal</td>
+                        <td>
+                            @if (regle.EstObligatoire)
+                            {
+                                <span class="badge bg-danger-subtle text-danger">Obligatoire</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Débrayable</span>
+                            }
+                        </td>
+                        <td>
+                            @if (regle.EstActif)
+                            {
+                                <span class="badge bg-success-subtle text-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    @onclick="() => BasculerRegleAsync(regle.Id, !regle.EstActif)">
+                                @(regle.EstActif ? "Désactiver" : "Activer")
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="h5 mt-4">Modèles de messages</h3>
+    <div class="table-responsive shadow-sm">
+        <table class="table table-sm align-middle mb-0 bg-white">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Événement</th>
+                    <th scope="col">Canal</th>
+                    <th scope="col">Titre</th>
+                    <th scope="col">Actif</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var modele in _modeles)
+                {
+                    <tr>
+                        <td><code>@modele.TypeEvenement</code></td>
+                        <td>@modele.Canal</td>
+                        <td>@modele.GabaritTitre</td>
+                        <td>@(modele.EstActif ? "Oui" : "Non")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<RegleDiffusion> _regles = [];
+    private IReadOnlyList<ModeleNotification> _modeles = [];
+    private bool _chargement = true;
+    private string? _erreur;
+    private ContexteUtilisateurVue? _contexte;
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        try
+        {
+            _chargement = true;
+            _contexte = await ContexteService.ObtenirContexteAsync();
+
+            // Les deux appels lèvent côté serveur si l'habilitation manque.
+            _regles = await ReglesCommand.ListerAsync(_contexte.UtilisateurId);
+            _modeles = await ModelesCommand.ListerAsync(_contexte.UtilisateurId);
+            _erreur = null;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task BasculerRegleAsync(Guid regleId, bool actif)
+    {
+        try
+        {
+            await ReglesCommand.BasculerActivationAsync(_contexte!.UtilisateurId, regleId, actif);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+}

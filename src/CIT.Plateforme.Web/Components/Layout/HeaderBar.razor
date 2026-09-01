@@ -2,13 +2,15 @@
 @using CIT.Plateforme.Web.Services
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
+@* FEATURE 009 (NOT-03) — compteur de non-lues du seul utilisateur authentifié. *@
+@inject CIT.Plateforme.Application.Notifications.CompterNonLuesQuery CompterNonLues
 
 <header class="cit-header">
     <div class="d-flex align-items-center gap-3">
         <!-- Bouton Burger Mobile (Visible uniquement si authentifié) -->
         @if (Contexte?.EstAuthentifie == true)
         {
-            <button class="btn btn-light d-lg-none shadow-sm" type="button" @onclick="ToggleMobileMenu" aria-label="Menu">
+            <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" @onclick="ToggleMobileMenu" aria-label="Menu">
                 ☰
             </button>
         }
@@ -20,28 +22,87 @@
 
         @if (Contexte?.SocieteNom is not null)
         {
-            <span class="badge bg-white text-dark shadow-sm ms-2 d-none d-md-inline-block px-3 py-2 rounded-pill">
-                🏢 @Contexte.SocieteNom @(Contexte.SocieteProfil.HasValue ? $"({Contexte.SocieteProfil})" : "")
-            </span>
+            <div class="d-none d-md-flex align-items-center gap-2 ms-2 px-3 py-1 bg-light border rounded-pill small">
+                <span class="text-primary">🏢</span>
+                <span class="fw-bold text-dark">@Contexte.SocieteNom</span>
+                @if (Contexte.SocieteProfil.HasValue)
+                {
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill py-1 px-2" style="font-size: 0.7rem;">
+                        @Contexte.SocieteProfil
+                    </span>
+                }
+            </div>
         }
     </div>
 
-    <div class="d-flex align-items-center gap-3">
-        <PersonaSwitcher Contexte="@Contexte" />
+    <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="toggleTheme()" title="Basculer le thème" style="font-size: 0.9rem;">
+            🌓
+        </button>
 
         @if (Contexte?.EstAuthentifie == true)
         {
-            <div class="d-flex align-items-center gap-3 ms-2 ps-3">
-                <span class="text-secondary small d-none d-sm-inline fw-bold text-uppercase" style="letter-spacing: 0.05em;">
-                    @Contexte.NomAffiche
-                </span>
+            @* FEATURE 009 (T148, NOT-03) — câblage de la cloche DÉJÀ PRÉSENTE : la structure et
+               les classes CSS sont conservées telles quelles, seul le comportement est ajouté.
+               MainLayout est rendu en SSR statique — un @onclick n'y serait jamais déclenché :
+               la cloche est donc un lien, et le compteur est calculé au rendu serveur. *@
+            <a href="/notifications" class="cit-notification-btn" title="Notifications"
+               aria-label="@($"Notifications : {NombreNonLues} non lue(s)")">
+                <span>🔔</span>
+                @if (NombreNonLues > 0)
+                {
+                    <span class="cit-notification-badge">@(NombreNonLues > 99 ? "99+" : NombreNonLues)</span>
+                }
+            </a>
 
-                <form method="post" action="/comptes/deconnexion">
-                    <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">
-                        Déconnexion
-                    </button>
-                </form>
-            </div>
+            @* Menu utilisateur — <details>/<summary> natif.
+               MainLayout est rendu en SSR statique (Routes.razor ne déclare aucun
+               @rendermode) : un @onclick Blazor n'y serait jamais déclenché. Même
+               patron que l'accordéon du menu latéral. *@
+            <details class="cit-user-menu" data-cit-menu>
+                <summary class="cit-user-trigger" title="Mon compte" aria-haspopup="true">
+                    <span class="cit-user-avatar">@Initiale</span>
+                    <span class="cit-user-identity d-none d-sm-flex">
+                        <span class="cit-user-name">@Contexte.NomAffiche</span>
+                        <span class="cit-user-role">@LibelleEspace(Contexte.EspaceActif)</span>
+                    </span>
+                    <span class="cit-user-caret">▾</span>
+                </summary>
+
+                <div class="cit-user-dropdown" role="menu">
+                    <div class="cit-user-dropdown-head">
+                        <span class="cit-user-avatar lg">@Initiale</span>
+                        <div style="min-width:0;">
+                            <div class="cit-user-dropdown-name">@Contexte.NomAffiche</div>
+                            <div class="cit-user-dropdown-mail">@Contexte.Email</div>
+                        </div>
+                    </div>
+
+                    <div class="cit-user-dropdown-sep"></div>
+
+                    <a href="/comptes/mon-profil" class="cit-user-dropdown-item" role="menuitem">
+                        <span>👤</span> Mon profil
+                    </a>
+                    <a href="/comptes/double-authentification" class="cit-user-dropdown-item" role="menuitem">
+                        <span>🛡️</span> Sécurité (2FA)
+                    </a>
+                    @if (Contexte.SocieteId.HasValue)
+                    {
+                        <a href="/comptes/profil" class="cit-user-dropdown-item" role="menuitem">
+                            <span>🏢</span> Profil de la société
+                        </a>
+                    }
+
+                    <div class="cit-user-dropdown-sep"></div>
+
+                    <!-- La déconnexion reste un POST : ne jamais la transformer en lien. -->
+                    <form method="post" action="/comptes/deconnexion" class="m-0">
+                        <button type="submit" class="cit-user-dropdown-item danger w-100" role="menuitem">
+                            <span>⏻</span> Déconnexion
+                        </button>
+                    </form>
+                </div>
+            </details>
         }
         else
         {
@@ -61,5 +122,43 @@
     [Parameter]
     public EventCallback OnToggleMobileMenu { get; set; }
 
+    private bool _menuOuvert;
+
+    /// <summary>
+    /// FEATURE 009 (NOT-03) — indicateur permanent du nombre de notifications non lues.
+    /// Calculé au rendu serveur, pour le SEUL utilisateur authentifié (le compteur ne peut
+    /// structurellement pas exposer celui d'un tiers : la query ne prend que l'identité du
+    /// contexte). Zéro est un résultat normal : le badge est alors masqué.
+    /// </summary>
+    private int NombreNonLues { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Contexte?.EstAuthentifie != true)
+        {
+            NombreNonLues = 0;
+            return;
+        }
+
+        NombreNonLues = await CompterNonLues.ExecuterAsync(Contexte.UtilisateurId);
+    }
+
+    private string Initiale =>
+        string.IsNullOrWhiteSpace(Contexte?.NomAffiche) ? "U" : Contexte!.NomAffiche.Trim()[..1].ToUpperInvariant();
+
     private async Task ToggleMobileMenu() => await OnToggleMobileMenu.InvokeAsync();
+
+    private void ToggleMenu() => _menuOuvert = !_menuOuvert;
+
+    private void FermerMenu() => _menuOuvert = false;
+
+    private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
+    {
+        EspaceFonctionnel.Client => "Espace Client",
+        EspaceFonctionnel.AdministrateurSociete => "Espace Entreprise",
+        EspaceFonctionnel.Agent => "Espace Opérateur CIT",
+        EspaceFonctionnel.Supervision => "Supervision CIT",
+        EspaceFonctionnel.AdministrationCit => "Administration CIT",
+        _ => espace.ToString()
+    };
 }

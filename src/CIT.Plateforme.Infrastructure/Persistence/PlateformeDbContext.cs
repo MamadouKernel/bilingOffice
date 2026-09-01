@@ -69,6 +69,25 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     public DbSet<EvenementSocle> JournalEvenements => Set<EvenementSocle>();
 
+    // FEATURE 009 (T027) — Notifications multicanales & centre in-app.
+    // Justification de chaque ensemble : voir la configuration correspondante dans
+    // OnModelCreating, où chaque table et chaque index cite son exigence CDC source.
+
+    /// <summary>FEATURE 009 : le fait notifié, adressé à un destinataire nommé (CDC §20, NOT-01).</summary>
+    public DbSet<Domain.Notifications.Notification> Notifications => Set<Domain.Notifications.Notification>();
+
+    /// <summary>FEATURE 009 : tentative de diffusion sur un canal externe (CDC §20, ERR-02).</summary>
+    public DbSet<Domain.Notifications.EnvoiNotification> EnvoisNotification => Set<Domain.Notifications.EnvoiNotification>();
+
+    /// <summary>FEATURE 009 : modèles de messages paramétrables (COM-03).</summary>
+    public DbSet<Domain.Notifications.ModeleNotification> ModelesNotification => Set<Domain.Notifications.ModeleNotification>();
+
+    /// <summary>FEATURE 009 : règles de diffusion par événement et par canal (NOT-02).</summary>
+    public DbSet<Domain.Notifications.RegleDiffusion> ReglesDiffusion => Set<Domain.Notifications.RegleDiffusion>();
+
+    /// <summary>FEATURE 009 : préférences de canaux par utilisateur (COM-05).</summary>
+    public DbSet<Domain.Notifications.PreferenceCanalUtilisateur> PreferencesCanalUtilisateur => Set<Domain.Notifications.PreferenceCanalUtilisateur>();
+
     /// <summary>FEATURE 003 (research.md D8) : suivi des branches IES.</summary>
     public DbSet<SuiviBrancheIes> SuivisBranchesIes => Set<SuiviBrancheIes>();
 
@@ -244,6 +263,85 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         builder.Entity<EvenementSocle>(b =>
         {
             b.HasKey(e => e.Id);
+            // FEATURE 009 (T033) — curseur de distribution (research.md D2). Colonne NULLABLE et
+            // ADDITIVE : les lignes historiques valent null et seront examinées une fois.
+            // L'index borne le coût de sélection des événements non traités (Principe XIII).
+            b.HasIndex(e => e.DistribueLeUtc).HasDatabaseName("IX_JournalEvenements_DistribueLeUtc");
+        });
+
+        // ====================================================================================
+        // FEATURE 009 — Notifications multicanales & centre in-app.
+        // CDC §20 (« Modèle de données minimal ») impose de modéliser :
+        //     Notification (canal, modèle, destinataire, statut d'envoi).
+        // Les quatre attributs sont portés : « destinataire » et « modèle » par Notification,
+        // « canal » et « statut d'envoi » par EnvoiNotification (research.md D3).
+        // ====================================================================================
+
+        builder.Entity<Domain.Notifications.Notification>(b =>
+        {
+            // Justification : CDC §20 (destinataire, modèle) + NOT-01 (état Lu/Non lu).
+            b.HasKey(n => n.Id);
+            b.Property(n => n.TypeEvenement).IsRequired().HasMaxLength(128);
+            b.Property(n => n.Titre).IsRequired().HasMaxLength(256);
+            b.Property(n => n.Corps).IsRequired();
+            b.HasIndex(n => n.DestinataireId).HasDatabaseName("IX_Notifications_DestinataireId");
+            // Justification : idempotence de la distribution (RSQ-02, tasks.md I9). Cet index est
+            // la SECONDE ligne de défense contre une double distribution concurrente : même si la
+            // prise atomique de l'événement est franchie, le doublon est rejeté par la base.
+            b.HasIndex(n => new { n.EvenementSourceId, n.DestinataireId })
+                .IsUnique()
+                .HasDatabaseName("IX_Notifications_EvenementSource_Destinataire");
+        });
+
+        builder.Entity<Domain.Notifications.EnvoiNotification>(b =>
+        {
+            // Justification : CDC §20 (canal, statut d'envoi) + ERR-02 (isolation par canal).
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Canal).HasConversion<string>().IsRequired().HasMaxLength(32);
+            b.Property(e => e.Statut).HasConversion<string>().IsRequired().HasMaxLength(32);
+            b.Property(e => e.MotifEchec).HasMaxLength(Domain.Notifications.EnvoiNotification.LongueurMaxMotif);
+            b.HasIndex(e => e.NotificationId).HasDatabaseName("IX_EnvoisNotification_NotificationId");
+            // Justification : sélection bornée des envois éligibles à la reprise (ERR-02,
+            // Principe XIII) — jamais un balayage complet de la table.
+            b.HasIndex(e => new { e.Statut, e.DerniereTentativeUtc })
+                .HasDatabaseName("IX_EnvoisNotification_Statut_DerniereTentative");
+        });
+
+        builder.Entity<Domain.Notifications.ModeleNotification>(b =>
+        {
+            // Justification : COM-03 — modèles paramétrables par module, par étape, par canal.
+            b.HasKey(m => m.Id);
+            b.Property(m => m.TypeEvenement).IsRequired().HasMaxLength(128);
+            b.Property(m => m.Canal).HasConversion<string>().IsRequired().HasMaxLength(32);
+            b.Property(m => m.GabaritTitre).IsRequired().HasMaxLength(256);
+            b.Property(m => m.GabaritCorps).IsRequired();
+            // Un seul modèle actif par couple (événement, canal).
+            b.HasIndex(m => new { m.TypeEvenement, m.Canal })
+                .IsUnique()
+                .HasFilter("[EstActif] = 1")
+                .HasDatabaseName("IX_ModelesNotification_Evenement_Canal_Actif");
+        });
+
+        builder.Entity<Domain.Notifications.RegleDiffusion>(b =>
+        {
+            // Justification : NOT-02 — règles paramétrables par événement et par canal ;
+            // EstObligatoire matérialise la notion nommée par COM-05 (CLAR-COM-03).
+            b.HasKey(r => r.Id);
+            b.Property(r => r.TypeEvenement).IsRequired().HasMaxLength(128);
+            b.Property(r => r.Canal).HasConversion<string>().IsRequired().HasMaxLength(32);
+            b.HasIndex(r => new { r.TypeEvenement, r.Canal })
+                .IsUnique()
+                .HasDatabaseName("IX_ReglesDiffusion_Evenement_Canal");
+        });
+
+        builder.Entity<Domain.Notifications.PreferenceCanalUtilisateur>(b =>
+        {
+            // Justification : COM-05 — préférences de canaux par client.
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Canal).HasConversion<string>().IsRequired().HasMaxLength(32);
+            b.HasIndex(p => new { p.UtilisateurId, p.Canal })
+                .IsUnique()
+                .HasDatabaseName("IX_PreferencesCanal_Utilisateur_Canal");
         });
 
         builder.Entity<Domain.Messagerie.Message>(b =>

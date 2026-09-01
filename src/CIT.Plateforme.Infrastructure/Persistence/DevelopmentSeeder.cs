@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CIT.Plateforme.Infrastructure.Persistence;
 
-public sealed class DevelopmentSeeder(
+public sealed partial class DevelopmentSeeder(
     PlateformeDbContext context,
     UserManager<ApplicationUser> userManager,
     ILogger<DevelopmentSeeder> logger)
@@ -28,7 +28,9 @@ public sealed class DevelopmentSeeder(
         await SeedFilesEtAgentsAsync(password);
         await SeedTicketsDemoAsync();
         await SeedEnrolementAsync(password);
-        
+        await SeedAdminCitAsync(password);
+        await SeedNotificationsAsync();
+
         await context.SaveChangesAsync();
 
         logger.LogInformation("Fin du seeding du jeu de données de test Development.");
@@ -108,6 +110,16 @@ public sealed class DevelopmentSeeder(
                 EstActif = true
             };
             await userManager.CreateAsync(user, password);
+        }
+        else
+        {
+            user.LockoutEnd = null;
+            user.AccessFailedCount = 0;
+            user.EstActif = true;
+            await userManager.UpdateAsync(user);
+
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+            await userManager.ResetPasswordAsync(user, resetToken, password);
         }
         return user;
     }
@@ -221,34 +233,47 @@ public sealed class DevelopmentSeeder(
 
     private async Task CreerAgentAsync(string email, string nomAffiche, string password, (string Permission, string? NomFile)[] permissions)
     {
-        if (await userManager.FindByEmailAsync(email) != null)
-            return;
-
-        var user = new ApplicationUser
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
         {
-            UserName = email,
-            Email = email,
-            NomAffiche = nomAffiche,
-            Nature = NatureUtilisateur.Agent,
-            EmailConfirmed = true,
-            EstActif = true
-        };
-
-        var result = await userManager.CreateAsync(user, password);
-        if (result.Succeeded)
-        {
-            foreach (var (perm, nomFile) in permissions)
+            user = new ApplicationUser
             {
-                Guid? fileId = null;
-                if (nomFile != null)
-                {
-                    fileId = await context.Files.Where(f => f.Nom == nomFile).Select(f => f.Id).FirstOrDefaultAsync();
-                }
-                
+                UserName = email,
+                Email = email,
+                NomAffiche = nomAffiche,
+                Nature = NatureUtilisateur.Agent,
+                EmailConfirmed = true,
+                EstActif = true
+            };
+
+            await userManager.CreateAsync(user, password);
+        }
+        else
+        {
+            user.LockoutEnd = null;
+            user.AccessFailedCount = 0;
+            user.EstActif = true;
+            await userManager.UpdateAsync(user);
+
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+            await userManager.ResetPasswordAsync(user, resetToken, password);
+        }
+
+        foreach (var (perm, nomFile) in permissions)
+        {
+            Guid? fileId = null;
+            if (nomFile != null)
+            {
+                fileId = await context.Files.Where(f => f.Nom == nomFile).Select(f => f.Id).FirstOrDefaultAsync();
+            }
+            
+            var habExiste = await context.Habilitations.AnyAsync(h => h.UtilisateurId == user.Id && h.PermissionCode == perm && h.FileId == fileId);
+            if (!habExiste)
+            {
                 context.Habilitations.Add(HabilitationUtilisateur.Attribuer(user.Id, perm, fileId));
             }
-            await context.SaveChangesAsync();
         }
+        await context.SaveChangesAsync();
     }
 
     private async Task SeedTicketsDemoAsync()
@@ -294,4 +319,33 @@ public sealed class DevelopmentSeeder(
         if (!await context.Habilitations.AnyAsync(h => h.UtilisateurId == transporteur.Id && h.PermissionCode == Permission.EnrolementSoumettre))
         {
             context.Habilitations.Add(HabilitationUtilisateur.Attribuer(transporteur.Id, Permission.EnrolementSoumettre));
+            await context.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Compte Admin CIT par défaut (accès administratif complet — déclenche
+    /// EspaceFonctionnel.AdministrationCit et EspaceFonctionnel.Supervision, cf.
+    /// ObtenirContexteUtilisateurQuery.cs). Recréé automatiquement à chaque réinitialisation de la
+    /// base de développement, au même titre que les autres comptes de ce seeder — utilise donc le
+    /// même mot de passe partagé CIT_TEST_USERS_PASSWORD que tous les autres comptes seedés, jamais
+    /// un mot de passe individuel écrit en dur dans le code source suivi par git.
+    /// </summary>
+    private async Task SeedAdminCitAsync(string password)
+    {
+        await CreerAgentAsync("m.konate@cotedivoireterminal.com", "Mamadou KONATE", password, new (string, string?)[]
+        {
+            (Permission.CompteValider, null),
+            (Permission.CompteTypeModifier, null),
+            (Permission.AdministrationCategoriesReclamation, null),
+            (Permission.TarificationAdministrer, null),
+            (Permission.AuditConsulter, null),
+            (Permission.AdministrationFiles, null),
+            (Permission.AdministrationSla, null),
+            (Permission.AdministrationPerimetresSupervision, null),
+            (Permission.SupervisionConsulter, null),
+            (Permission.SupervisionAgir, null),
+            (Permission.ActionDeMasse, null),
+        });
+    }
 }

@@ -149,6 +149,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DistribueLeUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("HorodatageUtc")
                         .HasColumnType("datetime2");
 
@@ -157,6 +160,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DistribueLeUtc")
+                        .HasDatabaseName("IX_JournalEvenements_DistribueLeUtc");
 
                     b.ToTable("JournalEvenements");
                 });
@@ -363,6 +369,197 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("TicketId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.EnvoiNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AboutiLeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime?>("DerniereTentativeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MotifEchec")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("NombreTentatives")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotificationId")
+                        .HasDatabaseName("IX_EnvoisNotification_NotificationId");
+
+                    b.HasIndex("Statut", "DerniereTentativeUtc")
+                        .HasDatabaseName("IX_EnvoisNotification_Statut_DerniereTentative");
+
+                    b.ToTable("EnvoisNotification");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.ModeleNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("GabaritCorps")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GabaritTitre")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("TypeEvenement")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TypeEvenement", "Canal")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ModelesNotification_Evenement_Canal_Actif")
+                        .HasFilter("[EstActif] = 1");
+
+                    b.ToTable("ModelesNotification");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Corps")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreeeLeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DestinataireId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("EstLue")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("EvenementSourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LueLeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ModeleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Titre")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("TypeEvenement")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DestinataireId")
+                        .HasDatabaseName("IX_Notifications_DestinataireId");
+
+                    b.HasIndex("EvenementSourceId", "DestinataireId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Notifications_EvenementSource_Destinataire");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("UtilisateurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UtilisateurId", "Canal")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PreferencesCanal_Utilisateur_Canal");
+
+                    b.ToTable("PreferencesCanalUtilisateur");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.RegleDiffusion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EstObligatoire")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TypeEvenement")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TypeEvenement", "Canal")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ReglesDiffusion_Evenement_Canal");
+
+                    b.ToTable("ReglesDiffusion");
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", b =>

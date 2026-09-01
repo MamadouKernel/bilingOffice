@@ -57,6 +57,14 @@ public sealed class EditerFactureCommand(
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "FactureEditee", nomFichier, agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "FactureEditee", nameof(Ticket), ticket.Id, null, nomFichier, ct).ConfigureAwait(false);
 
+        // FEATURE 009 (T126, research.md D7) : IMP-11 — « édite la facture et la joint au
+        // ticket ; LE CLIENT EST NOTIFIÉ ». Sans cet événement, ce Must du CDC serait
+        // inatteignable par le moteur de notification (Constitution Principe XVI). Ligne
+        // strictement calquée sur TransfererTicketCommand (TRF-05) ; le canal effectif relève du
+        // paramétrage de F009, jamais de cette commande.
+        await journalisation.PublierEvenementAsync(
+            "FactureEditee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }

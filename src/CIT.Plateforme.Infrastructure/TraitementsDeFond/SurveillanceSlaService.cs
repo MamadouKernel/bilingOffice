@@ -17,16 +17,23 @@ public sealed class SurveillanceSlaService(IServiceScopeFactory scopeFactory, IL
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var minuteur = new PeriodicTimer(IntervalleParDefaut);
-        while (!stoppingToken.IsCancellationRequested && await minuteur.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
+        try
         {
-            try
+            while (await minuteur.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
             {
-                await TraiterUneFoisAsync(stoppingToken).ConfigureAwait(false);
+                try
+                {
+                    await TraiterUneFoisAsync(stoppingToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogError(ex, "Échec de la surveillance des SLA.");
+                }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                logger.LogError(ex, "Échec de la surveillance des échéances SLA.");
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Arrêt demandé par l'hôte.
         }
     }
 

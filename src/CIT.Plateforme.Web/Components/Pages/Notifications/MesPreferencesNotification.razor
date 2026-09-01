@@ -1,0 +1,135 @@
+@page "/notifications/preferences"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Notifications
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Notifications
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject GererPreferencesCanauxCommand PreferencesCommand
+
+@* FEATURE 009 — CONTRAT C9-09 (COM-05, Should).
+
+   SEULE dimension prévue par le CDC : le canal. Ni fréquence, ni langue, ni type d'événement,
+   ni plage horaire, ni opt-out global — aucun n'est proposé (spec.md §21).
+
+   Le canal In-App n'apparaît pas : il n'est pas débrayable, sans quoi NOT-01 et NOT-03
+   deviendraient inatteignables.
+
+   Une notification qualifiée d'OBLIGATOIRE au paramétrage est transmise MALGRÉ une
+   désactivation ici — l'utilisateur en est informé explicitement. *@
+
+<PageTitle>Mes préférences de notification — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title"><span>⚙️</span> Mes préférences de notification</h2>
+        <div class="cit-page-subtitle">Choisissez les canaux sur lesquels vous souhaitez être informé</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de vos préférences..." />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger" role="alert">@_erreur</div>
+    }
+
+    <div class="alert alert-info" role="alert">
+        Le centre de notifications du portail reste toujours actif.
+        Certaines notifications sont <strong>obligatoires</strong> et vous seront transmises même si
+        vous désactivez le canal correspondant.
+    </div>
+
+    <div class="list-group shadow-sm">
+        @foreach (var canal in CanauxDebrayables)
+        {
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">@Libelle(canal)</div>
+                    <div class="text-muted small">@Description(canal)</div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                           id="@($"canal-{canal}")"
+                           checked="@EstActif(canal)"
+                           @onchange="e => BasculerAsync(canal, (bool)(e.Value ?? false))" />
+                    <label class="form-check-label visually-hidden" for="@($"canal-{canal}")">@Libelle(canal)</label>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>Le canal In-App est volontairement absent : il n'est pas débrayable.</summary>
+    private static readonly CanalNotification[] CanauxDebrayables =
+        [CanalNotification.Email, CanalNotification.Sms, CanalNotification.WhatsApp];
+
+    private IReadOnlyList<PreferenceCanalUtilisateur> _preferences = [];
+    private bool _chargement = true;
+    private string? _erreur;
+    private ContexteUtilisateurVue? _contexte;
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        try
+        {
+            _chargement = true;
+            _contexte = await ContexteService.ObtenirContexteAsync();
+            _preferences = await PreferencesCommand.ListerMesPreferencesAsync(_contexte.UtilisateurId);
+            _erreur = null;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    /// <summary>Absence de préférence enregistrée = canal actif (comportement par défaut).</summary>
+    private bool EstActif(CanalNotification canal) =>
+        _preferences.FirstOrDefault(p => p.Canal == canal)?.EstActif ?? true;
+
+    private async Task BasculerAsync(CanalNotification canal, bool actif)
+    {
+        try
+        {
+            await PreferencesCommand.DefinirAsync(_contexte!.UtilisateurId, canal, actif);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private static string Libelle(CanalNotification canal) => canal switch
+    {
+        CanalNotification.Email => "E-mail",
+        CanalNotification.Sms => "SMS",
+        CanalNotification.WhatsApp => "WhatsApp",
+        _ => canal.ToString(),
+    };
+
+    private static string Description(CanalNotification canal) => canal switch
+    {
+        CanalNotification.Email => "Notifications envoyées à l'adresse de votre compte.",
+        // PC-16 : les canaux mobiles supposent une souscription non encore réalisée. Le
+        // paramétrage reste possible dès maintenant, sans bloquer le portail ni l'e-mail.
+        CanalNotification.Sms or CanalNotification.WhatsApp =>
+            "Canal mobile — nécessite un numéro de téléphone renseigné sur votre profil.",
+        _ => string.Empty,
+    };
+}

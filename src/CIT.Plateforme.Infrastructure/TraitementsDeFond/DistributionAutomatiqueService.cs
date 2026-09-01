@@ -17,16 +17,23 @@ public sealed class DistributionAutomatiqueService(IServiceScopeFactory scopeFac
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var minuteur = new PeriodicTimer(IntervalleParDefaut);
-        while (!stoppingToken.IsCancellationRequested && await minuteur.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
+        try
         {
-            try
+            while (await minuteur.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
             {
-                await TraiterUneFoisAsync(stoppingToken).ConfigureAwait(false);
+                try
+                {
+                    await TraiterUneFoisAsync(stoppingToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogError(ex, "Échec de la distribution automatique.");
+                }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                logger.LogError(ex, "Échec de la distribution automatique.");
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Arrêt demandé par l'hôte.
         }
     }
 

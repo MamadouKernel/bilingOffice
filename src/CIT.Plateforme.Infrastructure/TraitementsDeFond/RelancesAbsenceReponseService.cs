@@ -24,16 +24,23 @@ public sealed class RelancesAbsenceReponseService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var minuteur = new PeriodicTimer(IntervalleParDefaut);
-        while (!stoppingToken.IsCancellationRequested && await minuteur.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
+        try
         {
-            try
+            while (await minuteur.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
             {
-                await TraiterUneFoisAsync(stoppingToken).ConfigureAwait(false);
+                try
+                {
+                    await TraiterUneFoisAsync(stoppingToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogError(ex, "Échec de l'émission des relances ou clôtures automatiques.");
+                }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                logger.LogError(ex, "Échec du traitement des relances d'absence de réponse.");
-            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Arrêt demandé par l'hôte.
         }
     }
 

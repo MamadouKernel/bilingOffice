@@ -229,7 +229,31 @@ public interface IUtilisateurInfoRepository
     Task<UtilisateurInfo?> ObtenirInfoAsync(Guid utilisateurId, CancellationToken ct = default);
 
     Task<IReadOnlyDictionary<Guid, UtilisateurInfo>> ObtenirInfosAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default);
+
+    /// <summary>Recherche par adresse e-mail : permet de désigner une personne par son adresse
+    /// professionnelle plutôt que par son identifiant technique, qu'aucun utilisateur ne connaît.</summary>
+    Task<UtilisateurInfo?> ObtenirParEmailAsync(string email, CancellationToken ct = default);
+
+    /// <summary>PROFIL PERSONNEL : lecture des données modifiables par l'utilisateur lui-même.
+    /// Contrat distinct de <see cref="UtilisateurInfo"/> — volontairement séparé pour ne pas
+    /// altérer le contrat partagé déjà consommé par les fiches ticket, dossier et contexte.</summary>
+    Task<ProfilUtilisateur?> ObtenirProfilAsync(Guid utilisateurId, CancellationToken ct = default);
+
+    /// <summary>PROFIL PERSONNEL : met à jour les seules données qu'un utilisateur peut modifier
+    /// lui-même. L'e-mail n'y figure pas : il constitue l'identifiant de connexion et sa
+    /// modification relève d'une opération d'identité, hors de ce contrat.</summary>
+    Task<bool> MettreAJourProfilAsync(Guid utilisateurId, string nomAffiche, string? telephone, CancellationToken ct = default);
 }
+
+/// <summary>Données de compte visibles et modifiables par leur propriétaire.</summary>
+public sealed record ProfilUtilisateur(
+    Guid Id,
+    string Email,
+    string? NomAffiche,
+    string? Telephone,
+    bool EstActif,
+    CIT.Plateforme.Domain.Securite.NatureUtilisateur Nature
+);
 
 public sealed record UtilisateurInfo(
     Guid Id,
@@ -262,4 +286,100 @@ public interface ICategorieReclamationRepository
     Task<IReadOnlyList<CIT.Plateforme.Domain.Reclamations.CategorieReclamation>> ListerActivesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<CIT.Plateforme.Domain.Reclamations.CategorieReclamation>> ListerToutesAsync(CancellationToken ct = default);
+}
+
+// ========================================================================================
+// FEATURE 009 — Notifications multicanales & centre in-app.
+// Le moteur consomme le journal d'événements du socle (EvenementSocle) plutôt que d'être
+// appelé depuis les commandes métier : c'est l'intention explicitement écrite par F001
+// (research.md D1). Aucun des 21 sites de publication existants n'est modifié.
+// ========================================================================================
+
+/// <summary>FEATURE 009 : port du centre de notifications (NOT-01, NOT-03, CDC §20).
+///
+/// AUCUNE méthode de suppression ni d'archivage n'est exposée, et il ne doit jamais en exister :
+/// le CDC est silencieux sur la conservation et rien n'est inventé (CLAR-NOT-03, research.md D13).
+/// </summary>
+public interface INotificationRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Notifications.Notification notification, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Notifications.Notification?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>Cloisonnement : le filtre par destinataire est appliqué DANS la requête, jamais
+    /// après chargement (spec.md §14, règle 1).</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.Notification>> ListerParDestinataireAsync(Guid destinataireId, CancellationToken ct = default);
+
+    Task<int> CompterNonLuesAsync(Guid destinataireId, CancellationToken ct = default);
+
+    /// <summary>Idempotence de la distribution (index unique EvenementSourceId + DestinataireId).</summary>
+    Task<bool> ExisteDejaAsync(Guid evenementSourceId, Guid destinataireId, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 009 : port des envois par canal (ERR-02, CDC §20 « statut d'envoi »).</summary>
+public interface IEnvoiNotificationRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Notifications.EnvoiNotification envoi, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.EnvoiNotification>> ListerParNotificationAsync(Guid notificationId, CancellationToken ct = default);
+
+    /// <summary>ERR-02 : sélectionne les envois éligibles à une nouvelle tentative. Le plafond de
+    /// tentatives provient EXCLUSIVEMENT de la configuration — aucune valeur par défaut n'est
+    /// écrite ici ni ailleurs (CLAR-NOT-02).</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.EnvoiNotification>> ListerAReessayerAsync(
+        int nombreTentativesMax, DateTime pasTenteApresUtc, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 009 : référentiel des modèles de messages (COM-03).</summary>
+public interface IModeleNotificationRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Notifications.ModeleNotification modele, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Notifications.ModeleNotification?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Notifications.ModeleNotification?> ObtenirActifAsync(string typeEvenement, CIT.Plateforme.Domain.Notifications.CanalNotification canal, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.ModeleNotification>> ListerToutesAsync(CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 009 : référentiel des règles de diffusion (NOT-02).</summary>
+public interface IRegleDiffusionRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Notifications.RegleDiffusion regle, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Notifications.RegleDiffusion?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Notifications.RegleDiffusion?> ObtenirAsync(string typeEvenement, CIT.Plateforme.Domain.Notifications.CanalNotification canal, CancellationToken ct = default);
+
+    /// <summary>Règles actives d'un événement. Une liste vide signifie « ne pas notifier » :
+    /// le silence du paramétrage ne produit aucune notification (spec.md §10).</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.RegleDiffusion>> ListerActivesParEvenementAsync(string typeEvenement, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.RegleDiffusion>> ListerToutesAsync(CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 009 : préférences de canaux par utilisateur (COM-05).</summary>
+public interface IPreferenceCanalRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur preference, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur?> ObtenirAsync(Guid utilisateurId, CIT.Plateforme.Domain.Notifications.CanalNotification canal, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 009 : port de lecture/marquage du journal d'événements par le moteur de
+/// notification (research.md D1/D2).</summary>
+public interface IEvenementSocleRepository
+{
+    /// <summary>Événements dont le curseur DistribueLeUtc est null, par ordre chronologique.</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Audit.EvenementSocle>> ListerNonDistribuesAsync(int limite, CancellationToken ct = default);
+
+    /// <summary>PRISE ATOMIQUE (tasks.md T191/T192, garantie I9) : marque l'événement distribué
+    /// UNIQUEMENT si son curseur est encore null, en une seule opération conditionnelle.
+    /// Retourne false si un autre worker l'a déjà pris. Première ligne de défense contre la
+    /// double distribution concurrente ; la seconde est l'index unique de Notification.</summary>
+    Task<bool> TenterDePrendreAsync(Guid evenementId, DateTime maintenantUtc, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Audit.EvenementSocle?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
 }

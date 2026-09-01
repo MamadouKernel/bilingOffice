@@ -61,6 +61,12 @@ public sealed class EditerFactureExportCommand(
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "FactureExportEditee", nomFichier, agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "FactureExportEditee", nameof(Ticket), ticket.Id, null, nomFichier, ct).ConfigureAwait(false);
 
+        // FEATURE 009 (T127, research.md D7) : IMP-11 appliqué au parcours EXPORT — le client est
+        // notifié de la mise à disposition de sa facture. Même type d'événement que l'import
+        // (« FactureEditee ») pour qu'une seule règle de diffusion couvre les deux parcours.
+        await journalisation.PublierEvenementAsync(
+            "FactureEditee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }

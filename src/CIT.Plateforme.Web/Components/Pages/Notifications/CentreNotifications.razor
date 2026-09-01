@@ -1,0 +1,151 @@
+@page "/notifications"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Notifications
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ConsulterMesNotificationsQuery ConsulterQuery
+@inject MarquerNotificationLueCommand MarquerLueCommand
+
+@* FEATURE 009 — CONTRATS C9-02, C9-03, C9-04. Centre de notifications (NOT-01, NOT-03, CDC §14.1).
+
+   Capacités RETENUES (spec.md §6) : liste, état Lu/Non lu, date, type, titre, contenu, lien vers
+   le ticket, compteur de non-lues, marquer comme lue.
+
+   Capacités EXPLICITEMENT NON IMPLÉMENTÉES car absentes du CDC : suppression physique,
+   archivage, corbeille, épinglage, recherche plein texte, priorité ou catégorie personnalisée
+   (CLAR-NOT-03, research.md D13).
+
+   Aucun DbContext, aucun repository, aucun GUID saisi à la main : la page ne consomme que des
+   cas d'usage de la couche Application, et l'identité vient TOUJOURS du contexte authentifié. *@
+
+<PageTitle>Mes notifications — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🔔</span> Mes notifications
+        </h2>
+        <div class="cit-page-subtitle">
+            Événements adressés à votre compte
+            @if (_nonLues > 0)
+            {
+                <span class="badge bg-primary rounded-pill ms-2">@_nonLues non lue@(_nonLues > 1 ? "s" : "")</span>
+            }
+        </div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de vos notifications..." />
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger" role="alert">@_erreur</div>
+}
+else if (_notifications.Count == 0)
+{
+    <div class="alert alert-secondary" role="alert">
+        Vous n'avez aucune notification pour le moment.
+    </div>
+}
+else
+{
+    <div class="list-group shadow-sm">
+        @foreach (var notification in _notifications)
+        {
+            <div class="list-group-item @(notification.EstLue ? "" : "list-group-item-light border-start border-3 border-primary")">
+                <div class="d-flex w-100 justify-content-between align-items-start gap-3 flex-wrap">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            @if (!notification.EstLue)
+                            {
+                                <span class="badge bg-primary rounded-pill">Non lu</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill">Lu</span>
+                            }
+                            <span class="text-muted small">@notification.TypeEvenement</span>
+                        </div>
+                        <div class="fw-bold">@notification.Titre</div>
+                        <div class="text-body-secondary small">@notification.Corps</div>
+                        <div class="text-muted small mt-1">
+                            @notification.CreeeLeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2 align-items-stretch">
+                        @if (notification.TicketId is Guid ticketId)
+                        {
+                            @* COM-02 / SEC-12 : lien RELATIF vers le ticket, sans jeton. L'accès
+                               reste arbitré par les contrôles d'identité et d'habilitation
+                               existants — ce lien ne les contourne jamais. *@
+                            <a href="@($"/tickets/{ticketId}")" class="btn btn-outline-primary btn-sm">
+                                Ouvrir le ticket
+                            </a>
+                        }
+                        @if (!notification.EstLue)
+                        {
+                            <button type="button" class="btn btn-light btn-sm"
+                                    @onclick="() => MarquerCommeLueAsync(notification.Id)">
+                                Marquer comme lu
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private IReadOnlyList<LigneNotification> _notifications = [];
+    private int _nonLues;
+    private bool _chargement = true;
+    private string? _erreur;
+    private ContexteUtilisateurVue? _contexte;
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        try
+        {
+            _chargement = true;
+            _contexte = await ContexteService.ObtenirContexteAsync();
+
+            // L'identité vient EXCLUSIVEMENT du contexte authentifié : aucun paramètre
+            // d'itinéraire ni de formulaire ne permet de viser un autre destinataire.
+            _notifications = await ConsulterQuery.ExecuterAsync(_contexte.UtilisateurId);
+            _nonLues = _notifications.Count(n => !n.EstLue);
+            _erreur = null;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task MarquerCommeLueAsync(Guid notificationId)
+    {
+        try
+        {
+            // L'autorisation est vérifiée CÔTÉ SERVEUR par la commande : afficher le bouton ne
+            // suffit jamais à autoriser l'action.
+            await MarquerLueCommand.ExecuterAsync(_contexte!.UtilisateurId, notificationId);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+}

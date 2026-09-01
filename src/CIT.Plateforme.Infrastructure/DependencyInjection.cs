@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IAutorisationService, AutorisationService>();
         services.AddScoped<CloisonnementService>();
         services.AddScoped<GererFilesCommand>();
+        services.AddScoped<ListerFilesQuery>();
 
         // User Story 1 — création, mise en file, prise en charge.
         services.AddScoped<CreerTicketCommand>();
@@ -148,8 +149,13 @@ public static class DependencyInjection
         services.AddScoped<Application.Comptes.DeterminerVisibiliteDemandesQuery>();
         services.AddScoped<Application.Comptes.ConsulterProfilSocieteQuery>();
 
+        // Profil personnel de l'utilisateur connecté
+        services.AddScoped<Application.Comptes.ObtenirMonProfilQuery>();
+        services.AddScoped<Application.Comptes.ModifierMonProfilCommand>();
+
         // User Story 5 — modification tracée du type de client.
         services.AddScoped<Application.Comptes.ModifierTypeClientCommand>();
+        services.AddScoped<Application.Comptes.ListerSocietesActivesQuery>();
 
         // FEATURE 003 (Billing Office IMPORT) — Phase 2 : fondations (research.md D8).
         services.AddScoped<ISuiviBrancheIesRepository, SuiviBrancheIesRepository>();
@@ -251,6 +257,66 @@ public static class DependencyInjection
         services.AddScoped<Application.Enrolement.ConstaterRemiseBadgeCommand>();
         services.AddScoped<Application.Enrolement.ConsulterFileAgentGateQuery>();
         services.AddScoped<Application.Enrolement.ObtenirFicheEnrolementQuery>();
+
+        // ====================================================================================
+        // FEATURE 009 — Notifications multicanales & centre in-app.
+        // ====================================================================================
+
+        services.AddScoped<Application.Abstractions.INotificationRepository, Persistence.NotificationRepository>();
+        services.AddScoped<Application.Abstractions.IEnvoiNotificationRepository, Persistence.EnvoiNotificationRepository>();
+        services.AddScoped<Application.Abstractions.IModeleNotificationRepository, Persistence.ModeleNotificationRepository>();
+        services.AddScoped<Application.Abstractions.IRegleDiffusionRepository, Persistence.RegleDiffusionRepository>();
+        services.AddScoped<Application.Abstractions.IPreferenceCanalRepository, Persistence.PreferenceCanalRepository>();
+        services.AddScoped<Application.Abstractions.IEvenementSocleRepository, Persistence.EvenementSocleRepository>();
+        services.AddScoped<Application.Abstractions.IExecuteurTransactionnel, Persistence.ExecuteurTransactionnel>();
+
+        // Résolveurs de destinataires — EXACTEMENT DEUX (research.md D11, vérifié par le test de
+        // réflexion T052). Aucun résolveur « file », « tous les agents », « tous les habilités »
+        // ni « superviseur » : ALE-03 n'est pas raccordée dans cette feature (research.md D6).
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurClientDuDossier>();
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurCollaborateurMentionne>();
+
+        // Canaux externes — implémentation JOURNALISÉE, AUCUN FOURNISSEUR (research.md D10,
+        // PC-16). SMS et WhatsApp sont servis de la même manière : leur branchement réel est
+        // DIFFÉRÉ / AVANT PRODUCTION et ne bloque aucun Must de F009 (RSQ-04).
+        // Le canal In-App n'a pas d'implémentation : la notification EST sa diffusion (D3).
+        services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalJournalise(
+            Domain.Notifications.CanalNotification.Email,
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalJournalise>>()));
+        services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalJournalise(
+            Domain.Notifications.CanalNotification.Sms,
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalJournalise>>()));
+        services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalJournalise(
+            Domain.Notifications.CanalNotification.WhatsApp,
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalJournalise>>()));
+
+        // Paramètres de reprise ERR-02 — lus EXCLUSIVEMENT depuis la configuration, sans aucune
+        // valeur par défaut. L'absence de configuration fait échouer le démarrage de façon
+        // explicite, jamais silencieusement (CLAR-NOT-02, research.md D9).
+        services.AddSingleton(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var section = configuration.GetSection("Notifications:Reessai");
+
+            var parametres = new Application.Notifications.ParametresReessaiNotification(
+                section.GetValue<int>("NombreTentativesMax"),
+                section.GetValue<TimeSpan>("DelaiEntreTentatives"));
+
+            parametres.Valider();
+            return parametres;
+        });
+
+        services.AddScoped<Application.Notifications.DistribuerNotificationsUseCase>();
+        services.AddScoped<Application.Notifications.ReessayerEnvoisNotificationUseCase>();
+        services.AddScoped<Application.Notifications.ConsulterMesNotificationsQuery>();
+        services.AddScoped<Application.Notifications.CompterNonLuesQuery>();
+        services.AddScoped<Application.Notifications.MarquerNotificationLueCommand>();
+        services.AddScoped<Application.Notifications.AdministrerModelesNotificationCommand>();
+        services.AddScoped<Application.Notifications.AdministrerReglesDiffusionCommand>();
+        services.AddScoped<Application.Notifications.GererPreferencesCanauxCommand>();
+
+        services.AddHostedService<TraitementsDeFond.DistributionNotificationsService>();
+        services.AddHostedService<TraitementsDeFond.ReessaiEnvoisNotificationService>();
 
         return services;
     }

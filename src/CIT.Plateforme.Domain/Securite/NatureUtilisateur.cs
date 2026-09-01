@@ -92,4 +92,14 @@ public static class Permission
     // constatation de remise de badge), mirroring ComplaintInstruire.
     public const string EnrolementSoumettre = "enrolement.soumettre";
     public const string EnrolementInstruire = "enrolement.instruire";
+
+    /// <summary>
+    /// FEATURE 009 (T026) — administration des modèles de messages (COM-03) et des règles de
+    /// diffusion (NOT-02) par l'administrateur fonctionnel.
+    ///
+    /// AUCUNE permission de consultation des notifications d'autrui n'est définie, et il ne doit
+    /// jamais en exister : une notification n'est consultable que par son destinataire, y compris
+    /// vis-à-vis d'un administrateur fonctionnel (spec.md §14, règle 1).
+    /// </summary>
+    public const string AdministrationNotifications = "administration.notifications";
 }
