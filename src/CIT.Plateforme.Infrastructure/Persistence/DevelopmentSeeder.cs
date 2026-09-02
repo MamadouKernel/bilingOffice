@@ -29,6 +29,7 @@ public sealed partial class DevelopmentSeeder(
         await SeedTicketsDemoAsync();
         await SeedEnrolementAsync(password);
         await SeedAdminCitAsync(password);
+        await SeedPiecesExigeesAsync();
         await SeedNotificationsAsync();
 
         await context.SaveChangesAsync();
@@ -355,5 +356,28 @@ public sealed partial class DevelopmentSeeder(
             .ToArray();
 
         await CreerAgentAsync(konateEmail, konateNom, konatePassword, permissionsSuperAdmin);
+    }
+
+    /// <summary>
+    /// CPT-01 — Référentiel initial des pièces justificatives exigées à l'ouverture d'un compte entreprise.
+    /// Idempotent : n'insère que si la pièce n'existe pas déjà.
+    /// </summary>
+    private async Task SeedPiecesExigeesAsync()
+    {
+        var piecesInitiales = new[]
+        {
+            (Code: "RCCM", Libelle: "Registre du Commerce et du Crédit Mobilier (RCCM)", Obligatoire: false, Ordre: 1),
+            (Code: "DFE", Libelle: "Déclaration Fiscale d'Existence (DFE / Fiche Contribuable)", Obligatoire: false, Ordre: 2),
+            (Code: "CNI_REP", Libelle: "Pièce d'Identité du Représentant Légal (CNI / Passeport)", Obligatoire: false, Ordre: 3),
+            (Code: "RIB", Libelle: "Relevé d'Identité Bancaire (RIB) Entreprise", Obligatoire: false, Ordre: 4)
+        };
+
+        foreach (var (code, libelle, obligatoire, ordre) in piecesInitiales)
+        {
+            if (!await context.PiecesExigeesCompte.AnyAsync(p => p.Code == code))
+            {
+                context.PiecesExigeesCompte.Add(PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre));
+            }
+        }
     }
 }
