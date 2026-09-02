@@ -58,6 +58,17 @@ public sealed class Ticket
     /// c'est au module métier appelant (Billing Office…, hors périmètre) de le signaler via
     /// <see cref="MarquerEtatEngageant"/>.</summary>
     public bool EstEnEtatEngageant { get; private set; }
+    public bool EstSousGelLegal { get; private set; } = false;
+    public DateTime? DateArchivageUtc { get; private set; }
+    public bool EstAnonymise { get; private set; } = false;
+
+    public void ActiverGelLegal() => EstSousGelLegal = true;
+    public void DesactiverGelLegal() => EstSousGelLegal = false;
+    public void MarquerAnonymise(DateTime dateArchivageUtc)
+    {
+        EstAnonymise = true;
+        DateArchivageUtc = dateArchivageUtc;
+    }
 
     /// <summary>Jeton de concurrence optimiste EF Core (D3/D6) — garantit qu'une seule prise en
     /// charge concurrente réussit sur un même ticket (règle métier critique).</summary>

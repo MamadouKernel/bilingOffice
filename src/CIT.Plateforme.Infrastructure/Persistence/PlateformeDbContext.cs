@@ -113,6 +113,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 005 (research.md D4) : lignes tarifaires de base.</summary>
     public DbSet<Domain.Tarification.LigneTarifaire> LignesTarifaires => Set<Domain.Tarification.LigneTarifaire>();
 
+    /// <summary>FEATURE 017 : traçabilité des lots de purge et rétention réglementaire (SEC-06).</summary>
+    public DbSet<Domain.Supervision.LotPurgeRetention> LotsPurgeRetention => Set<Domain.Supervision.LotPurgeRetention>();
+
     /// <summary>FEATURE 005 (research.md D6) : simulations de proforma enregistrées.</summary>
     public DbSet<Domain.Tarification.SimulationProforma> SimulationsProforma => Set<Domain.Tarification.SimulationProforma>();
 

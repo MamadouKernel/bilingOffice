@@ -421,6 +421,13 @@ public static class DependencyInjection
             .AddCheck<HealthChecks.AntivirusHealthCheck>("antivirus", tags: ["ready"])
             .AddCheck<HealthChecks.MaintenanceHealthCheck>("maintenance", tags: ["ready"]);
 
+        // ====================================================================================
+        // FEATURE 017 — Sécurité Granulaire Métier & Rétention Documentaire (SEC-02, SEC-06).
+        // ====================================================================================
+        services.AddSingleton<Application.Securite.IAutorisationChampService, Application.Securite.AutorisationChampService>();
+        services.AddSingleton<Application.Securite.MoteurRetentionService>();
+        services.AddScoped<Infrastructure.Securite.GestionnaireRetentionService>();
+
         return services;
     }
 }

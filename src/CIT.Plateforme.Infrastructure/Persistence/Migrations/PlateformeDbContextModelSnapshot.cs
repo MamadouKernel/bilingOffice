@@ -384,8 +384,17 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("DateDepotUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DateScellementUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("DeposeParId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EmpreinteScellementSha256")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EstScelle")
+                        .HasColumnType("bit");
 
                     b.Property<string>("NomFichier")
                         .IsRequired()
@@ -921,6 +930,33 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("Alertes");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Supervision.LotPurgeRetention", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Categorie")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateExecutionUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EstSucces")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MessageErreur")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NombreElementsTraites")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LotsPurgeRetention");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Supervision.PerimetreSupervision", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1337,6 +1373,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CategorieReclamationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("DateArchivageUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateArriveeEnFileUtc")
                         .HasColumnType("datetime2");
 
@@ -1377,7 +1416,13 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<TimeSpan>("DureeAttenteClienteCumulee")
                         .HasColumnType("time");
 
+                    b.Property<bool>("EstAnonymise")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("EstEnEtatEngageant")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EstSousGelLegal")
                         .HasColumnType("bit");
 
                     b.Property<string>("EvaluationCommentaire")

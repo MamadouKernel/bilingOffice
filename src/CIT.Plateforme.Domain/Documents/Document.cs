@@ -50,6 +50,17 @@ public sealed class Document
         StatutAntivirus = resultat;
     }
 
+    public bool EstScelle { get; private set; } = false;
+    public DateTime? DateScellementUtc { get; private set; }
+    public string? EmpreinteScellementSha256 { get; private set; }
+
+    public void Sceller(string empreinteSha256, DateTime dateScellementUtc)
+    {
+        EstScelle = true;
+        EmpreinteScellementSha256 = empreinteSha256;
+        DateScellementUtc = dateScellementUtc;
+    }
+
     /// <summary>SEC-12 : un document non validé (antivirus, SEC-07) n'est pas accessible.</summary>
     public bool EstAccessible => StatutAntivirus == StatutAnalyseAntivirus.Sain;
 }
