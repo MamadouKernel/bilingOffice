@@ -1,0 +1,23 @@
+{
+  "workflow": "speckit",
+  "specName": "Spécification Fonctionnelle — Feature 008 (Enrôlement Transporteurs)",
+  "branch": "master",
+  "currentStep": "implement",
+  "status": "implemented",
+  "history": [
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-08-31T05:02:43.533Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-08-31T06:24:13.025Z"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "workflow": "speckit",
+  "specName": "Comptes clients, sociétés et utilisateurs rattachés",
+  "branch": "master",
+  "currentStep": "implement",
+  "status": "implemented",
+  "history": [
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-08-29T19:48:39.961Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-08-29T19:58:25.578Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-08-29T20:29:48.438Z"
+    }
+  ]
+}

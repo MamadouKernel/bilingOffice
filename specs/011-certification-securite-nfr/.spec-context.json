@@ -1,0 +1,30 @@
+{
+  "workflow": "speckit",
+  "specName": "Spécification Fonctionnelle — Feature 011 (Certification Sécurité & Socle Non-Fonctionnel)",
+  "branch": "master",
+  "currentStep": "tasks",
+  "status": "ready-to-implement",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-09-01T13:19:48.544Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-09-01T13:39:32.828Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-09-01T13:47:36.345Z"
+    }
+  ]
+}
