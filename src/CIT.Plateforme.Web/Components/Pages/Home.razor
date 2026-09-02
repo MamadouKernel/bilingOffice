@@ -1,18 +1,181 @@
 @page "/"
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Web.Services
+@using CIT.Plateforme.Web.Resources
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Redirection... — Plateforme Digitale CIT</PageTitle>
+<PageTitle>@Loc["Home.HeroTitle"] — @Loc["Common.AppTitle"]</PageTitle>
 
-<div class="d-flex justify-content-center py-5">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Chargement...</span>
+<div class="cit-home-portal py-2">
+    <!-- Hero Banner de Bienvenue -->
+    <div class="cit-card p-4 p-md-5 mb-4 text-white border-0 shadow-lg overflow-hidden position-relative" style="background: linear-gradient(135deg, var(--marine-950) 0%, var(--marine-800) 60%, var(--marine-700) 100%); border-radius: var(--radius-xl);">
+        <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center opacity-10 pe-4 pe-xl-5 pointer-events-none" style="font-size: 14rem;">
+            ⚓
+        </div>
+
+        <div class="position-relative z-1" style="max-width: 780px;">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-pill mb-3">
+                <img src="images/logo_cit.jpeg" alt="Logo CIT" style="height: 20px; border-radius: 4px;" />
+                <span class="small fw-semibold text-white">Côte d'Ivoire Terminal • Portail Officiel</span>
+            </div>
+
+            <h1 class="display-6 fw-bold mb-3 text-white lh-sm">
+                Bienvenue sur la <span style="color: var(--signal);">Plateforme Digitale CIT</span>
+            </h1>
+
+            <p class="lead mb-4 text-white-50 fs-6">
+                Le portail unique et unifié pour le pilotage de vos opérations maritimes, le Billing Office dématérialisé, la simulation de factures proforma et le support client.
+            </p>
+
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <a href="/client/dashboard" class="btn btn-warning fw-bold px-4 py-2 text-dark shadow-sm rounded-pill">
+                    Accéder à mon espace ➔
+                </a>
+                <a href="/simulation/proforma" class="btn btn-outline-light fw-semibold px-4 py-2 rounded-pill bg-white bg-opacity-10">
+                    🧮 Simuler une proforma
+                </a>
+            </div>
+
+            <!-- Badges de réassurance -->
+            <div class="d-flex flex-wrap gap-2 gap-md-3 mt-4 pt-3 border-top border-white border-opacity-15 small text-white-50">
+                <span class="d-flex align-items-center gap-1">🛡️ Données Sécurisées & Auditées</span>
+                <span class="d-none d-sm-inline">•</span>
+                <span class="d-flex align-items-center gap-1">⚡ Traitement en Temps Réel</span>
+                <span class="d-none d-sm-inline">•</span>
+                <span class="d-flex align-items-center gap-1">⚓ Terminal Portuaire d'Abidjan</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille des 4 Pôles Thématiques -->
+    <div class="row g-3 g-md-4 mb-4">
+        <!-- 1. 📦 Opérations & Suivi des Dossiers -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-primary">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-3 p-2 bg-primary-subtle text-primary fs-4">
+                            📦
+                        </div>
+                        <span class="badge bg-light text-muted border small">Opérations</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Gestion des Dossiers</h5>
+                    <p class="text-muted small mb-3">
+                        Suivez en direct l'avancement de vos dossiers Import & Export, vos manifestes et contrôles documentaires.
+                    </p>
+                </div>
+                <a href="/client/demandes" class="btn btn-outline-primary btn-sm fw-bold w-100 mt-2">
+                    Mes demandes ➔
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. 📊 Facturation & Simulations Proforma -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-success">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-3 p-2 bg-success-subtle text-success fs-4">
+                            📊
+                        </div>
+                        <span class="badge bg-light text-muted border small">Finance</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Facturation & Proforma</h5>
+                    <p class="text-muted small mb-3">
+                        Estimez vos frais portuaires conteneur par conteneur et soumettez vos demandes de facturation BL & Booking.
+                    </p>
+                </div>
+                <a href="/simulation/proforma" class="btn btn-outline-success btn-sm fw-bold w-100 mt-2">
+                    Lancer un calcul ➔
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. 🏢 Espace Entreprise & Collaborateurs -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-info">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-3 p-2 bg-info-subtle text-info fs-4">
+                            🏢
+                        </div>
+                        <span class="badge bg-light text-muted border small">Entreprise</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Espace Structure</h5>
+                    <p class="text-muted small mb-3">
+                        Consultez le profil de votre société, vos comptes bancaires de facturation et gérez vos collaborateurs.
+                    </p>
+                </div>
+                <a href="/societe/dashboard" class="btn btn-outline-info btn-sm fw-bold w-100 mt-2">
+                    Espace Entreprise ➔
+                </a>
+            </div>
+        </div>
+
+        <!-- 4. ⚙️ Support & Réclamations Clients -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-warning">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="rounded-3 p-2 bg-warning-subtle text-warning fs-4">
+                            ⚙️
+                        </div>
+                        <span class="badge bg-light text-muted border small">Support</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Support & Sécurité</h5>
+                    <p class="text-muted small mb-3">
+                        Déposez une réclamation formelle, suivez son traitement par le support et activez la double authentification.
+                    </p>
+                </div>
+                <a href="/reclamations/soumettre" class="btn btn-outline-warning btn-sm text-dark fw-bold w-100 mt-2">
+                    Déposer réclamation ➔
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bandeau Engagements de Service -->
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <div class="cit-stat-card border-0 bg-white shadow-sm p-3">
+                <div class="cit-stat-icon bg-primary-subtle text-primary">
+                    ⏱️
+                </div>
+                <div>
+                    <div class="fw-bold text-dark small">Traitement Dématérialisé</div>
+                    <div class="text-muted" style="font-size: 0.8rem;">Instruction rapide et traçabilité sous engagement SLA</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="cit-stat-card border-0 bg-white shadow-sm p-3">
+                <div class="cit-stat-icon bg-success-subtle text-success">
+                    📑
+                </div>
+                <div>
+                    <div class="fw-bold text-dark small">Transparence Tarifaire</div>
+                    <div class="text-muted" style="font-size: 0.8rem;">Grilles tarifaires officielles & zéro surprise de facturation</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="cit-stat-card border-0 bg-white shadow-sm p-3">
+                <div class="cit-stat-icon bg-info-subtle text-info">
+                    ⚓
+                </div>
+                <div>
+                    <div class="fw-bold text-dark small">Terminal Maritime d'Abidjan</div>
+                    <div class="text-muted" style="font-size: 0.8rem;">Infrastructure portuaire moderne de référence en Afrique de l'Ouest</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 @code {
+    private static readonly SharedResourcesLocalizer Loc = new();
+
     protected override async Task OnInitializedAsync()
     {
         var contexte = await ContexteService.ObtenirContexteAsync();
@@ -22,7 +185,7 @@
             var destination = contexte.EspaceActif switch
             {
                 EspaceFonctionnel.Supervision => "/supervision",
-                EspaceFonctionnel.AdministrationCit => "/administration/comptes-a-valider",
+                EspaceFonctionnel.AdministrationCit => "/comptes/valider",
                 EspaceFonctionnel.Agent => "/agent/dashboard",
                 EspaceFonctionnel.AdministrateurSociete => "/societe/dashboard",
                 _ => "/client/dashboard"

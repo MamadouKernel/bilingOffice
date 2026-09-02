@@ -1,0 +1,38 @@
+@using System.Globalization
+@inject NavigationManager Navigation
+
+<details class="cit-user-menu cit-language-switcher">
+    <summary class="cit-user-trigger cit-language-trigger" aria-haspopup="true">
+        <span class="d-flex align-items-center gap-1">
+            <span>🌐</span>
+            <span class="small fw-semibold">@(IsEnglish ? "EN 🇬🇧" : "FR 🇫🇷")</span>
+        </span>
+        <span class="cit-user-caret">▾</span>
+    </summary>
+
+    <div class="cit-user-dropdown cit-language-dropdown" role="menu">
+        <form method="post" action="/culture/set" class="m-0">
+            <AntiforgeryToken />
+            <input type="hidden" name="culture" value="fr-FR" />
+            <input type="hidden" name="redirectUri" value="@CurrentUri" />
+            <button type="submit" role="menuitem" class="cit-user-dropdown-item @(!IsEnglish ? "actif" : "")">
+                <span>@(!IsEnglish ? "✓ " : "")</span>
+                <span>🇫🇷 Français (FR)</span>
+            </button>
+        </form>
+        <form method="post" action="/culture/set" class="m-0">
+            <AntiforgeryToken />
+            <input type="hidden" name="culture" value="en-US" />
+            <input type="hidden" name="redirectUri" value="@CurrentUri" />
+            <button type="submit" role="menuitem" class="cit-user-dropdown-item @(IsEnglish ? "actif" : "")">
+                <span>@(IsEnglish ? "✓ " : "")</span>
+                <span>🇬🇧 English (EN)</span>
+            </button>
+        </form>
+    </div>
+</details>
+
+@code {
+    private bool IsEnglish => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+    private string CurrentUri => "/" + Navigation.ToBaseRelativePath(Navigation.Uri);
+}

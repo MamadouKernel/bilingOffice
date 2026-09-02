@@ -1,8 +1,15 @@
+using System.Globalization;
 using CIT.Plateforme.Infrastructure;
 using CIT.Plateforme.Web.Components;
 using CIT.Plateforme.Web.Hubs;
+using CIT.Plateforme.Web.Resources;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +17,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddSignalR();
+
+// Localisation bilingue (NFR-07) : fr-FR par défaut, en-US secondaire
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddSingleton<IStringLocalizer<SharedResources>, SharedResourcesLocalizer>();
+var supportedCultures = new[] { new CultureInfo("fr-FR"), new CultureInfo("en-US") };
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("fr-FR");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders = new IRequestCultureProvider[]
+    {
+        new CookieRequestCultureProvider(),
+        new AcceptLanguageHeaderRequestCultureProvider()
+    };
+});
 
 // Authentification par cookie (ASP.NET Core Identity — decision D4). L'AUTORISATION, elle,
 // repose exclusivement sur IAutorisationService (habilitations paramétrables), jamais sur des
@@ -57,6 +80,9 @@ else
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+
+var locOptions = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value;
+app.UseRequestLocalization(locOptions);
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -110,6 +136,27 @@ app.MapPost("/contexte/espace", ([Microsoft.AspNetCore.Mvc.FromForm] string espa
         _ => "/client/dashboard"
     });
 }).RequireAuthorization();
+
+app.MapPost("/culture/set", ([Microsoft.AspNetCore.Mvc.FromForm] string culture, [Microsoft.AspNetCore.Mvc.FromForm] string? redirectUri, HttpContext http) =>
+{
+    if (!string.IsNullOrEmpty(culture))
+    {
+        var selectedCulture = culture.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en-US" : "fr-FR";
+        http.Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(selectedCulture)),
+            new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddYears(1),
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = http.Request.IsHttps
+            });
+    }
+
+    var target = string.IsNullOrWhiteSpace(redirectUri) || !redirectUri.StartsWith("/") ? "/" : redirectUri;
+    return Results.Redirect(target);
+});
 
 app.Run();
 

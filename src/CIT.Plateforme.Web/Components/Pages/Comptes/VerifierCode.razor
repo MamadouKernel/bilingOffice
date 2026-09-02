@@ -1,31 +1,41 @@
 @page "/comptes/verifier-code"
 @using CIT.Plateforme.Infrastructure.Identity
+@using CIT.Plateforme.Web.Resources
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager Navigation
 
-<PageTitle>Vérification du code</PageTitle>
+<PageTitle>@Loc["Auth.TwoFactorTitle"] — @Loc["Common.AppTitle"]</PageTitle>
 
-<h1>Vérification du second facteur</h1>
-
-@* Contrat C2-05 (CPT-07 — remédiation post-audit). TOTP via Identity natif
-   (TwoFactorAuthenticatorSignInAsync). *@
-<p class="text-muted">Saisissez le code généré par votre application d'authentification.</p>
-
-<EditForm Model="Modele" OnValidSubmit="ValiderAsync" FormName="verifier-code">
-    <div class="mb-3">
-        <label class="form-label" for="code">Code de vérification</label>
-        <InputText id="code" class="form-control" @bind-Value="Modele.Code" />
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🛡️</span> @Loc["Auth.TwoFactorTitle"]
+        </h2>
+        <div class="cit-page-subtitle">Saisissez le code à 6 chiffres temporaire généré par votre application d'authentification</div>
     </div>
-    <button type="submit" class="btn btn-primary">Valider</button>
-</EditForm>
+</div>
 
-@if (erreur is not null)
-{
-    <div class="alert alert-danger mt-3">@erreur</div>
-}
+<div style="max-width: 500px;">
+    <div class="cit-card mb-4">
+        <EditForm Model="Modele" OnValidSubmit="ValiderAsync" FormName="verifier-code">
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-dark" for="code">@Loc["Auth.TwoFactorCode"]</label>
+                <InputText id="code" class="form-control form-control-lg text-center font-monospace tracking-wider" placeholder="123456" maxlength="6" @bind-Value="Modele.Code" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">@Loc["Auth.VerifyButton"] ➔</button>
+        </EditForm>
+    </div>
+
+    @if (erreur is not null)
+    {
+        <div class="alert alert-danger mb-4">@erreur</div>
+    }
+</div>
 
 @code {
+    private static readonly SharedResourcesLocalizer Loc = new();
+
     // REMÉDIATION POST-AUDIT (2026-08-29) : voir Connexion.razor — le paramètre
     // [SupplyParameterFromForm] doit être le même identifiant que le Model de l'EditForm.
     [SupplyParameterFromForm]
@@ -55,7 +65,10 @@
         if (!resultat.Succeeded)
         {
             erreur = messageRefusGenerique;
+            return;
         }
+
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 
     private sealed class ModeleCode

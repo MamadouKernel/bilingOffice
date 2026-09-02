@@ -7,12 +7,39 @@
 
 <header class="cit-header">
     <div class="d-flex align-items-center gap-3">
-        <!-- Bouton Burger Mobile (Visible uniquement si authentifié) -->
+        @* Menu mobile — <details>/<summary> NATIF, sans Blazor.
+
+           CORRECTIF : ce bouton était un <button @onclick="..."> qui ne se déclenchait JAMAIS.
+           MainLayout est rendu en SSR statique (Routes.razor ne déclare aucun @rendermode) :
+           il n'existe aucun circuit interactif pour le layout, donc aucun gestionnaire Blazor
+           n'y est câblé côté client. Le panneau, son voile et sa croix de fermeture reposaient
+           tous sur ce même @onclick mort.
+
+           Même patron que le menu utilisateur (.cit-user-menu) et l'accordéon du menu latéral,
+           déjà convertis pour cette raison. Le panneau vit ici, dans le <details>, car summary
+           et contenu doivent partager le même élément ; .cit-modal-backdrop étant en
+           position:fixed, sa place dans le DOM n'a aucune incidence sur l'affichage.
+
+           Fermeture : nouvel appui sur le burger (qui passe au-dessus du voile et devient ✕),
+           ou navigation vers un lien du menu — le rechargement SSR referme le <details>. *@
         @if (Contexte?.EstAuthentifie == true)
         {
-            <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" @onclick="ToggleMobileMenu" aria-label="Menu">
-                ☰
-            </button>
+            <details class="cit-mobile-menu d-lg-none">
+                <summary class="btn btn-outline-secondary btn-sm cit-mobile-menu-trigger"
+                         role="button" aria-label="Menu de navigation">
+                    <span class="cit-burger-ouvrir" aria-hidden="true">☰</span>
+                    <span class="cit-burger-fermer" aria-hidden="true">✕</span>
+                </summary>
+
+                <div class="cit-modal-backdrop">
+                    <div class="cit-mobile-sidebar h-100 p-3">
+                        <div class="d-flex align-items-center mb-4 pb-2 border-bottom border-light">
+                            <span class="fw-bold fs-5 text-white">Menu</span>
+                        </div>
+                        <NavMenu />
+                    </div>
+                </div>
+            </details>
         }
 
         <a href="/" class="cit-brand">
@@ -36,6 +63,7 @@
     </div>
 
     <div class="d-flex align-items-center gap-2">
+        <LanguageSwitcher />
         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="toggleTheme()" title="Basculer le thème" style="font-size: 0.9rem;">
             🌓
         </button>
@@ -119,9 +147,6 @@
     [Parameter]
     public ContexteUtilisateurVue? Contexte { get; set; }
 
-    [Parameter]
-    public EventCallback OnToggleMobileMenu { get; set; }
-
     private bool _menuOuvert;
 
     /// <summary>
@@ -145,8 +170,6 @@
 
     private string Initiale =>
         string.IsNullOrWhiteSpace(Contexte?.NomAffiche) ? "U" : Contexte!.NomAffiche.Trim()[..1].ToUpperInvariant();
-
-    private async Task ToggleMobileMenu() => await OnToggleMobileMenu.InvokeAsync();
 
     private void ToggleMenu() => _menuOuvert = !_menuOuvert;
 

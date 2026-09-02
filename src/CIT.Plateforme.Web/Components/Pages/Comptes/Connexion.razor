@@ -1,13 +1,15 @@
 @page "/comptes/connexion"
 @using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Infrastructure.Identity
+@using CIT.Plateforme.Web.Resources
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject VerifierAccesCompteQuery VerifierAcces
 @inject NavigationManager Navigation
 
-<PageTitle>Connexion</PageTitle>
+<PageTitle>@Loc["Auth.LoginTitle"]</PageTitle>
 
 <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
@@ -30,26 +32,26 @@
                     <div class="p-5 p-lg-5 w-100">
                         <div class="mb-5 text-center text-md-start">
                             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
-                            <h2 class="fw-bold text-dark">Connexion</h2>
+                            <h2 class="fw-bold" style="color: var(--ink);">@Loc["Auth.LoginTitle"]</h2>
                             <p class="text-muted">Renseignez vos identifiants pour accéder à votre espace de travail.</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="ConnecterAsync" FormName="connexion">
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">E-mail Professionnel</label>
-                                <InputText id="email" class="form-control form-control-lg bg-light border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" />
+                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">@Loc["Auth.Email"]</label>
+                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
                             </div>
                             
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <label class="form-label text-uppercase fw-bold text-muted mb-0" style="font-size: 0.75rem;" for="mot-de-passe">Mot de passe</label>
-                                    <a href="/comptes/mot-de-passe-oublie" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">Oublié ?</a>
+                                    <label class="form-label text-uppercase fw-bold text-muted mb-0" style="font-size: 0.75rem;" for="mot-de-passe">@Loc["Auth.Password"]</label>
+                                    <a href="/comptes/mot-de-passe-oublie" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">@Loc["Auth.ForgotPassword"]</a>
                                 </div>
-                                <InputText id="mot-de-passe" type="password" class="form-control form-control-lg bg-light border-0 px-3 py-3 mt-2" placeholder="••••••••" @bind-Value="Modele.MotDePasse" />
+                                <InputText id="mot-de-passe" type="password" class="form-control form-control-lg border-0 px-3 py-3 mt-2" placeholder="••••••••" @bind-Value="Modele.MotDePasse" style="background-color: var(--surface);" />
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3" style="border-radius: 0.75rem;">
-                                Se connecter <span class="ms-2">→</span>
+                                @Loc["Auth.SignInButton"] <span class="ms-2">→</span>
                             </button>
                         </EditForm>
 
@@ -68,6 +70,8 @@
 </div>
 
 @code {
+    private static readonly SharedResourcesLocalizer Loc = new();
+
     // REMÉDIATION POST-AUDIT (2026-08-29) : le champ [SupplyParameterFromForm] doit être LE MÊME
     // identifiant que celui utilisé comme Model de l'EditForm et dans les expressions @bind-Value —
     // sinon les noms de champs rendus (dérivés de l'expression @bind-Value, ex. "modele.Email") ne
@@ -77,6 +81,9 @@
     // jamais visible dans les tests précédents qui appelaient UserManager/SignInManager directement.
     [SupplyParameterFromForm]
     private ModeleConnexion Modele { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
 
     private string? erreur;
 
@@ -107,7 +114,7 @@
         {
             // Refus avant le défi 2FA si le compte est désactivé (E : refus dès que possible dans
             // le parcours, sans exposer l'existence d'un second facteur à un compte non autorisé).
-            if (!await VerifierAcces.AccesAutoriseAsync(utilisateur.Id))
+            if (!await EstAccesAutoriseAsync(utilisateur))
             {
                 await SignInManager.SignOutAsync();
                 erreur = messageRefusGenerique;
@@ -127,13 +134,29 @@
         // Connexion directe réussie (aucun second facteur activé) : PasswordSignInAsync a déjà
         // écrit le cookie d'authentification — vérifier l'accès société après coup et annuler la
         // connexion si le compte n'est pas autorisé (US2 scénario 2).
-        if (!await VerifierAcces.AccesAutoriseAsync(utilisateur.Id))
+        if (!await EstAccesAutoriseAsync(utilisateur))
         {
             await SignInManager.SignOutAsync();
             erreur = messageRefusGenerique;
             return;
         }
+
+        // Redirection immédiate post-connexion : évite que la page reste statique et empêche
+        // les soumissions multiples (double-clic) qui invalidaient le jeton Antiforgery anonyme
+        // une fois le cookie d'authentification posé.
+        var destination = !string.IsNullOrWhiteSpace(ReturnUrl) && ReturnUrl.StartsWith("/") && !ReturnUrl.StartsWith("//")
+            ? ReturnUrl
+            : "/";
+        Navigation.NavigateTo(destination, forceLoad: true);
     }
+
+    // CORRECTIF (2026-08-30) : VerifierAccesCompteQuery vérifie une règle propre aux comptes
+    // société (CPT-03 — société active + rattachement actif) ; elle ne s'applique qu'aux comptes
+    // Client. L'appliquer sans distinction bloquait la connexion de TOUT compte Agent/Admin CIT
+    // interne (jamais rattaché à une société par conception, CLAR-01) — découvert en pratique via
+    // un compte agent créé pour les tests, refusé malgré des identifiants valides.
+    private async Task<bool> EstAccesAutoriseAsync(ApplicationUser utilisateur) =>
+        utilisateur.Nature != NatureUtilisateur.Client || await VerifierAcces.AccesAutoriseAsync(utilisateur.Id);
 
     private sealed class ModeleConnexion
     {

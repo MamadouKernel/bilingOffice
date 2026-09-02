@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using CIT.Plateforme.Application.CustomerComplaint
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
@@ -10,14 +11,21 @@
 @inject ListerCategoriesReclamationQuery ListerCategories
 @inject NavigationManager Navigation
 
-<PageTitle>Nouvelle réclamation — CIT</PageTitle>
+<PageTitle>@Loc["Complaint.Title"] — @Loc["Common.AppTitle"]</PageTitle>
 
-<div class="container-fluid py-3" style="max-width: 720px;">
-    <div class="mb-3 pb-2 border-bottom">
-        <h2 class="fw-bold mb-0 text-dark">Nouvelle réclamation</h2>
-        <div class="text-muted small">Décrivez votre demande — un ticket tracé de bout en bout sera créé pour votre société.</div>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📢</span> @Loc["Complaint.Title"]
+        </h2>
+        <div class="cit-page-subtitle">@Loc["Complaint.Subtitle"]</div>
     </div>
+    <div class="mt-3 mt-md-0">
+        <a href="/reclamations/mes-reclamations" class="btn btn-outline-secondary btn-sm shadow-sm">← @Loc["Common.Back"]</a>
+    </div>
+</div>
 
+<div style="max-width: 760px;">
     @if (_chargement)
     {
         <IndicateurChargement Message="Chargement du formulaire..." />
@@ -28,23 +36,29 @@
     }
     else if (_ticketCreeNumero is not null)
     {
-        <div class="alert alert-success">
-            <strong>Réclamation soumise avec succès.</strong> Numéro de suivi : <span class="fw-bold">@_ticketCreeNumero</span>
+        <div class="cit-card border-success p-4 mb-4">
+            <div class="d-flex align-items-center gap-3 text-success mb-3">
+                <span class="fs-2">✅</span>
+                <div>
+                    <h5 class="fw-bold mb-0">@Loc["Complaint.SubmitSuccess"]</h5>
+                    <div class="text-muted small">Numéro de suivi unique : <strong class="font-monospace text-primary">@_ticketCreeNumero</strong></div>
+                </div>
+            </div>
+            <a href="/reclamations/mes-reclamations" class="btn btn-primary fw-bold px-4">@Loc["Complaint.MyComplaintsTitle"] ➔</a>
         </div>
-        <a href="/reclamations/mes-reclamations" class="btn btn-primary">Voir mes réclamations</a>
     }
     else
     {
         @if (_erreur is not null)
         {
-            <div class="alert alert-danger">@_erreur</div>
+            <div class="alert alert-danger mb-4">@_erreur</div>
         }
 
-        <div class="cit-card">
+        <div class="cit-card mb-4">
             <div class="mb-3">
-                <label class="form-label fw-semibold" for="categorie">Catégorie</label>
+                <label class="form-label small fw-semibold text-dark" for="categorie">@Loc["Complaint.Category"]</label>
                 <select id="categorie" class="form-select" @bind="_categorieId">
-                    <option value="">-- Sélectionner --</option>
+                    <option value="">-- Sélectionner une catégorie --</option>
                     @foreach (var cat in _categories)
                     {
                         <option value="@cat.Id">@cat.Libelle</option>
@@ -53,23 +67,27 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-semibold" for="objet">Objet</label>
-                <input id="objet" class="form-control" placeholder="Résumé court de votre réclamation" @bind="_objet" @bind:event="oninput" maxlength="200" />
+                <label class="form-label small fw-semibold text-dark" for="objet">@Loc["Complaint.Subject"]</label>
+                <input id="objet" class="form-control" placeholder="Résumé court et précis de votre réclamation" @bind="_objet" @bind:event="oninput" maxlength="200" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold" for="description">Description</label>
-                <textarea id="description" class="form-control" rows="5" placeholder="Détaillez votre réclamation..." @bind="_description" @bind:event="oninput"></textarea>
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-dark" for="description">@Loc["Complaint.Description"]</label>
+                <textarea id="description" class="form-control" rows="5" placeholder="Détaillez les circonstances, numéros de factures ou éléments de preuve..." @bind="_description" @bind:event="oninput"></textarea>
             </div>
 
-            <button class="btn btn-primary" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
-                @(_envoiEnCours ? "Envoi..." : "Soumettre la réclamation")
-            </button>
+            <div class="d-flex justify-content-end gap-2">
+                <a href="/reclamations/mes-reclamations" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
+                <button class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                    @(_envoiEnCours ? Loc["Common.Loading"].Value : "🚀 " + Loc["Common.Submit"].Value)
+                </button>
+            </div>
         </div>
     }
 </div>
 
 @code {
+    private static readonly SharedResourcesLocalizer Loc = new();
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;
