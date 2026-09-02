@@ -338,35 +338,22 @@ public sealed partial class DevelopmentSeeder(
     }
 
     /// <summary>
-    /// Compte Admin CIT par défaut (accès administratif complet — déclenche
-    /// EspaceFonctionnel.AdministrationCit et EspaceFonctionnel.Supervision, cf.
-    /// ObtenirContexteUtilisateurQuery.cs). Recréé automatiquement à chaque réinitialisation de la
-    /// base de développement, au même titre que les autres comptes de ce seeder — utilise donc le
-    /// même mot de passe partagé CIT_TEST_USERS_PASSWORD que tous les autres comptes seedés, jamais
-    /// un mot de passe individuel écrit en dur dans le code source suivi par git.
+    /// Compte Super Administrateur CIT (M. KONATE) :
+    /// - Email : m.konate@cotedivoireterminal.com
+    /// - Mot de passe : Bonjour@2026#
+    /// - Habilitations : Intégralité des 54 permissions du système (Permission.Tous)
+    /// - Idempotence : Ne recrée pas le compte s'il existe déjà et ne duplique pas ses habilitations.
     /// </summary>
     private async Task SeedAdminCitAsync(string password)
     {
-        await CreerAgentAsync("m.konate@cotedivoireterminal.com", "Mamadou KONATE", password, new (string, string?)[]
-        {
-            (Permission.CompteValider, null),
-            (Permission.CompteTypeModifier, null),
-            (Permission.AdministrationCategoriesReclamation, null),
-            (Permission.TarificationAdministrer, null),
-            (Permission.AuditConsulter, null),
-            (Permission.AdministrationFiles, null),
-            (Permission.AdministrationSla, null),
-            (Permission.AdministrationPerimetresSupervision, null),
-            (Permission.SupervisionConsulter, null),
-            (Permission.SupervisionAgir, null),
-            (Permission.ActionDeMasse, null),
-            (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null),
-            // CDC art. 17.3 — administration des comptes agents et de leurs roles (SEC-11).
-            (Permission.AdministrationComptes, null),
-            // Corrige un manque signale : l'ecran d'administration des notifications existait
-            // (COM-03, NOT-02) mais aucun compte seede ne portait sa permission.
-            (Permission.AdministrationNotifications, null)
-        });
+        const string konateEmail = "m.konate@cotedivoireterminal.com";
+        const string konateNom = "Mamadou KONATE";
+        const string konatePassword = "Bonjour@2026#";
+
+        var permissionsSuperAdmin = Permission.Tous
+            .Select(p => (Permission: p, NomFile: (string?)null))
+            .ToArray();
+
+        await CreerAgentAsync(konateEmail, konateNom, konatePassword, permissionsSuperAdmin);
     }
 }

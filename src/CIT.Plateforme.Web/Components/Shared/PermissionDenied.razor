@@ -3,7 +3,7 @@
         <span class="fs-1">🔒</span>
     </div>
     
-    <h3 class="fw-bold text-dark mb-2">Accès Réservé</h3>
+    <h3 class="fw-bold text-dark mb-2">Accès Refusé <span class="badge bg-danger-subtle text-danger fs-6 align-middle">403</span></h3>
     
     <p class="text-muted mb-4 mx-auto" style="max-width: 480px; line-height: 1.6;">
         @if (!string.IsNullOrWhiteSpace(Message))
@@ -17,14 +17,8 @@
     </p>
 
     <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
-        <a href="/comptes/connexion" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-pill d-flex align-items-center gap-2">
-            <span>🔑</span> Se connecter
-        </a>
-        <a href="/comptes/soumettre" class="btn btn-outline-primary px-4 py-2 fw-semibold rounded-pill d-flex align-items-center gap-2">
-            <span>🏢</span> Créer un compte
-        </a>
-        <a href="/" class="btn btn-light px-3 py-2 text-muted fw-semibold rounded-pill">
-            Accueil
+        <a href="/" class="btn btn-outline-primary px-4 py-2 fw-semibold rounded-pill">
+            ← Retour à l'accueil
         </a>
     </div>
 </div>
