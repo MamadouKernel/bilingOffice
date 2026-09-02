@@ -15,7 +15,7 @@ namespace CIT.Plateforme.Web.Tests.Pages;
 public sealed class AuthRedirectionTests : BunitContext
 {
     [Fact]
-    public void Visiteur_AffichePageAccueil_RedirigeVersConnexion()
+    public void Visiteur_AffichePageAccueil_AfficheLandingEtPasDeRedirection()
     {
         var fakeContexte = new FakeContexteUtilisateurWeb();
         fakeContexte.Contexte = fakeContexte.Contexte with { EstAuthentifie = false };
@@ -25,7 +25,9 @@ public sealed class AuthRedirectionTests : BunitContext
 
         var cut = Render<Home>();
 
-        Assert.Equal("http://localhost/comptes/connexion", navMan.Uri);
+        Assert.Equal("http://localhost/", navMan.Uri);
+        Assert.Contains("Côte d'Ivoire Terminal", cut.Markup);
+        Assert.Contains("Créer un compte Société", cut.Markup);
     }
 
     [Theory]

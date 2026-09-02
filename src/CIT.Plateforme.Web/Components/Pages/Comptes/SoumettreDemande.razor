@@ -10,102 +10,255 @@
 @inject ListerPiecesExigeesQuery ListerPiecesExigees
 @inject CIT.Plateforme.Domain.Documents.IStockageDocuments StockageDocuments
 
-<PageTitle>Créer un compte entreprise — CIT</PageTitle>
+<PageTitle>Créer un compte entreprise — Côte d'Ivoire Terminal</PageTitle>
 
-<div class="cit-page-header">
-    <div>
-        <h2 class="cit-page-title">
-            <span>🏢</span> Demande de création de compte entreprise
-        </h2>
-        <div class="cit-page-subtitle">Renseignez les informations de votre entreprise — validation par l'administration CIT sous 24h</div>
-    </div>
-</div>
+<div class="row justify-content-center py-2">
+    <div class="col-12 col-xl-11">
+        
+        <!-- Navigation Top Bar : Accueil & Aide -->
+        <div class="d-flex align-items-center justify-content-between mb-3 px-2">
+            <a href="/" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold rounded-pill bg-white shadow-xs d-inline-flex align-items-center gap-2">
+                <span>🏠</span> Retour à l'accueil
+            </a>
+            
+            <a href="/comptes/connexion" class="btn btn-light btn-sm px-3 py-2 fw-semibold rounded-pill text-primary border shadow-xs d-inline-flex align-items-center gap-2">
+                <span>🔑</span> Déjà un compte ? Se connecter
+            </a>
+        </div>
 
-<div style="max-width: 700px;">
-    <div class="cit-card mb-4">
-        <EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-demande-compte">
-            <div class="mb-3">
-                <label class="form-label small fw-semibold text-dark" for="email">Identifiant de connexion (e-mail professionnel)</label>
-                <InputText id="email" class="form-control" placeholder="contact@entreprise.ci" @bind-Value="modele.Email" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-semibold text-dark" for="mot-de-passe">Mot de passe initial</label>
-                <InputText id="mot-de-passe" type="password" class="form-control" placeholder="••••••••••••" @bind-Value="modele.MotDePasse" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-semibold text-dark" for="profil">Profil d'activité sollicité</label>
-                <InputSelect id="profil" class="form-select" @bind-Value="modele.Profil">
-                    @foreach (var valeur in Enum.GetValues<TypeClient>())
-                    {
-                        <option value="@valeur">@valeur</option>
-                    }
-                </InputSelect>
-            </div>
-            <div class="mb-4">
-                <label class="form-label small fw-semibold text-dark" for="informations">Informations d'entreprise et justificatifs (RCCM, DFE, etc.)</label>
-                <InputTextArea id="informations" rows="4" class="form-control" placeholder="Raison sociale, Registre de Commerce, Déclaration Fiscale d'Existence..." @bind-Value="modele.InformationsDeclarees" />
-            </div>
-            @* CPT-01 — justificatifs exiges, PARAMETRABLES : la liste vient du referentiel
-               administre, jamais d'une enumeration codee ici. Si aucune piece n'est parametree,
-               ce bloc n'apparait pas et la demande reste recevable. *@
-            @if (piecesExigees is not null && piecesExigees.Count > 0)
-            {
-                <div class="mb-4">
-                    <label class="form-label small fw-semibold text-dark">Justificatifs à joindre</label>
-                    <div class="d-flex flex-column gap-2">
-                        @foreach (var piece in piecesExigees)
-                        {
-                            <div class="p-2 border rounded-3">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <span class="small fw-bold">@piece.Libelle</span>
-                                    @if (piece.Obligatoire)
-                                    {
-                                        <span class="badge bg-primary-subtle text-primary">Obligatoire</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-secondary">Facultative</span>
-                                    }
-                                    @if (fichiers.ContainsKey(piece.Code))
-                                    {
-                                        <span class="badge bg-success-subtle text-success">@fichiers[piece.Code].Name</span>
-                                    }
-                                </div>
-                                <InputFile class="form-control form-control-sm"
-                                           OnChange="e => SelectionnerFichier(piece.Code, e)" />
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem; background-color: #ffffff;">
+            <div class="row g-0">
+                
+                <!-- Left Side: Terminal 3D Illustration & Presentation -->
+                <div class="col-lg-5 d-none d-lg-block" style="background-color: #eaf4fc;">
+                    <div class="h-100 d-flex flex-column justify-content-between p-5">
+                        <div>
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white rounded-pill shadow-xs mb-4">
+                                <img src="images/logo_cit.jpeg" alt="Logo CIT" style="height: 32px; object-fit: contain; border-radius: 4px;" />
+                                <span class="small fw-bold text-dark">Côte d'Ivoire Terminal</span>
                             </div>
-                        }
+
+                            <h3 class="fw-bold text-dark mb-3 lh-sm" style="color: #0f2b5c !important;">
+                                Rejoignez le Guichet Digital Billing Office
+                            </h3>
+                            <p class="text-muted small mb-4" style="line-height: 1.6;">
+                                Simplifiez vos formalités portuaires au Port Autonome d'Abidjan : traitez vos connaissements, suivez vos conteneurs et simulez vos proformas en temps réel.
+                            </p>
+
+                            <!-- Key benefits list -->
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-circle">⚡</span>
+                                    <div class="small">
+                                        <strong class="text-dark d-block">Validation sous 24h ouvrées</strong>
+                                        <span class="text-muted">Instruction administrative rapide de vos pièces justificatives.</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded-circle">📦</span>
+                                    <div class="small">
+                                        <strong class="text-dark d-block">Gestion Intégrée Import / Export</strong>
+                                        <span class="text-muted">Contrôle documentaire dématérialisé et traçabilité complète.</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-warning bg-opacity-10 text-dark p-2 rounded-circle">💳</span>
+                                    <div class="small">
+                                        <strong class="text-dark d-block">Facturation & Comptes Dédiés</strong>
+                                        <span class="text-muted">Profils adaptés (Normal, En Compte, Deposit, IES).</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image illustration -->
+                        <div class="text-center pt-2">
+                            <img src="images/onboarding-illustration.jpg" 
+                                 alt="Terminal Portuaire CIT" 
+                                 class="img-fluid rounded-4 shadow-sm border border-white border-2" 
+                                 style="max-height: 300px; object-fit: cover;" />
+                            <div class="text-muted small mt-2" style="font-size: 0.75rem;">
+                                Infrastructure moderne du 2ème terminal à conteneurs d'Abidjan
+                            </div>
+                        </div>
                     </div>
                 </div>
-            }
 
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex flex-column gap-1">
-                    <a href="/comptes/connexion" class="text-decoration-none small text-muted">← Déjà un compte ? Se connecter</a>
-                    @* ENR-01 — le transporteur est une personne physique, pas une entreprise :
-                       son parcours n'ouvre aucune demande de societe. *@
-                    <a href="/comptes/inscription-transporteur" class="text-decoration-none small text-muted">🚚 Transporteur ou chauffeur ? Inscrivez-vous ici</a>
+                <!-- Right Side: Registration Form -->
+                <div class="col-12 col-lg-7 d-flex align-items-center">
+                    <div class="p-4 p-md-5 w-100">
+                        
+                        <!-- Header with Logo -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 48px; object-fit: contain; border-radius: 6px;" />
+                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-3 py-2 rounded-pill small">
+                                    🛡️ Onboarding Entreprise • CPT-01 & CPT-02
+                                </span>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-1">Ouverture de Compte Société</h2>
+                            <p class="text-muted small mb-0">Renseignez les données légales de votre structure pour créer votre espace entreprise.</p>
+                        </div>
+
+                        @if (societeCreee is not null)
+                        {
+                            <div class="p-4 p-md-5 border-0 shadow-sm mb-4 text-center rounded-4" 
+                                 style="background-color: #f0fdf4 !important; border: 1px solid #bbf7d0 !important;">
+                                <div class="fs-1 mb-2">🎉</div>
+                                <h4 class="fw-bold mb-2" style="color: #166534;">Demande enregistrée avec succès !</h4>
+                                <p class="text-muted small mb-3">
+                                    Votre dossier est en cours d'instruction par les équipes Billing Office de CIT.
+                                </p>
+                                <div class="d-inline-block p-3 bg-white rounded-3 border mb-4">
+                                    <span class="small text-muted d-block mb-1">Numéro de suivi dossier :</span>
+                                    <code class="fs-6 fw-bold text-primary font-monospace">@societeCreee</code>
+                                </div>
+                                <div>
+                                    <a href="/comptes/connexion" class="btn btn-success px-4 py-2 fw-bold shadow-sm rounded-pill">
+                                        Accéder à la connexion ➔
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-demande-compte">
+                                
+                                <!-- BLOC 1 : IDENTIFIANTS ADMINISTRATEUR -->
+                                <div class="mb-4 pb-3 border-bottom">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge bg-primary text-white rounded-circle px-2 py-1 small fw-bold">1</span>
+                                        <h6 class="fw-bold text-dark mb-0">Compte Administrateur Principal</h6>
+                                    </div>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="email">E-mail Professionnel <span class="text-danger">*</span></label>
+                                            <InputText id="email" class="form-control border-0 px-3 py-2 shadow-xs" 
+                                                       placeholder="responsable@entreprise.ci" 
+                                                       @bind-Value="modele.Email" 
+                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="mot-de-passe">Mot de Passe <span class="text-danger">*</span></label>
+                                            <InputText id="mot-de-passe" type="password" 
+                                                       class="form-control border-0 px-3 py-2 shadow-xs" 
+                                                       placeholder="••••••••••••" 
+                                                       @bind-Value="modele.MotDePasse" 
+                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- BLOC 2 : INFORMATIONS ENTREPRISE -->
+                                <div class="mb-4 pb-3 border-bottom">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge bg-primary text-white rounded-circle px-2 py-1 small fw-bold">2</span>
+                                        <h6 class="fw-bold text-dark mb-0">Données de l'Entreprise & Profil</h6>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="profil">Profil d'Activité Sollicité</label>
+                                            <InputSelect id="profil" class="form-select border-0 shadow-xs" 
+                                                         @bind-Value="modele.Profil"
+                                                         style="background-color: var(--surface); border-radius: 0.65rem;">
+                                                @foreach (var valeur in Enum.GetValues<TypeClient>())
+                                                {
+                                                    <option value="@valeur">@valeur</option>
+                                                }
+                                            </InputSelect>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="informations">Raison Sociale & RCCM / DFE <span class="text-danger">*</span></label>
+                                        <InputTextArea id="informations" rows="2" class="form-control border-0 shadow-xs p-2" 
+                                                       placeholder="Ex : TRANSIT IVOIRE LOGISTICS - RCCM : CI-ABJ-2023-B-12345 - Compte Contribuable : 2049583A..." 
+                                                       @bind-Value="modele.InformationsDeclarees" 
+                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                    </div>
+                                </div>
+
+                                <!-- BLOC 3 : PIÈCES JUSTIFICATIVES (CPT-01) -->
+                                @if (piecesExigees is not null && piecesExigees.Count > 0)
+                                {
+                                    <div class="mb-4 pb-2">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge bg-primary text-white rounded-circle px-2 py-1 small fw-bold">3</span>
+                                            <h6 class="fw-bold text-dark mb-0">Pièces Justificatives Officielles</h6>
+                                        </div>
+
+                                        <div class="row g-2">
+                                            @foreach (var piece in piecesExigees)
+                                            {
+                                                <div class="col-12 col-md-6">
+                                                    <div class="p-2 border rounded-3 bg-light d-flex flex-column justify-content-between h-100">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="small fw-bold text-dark" style="font-size: 0.8rem;">📄 @piece.Libelle</span>
+                                                            @if (piece.Obligatoire)
+                                                            {
+                                                                <span class="badge bg-danger-subtle text-danger" style="font-size: 0.65rem;">Obligatoire</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">Facultatif</span>
+                                                            }
+                                                        </div>
+
+                                                        <div class="mt-1">
+                                                            <InputFile class="form-control form-control-sm" 
+                                                                       OnChange="e => SelectionnerFichier(piece.Code, e)" />
+                                                        </div>
+
+                                                        @if (fichiers.ContainsKey(piece.Code))
+                                                        {
+                                                            <div class="mt-1 small text-success fw-semibold" style="font-size: 0.75rem;">
+                                                                ✅ @fichiers[piece.Code].Name
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- MESSAGE D'ERREUR HAUTE VISIBILITÉ -->
+                                @if (erreur is not null)
+                                {
+                                    <div class="alert mt-3 mb-3 rounded-3 p-3 d-flex align-items-center shadow-sm" 
+                                         style="background-color: #fef2f2 !important; color: #991b1b !important; border: 1px solid #fecaca !important;">
+                                        <span class="me-2 fs-5">⚠️</span>
+                                        <span class="fw-semibold small">@erreur</span>
+                                    </div>
+                                }
+
+                                <!-- BOUTONS D'ACTION -->
+                                <div class="pt-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                    <a href="/comptes/connexion" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">
+                                        ← Déjà un compte ? Se connecter
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow-sm rounded-pill" style="border-radius: 0.75rem;">
+                                        Soumettre le dossier <span class="ms-1">🚀</span>
+                                    </button>
+                                </div>
+
+                                <div class="mt-3 text-center">
+                                    <a href="/comptes/inscription-transporteur" class="text-decoration-none small text-muted">
+                                        🚚 Vous êtes un transporteur ou chauffeur routier ? <span class="text-primary fw-semibold">Pré-enrôlez-vous ici</span>
+                                    </a>
+                                </div>
+
+                            </EditForm>
+                        }
+
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">🚀 Soumettre la demande</button>
-            </div>
-        </EditForm>
-    </div>
 
-    @if (erreur is not null)
-    {
-        <div class="alert alert-danger mb-4">@erreur</div>
-    }
-
-    @if (societeCreee is not null)
-    {
-        <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
-            <span class="fs-2">✅</span>
-            <div>
-                <strong>Demande enregistrée avec succès !</strong>
-                <div class="small text-muted">En attente de validation par un administrateur fonctionnel CIT (Identifiant entreprise : <strong class="font-monospace text-primary">@societeCreee</strong>).</div>
             </div>
         </div>
-    }
+    </div>
 </div>
 
 @code {
@@ -119,11 +272,6 @@
     private IReadOnlyList<PieceExigeeVue>? piecesExigees;
     private readonly Dictionary<string, IBrowserFile> fichiers = new(StringComparer.Ordinal);
 
-    /// <summary>
-    /// Plafond TECHNIQUE de taille, requis par InputFile — ce n'est pas une regle metier : le CDC
-    /// ne fixe aucune limite pour les justificatifs de compte. Le relever releve du parametrage
-    /// d'exploitation, pas d'une decision fonctionnelle.
-    /// </summary>
     private const long TailleMaxOctets = 10L * 1024 * 1024;
 
     protected override async Task OnInitializedAsync()
@@ -161,8 +309,6 @@
             return;
         }
 
-        // Le contenu binaire part au stockage documentaire ; la commande ne recoit que des
-        // metadonnees, comme pour les documents de ticket.
         var justificatifs = new List<JustificatifDepose>();
         foreach (var (pieceCode, fichier) in fichiers)
         {
@@ -180,7 +326,6 @@
         }
         catch (DossierIncompletException ex)
         {
-            // CPT-01 : on nomme ce qui manque plutot que de renvoyer un refus opaque.
             erreur = ex.Message;
             return;
         }

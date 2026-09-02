@@ -1,21 +1,30 @@
-<div class="cit-card text-center py-5 my-5 max-w-lg mx-auto border-danger-subtle">
-    <div class="mb-3 text-danger" style="font-size: 3rem;">
-        🚫
+<div class="cit-card text-center p-4 p-md-5 my-4 mx-auto border-0 shadow-sm" style="max-width: 650px; border-radius: 1.5rem; background-color: #ffffff;">
+    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 p-3 bg-danger bg-opacity-10" style="width: 70px; height: 70px;">
+        <span class="fs-1">🔒</span>
     </div>
-    <h4 class="fw-bold text-danger mb-2">Accès Refusé (403)</h4>
-    <p class="text-muted mb-4">
+    
+    <h3 class="fw-bold text-dark mb-2">Accès Réservé</h3>
+    
+    <p class="text-muted mb-4 mx-auto" style="max-width: 480px; line-height: 1.6;">
         @if (!string.IsNullOrWhiteSpace(Message))
         {
             @Message
         }
         else
         {
-            <span>Vous ne disposez pas des habilitations nécessaires pour accéder à cette ressource ou effectuer cette action.</span>
+            <span>Vous devez être connecté avec un compte entreprise habilité pour accéder à cet espace ou effectuer cette action.</span>
         }
     </p>
-    <div class="d-flex justify-content-center gap-3">
-        <a href="/" class="btn btn-outline-primary px-4">
-            Retour à l'accueil
+
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+        <a href="/comptes/connexion" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-pill d-flex align-items-center gap-2">
+            <span>🔑</span> Se connecter
+        </a>
+        <a href="/comptes/soumettre" class="btn btn-outline-primary px-4 py-2 fw-semibold rounded-pill d-flex align-items-center gap-2">
+            <span>🏢</span> Créer un compte
+        </a>
+        <a href="/" class="btn btn-light px-3 py-2 text-muted fw-semibold rounded-pill">
+            Accueil
         </a>
     </div>
 </div>

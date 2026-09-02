@@ -8,31 +8,34 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
-@inject ListerDemandesEnAttenteQuery ListerDemandes
-@inject ListerJustificatifsDemandeQuery ListerJustificatifs
-@inject ModifierTypeClientCommand ModifierTypeClient
-@inject ValiderOuRejeterDemandeCompteCommand ValiderOuRejeter
+@inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Valider les demandes de compte — CIT</PageTitle>
+<PageTitle>Validation des demandes de compte — CIT</PageTitle>
 
-<div class="cit-page-header">
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
-        <h2 class="cit-page-title">
-            <span>🛡️</span> Validation des demandes de compte (CPT-01, CPT-02)
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🛡️</span> Administration CIT • CPT-01 & CPT-02
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">
+            Validation des Demandes de Compte
         </h2>
-        <div class="cit-page-subtitle">Revue administrative, vérification des justificatifs et validation/rejet des entreprises</div>
+        <div class="cit-page-subtitle text-muted">
+            Revue administrative des dossiers, examen des pièces justificatives et habilitation des profils d'entreprise.
+        </div>
     </div>
-    <div class="mt-3 mt-md-0">
-        <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            <span>🔄</span> Actualiser la file
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des demandes en attente..." />
+    <IndicateurChargement Message="Chargement des demandes en attente d'instruction..." />
 }
 else if (_nonAutorise)
 {
@@ -40,88 +43,107 @@ else if (_nonAutorise)
 }
 else
 {
-@if (erreur is not null)
-{
-    <div class="alert alert-danger mb-4">@erreur</div>
-}
-
-@if (demandes.Count == 0)
-{
-    <EtatVide Titre="Aucune demande en attente" Description="Aucune demande de compte entreprise n'attend de validation." Icone="🛡️" />
-}
-else
-{
-    <div class="cit-card p-0 overflow-hidden mb-4">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Entreprise demandeuse</th>
-                        <th>Justificatifs produits</th>
-                        <th>Profil déclaré</th>
-                        <th>Demande reçue le</th>
-                        <th class="text-end">Actions d'instruction</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var demande in demandes)
-                    {
-                        <tr>
-                            <td class="text-dark fw-semibold">
-                                @(string.IsNullOrWhiteSpace(demande.InformationsDeclarees)
-                                    ? "Informations non renseignées"
-                                    : demande.InformationsDeclarees)
-                            </td>
-                            @* CPT-01 — l'instruction se fait SUR PIECES : sans elles, la
-                               validation ne pourrait porter que sur du declaratif. *@
-                            <td>
-                                @if (justificatifs.TryGetValue(demande.Id, out var pieces) && pieces.Count > 0)
-                                {
-                                    <div class="d-flex flex-column gap-1">
-                                        @foreach (var piece in pieces)
-                                        {
-                                            <span class="badge bg-info-subtle text-info text-start">
-                                                📎 @piece.PieceCode — @piece.NomFichier
-                                            </span>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="small text-muted">Aucune pièce</span>
-                                }
-                            </td>
-                            @* MCT operation 2 / MOT etape 3 — « confirmation ou CORRECTION du
-                               profil declare » (CPT-02). Le profil etait auparavant en lecture
-                               seule ici, et l'ecran de modification du type ne proposait que les
-                               societes deja actives : la correction n'etait donc possible
-                               qu'APRES activation, alors que le MOT la place dans l'acte
-                               d'instruction. Corriger ici ne vaut pas decision : il faut ensuite
-                               valider ou rejeter. *@
-                            <td>
-                                <select class="form-select form-select-sm" style="width: 9rem;"
-                                        @onchange="e => CorrigerProfilAsync(demande.Id, e.Value?.ToString())">
-                                    @foreach (var valeur in Enum.GetValues<TypeClient>())
-                                    {
-                                        <option value="@valeur" selected="@(valeur == demande.Profil)">@valeur</option>
-                                    }
-                                </select>
-                            </td>
-                            <td class="small text-muted">@demande.DateCreationUtc.ToString("dd/MM/yyyy")</td>
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end align-items-center gap-2">
-                                    <button class="btn btn-success btn-sm fw-bold" @onclick="() => ValiderAsync(demande.Id)">✅ Valider</button>
-                                    <InputText class="form-control form-control-sm d-inline-block w-auto" placeholder="Motif de rejet si refus" @bind-Value="motifsRejet[demande.Id]" />
-                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => RejeterAsync(demande.Id)">❌ Rejeter</button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    @if (erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+            <span class="me-2 fs-5">⚠️</span> @erreur
         </div>
-    </div>
-}
+    }
+
+    @if (demandes.Count == 0)
+    {
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+            <div class="fs-1 mb-3">✅</div>
+            <h4 class="fw-bold text-dark mb-2">File d'attente à jour</h4>
+            <p class="text-muted mb-0">Toutes les demandes d'ouverture de compte ont été instruites. Aucune action en attente.</p>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-sm mb-4" style="border-radius: 1rem;">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <div class="fw-bold text-dark small text-uppercase tracking-wider">
+                    📋 Demandes à instruire (@demandes.Count)
+                </div>
+                <span class="badge bg-warning text-dark fw-bold px-2 py-1">En attente de décision</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase text-muted small fw-bold" style="font-size: 0.75rem;">
+                        <tr>
+                            <th class="ps-4 py-3">Entreprise Demandeuse</th>
+                            <th class="py-3">Justificatifs Produits</th>
+                            <th class="py-3">Profil Déclaré</th>
+                            <th class="py-3">Date Réception</th>
+                            <th class="text-end pe-4 py-3">Décision d'Instruction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var demande in demandes)
+                        {
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                        @(string.IsNullOrWhiteSpace(demande.InformationsDeclarees)
+                                            ? "Informations non renseignées"
+                                            : demande.InformationsDeclarees)
+                                    </div>
+                                    <div class="small text-muted font-monospace">ID: @demande.Id.ToString()[..8]...</div>
+                                </td>
+                                <td>
+                                    @if (justificatifs.TryGetValue(demande.Id, out var pieces) && pieces.Count > 0)
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var piece in pieces)
+                                            {
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small text-start">
+                                                    📎 @piece.PieceCode : @piece.NomFichier
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Aucune pièce jointe</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <select class="form-select form-select-sm border-0 shadow-sm fw-semibold" style="width: 10rem; background-color: var(--surface);"
+                                                @onchange="e => CorrigerProfilAsync(demande.Id, e.Value?.ToString())">
+                                            @foreach (var valeur in Enum.GetValues<TypeClient>())
+                                            {
+                                                <option value="@valeur" selected="@(valeur == demande.Profil)">@valeur</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="small text-muted">
+                                    <span>📅 @demande.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                                </td>
+                                <td class="text-end pe-4 py-3">
+                                    <div class="d-flex justify-content-end align-items-center gap-2">
+                                        <button class="btn btn-success btn-sm px-3 py-1 fw-bold shadow-sm d-flex align-items-center gap-1" 
+                                                @onclick="() => ValiderAsync(demande.Id)">
+                                            <span>✓</span> Valider
+                                        </button>
+                                        <input type="text" class="form-control form-control-sm border-0 shadow-sm" 
+                                               style="width: 13rem; background-color: var(--surface);"
+                                               placeholder="Motif si rejet..." 
+                                               @bind="motifsRejet[demande.Id]" />
+                                        <button class="btn btn-outline-danger btn-sm px-2 py-1 fw-semibold d-flex align-items-center gap-1" 
+                                                @onclick="() => RejeterAsync(demande.Id)">
+                                            <span>✕</span> Rejeter
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -136,9 +158,8 @@ else
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
-    // ANTI-IDOR : l'administrateur instruisant la demande est l'utilisateur authentifié, jamais un
-    // identifiant saisi. Le chargement automatique est donc sûr — l'habilitation
-    // (Permission.CompteValider) reste vérifiée côté serveur par ListerDemandesEnAttenteQuery.
+    // ANTI-IDOR & THREAD-SAFE : Exécution dans un IServiceScope isolé pour garantir
+    // l'absence de collisions multi-threads DbContext en Blazor Server interactif.
     private async Task ChargerAsync()
     {
         _chargement = true;
@@ -154,13 +175,17 @@ else
             }
 
             _appelantId = contexte.UtilisateurId;
-            demandes = (await ListerDemandes.ExecuterAsync(_appelantId)).ToList();
+
+            using var scope = ScopeFactory.CreateScope();
+            var listerDemandesQuery = scope.ServiceProvider.GetRequiredService<ListerDemandesEnAttenteQuery>();
+            var listerJustificatifsQuery = scope.ServiceProvider.GetRequiredService<ListerJustificatifsDemandeQuery>();
+
+            demandes = (await listerDemandesQuery.ExecuterAsync(_appelantId)).ToList();
             justificatifs.Clear();
             foreach (var demande in demandes)
             {
                 motifsRejet.TryAdd(demande.Id, string.Empty);
-                // CPT-01 : instruire sur pieces suppose de les avoir sous les yeux.
-                justificatifs[demande.Id] = await ListerJustificatifs.ExecuterAsync(_appelantId, demande.Id);
+                justificatifs[demande.Id] = await listerJustificatifsQuery.ExecuterAsync(_appelantId, demande.Id);
             }
             _nonAutorise = false;
         }
@@ -176,11 +201,6 @@ else
         }
     }
 
-    /// <summary>
-    /// MCT operation 2 — la correction du profil fait partie de l'instruction, pas de l'apres-coup.
-    /// L'autorisation dediee (CPT-06) reste exigee cote serveur par la commande : corriger et
-    /// decider sont deux droits distincts, et les reunir ici ne les confond pas.
-    /// </summary>
     private async Task CorrigerProfilAsync(Guid societeId, string? profil)
     {
         if (!Enum.TryParse<TypeClient>(profil, out var nouveauProfil))
@@ -190,7 +210,9 @@ else
 
         try
         {
-            await ModifierTypeClient.ExecuterAsync(_appelantId, societeId, nouveauProfil);
+            using var scope = ScopeFactory.CreateScope();
+            var modifierTypeClientCmd = scope.ServiceProvider.GetRequiredService<ModifierTypeClientCommand>();
+            await modifierTypeClientCmd.ExecuterAsync(_appelantId, societeId, nouveauProfil);
             await ChargerAsync();
         }
         catch (Exception ex)
@@ -204,7 +226,9 @@ else
         erreur = null;
         try
         {
-            await ValiderOuRejeter.ValiderAsync(societeId, _appelantId);
+            using var scope = ScopeFactory.CreateScope();
+            var validerOuRejeterCmd = scope.ServiceProvider.GetRequiredService<ValiderOuRejeterDemandeCompteCommand>();
+            await validerOuRejeterCmd.ValiderAsync(societeId, _appelantId);
             await ChargerAsync();
         }
         catch (AccesRefuseException ex)
@@ -218,7 +242,9 @@ else
         erreur = null;
         try
         {
-            await ValiderOuRejeter.RejeterAsync(societeId, _appelantId, motifsRejet.GetValueOrDefault(societeId, string.Empty));
+            using var scope = ScopeFactory.CreateScope();
+            var validerOuRejeterCmd = scope.ServiceProvider.GetRequiredService<ValiderOuRejeterDemandeCompteCommand>();
+            await validerOuRejeterCmd.RejeterAsync(societeId, _appelantId, motifsRejet.GetValueOrDefault(societeId, string.Empty));
             await ChargerAsync();
         }
         catch (Exception ex) when (ex is AccesRefuseException or ArgumentException)

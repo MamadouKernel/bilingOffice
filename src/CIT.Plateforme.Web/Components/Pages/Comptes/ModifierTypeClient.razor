@@ -7,18 +7,23 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
-@inject ListerSocietesActivesQuery ListerSocietes
-@inject ModifierTypeClientCommand ModifierType
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>Modifier le type de client — CIT</PageTitle>
 
-<div class="cit-page-header">
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
-        <h2 class="cit-page-title">
-            <span>🏷️</span> Modifier le type de client (CPT-06)
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🏷️</span> Administration CIT • CPT-06
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">
+            Modifier le Type de Client
         </h2>
-        <div class="cit-page-subtitle">Modification administrative tracée du profil de facturation (Normal, En Compte, Deposit)</div>
+        <div class="cit-page-subtitle text-muted">
+            Modification administrative tracée du profil de facturation (Normal, En Compte, Deposit, IES).
+        </div>
     </div>
 </div>
 
@@ -32,7 +37,7 @@ else if (_nonAutorise)
 }
 else
 {
-    <div style="max-width: 700px;">
+    <div style="max-width: 720px;">
         @if (_societes is null || _societes.Count == 0)
         {
             <EtatVide Titre="Aucune société active"
@@ -41,38 +46,48 @@ else
         }
         else
         {
-            <div class="cit-card mb-4">
-                <p class="text-muted small mb-3">
-                    Le changement est tracé avec horodatage et n'affecte que les nouveaux dossiers — les dossiers déjà créés conservent leur type d'origine.
-                </p>
+            <div class="cit-card p-4 border-0 shadow-sm mb-4" style="border-radius: 1rem;">
+                <div class="alert alert-info bg-info bg-opacity-10 border-0 text-info mb-4 d-flex align-items-center gap-2 p-3 rounded-3">
+                    <span class="fs-5">ℹ️</span>
+                    <span class="small">Le changement est consigné dans le journal d'audit et s'applique aux nouveaux dossiers sans rétroactivité.</span>
+                </div>
 
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold text-dark" for="societe">Société cliente concernée</label>
-                    <select id="societe" class="form-select form-select-sm" @bind="_societeSelectionnee">
+                <div class="mb-4">
+                    <label class="form-label text-uppercase fw-bold text-muted small" for="societe">Société cliente concernée</label>
+                    <select id="societe" class="form-select form-select-lg border-0 shadow-sm" 
+                            style="background-color: var(--surface); border-radius: 0.75rem;" 
+                            @bind="_societeSelectionnee">
                         @foreach (var societe in _societes)
                         {
                             <option value="@societe.Id">@NomLisible(societe)</option>
                         }
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-semibold text-dark">Type de client actuel</label>
+
+                <div class="mb-4">
+                    <label class="form-label text-uppercase fw-bold text-muted small">Type de client actuel</label>
                     <div>
-                        <span class="badge bg-light text-dark border">@LibelleType(TypeActuel)</span>
+                        <span class="badge bg-secondary-subtle text-dark border px-3 py-2 fs-6">@LibelleType(TypeActuel)</span>
                     </div>
                 </div>
+
                 <div class="mb-4">
-                    <label class="form-label small fw-semibold text-dark" for="nouveau-type">Nouveau type de client</label>
-                    <select id="nouveau-type" class="form-select form-select-sm" @bind="_nouveauType">
+                    <label class="form-label text-uppercase fw-bold text-muted small" for="nouveau-type">Nouveau type de client cible</label>
+                    <select id="nouveau-type" class="form-select form-select-lg border-0 shadow-sm" 
+                            style="background-color: var(--surface); border-radius: 0.75rem;" 
+                            @bind="_nouveauType">
                         @foreach (var valeur in Enum.GetValues<TypeClient>())
                         {
                             <option value="@valeur">@LibelleType(valeur)</option>
                         }
                     </select>
                 </div>
-                <div class="text-end">
-                    <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="ModifierAsync">
-                        💾 Valider la modification
+
+                <div class="pt-2 border-top text-end">
+                    <button type="button" class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow-sm" 
+                            style="border-radius: 0.75rem;" 
+                            @onclick="ModifierAsync">
+                        💾 Enregistrer la modification
                     </button>
                 </div>
             </div>
@@ -80,14 +95,16 @@ else
 
         @if (_erreur is not null)
         {
-            <div class="alert alert-danger mb-4">@_erreur</div>
+            <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center">
+                <span class="me-2 fs-5">⚠️</span> @_erreur
+            </div>
         }
 
         @if (_succes)
         {
-            <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 d-flex align-items-center gap-2 mb-4 rounded-3 p-3">
                 <span class="fs-4">✅</span>
-                <div>Type de client modifié avec succès et consigné dans le journal d'audit.</div>
+                <div class="fw-semibold">Type de client modifié avec succès et tracé dans le journal d'audit.</div>
             </div>
         }
     </div>
@@ -110,8 +127,6 @@ else
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
-    /// <summary>Une société est désignée par ses informations déclarées ; l'identifiant technique
-    /// n'apparaît jamais à l'écran et n'est jamais saisi.</summary>
     private static string NomLisible(SocieteSelectionnable societe) =>
         string.IsNullOrWhiteSpace(societe.InformationsDeclarees)
             ? "Société sans informations déclarées"
@@ -140,10 +155,11 @@ else
                 return;
             }
 
-            // L'administrateur fonctionnel est l'utilisateur authentifié ; l'habilitation
-            // Permission.CompteTypeModifier est vérifiée côté serveur, à la lecture comme à l'écriture.
             _appelantId = contexte.UtilisateurId;
-            _societes = await ListerSocietes.ExecuterAsync(_appelantId);
+
+            using var scope = ScopeFactory.CreateScope();
+            var listerSocietesQuery = scope.ServiceProvider.GetRequiredService<ListerSocietesActivesQuery>();
+            _societes = await listerSocietesQuery.ExecuterAsync(_appelantId);
 
             var courante = _societes.FirstOrDefault(s => s.Id == _societeSelectionnee) ?? _societes.FirstOrDefault();
             if (courante is not null)
@@ -181,7 +197,9 @@ else
 
         try
         {
-            await ModifierType.ExecuterAsync(_appelantId, _societeSelectionnee, _nouveauType);
+            using var scope = ScopeFactory.CreateScope();
+            var modifierTypeCmd = scope.ServiceProvider.GetRequiredService<ModifierTypeClientCommand>();
+            await modifierTypeCmd.ExecuterAsync(_appelantId, _societeSelectionnee, _nouveauType);
             _succes = true;
             await ChargerAsync();
         }

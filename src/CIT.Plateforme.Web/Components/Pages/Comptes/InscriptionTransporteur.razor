@@ -7,78 +7,204 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject InscrireTransporteurCommand InscrireTransporteur
 
-@* ENR-01 (Must) — « Le chauffeur ou le transporteur RENSEIGNE À DISTANCE les informations
-   nécessaires à son enrôlement. » Le § 6 en fait un profil à part entière et le modèle de
-   données du CDC prévoit un « compte transporteur/chauffeur » distinct du compte client.
+<PageTitle>Inscription Transporteur — Côte d'Ivoire Terminal</PageTitle>
 
-   Page PUBLIQUE, comme la demande de compte entreprise : l'intéressé n'a pas encore de compte.
-   Elle s'en distingue sur le point décisif — elle N'OUVRE AUCUNE DEMANDE DE SOCIÉTÉ. Le
-   transporteur est une personne physique unique (CLAR-ENR-01), et c'est précisément ce que les
-   trois autres portes ne savaient pas produire. *@
+<div class="row justify-content-center py-2">
+    <div class="col-12 col-xl-11">
+        
+        <!-- Navigation Top Bar : Accueil & Aide -->
+        <div class="d-flex align-items-center justify-content-between mb-3 px-2">
+            <a href="/" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold rounded-pill bg-white shadow-xs d-inline-flex align-items-center gap-2">
+                <span>🏠</span> Retour à l'accueil
+            </a>
+            
+            <button class="btn btn-light btn-sm px-3 py-2 fw-semibold rounded-pill text-primary border shadow-xs d-inline-flex align-items-center gap-2" 
+                    type="button" 
+                    @onclick="() => _afficherAide = !_afficherAide">
+                <span>💡</span> Guide & Aide
+            </button>
+        </div>
 
-<PageTitle>Inscription transporteur — CIT</PageTitle>
+        <!-- Panneau d'Aide Dépliable -->
+        @if (_afficherAide)
+        {
+            <div class="cit-card p-4 mb-4 border-0 shadow-sm rounded-4" style="background-color: #f0f9ff !important; border: 1px solid #bae6fd !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <span>💡</span> Guide d'enrôlement Transporteur & Chauffeur
+                    </h5>
+                    <button type="button" class="btn-close" aria-label="Fermer" @onclick="() => _afficherAide = false"></button>
+                </div>
+                <div class="row g-3 small text-muted mt-1">
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 bg-white rounded-3 border h-100">
+                            <strong class="text-dark d-block mb-1">1. Création de votre accès</strong>
+                            Renseignez votre e-mail, nom complet et mot de passe pour créer votre compte chauffeur personnel.
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 bg-white rounded-3 border h-100">
+                            <strong class="text-dark d-block mb-1">2. Enrôlement camion & permis</strong>
+                            Une fois connecté, déclarez vos numéros de permis de conduire, carte grise et immatriculation de tracteur.
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="p-3 bg-white rounded-3 border h-100">
+                            <strong class="text-dark d-block mb-1">3. Passage fluide aux barrières</strong>
+                            Obtenez votre badge numérique / QR Code pour accéder sans attente aux guérites du terminal CIT.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
-<div class="container" style="max-width: 34rem;">
-    <div class="cit-page-header">
-        <div>
-            <h2 class="cit-page-title"><span>🚚</span> Inscription transporteur</h2>
-            <div class="cit-page-subtitle">
-                Créez votre accès pour constituer votre dossier d'enrôlement à distance
+        <!-- Carte Principale 2 Colonnes -->
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem; background-color: #ffffff;">
+            <div class="row g-0">
+                
+                <!-- Left Column: Transport 3D Illustration & Presentation -->
+                <div class="col-lg-5 d-none d-lg-block" style="background-color: #fffbeb;">
+                    <div class="h-100 d-flex flex-column justify-content-between p-5">
+                        <div>
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white rounded-pill shadow-xs mb-4">
+                                <img src="images/logo_cit.jpeg" alt="Logo CIT" style="height: 32px; object-fit: contain; border-radius: 4px;" />
+                                <span class="small fw-bold text-dark">Côte d'Ivoire Terminal</span>
+                            </div>
+
+                            <h3 class="fw-bold text-dark mb-3 lh-sm" style="color: #78350f !important;">
+                                Espace Transporteur & Chauffeur
+                            </h3>
+                            <p class="text-muted small mb-4" style="line-height: 1.6;">
+                                Vous assurez l'enlèvement ou la livraison de conteneurs au Port d'Abidjan ? Pré-enrôlez votre flotte et vos chauffeurs pour fluidifier votre passage aux barrières de contrôle.
+                            </p>
+
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-warning bg-opacity-25 text-dark p-2 rounded-circle">🚚</span>
+                                    <div class="small">
+                                        <strong class="text-dark d-block">Accès Prioritaire Gate</strong>
+                                        <span class="text-muted">Enregistrement préalable des plaques et cartes grises.</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-success bg-opacity-10 text-success p-2 rounded-circle">⏱️</span>
+                                    <div class="small">
+                                        <strong class="text-dark d-block">Gain de Temps Quotidien</strong>
+                                        <span class="text-muted">Réduction drastique des files d'attente à l'entrée du terminal.</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-circle">📱</span>
+                                    <div class="small">
+                                        <strong class="text-dark d-block">Badge Numérique Chauffeur</strong>
+                                        <span class="text-muted">Suivi des missions et alertes de créneau de passage.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image illustration -->
+                        <div class="text-center pt-2">
+                            <img src="images/transport-illustration.jpg" 
+                                 alt="Terminal Portuaire Transport CIT" 
+                                 class="img-fluid rounded-4 shadow-sm border border-white border-2" 
+                                 style="max-height: 280px; object-fit: cover;" />
+                            <div class="text-muted small mt-2" style="font-size: 0.75rem;">
+                                Entrée sécurisée des camions - Guérite Gate CIT Abidjan
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Registration Form -->
+                <div class="col-12 col-lg-7 d-flex align-items-center">
+                    <div class="p-4 p-md-5 w-100">
+                        
+                        <!-- Header with Logo -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 48px; object-fit: contain; border-radius: 6px;" />
+                                <span class="badge bg-warning bg-opacity-20 text-dark fw-bold px-3 py-2 rounded-pill small">
+                                    🚚 Transporteur • ENR-01
+                                </span>
+                            </div>
+                            <h2 class="fw-bold text-dark mb-1">Inscription Transporteur</h2>
+                            <p class="text-muted small mb-0">Créez votre accès personnel pour renseigner votre tracteur et constituer votre dossier d'enrôlement.</p>
+                        </div>
+
+                        @if (_termine)
+                        {
+                            <div class="p-4 p-md-5 border-0 shadow-sm mb-4 text-center rounded-4" 
+                                 style="background-color: #f0fdf4 !important; border: 1px solid #bbf7d0 !important;">
+                                <div class="fs-1 mb-2">🎉</div>
+                                <h4 class="fw-bold mb-2" style="color: #166534;">Votre compte chauffeur est créé avec succès !</h4>
+                                <p class="text-muted small mb-4">
+                                    Connectez-vous pour constituer votre dossier d'enrôlement et déposer vos pièces (permis, carte grise, immatriculation).
+                                </p>
+                                <a class="btn btn-success px-4 py-2 fw-bold shadow-sm rounded-pill" href="/comptes/connexion">
+                                    Se connecter à mon espace ➔
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-3">
+                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="email">Adresse E-mail Professionnelle <span class="text-danger">*</span></label>
+                                <input id="email" class="form-control form-control-lg border-0 shadow-xs px-3 py-3" 
+                                       placeholder="chauffeur@transport.ci" 
+                                       style="background-color: var(--surface); border-radius: 0.75rem;" 
+                                       @bind="_email" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="nom">Nom et Prénoms Complets <span class="text-danger">*</span></label>
+                                <input id="nom" class="form-control form-control-lg border-0 shadow-xs px-3 py-3" 
+                                       placeholder="Kouadio Yao Michel" 
+                                       style="background-color: var(--surface); border-radius: 0.75rem;" 
+                                       @bind="_nomAffiche" />
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="mdp">Mot de Passe <span class="text-danger">*</span></label>
+                                <input id="mdp" type="password" class="form-control form-control-lg border-0 shadow-xs px-3 py-3" 
+                                       placeholder="••••••••••••" 
+                                       style="background-color: var(--surface); border-radius: 0.75rem;" 
+                                       @bind="_motDePasse" />
+                                <div class="form-text small text-muted">10 caractères minimum recommandés.</div>
+                            </div>
+
+                            @if (_erreur is not null)
+                            {
+                                <div class="alert mt-3 mb-3 rounded-3 p-3 d-flex align-items-center shadow-sm" 
+                                     style="background-color: #fef2f2 !important; color: #991b1b !important; border: 1px solid #fecaca !important;">
+                                    <span class="me-2 fs-5">⚠️</span>
+                                    <span class="fw-semibold small">@_erreur</span>
+                                </div>
+                            }
+
+                            <div class="pt-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <a href="/comptes/connexion" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">
+                                    ← Déjà inscrit ? Se connecter
+                                </a>
+                                <button class="btn btn-warning btn-lg px-4 py-2 fw-bold text-dark shadow-sm rounded-pill" @onclick="CreerAsync">
+                                    Créer mon accès chauffeur ➔
+                                </button>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top text-center">
+                                <span class="text-muted small">Vous représentez une entreprise cliente ou un transitaire ?</span><br />
+                                <a href="/comptes/soumettre" class="fw-bold text-primary text-decoration-none small">
+                                    🏢 Ouvrir plutôt un compte entreprise (Société)
+                                </a>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
-
-    @if (_termine)
-    {
-        <div class="alert alert-success">
-            <strong>Votre compte est créé.</strong>
-            <div class="small mt-1">
-                Connectez-vous, puis constituez votre dossier d'enrôlement et déposez vos pièces.
-            </div>
-            <a class="btn btn-primary btn-sm mt-3" href="/comptes/connexion">Se connecter</a>
-        </div>
-    }
-    else
-    {
-        <div class="card">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold" for="email">Adresse e-mail</label>
-                    <input id="email" class="form-control form-control-sm" @bind="_email" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold" for="nom">Nom et prénoms</label>
-                    <input id="nom" class="form-control form-control-sm" @bind="_nomAffiche" />
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold" for="mdp">Mot de passe</label>
-                    <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
-                    <div class="form-text">10 caractères minimum.</div>
-                </div>
-
-                @if (_erreur is not null)
-                {
-                    <div class="alert alert-danger small">@_erreur</div>
-                }
-
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="/comptes/connexion" class="text-decoration-none small text-muted">
-                        ← Déjà un compte ? Se connecter
-                    </a>
-                    <button class="btn btn-primary fw-bold px-4" @onclick="CreerAsync">
-                        Créer mon compte
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <p class="form-text mt-3">
-            Vous représentez une entreprise cliente ?
-            <a href="/comptes/soumettre">Demandez plutôt un compte entreprise</a>.
-        </p>
-    }
 </div>
 
 @code {
@@ -87,6 +213,7 @@
     private string _motDePasse = string.Empty;
     private string? _erreur;
     private bool _termine;
+    private bool _afficherAide;
 
     private async Task CreerAsync()
     {
@@ -94,12 +221,10 @@
 
         if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche))
         {
-            _erreur = "L'adresse e-mail et le nom sont obligatoires.";
+            _erreur = "L'adresse e-mail et le nom complet sont obligatoires.";
             return;
         }
 
-        // Le compte Identity est créé côté Web, comme pour la demande de compte société
-        // (decision D1 : aucune modification d'Identity depuis la couche applicative).
         var transporteur = new ApplicationUser
         {
             UserName = _email.Trim(),
@@ -122,8 +247,6 @@
         }
         catch (Exception ex)
         {
-            // Sans son habilitation, le compte ne pourrait rien soumettre : le laisser en place
-            // produirait un accès inutile et trompeur.
             await UserManager.DeleteAsync(transporteur);
             _erreur = ex.Message;
         }

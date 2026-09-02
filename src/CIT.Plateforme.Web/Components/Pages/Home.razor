@@ -5,176 +5,282 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
 
-<PageTitle>@Loc["Home.HeroTitle"] — @Loc["Common.AppTitle"]</PageTitle>
+<PageTitle>Bienvenue sur la Plateforme Digitale — Côte d'Ivoire Terminal (CIT)</PageTitle>
 
-<div class="cit-home-portal py-2">
-    <!-- Hero Banner de Bienvenue -->
-    <div class="cit-card p-4 p-md-5 mb-4 text-white border-0 shadow-lg overflow-hidden position-relative" style="background: linear-gradient(135deg, var(--marine-950) 0%, var(--marine-800) 60%, var(--marine-700) 100%); border-radius: var(--radius-xl);">
-        <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center opacity-10 pe-4 pe-xl-5 pointer-events-none" style="font-size: 14rem;">
-            ⚓
-        </div>
-
-        <div class="position-relative z-1" style="max-width: 780px;">
-            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-pill mb-3">
-                <img src="images/logo_cit.jpeg" alt="Logo CIT" style="height: 20px; border-radius: 4px;" />
-                <span class="small fw-semibold text-white">Côte d'Ivoire Terminal • Portail Officiel</span>
-            </div>
-
-            <h1 class="display-6 fw-bold mb-3 text-white lh-sm">
-                Bienvenue sur la <span style="color: var(--signal);">Plateforme Digitale CIT</span>
-            </h1>
-
-            <p class="lead mb-4 text-white-50 fs-6">
-                Le portail unique et unifié pour le pilotage de vos opérations maritimes, le Billing Office dématérialisé, la simulation de factures proforma et le support client.
-            </p>
-
-            <div class="d-flex flex-wrap align-items-center gap-3">
-                <a href="/client/dashboard" class="btn btn-warning fw-bold px-4 py-2 text-dark shadow-sm rounded-pill">
-                    Accéder à mon espace ➔
-                </a>
-                <a href="/simulation/proforma" class="btn btn-outline-light fw-semibold px-4 py-2 rounded-pill bg-white bg-opacity-10">
-                    🧮 Simuler une proforma
-                </a>
-            </div>
-
-            <!-- Badges de réassurance -->
-            <div class="d-flex flex-wrap gap-2 gap-md-3 mt-4 pt-3 border-top border-white border-opacity-15 small text-white-50">
-                <span class="d-flex align-items-center gap-1">🛡️ Données Sécurisées & Auditées</span>
-                <span class="d-none d-sm-inline">•</span>
-                <span class="d-flex align-items-center gap-1">⚡ Traitement en Temps Réel</span>
-                <span class="d-none d-sm-inline">•</span>
-                <span class="d-flex align-items-center gap-1">⚓ Terminal Portuaire d'Abidjan</span>
-            </div>
-        </div>
+@if (_estAuthentifie)
+{
+    <div class="d-flex align-items-center justify-content-center p-5">
+        <div class="spinner-border text-primary me-3" role="status"></div>
+        <span class="text-muted fw-semibold">Redirection vers votre espace de travail...</span>
     </div>
+}
+else
+{
+    <div class="cit-landing-container py-3">
+        
+        <!-- 1. HERO BANNER PRINCIPAL : PRÉSENTATION DE CÔTE D'IVOIRE TERMINAL -->
+        <div class="cit-card p-4 p-lg-5 mb-5 text-white border-0 shadow-lg overflow-hidden position-relative" 
+             style="background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #173f82 100%); border-radius: 1.5rem;">
+            
+            <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center opacity-10 pe-5 pointer-events-none" style="font-size: 15rem;">
+                ⚓
+            </div>
 
-    <!-- Grille des 4 Pôles Thématiques -->
-    <div class="row g-3 g-md-4 mb-4">
-        <!-- 1. 📦 Opérations & Suivi des Dossiers -->
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-primary">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="rounded-3 p-2 bg-primary-subtle text-primary fs-4">
-                            📦
-                        </div>
-                        <span class="badge bg-light text-muted border small">Opérations</span>
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-12 col-lg-8 pe-lg-4">
+                    <div class="d-inline-flex align-items-center gap-2 gap-sm-3 p-2 ps-3 pe-3 pe-sm-4 bg-white rounded-pill shadow-sm mb-4 flex-wrap flex-sm-nowrap">
+                        <img src="images/logo_cit.jpeg" alt="Logo Côte d'Ivoire Terminal" 
+                             style="height: 52px; width: auto; object-fit: contain; border-radius: 6px;" />
+                        <div class="vr bg-secondary opacity-25 d-none d-sm-block" style="height: 30px;"></div>
+                        <span class="d-inline-block small fw-bold text-dark text-nowrap" style="font-size: 0.95rem;">
+                            Espace Digital • Billing Office
+                        </span>
                     </div>
-                    <h5 class="fw-bold text-dark mb-2">Gestion des Dossiers</h5>
-                    <p class="text-muted small mb-3">
-                        Suivez en direct l'avancement de vos dossiers Import & Export, vos manifestes et contrôles documentaires.
+
+                    <h1 class="display-5 fw-bold mb-3 text-white lh-sm">
+                        Pilotez toutes vos opérations portuaires <span style="color: #f59e0b;">en toute simplicité.</span>
+                    </h1>
+
+                    <p class="lead mb-4 text-white-50 fs-6" style="line-height: 1.6;">
+                        Bienvenue sur la plateforme digitale officielle de <strong>Côte d'Ivoire Terminal (CIT)</strong>. 
+                        Accédez 24h/24 et 7j/7 au traitement dématérialisé de vos facturations maritimes, au suivi de vos conteneurs Import/Export, 
+                        aux simulations tarifaires proforma et à la gestion de vos flux douaniers.
                     </p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                        <a href="/comptes/connexion" class="btn btn-warning btn-lg fw-bold px-4 py-3 text-dark shadow-sm rounded-pill d-flex align-items-center gap-2">
+                            <span>🔑</span> Se Connecter
+                        </a>
+                        <a href="/comptes/soumettre" class="btn btn-light btn-lg fw-bold px-4 py-3 text-primary shadow-sm rounded-pill d-flex align-items-center gap-2">
+                            <span>🏢</span> Créer un compte Société
+                        </a>
+                        <a href="/simulation/proforma" class="btn btn-outline-light fw-semibold px-3 py-3 rounded-pill bg-white bg-opacity-10 d-flex align-items-center gap-2">
+                            <span>🧮</span> Simuler une Proforma
+                        </a>
+                    </div>
+
+                    <!-- Badges de réassurance -->
+                    <div class="d-flex flex-wrap gap-3 pt-3 border-top border-white border-opacity-20 small text-white-50">
+                        <span class="d-flex align-items-center gap-1">🛡️ Données Chiffrées & Auditées</span>
+                        <span class="d-none d-sm-inline opacity-50">•</span>
+                        <span class="d-flex align-items-center gap-1">⚡ Facturation en Temps Réel</span>
+                        <span class="d-none d-sm-inline opacity-50">•</span>
+                        <span class="d-flex align-items-center gap-1">⏱️ Zéro Attente Guichet</span>
+                    </div>
                 </div>
-                <a href="/client/demandes" class="btn btn-outline-primary btn-sm fw-bold w-100 mt-2">
-                    Mes demandes ➔
+
+                <div class="col-12 col-lg-4 d-none d-lg-block text-center">
+                    <img src="images/login-illustration.jpg" alt="Terminal CIT 3D" 
+                         class="img-fluid rounded-4 shadow" 
+                         style="max-height: 280px; mix-blend-mode: luminosity; opacity: 0.85; border: 2px solid rgba(255,255,255,0.2);" />
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CHOIX DU PARCOURS : "QUEL EST VOTRE PROFIL ?" -->
+        <div class="mb-5">
+            <div class="text-center mb-4">
+                <div class="d-inline-block px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary fw-bold small mb-2">
+                    🎯 Démarche Simplifiée
+                </div>
+                <h2 class="fw-bold text-dark">Vous n'avez pas de compte ? Choisissez votre parcours</h2>
+                <p class="text-muted mx-auto" style="max-width: 650px;">
+                    Sélectionnez la situation qui correspond à votre activité pour être orienté immédiatement vers la bonne démarche.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Parcours 1 : Nouvelle Entreprise / Transitaire -->
+                <div class="col-12 col-md-4">
+                    <div class="cit-card h-100 p-4 border-0 shadow-sm d-flex flex-column justify-content-between position-relative overflow-hidden" 
+                         style="border-radius: 1.25rem; border-top: 5px solid #2563eb !important; background-color: #ffffff;">
+                        <div>
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-3 p-3 bg-primary bg-opacity-10 text-primary fs-3 mb-3">
+                                🏢
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">Nouvelle Entreprise</h4>
+                            <div class="badge bg-primary-subtle text-primary mb-3">Transitaire • Armateur • Client</div>
+                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                                Votre société n'est pas encore enregistrée sur Côte d'Ivoire Terminal. Déposez votre dossier avec vos pièces légales (RCCM, DFE) pour ouvrir un compte société.
+                            </p>
+                        </div>
+                        <div>
+                            <a href="/comptes/soumettre" class="btn btn-primary w-100 py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
+                                <span>Ouvrir mon compte société</span> <span>➔</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parcours 2 : Collaborateur Invité -->
+                <div class="col-12 col-md-4">
+                    <div class="cit-card h-100 p-4 border-0 shadow-sm d-flex flex-column justify-content-between position-relative overflow-hidden" 
+                         style="border-radius: 1.25rem; border-top: 5px solid #10b981 !important; background-color: #ffffff;">
+                        <div>
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-3 p-3 bg-success bg-opacity-10 text-success fs-3 mb-3">
+                                👥
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">Collaborateur d'Entreprise</h4>
+                            <div class="badge bg-success-subtle text-success mb-3">Déclarant • Agent Maritime • Comptable</div>
+                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                                Votre entreprise possède <strong>déjà</strong> un compte actif. L'administrateur de votre société peut vous envoyer une invitation directe par e-mail pour activer votre mot de passe.
+                            </p>
+                        </div>
+                        <div>
+                            <a href="/comptes/connexion" class="btn btn-outline-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
+                                <span>J'ai reçu mon invitation</span> <span>➔</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parcours 3 : Transporteur / Chauffeur -->
+                <div class="col-12 col-md-4">
+                    <div class="cit-card h-100 p-4 border-0 shadow-sm d-flex flex-column justify-content-between position-relative overflow-hidden" 
+                         style="border-radius: 1.25rem; border-top: 5px solid #f59e0b !important; background-color: #ffffff;">
+                        <div>
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-3 p-3 bg-warning bg-opacity-10 text-warning fs-3 mb-3">
+                                🚚
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">Transporteur / Chauffeur</h4>
+                            <div class="badge bg-warning-subtle text-dark mb-3">Flotte • Tracteur • Enlèvement</div>
+                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                                Vous assurez le transport terrestre de conteneurs. Effectuez votre pré-enrôlement (permis, carte grise, immatriculation) pour obtenir votre badge d'accès portuaire.
+                            </p>
+                        </div>
+                        <div>
+                            <a href="/comptes/inscription-transporteur" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
+                                <span>Pré-enrôlement Transporteur</span> <span>➔</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. COMMENT OBTENIR UN COMPTE EN 3 ÉTAPES SIMPLES -->
+        <div class="cit-card p-4 p-lg-5 mb-5 border-0 shadow-sm" style="border-radius: 1.5rem; background-color: #f8fafc;">
+            <div class="text-center mb-4">
+                <div class="d-inline-block px-3 py-1 rounded-pill bg-dark bg-opacity-10 text-dark fw-bold small mb-2">
+                    📋 Guide d'Enregistrement
+                </div>
+                <h3 class="fw-bold text-dark">Comment obtenir votre compte entreprise en 3 étapes ?</h3>
+                <p class="text-muted">Un processus 100% digitalisé, rapide et sécurisé.</p>
+            </div>
+
+            <div class="row g-4 position-relative">
+                <div class="col-12 col-md-4">
+                    <div class="p-4 bg-white rounded-4 h-100 border shadow-xs text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">
+                            1
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Dépôt du Dossier</h5>
+                        <p class="text-muted small mb-0">
+                            Remplissez le formulaire en ligne avec votre Raison Sociale, RCCM, Compte Contribuable et téléversez vos pièces justificatives officielles.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="p-4 bg-white rounded-4 h-100 border shadow-xs text-center">
+                        <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">
+                            2
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Instruction Administrative</h5>
+                        <p class="text-muted small mb-0">
+                            Les équipes Billing Office de CIT vérifient vos pièces et paramètrent votre profil tarifaire (Normal, En Compte, Deposit ou IES) sous 24h ouvrées.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="p-4 bg-white rounded-4 h-100 border shadow-xs text-center">
+                        <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">
+                            3
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Activation & Pleine Autonomie</h5>
+                        <p class="text-muted small mb-0">
+                            Votre compte est activé : vous pouvez immédiatement soumettre vos BL/Bookings, simuler des proformas et inviter vos déclarants.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. POURQUOI UTILISER LA PLATEFORME DIGITALE CIT ? (SERVICES CLÉS) -->
+        <div class="mb-5">
+            <div class="text-center mb-4">
+                <div class="d-inline-block px-3 py-1 rounded-pill bg-success bg-opacity-10 text-success fw-bold small mb-2">
+                    ⚡ Avantages & Services
+                </div>
+                <h3 class="fw-bold text-dark">Les fonctionnalités majeures à votre disposition</h3>
+            </div>
+
+            <div class="row g-3 g-md-4">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                        <div class="fs-2 mb-2">📦</div>
+                        <h5 class="fw-bold text-dark mb-2">Gestion Import / Export</h5>
+                        <p class="text-muted small mb-0">
+                            Soumission en ligne de vos Connaissements (BL) et Réservations (Booking) avec contrôle documentaire intégré.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                        <div class="fs-2 mb-2">🧮</div>
+                        <h5 class="fw-bold text-dark mb-2">Simulations Proforma</h5>
+                        <p class="text-muted small mb-0">
+                            Estimez vos frais de manutention, stockage et branchement conteneur par conteneur avant toute opération.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                        <div class="fs-2 mb-2">💳</div>
+                        <h5 class="fw-bold text-dark mb-2">Comptes Deposit & IES</h5>
+                        <p class="text-muted small mb-0">
+                            Suivez vos soldes de provisions en temps réel, vos factures et accédez aux facilités de traitement express IES.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                        <div class="fs-2 mb-2">🛡️</div>
+                        <h5 class="fw-bold text-dark mb-2">Sécurité & Audit 2FA</h5>
+                        <p class="text-muted small mb-0">
+                            Authentification renforcée par code TOTP, journal d'audit immuable et protection réglementaire des données (ARTCI).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. BANDEAU DE CONTACT & ASSISTANCE -->
+        <div class="cit-card p-4 border-0 shadow-sm bg-dark text-white text-center text-md-start d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-radius: 1.25rem;">
+            <div>
+                <h5 class="fw-bold mb-1">Besoin d'aide ou d'une assistance personnalisée ?</h5>
+                <div class="text-white-50 small">Notre équipe support Billing Office est disponible pour accompagner votre transition digitale.</div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="/comptes/connexion" class="btn btn-warning fw-bold px-4 py-2 text-dark rounded-pill">
+                    Se Connecter ➔
+                </a>
+                <a href="/simulation/proforma" class="btn btn-outline-light px-4 py-2 rounded-pill">
+                    Calculer une proforma
                 </a>
             </div>
         </div>
 
-        <!-- 2. 📊 Facturation & Simulations Proforma -->
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-success">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="rounded-3 p-2 bg-success-subtle text-success fs-4">
-                            📊
-                        </div>
-                        <span class="badge bg-light text-muted border small">Finance</span>
-                    </div>
-                    <h5 class="fw-bold text-dark mb-2">Facturation & Proforma</h5>
-                    <p class="text-muted small mb-3">
-                        Estimez vos frais portuaires conteneur par conteneur et soumettez vos demandes de facturation BL & Booking.
-                    </p>
-                </div>
-                <a href="/simulation/proforma" class="btn btn-outline-success btn-sm fw-bold w-100 mt-2">
-                    Lancer un calcul ➔
-                </a>
-            </div>
-        </div>
-
-        <!-- 3. 🏢 Espace Entreprise & Collaborateurs -->
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-info">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="rounded-3 p-2 bg-info-subtle text-info fs-4">
-                            🏢
-                        </div>
-                        <span class="badge bg-light text-muted border small">Entreprise</span>
-                    </div>
-                    <h5 class="fw-bold text-dark mb-2">Espace Structure</h5>
-                    <p class="text-muted small mb-3">
-                        Consultez le profil de votre société, vos comptes bancaires de facturation et gérez vos collaborateurs.
-                    </p>
-                </div>
-                <a href="/societe/dashboard" class="btn btn-outline-info btn-sm fw-bold w-100 mt-2">
-                    Espace Entreprise ➔
-                </a>
-            </div>
-        </div>
-
-        <!-- 4. ⚙️ Support & Réclamations Clients -->
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="cit-card h-100 d-flex flex-column justify-content-between p-4 border-top border-4 border-warning">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="rounded-3 p-2 bg-warning-subtle text-warning fs-4">
-                            ⚙️
-                        </div>
-                        <span class="badge bg-light text-muted border small">Support</span>
-                    </div>
-                    <h5 class="fw-bold text-dark mb-2">Support & Sécurité</h5>
-                    <p class="text-muted small mb-3">
-                        Déposez une réclamation formelle, suivez son traitement par le support et activez la double authentification.
-                    </p>
-                </div>
-                <a href="/reclamations/soumettre" class="btn btn-outline-warning btn-sm text-dark fw-bold w-100 mt-2">
-                    Déposer réclamation ➔
-                </a>
-            </div>
-        </div>
     </div>
-
-    <!-- Bandeau Engagements de Service -->
-    <div class="row g-3">
-        <div class="col-12 col-md-4">
-            <div class="cit-stat-card border-0 bg-white shadow-sm p-3">
-                <div class="cit-stat-icon bg-primary-subtle text-primary">
-                    ⏱️
-                </div>
-                <div>
-                    <div class="fw-bold text-dark small">Traitement Dématérialisé</div>
-                    <div class="text-muted" style="font-size: 0.8rem;">Instruction rapide et traçabilité sous engagement SLA</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="cit-stat-card border-0 bg-white shadow-sm p-3">
-                <div class="cit-stat-icon bg-success-subtle text-success">
-                    📑
-                </div>
-                <div>
-                    <div class="fw-bold text-dark small">Transparence Tarifaire</div>
-                    <div class="text-muted" style="font-size: 0.8rem;">Grilles tarifaires officielles & zéro surprise de facturation</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="cit-stat-card border-0 bg-white shadow-sm p-3">
-                <div class="cit-stat-icon bg-info-subtle text-info">
-                    ⚓
-                </div>
-                <div>
-                    <div class="fw-bold text-dark small">Terminal Maritime d'Abidjan</div>
-                    <div class="text-muted" style="font-size: 0.8rem;">Infrastructure portuaire moderne de référence en Afrique de l'Ouest</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+}
 
 @code {
     private static readonly SharedResourcesLocalizer Loc = new();
+    private bool _estAuthentifie = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -182,6 +288,7 @@
 
         if (contexte.EstAuthentifie)
         {
+            _estAuthentifie = true;
             var destination = contexte.EspaceActif switch
             {
                 EspaceFonctionnel.Supervision => "/supervision",
@@ -194,7 +301,8 @@
         }
         else
         {
-            NavigationManager.NavigateTo("/comptes/connexion");
+            // Les visiteurs non authentifiés profitent pleinement de la landing page d'accueil et d'orientation
+            _estAuthentifie = false;
         }
     }
 }

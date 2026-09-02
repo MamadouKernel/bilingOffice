@@ -7,30 +7,73 @@
 
 <PageTitle>@Loc["Auth.TwoFactorTitle"] — @Loc["Common.AppTitle"]</PageTitle>
 
-<div class="cit-page-header">
-    <div>
-        <h2 class="cit-page-title">
-            <span>🛡️</span> @Loc["Auth.TwoFactorTitle"]
-        </h2>
-        <div class="cit-page-subtitle">Saisissez le code à 6 chiffres temporaire généré par votre application d'authentification</div>
-    </div>
-</div>
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="row g-0">
+                
+                <!-- Left Side: 3D Illustration -->
+                <div class="col-md-6 d-none d-md-block" style="background-color: #eaf4fc;">
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
+                        <img src="images/login-illustration.jpg" alt="Sécurité CIT" class="img-fluid" style="max-height: 480px; border-radius: 1rem; mix-blend-mode: multiply;" />
+                        <div class="mt-4">
+                            <h3 class="fw-bold text-uppercase" style="color: #1e3a8a;">Double Authentification (2FA)</h3>
+                            <p class="text-muted mb-0">Protégez l'accès à vos dossiers et opérations maritimes avec la validation par code temporaire à usage unique.</p>
+                        </div>
+                    </div>
+                </div>
 
-<div style="max-width: 500px;">
-    <div class="cit-card mb-4">
-        <EditForm Model="Modele" OnValidSubmit="ValiderAsync" FormName="verifier-code">
-            <div class="mb-4">
-                <label class="form-label small fw-semibold text-dark" for="code">@Loc["Auth.TwoFactorCode"]</label>
-                <InputText id="code" class="form-control form-control-lg text-center font-monospace tracking-wider" placeholder="123456" maxlength="6" @bind-Value="Modele.Code" />
+                <!-- Right Side: Verification Form -->
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="p-4 p-lg-5 w-100">
+                        <div class="mb-4 text-center text-md-start">
+                            <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-3">
+                                <span>🛡️</span> Sécurité Renforcée
+                            </div>
+                            <h2 class="fw-bold" style="color: var(--ink);">@Loc["Auth.TwoFactorTitle"]</h2>
+                            <p class="text-muted mb-0">Saisissez le code à 6 chiffres généré par votre application d'authentification (Google Authenticator, Microsoft Authenticator, etc.).</p>
+                        </div>
+
+                        <EditForm Model="Modele" OnValidSubmit="ValiderAsync" FormName="verifier-code">
+                            <div class="mb-4">
+                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="code">@Loc["Auth.TwoFactorCode"]</label>
+                                <div class="position-relative">
+                                    <InputText id="code" 
+                                               class="form-control form-control-lg border-0 px-3 py-3 text-center font-monospace fw-bold" 
+                                               placeholder="0 0 0 0 0 0" 
+                                               maxlength="6" 
+                                               @bind-Value="Modele.Code" 
+                                               style="background-color: var(--surface); letter-spacing: 0.5rem; font-size: 1.6rem; border-radius: 0.75rem;" />
+                                </div>
+                                <div class="form-text small text-muted mt-2 text-center text-md-start">
+                                    ⏱️ Le code se renouvelle toutes les 30 secondes sur votre téléphone.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-2 py-3 fw-bold" style="border-radius: 0.75rem;">
+                                @Loc["Auth.VerifyButton"] <span class="ms-2">→</span>
+                            </button>
+
+                            <div class="mt-4 text-center">
+                                <a href="/comptes/connexion" class="small text-decoration-none fw-semibold text-muted">
+                                    ← Annuler et revenir à la connexion
+                                </a>
+                            </div>
+                        </EditForm>
+
+                        @if (erreur is not null)
+                        {
+                            <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mt-4 rounded-3 p-3 d-flex align-items-center">
+                                <span class="me-2 fs-5">⚠️</span> @erreur
+                            </div>
+                        }
+                    </div>
+                </div>
+
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">@Loc["Auth.VerifyButton"] ➔</button>
-        </EditForm>
+        </div>
     </div>
-
-    @if (erreur is not null)
-    {
-        <div class="alert alert-danger mb-4">@erreur</div>
-    }
 </div>
 
 @code {
