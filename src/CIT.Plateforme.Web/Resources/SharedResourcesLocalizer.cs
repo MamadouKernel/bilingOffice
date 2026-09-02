@@ -42,7 +42,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // Home
         ["Home.HeroTitle"] = "Plateforme Digitale CIT Abidjan",
-        ["Home.HeroSubtitle"] = "Guichet unique digitalisé pour les opérations de facturation import/export, réclamations et enrôlement transporteurs.",
+        ["Home.HeroSubtitle"] = "Espace unique digitalisé pour les opérations de facturation import/export, réclamations et enrôlement transporteurs.",
         ["Home.StartImport"] = "Démarrer une demande Import",
         ["Home.StartExport"] = "Démarrer une demande Export",
         ["Home.StartComplaint"] = "Déposer une réclamation",
