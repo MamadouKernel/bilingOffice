@@ -91,11 +91,19 @@ public sealed class ParcoursAdminSocieteE2ETests : BunitContext
         var modifierDroitsCmd = new ModifierDroitsUtilisateurCommand(userSocRepo, journalisation, uow);
         var activerDesactiverCmd = new ActiverDesactiverUtilisateurCommand(userSocRepo, socRepo, journalisation, uow);
 
+        var invitationsRepo = new InvitationCollaborateurRepository(db);
+        var inviterCmd = new InviterCollaborateurCommand(invitationsRepo, userSocRepo, userInfoRepo, journalisation, horloge, uow);
+        var listerInvitationsQuery = new ListerInvitationsQuery(invitationsRepo, userSocRepo);
+        var revoquerInvitationCmd = new RevoquerInvitationCommand(invitationsRepo, userSocRepo, journalisation, uow);
+
         Services.AddSingleton(dashboardQuery);
         Services.AddSingleton(rattacherCmd);
         Services.AddSingleton(gererRoleCmd);
         Services.AddSingleton(modifierDroitsCmd);
         Services.AddSingleton(activerDesactiverCmd);
+        Services.AddSingleton(inviterCmd);
+        Services.AddSingleton(listerInvitationsQuery);
+        Services.AddSingleton(revoquerInvitationCmd);
 
         // 1. Dashboard Société
         var cutDashboard = Render<DashboardSociete>();

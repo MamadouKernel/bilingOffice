@@ -2,6 +2,7 @@ using System.Globalization;
 using CIT.Plateforme.Infrastructure;
 using CIT.Plateforme.Web.Components;
 using CIT.Plateforme.Web.Hubs;
+using CIT.Plateforme.Web.Middlewares;
 using CIT.Plateforme.Web.Resources;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -78,6 +79,8 @@ else
         await seeder.SeedAsync();
     }
 }
+
+app.UseSecurityHeaders();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 

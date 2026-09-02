@@ -399,6 +399,19 @@ public sealed class HabilitationRepository(PlateformeDbContext dbContext) : IHab
 
     public async Task<IReadOnlyList<HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default) =>
         await dbContext.Habilitations.Where(h => h.UtilisateurId == utilisateurId).ToListAsync(ct).ConfigureAwait(false);
+
+    /// <summary>CDC art. 17.3 — retrait d'un role. Retire toutes les attributions correspondantes :
+    /// s'il en subsistait une, la permission resterait effective alors que l'ecran la montrerait
+    /// retiree.</summary>
+    public async Task RetirerAsync(Guid utilisateurId, string permissionCode, Guid? fileId = null, CancellationToken ct = default)
+    {
+        var aRetirer = await dbContext.Habilitations
+            .Where(h => h.UtilisateurId == utilisateurId && h.PermissionCode == permissionCode && h.FileId == fileId)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        dbContext.Habilitations.RemoveRange(aRetirer);
+    }
 }
 
 /// <summary>FEATURE 003.5 : consultation légère des métadonnées utilisateur Identity.</summary>
@@ -430,8 +443,9 @@ public sealed class UtilisateurInfoRepository(PlateformeDbContext dbContext) : I
         // Comparaison sur l'e-mail normalisé, comme le fait ASP.NET Core Identity : la casse et les
         // espaces de saisie ne doivent pas empêcher de retrouver un compte existant.
         var normalise = email.Trim().ToUpperInvariant();
+        var emailBrut = email.Trim();
         var user = await dbContext.Users
-            .SingleOrDefaultAsync(u => u.NormalizedEmail == normalise, ct)
+            .SingleOrDefaultAsync(u => u.NormalizedEmail == normalise || u.Email == emailBrut, ct)
             .ConfigureAwait(false);
 
         if (user is null) return null;

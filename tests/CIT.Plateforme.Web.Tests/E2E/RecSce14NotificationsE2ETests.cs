@@ -76,14 +76,14 @@ public sealed class RecSce14NotificationsE2ETests(PlateformeWebApplicationFactor
         var rattachement = UtilisateurSociete.Rattacher(clientUser.Id, societe.Id, maintenant, estAdministrateur: true);
         db.UtilisateursSociete.Add(rattachement);
 
-        var filePilote = await db.Files.FirstOrDefaultAsync(f => f.Nom == "Pilote Manifeste")
+        var filePilote = await db.Files.FirstOrDefaultAsync(f => f.Module == "BillingImport" && f.Nom == "Pilote Manifeste")
             ?? FileDeTraitement.Creer("BillingImport", "Pilote Manifeste");
         if (db.Entry(filePilote).State == EntityState.Detached)
         {
             db.Files.Add(filePilote);
         }
 
-        var fileFacturation = await db.Files.FirstOrDefaultAsync(f => f.Nom == "Facturation")
+        var fileFacturation = await db.Files.FirstOrDefaultAsync(f => f.Module == "BillingImport" && f.Nom == "Facturation")
             ?? FileDeTraitement.Creer("BillingImport", "Facturation");
         if (db.Entry(fileFacturation).State == EntityState.Detached)
         {

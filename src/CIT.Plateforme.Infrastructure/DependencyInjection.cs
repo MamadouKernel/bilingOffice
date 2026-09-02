@@ -1,4 +1,5 @@
 using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Administration;
 using CIT.Plateforme.Application.Affectation;
 using CIT.Plateforme.Application.Securite;
@@ -46,6 +47,32 @@ public static class DependencyInjection
         services.AddScoped<IHistoriqueTicketRepository, HistoriqueTicketRepository>();
         services.AddScoped<IFileDeTraitementRepository, FileDeTraitementRepository>();
         services.AddScoped<IAutorisationService, AutorisationService>();
+        // Rendu du QR code 2FA en local (aucun service tiers) — voir GenerateurQrCodeSvg.
+        services.AddScoped<IGenerateurQrCode, GenerateurQrCodeSvg>();
+
+        // CDC art. 17.3 — administration des comptes agents et de leurs roles, et SEC-11
+        // (desactivation immediate sans suppression de l'historique).
+        services.AddScoped<IAdministrationComptesRepository, AdministrationComptesRepository>();
+        services.AddScoped<CreerCompteAgentCommand>();
+        services.AddScoped<DefinirActivationCompteCommand>();
+        services.AddScoped<GererHabilitationAgentCommand>();
+        services.AddScoped<ListerComptesAgentsQuery>();
+
+        // CPT-01 — justificatifs PARAMETRABLES exiges a l'ouverture d'un compte, et controle de
+        // completude de la demande.
+        services.AddScoped<IPieceExigeeCompteRepository, PieceExigeeCompteRepository>();
+        services.AddScoped<IJustificatifDemandeCompteRepository, JustificatifDemandeCompteRepository>();
+        services.AddScoped<GererPiecesExigeesCommand>();
+        services.AddScoped<ListerPiecesExigeesQuery>();
+        services.AddScoped<ListerJustificatifsDemandeQuery>();
+
+        // ENT-01 — parcours d'invitation d'un collaborateur vers une societe deja validee.
+        services.AddScoped<IInvitationCollaborateurRepository, InvitationCollaborateurRepository>();
+        services.AddScoped<InviterCollaborateurCommand>();
+        services.AddScoped<ListerInvitationsQuery>();
+        services.AddScoped<RevoquerInvitationCommand>();
+        services.AddScoped<ConsulterInvitationQuery>();
+        services.AddScoped<AccepterInvitationCommand>();
         services.AddScoped<CloisonnementService>();
         services.AddScoped<GererFilesCommand>();
         services.AddScoped<ListerFilesQuery>();
@@ -93,10 +120,11 @@ public static class DependencyInjection
         services.AddScoped<Application.Messagerie.PublierMessageCommand>();
         services.AddScoped<Application.Messagerie.MentionnerCollaborateurCommand>();
 
-        // User Story 6 — documents.
+        // User Story 6 — documents (SEC-04 & SEC-07).
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<Domain.Documents.IStockageDocuments, Documents.StockageDocumentsFichiers>();
-        services.AddScoped<Domain.Documents.IAnalyseAntivirus, Documents.AucuneAnalyseAntivirusConfiguree>();
+        services.AddScoped<Domain.Documents.IAnalyseAntivirus, Documents.ScannerAntivirusDefender>();
+        services.AddSingleton<Application.Documents.ValidateurFichierDocument>();
         services.AddScoped<Application.Documents.DeposerDocumentCommand>();
         services.AddScoped<Application.Documents.TelechargerDocumentQuery>();
 
