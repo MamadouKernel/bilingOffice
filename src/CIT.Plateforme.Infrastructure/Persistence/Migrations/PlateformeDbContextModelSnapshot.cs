@@ -339,6 +339,44 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("TransitionsAutorisees");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Formulaires.BrouillonSaisie", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateCreationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateDerniereModificationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DonneesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SocieteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TypeFormulaire")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("UtilisateurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SocieteId")
+                        .HasDatabaseName("IX_Brouillons_Societe");
+
+                    b.HasIndex("UtilisateurId", "TypeFormulaire")
+                        .HasDatabaseName("IX_Brouillons_Utilisateur_Type");
+
+                    b.ToTable("BrouillonsSaisie", (string)null);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Guichet.RendezVous", b =>
                 {
                     b.Property<Guid>("Id")

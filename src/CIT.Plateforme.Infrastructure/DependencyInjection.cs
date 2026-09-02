@@ -59,6 +59,16 @@ public static class DependencyInjection
         services.AddScoped<PriseLibreCommand>();
         services.AddScoped<ExporterTicketsCsvQuery>();
 
+        // FEATURE 013 (ERR-01, SIM-11, ENR-05) — Persistance, cohérence et cycle badge.
+        services.AddScoped<IBrouillonRepository, BrouillonRepository>();
+        services.AddScoped<Application.Abstractions.IParametresEnrolementProvider, Persistence.ParametresEnrolementProvider>();
+        services.AddScoped<Application.Formulaires.EnregistrerBrouillonCommand>();
+        services.AddScoped<Application.Formulaires.ObtenirBrouillonQuery>();
+        services.AddScoped<Application.Formulaires.SupprimerBrouillonCommand>();
+        services.AddScoped<Application.Tarification.ValiderCoherenceSimulationQuery>();
+        services.AddScoped<Application.Enrolement.RappelerExpirationBadgesCommand>();
+        services.AddScoped<Application.Enrolement.DemanderRenouvellementBadgeCommand>();
+
         // User Story 2 — affectation, réaffectation, transfert.
         services.AddScoped<ITransitionAutoriseeRepository, TransitionAutoriseeRepository>();
         services.AddScoped<GererMatriceTransitionsCommand>();

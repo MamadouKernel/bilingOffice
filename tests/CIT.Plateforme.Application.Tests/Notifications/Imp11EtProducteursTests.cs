@@ -85,11 +85,14 @@ public class Imp11EtProducteursTests
 
         // 19 fichiers producteurs AVANT F009 (research.md D1 : 21 sites d'appel sur 19
         // fichiers) + les 2 commandes de facture (IMP-11) + la commande d'import (IMP-03 / F012)
-        // → 22 fichiers producteurs.
-        Assert.Equal(22, fichiersProducteurs.Count);
+        // + les 2 commandes d'enrôlement F013 (ENR-05 : RappelerExpirationBadgesCommand, DemanderRenouvellementBadgeCommand)
+        // → 24 fichiers producteurs.
+        Assert.Equal(24, fichiersProducteurs.Count);
         Assert.Contains("EditerFactureCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureExportCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreDemandeImportCommand.cs", fichiersProducteurs);
+        Assert.Contains("RappelerExpirationBadgesCommand.cs", fichiersProducteurs);
+        Assert.Contains("DemanderRenouvellementBadgeCommand.cs", fichiersProducteurs);
 
         // Les producteurs sensibles de F001 sont présents et n'ont pas disparu.
         Assert.Contains("MentionnerCollaborateurCommand.cs", fichiersProducteurs);

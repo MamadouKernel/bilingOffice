@@ -62,6 +62,10 @@ public sealed partial class DevelopmentSeeder
         // COM-06 (Could) : « Canaux de relance automatique paramétrables (InApp, Email) ».
         ("RelanceEmise", CanalNotification.InApp, false, "COM-06 — relances automatiques multicanales paramétrables"),
         ("RelanceEmise", CanalNotification.Email, false, "COM-06 — relances automatiques multicanales paramétrables"),
+
+        // ENR-05 (Could) : Rappels automatiques d'expiration de badge transporteur/chauffeur.
+        ("RappelExpirationBadge", CanalNotification.InApp, false, "ENR-05 — rappel d'expiration de badge"),
+        ("RappelExpirationBadge", CanalNotification.Email, false, "ENR-05 — rappel d'expiration de badge"),
     ];
 
     private async Task SeedNotificationsAsync()
@@ -87,6 +91,7 @@ public sealed partial class DevelopmentSeeder
                 "TicketTransfere" => "Votre dossier a été réorienté",
                 "CollaborateurMentionne" => "Vous avez été mentionné sur un ticket",
                 "RelanceEmise" => "Rappel concernant votre dossier",
+                "RappelExpirationBadge" => "Votre badge arrive à expiration",
                 _ => type,
             };
 

@@ -94,6 +94,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 003 (research.md D8) : suivi des branches IES.</summary>
     public DbSet<SuiviBrancheIes> SuivisBranchesIes => Set<SuiviBrancheIes>();
 
+    /// <summary>FEATURE 013 : persistance des brouillons de saisie (ERR-01).</summary>
+    public DbSet<CIT.Plateforme.Domain.Formulaires.BrouillonSaisie> BrouillonsSaisie => Set<CIT.Plateforme.Domain.Formulaires.BrouillonSaisie>();
+
     /// <summary>FEATURE 005 (research.md D4) : versions de grilles tarifaires.</summary>
     public DbSet<Domain.Tarification.VersionGrilleTarifaire> VersionsGrillesTarifaires => Set<Domain.Tarification.VersionGrilleTarifaire>();
 
@@ -590,6 +593,24 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // Index dossier
             b.HasIndex(r => r.DossierId)
                 .HasDatabaseName("IX_RendezVous_DossierId");
+        });
+
+        builder.Entity<CIT.Plateforme.Domain.Formulaires.BrouillonSaisie>(b =>
+        {
+            b.ToTable("BrouillonsSaisie");
+            b.HasKey(e => e.Id);
+            b.Property(e => e.UtilisateurId).IsRequired();
+            b.Property(e => e.SocieteId).IsRequired();
+            b.Property(e => e.TypeFormulaire).HasMaxLength(100).IsRequired();
+            b.Property(e => e.DonneesJson).IsRequired();
+            b.Property(e => e.DateCreationUtc).IsRequired();
+            b.Property(e => e.DateDerniereModificationUtc).IsRequired();
+
+            b.HasIndex(e => new { e.UtilisateurId, e.TypeFormulaire })
+                .HasDatabaseName("IX_Brouillons_Utilisateur_Type");
+
+            b.HasIndex(e => e.SocieteId)
+                .HasDatabaseName("IX_Brouillons_Societe");
         });
     }
 }

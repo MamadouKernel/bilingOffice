@@ -51,6 +51,8 @@ public interface IDossierRepository
     /// <see cref="ListerParSocieteAsync"/> pour un propriétaire qui n'est pas une société
     /// (ex. Transporteur/Chauffeur, personne physique — CLAR-ENR-01).</summary>
     Task<IReadOnlyList<Dossier>> ListerParClientAsync(Guid clientId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Dossier>> ListerTousAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Dossier>>(Array.Empty<Dossier>());
 }
 
 public interface IFileDeTraitementRepository

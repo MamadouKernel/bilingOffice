@@ -95,6 +95,9 @@ public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierR
 
     public async Task<IReadOnlyList<Dossier>> ListerParClientAsync(Guid clientId, CancellationToken ct = default) =>
         await dbContext.Dossiers.Where(d => d.ClientId == clientId).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Dossier>> ListerTousAsync(CancellationToken ct = default) =>
+        await dbContext.Dossiers.ToListAsync(ct).ConfigureAwait(false);
 }
 
 public sealed class FileDeTraitementRepository(PlateformeDbContext dbContext) : IFileDeTraitementRepository
@@ -418,6 +421,47 @@ public sealed class UtilisateurInfoRepository(PlateformeDbContext dbContext) : I
             .ConfigureAwait(false);
 
         return users.ToDictionary(u => u.Id);
+    }
+
+    public async Task<UtilisateurInfo?> ObtenirParEmailAsync(string email, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return null;
+
+        // Comparaison sur l'e-mail normalisé, comme le fait ASP.NET Core Identity : la casse et les
+        // espaces de saisie ne doivent pas empêcher de retrouver un compte existant.
+        var normalise = email.Trim().ToUpperInvariant();
+        var user = await dbContext.Users
+            .SingleOrDefaultAsync(u => u.NormalizedEmail == normalise, ct)
+            .ConfigureAwait(false);
+
+        if (user is null) return null;
+        return new UtilisateurInfo(user.Id, user.UserName ?? string.Empty, user.Email ?? string.Empty, user.NomAffiche, user.EstActif, user.Nature);
+    }
+
+    public async Task<ProfilUtilisateur?> ObtenirProfilAsync(Guid utilisateurId, CancellationToken ct = default)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(u => u.Id == utilisateurId, ct).ConfigureAwait(false);
+        if (user is null) return null;
+        return new ProfilUtilisateur(user.Id, user.Email ?? string.Empty, user.NomAffiche, user.PhoneNumber, user.EstActif, user.Nature);
+    }
+
+    public async Task<bool> MettreAJourProfilAsync(Guid utilisateurId, string nomAffiche, string? telephone, CancellationToken ct = default)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(u => u.Id == utilisateurId, ct).ConfigureAwait(false);
+        if (user is null) return false;
+
+        user.NomAffiche = nomAffiche;
+
+        // PhoneNumberConfirmed est remis à false dès que le numéro change : un numéro
+        // fraîchement saisi n'a jamais été vérifié (cohérent avec la sémantique Identity).
+        if (!string.Equals(user.PhoneNumber, telephone, StringComparison.Ordinal))
+        {
+            user.PhoneNumber = telephone;
+            user.PhoneNumberConfirmed = false;
+        }
+
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        return true;
     }
 }
 
