@@ -37,11 +37,18 @@ Thumbs.db
 *.log
 
 # --- Exclusions de publication ---------------------------------------------
-# Outillage de developpement, artefacts de specification et documentation
-# interne : hors du perimetre du depot distant.
+# Outillage de developpement et fichiers de travail : hors du perimetre du depot.
 .claude/
 .specify/
 .vs/
-docs/
 scratch/
-specs/
+
+# docs/ et specs/ ont ete exclus lors de la publication initiale (commit bf8c327),
+# ce qui les a du meme coup sortis du VERSIONNEMENT. Deux consequences non voulues :
+# les specifications de F016 et F017 n'ont jamais ete enregistrees, et la chaine de
+# tracabilite Spec Kit exigence -> spec -> taches -> preuve ne reposait plus que sur
+# un poste de travail.
+#
+# Le depot distant etant desormais PRIVE, ces artefacts y sont remis sous version.
+# Ils contiennent des informations client et professionnelles : le caractere prive
+# du depot est la condition de cette decision. Voir docs/53.
