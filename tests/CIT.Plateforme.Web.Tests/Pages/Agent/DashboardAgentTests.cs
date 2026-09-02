@@ -80,6 +80,12 @@ public sealed class DashboardAgentTests : BunitContext
 
         var cut = Render<DashboardAgent>();
 
+        // OnInitializedAsync charge le dashboard de façon asynchrone (_chargement affiche
+        // IndicateurChargement pendant ce temps) — sans cette attente, l'assertion suivante
+        // peut intercepter le rendu intermédiaire "Chargement..." selon la charge de la machine
+        // (race déjà résolue ailleurs via ce même patron, cf. NouvelleReclamationTests).
+        cut.WaitForState(() => cut.Markup.Contains("Tableau de bord Opérateur"), TimeSpan.FromSeconds(5));
+
         Assert.Contains("Tableau de bord Opérateur", cut.Markup);
         Assert.Contains("Opérateur Test", cut.Markup);
         Assert.Contains("Pilote Manifeste", cut.Markup);

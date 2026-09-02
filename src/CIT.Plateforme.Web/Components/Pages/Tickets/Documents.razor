@@ -6,46 +6,67 @@
 @inject DeposerDocumentCommand DeposerDocument
 @inject IDocumentRepository DepotDocuments
 
-<PageTitle>Documents du ticket</PageTitle>
+<PageTitle>Documents du ticket — CIT</PageTitle>
 
-<h1>Documents</h1>
-
-@* Les types de pièces exigées et la taille maximale sont paramétrables par étape (SOC-07, PC-08) —
-   les règles ci-dessous sont une configuration de démonstration, pas une valeur figée. *@
-<p class="text-muted">Formats acceptés : PDF, JPG, PNG — 10 Mo maximum par fichier.</p>
-
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Votre identifiant" @bind="deposantId" /></div>
-    <div class="col-auto">
-        <select class="form-select" @bind="natureDeposant">
-            <option value="Client">Client (propriétaire du ticket)</option>
-            <option value="Agent">Agent (habilité sur la file)</option>
-        </select>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📁</span> Documents du ticket
+        </h2>
+        <div class="cit-page-subtitle">Formats acceptés : PDF, JPG, PNG — 10 Mo maximum par fichier (Règles dynamiques par étape SOC-07, PC-08)</div>
     </div>
-    <div class="col-auto"><InputFile OnChange="DeposerAsync" /></div>
+</div>
+
+<div class="cit-card mb-4">
+    <h6 class="fw-bold text-dark mb-3">Déposer un nouveau document</h6>
+    <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-3">
+            <input class="form-control form-control-sm" placeholder="Votre identifiant" @bind="deposantId" />
+        </div>
+        <div class="col-12 col-md-3">
+            <select class="form-select form-select-sm" @bind="natureDeposant">
+                <option value="Client">Client (propriétaire du ticket)</option>
+                <option value="Agent">Agent (habilité sur la file)</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-6">
+            <InputFile class="form-control form-control-sm" OnChange="DeposerAsync" />
+        </div>
+    </div>
 </div>
 
 @if (documents is not null)
 {
-    <table class="table">
-        <thead><tr><th>Fichier</th><th>Taille</th><th>Analyse antivirus</th><th>Déposé le (UTC)</th></tr></thead>
-        <tbody>
-            @foreach (var document in documents)
-            {
-                <tr>
-                    <td>@document.NomFichier</td>
-                    <td>@document.TailleOctets octets</td>
-                    <td>@document.StatutAntivirus</td>
-                    <td>@document.DateDepotUtc</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="cit-card p-0 overflow-hidden mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom du fichier</th>
+                        <th>Taille</th>
+                        <th>Analyse antivirus</th>
+                        <th>Déposé le (UTC)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var document in documents)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-dark">📄 @document.NomFichier</td>
+                            <td class="small text-muted font-monospace">@((document.TailleOctets / 1024.0).ToString("0.0")) Ko</td>
+                            <td><span class="badge bg-success-subtle text-success">@document.StatutAntivirus</span></td>
+                            <td class="small text-muted font-monospace">@document.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
 
 @if (message is not null)
 {
-    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+    <div class="alert @(erreur ? "alert-danger" : "alert-success") mb-4">@message</div>
 }
 
 @code {

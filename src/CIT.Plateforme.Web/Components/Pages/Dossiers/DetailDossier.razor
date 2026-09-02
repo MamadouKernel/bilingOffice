@@ -2,23 +2,51 @@
 @rendermode InteractiveServer
 @inject ConsulterDossierQuery ConsulterDossier
 
-<PageTitle>Détail du dossier</PageTitle>
+<PageTitle>Détail du dossier — CIT</PageTitle>
 
-<h1>Dossier (SOC-11)</h1>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📁</span> Dossier Opérationnel (SOC-11)
+        </h2>
+        <div class="cit-page-subtitle">Suivi d'ensemble du dossier et de ses tickets dérivés (CLAR-01)</div>
+    </div>
+</div>
 
 @if (vue is not null)
 {
-    <p>Numéro : <strong>@vue.Numero</strong> — État dérivé (CLAR-01) : <strong>@vue.Etat</strong></p>
+    <div class="cit-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="text-muted small">Numéro de dossier :</span>
+                <div class="fs-4 fw-bold font-monospace text-primary">@vue.Numero</div>
+            </div>
+            <div>
+                <span class="badge bg-primary-subtle text-primary fs-6">@vue.Etat</span>
+            </div>
+        </div>
 
-    <table class="table">
-        <thead><tr><th>Ticket</th><th>Statut</th></tr></thead>
-        <tbody>
-            @foreach (var ticket in vue.Tickets)
-            {
-                <tr><td>@ticket.Numero</td><td>@ticket.Statut</td></tr>
-            }
-        </tbody>
-    </table>
+        <h6 class="fw-bold text-dark mt-4 mb-2">Tickets rattachés au dossier</h6>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>N° Ticket</th>
+                        <th>Statut actuel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in vue.Tickets)
+                    {
+                        <tr>
+                            <td class="font-monospace fw-bold text-primary">@ticket.Numero</td>
+                            <td><span class="badge bg-light text-dark border">@ticket.Statut</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
 
 @code {

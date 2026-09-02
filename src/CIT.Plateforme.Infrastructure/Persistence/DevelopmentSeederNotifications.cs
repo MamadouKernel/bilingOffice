@@ -43,6 +43,15 @@ public sealed partial class DevelopmentSeeder
         ("TicketCree", CanalNotification.InApp, true, "SOC-01 / IMP-03 — canaux nommés par le CDC"),
         ("TicketCree", CanalNotification.Email, true, "SOC-01 / IMP-03 — canaux nommés par le CDC"),
 
+        // CPT-01 — DECISION SUR UNE DEMANDE DE COMPTE. Le CDC ne nomme pas cette notification :
+        // ses exigences portent sur les tickets. Silence traite comme un OUBLI, non comme une
+        // intention — un demandeur laisse sans reponse ne peut ni s'en remettre ni corriger un
+        // refus. In-App UNIQUEMENT : aucun fournisseur externe n'existe, et il n'est pas question
+        // d'en introduire un pour ce besoin. Non obligatoire : la preference du destinataire
+        // prime, le canal n'etant pas impose par le CDC.
+        ("CompteValide", CanalNotification.InApp, false, "CPT-01 — silence du CDC comble, canal In-App seul"),
+        ("CompteRejete", CanalNotification.InApp, false, "CPT-01 — silence du CDC comble, canal In-App seul"),
+
         // IMP-05 (Must) : « le client est notifié » — canal NON nommé, valeur à valider.
         ("ComplementDemande", CanalNotification.InApp, false, "IMP-05 — événement imposé, canal à valider (PC-17)"),
         ("ComplementDemande", CanalNotification.Email, false, "IMP-05 — événement imposé, canal à valider (PC-17)"),
@@ -92,14 +101,18 @@ public sealed partial class DevelopmentSeeder
                 "CollaborateurMentionne" => "Vous avez été mentionné sur un ticket",
                 "RelanceEmise" => "Rappel concernant votre dossier",
                 "RappelExpirationBadge" => "Votre badge arrive à expiration",
+                "CompteValide" => "Votre compte entreprise est activé",
+                "CompteRejete" => "Votre demande de compte n'a pas été retenue",
                 _ => type,
             };
 
-            context.ModelesNotification.Add(ModeleNotification.Creer(
-                type,
-                canal,
-                libelle,
-                $"{libelle}. Consultez le ticket concerné pour le détail."));
+            // Une decision de compte ne reference aucun ticket : renvoyer vers « le ticket
+            // concerne » serait un contresens pour le destinataire.
+            var corps = type is "CompteValide" or "CompteRejete"
+                ? $"{libelle}. Consultez votre espace pour le détail."
+                : $"{libelle}. Consultez le ticket concerné pour le détail.";
+
+            context.ModelesNotification.Add(ModeleNotification.Creer(type, canal, libelle, corps));
         }
 
         logger.LogInformation(

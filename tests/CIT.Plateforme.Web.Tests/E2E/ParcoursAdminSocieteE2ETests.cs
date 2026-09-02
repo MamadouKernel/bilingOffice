@@ -104,6 +104,7 @@ public sealed class ParcoursAdminSocieteE2ETests : BunitContext
         Services.AddSingleton(inviterCmd);
         Services.AddSingleton(listerInvitationsQuery);
         Services.AddSingleton(revoquerInvitationCmd);
+        Services.AddSingleton<Microsoft.Extensions.Configuration.IConfiguration>(new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build());
 
         // 1. Dashboard Société
         var cutDashboard = Render<DashboardSociete>();

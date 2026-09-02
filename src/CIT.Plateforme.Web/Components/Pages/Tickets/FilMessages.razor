@@ -6,33 +6,70 @@
 @inject PublierMessageCommand PublierMessage
 @inject IMessageRepository Messages
 
-<PageTitle>Fil de messages</PageTitle>
+<PageTitle>Fil de messages — CIT</PageTitle>
 
-<h1>Fil de messages (SOC-05)</h1>
-
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Votre identifiant" @bind="auteurId" /></div>
-    <div class="col-auto"><button class="btn btn-outline-secondary" @onclick="ChargerAsync">Charger le fil</button></div>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>💬</span> Fil de messages (SOC-05)
+        </h2>
+        <div class="cit-page-subtitle">Échanges d'information et notes internes sécurisées sur le ticket <span class="font-monospace text-primary">@TicketId</span></div>
+    </div>
 </div>
 
-@if (fil is not null)
-{
-    <ul class="list-group mb-3">
-        @foreach (var message in fil)
-        {
-            <li class="list-group-item @(message.Type == TypeMessage.NoteInterne ? "list-group-item-warning" : "list-group-item-light")">
-                <strong>@(message.Type == TypeMessage.NoteInterne ? "Note interne (jamais visible du client)" : "Message")</strong>
-                — @message.HorodatageUtc : @message.Contenu
-            </li>
-        }
-    </ul>
-}
+<div class="cit-card mb-4">
+    <div class="row g-2 align-items-center mb-3">
+        <div class="col-12 col-md-4">
+            <input class="form-control form-control-sm" placeholder="Votre identifiant (GUID)" @bind="auteurId" />
+        </div>
+        <div class="col-12 col-md-auto">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Charger le fil</button>
+        </div>
+    </div>
 
-<div class="row mb-2">
-    <div class="col"><input class="form-control" placeholder="Message" @bind="contenuMessage" /></div>
-    <div class="col-auto"><button class="btn btn-primary" @onclick="PublierMessageClientAsync">Envoyer (client)</button></div>
-    <div class="col-auto"><button class="btn btn-secondary" @onclick="PublierMessageAgentAsync">Envoyer (agent)</button></div>
-    <div class="col-auto"><button class="btn btn-warning" @onclick="PublierNoteInterneAsync">Note interne (MSG-02)</button></div>
+    @if (fil is not null)
+    {
+        <div class="messages-container mb-3 p-3 bg-light rounded-3 border" style="max-height: 400px; overflow-y: auto;">
+            @if (fil.Count == 0)
+            {
+                <div class="text-muted small text-center py-3">Aucun message dans ce fil.</div>
+            }
+            else
+            {
+                @foreach (var message in fil)
+                {
+                    <div class="cit-card mb-2 p-3 @(message.Type == TypeMessage.NoteInterne ? "border-warning bg-warning-subtle" : "")">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="small text-dark">
+                                @if (message.Type == TypeMessage.NoteInterne)
+                                {
+                                    <span class="badge bg-warning text-dark me-1">🔒 Note interne</span>
+                                    <span>Non visible du client</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary-subtle text-primary me-1">Message</span>
+                                }
+                            </strong>
+                            <span class="text-muted font-monospace" style="font-size: 0.75rem;">@message.HorodatageUtc.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                        </div>
+                        <div class="small text-dark">@message.Contenu</div>
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    <div class="row g-2 pt-2 border-top">
+        <div class="col-12">
+            <input class="form-control" placeholder="Rédigez votre message ou note..." @bind="contenuMessage" />
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2 flex-wrap">
+            <button class="btn btn-primary btn-sm" @onclick="PublierMessageClientAsync">Envoyer (Client)</button>
+            <button class="btn btn-secondary btn-sm" @onclick="PublierMessageAgentAsync">Envoyer (Agent)</button>
+            <button class="btn btn-warning btn-sm fw-bold" @onclick="PublierNoteInterneAsync">🔒 Note interne (MSG-02)</button>
+        </div>
+    </div>
 </div>
 
 @code {

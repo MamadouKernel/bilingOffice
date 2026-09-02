@@ -1,99 +1,201 @@
 @page "/comptes/valider"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Comptes
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
 @inject ListerDemandesEnAttenteQuery ListerDemandes
+@inject ListerJustificatifsDemandeQuery ListerJustificatifs
+@inject ModifierTypeClientCommand ModifierTypeClient
 @inject ValiderOuRejeterDemandeCompteCommand ValiderOuRejeter
 
-<PageTitle>Valider les demandes de compte</PageTitle>
+<PageTitle>Valider les demandes de compte — CIT</PageTitle>
 
-<h1>Demandes de compte en attente</h1>
-
-@* Contrat C2-02 (CPT-01, CPT-02). Réservé à l'administrateur fonctionnel CIT (permission
-   compte.valider, vérifiée côté serveur — Principe VII). REMÉDIATION POST-AUDIT (§19, IDOR) : la
-   liste elle-même n'est plus jamais chargée sans autorisation vérifiée — saisir un identifiant,
-   puis charger, pour qu'un visiteur non habilité ne découvre aucune donnée avant même toute
-   tentative d'action. *@
-<p class="text-muted">Recherchez une demande de compte par son identifiant pour l'examiner.</p>
-
-<div class="row mb-3">
-    <div class="col">
-        <label class="form-label" for="appelant">Identifiant de l'administrateur fonctionnel (démonstration)</label>
-        <InputText id="appelant" class="form-control" @bind-Value="appelantId" />
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🛡️</span> Validation des demandes de compte (CPT-01, CPT-02)
+        </h2>
+        <div class="cit-page-subtitle">Revue administrative, vérification des justificatifs et validation/rejet des entreprises</div>
     </div>
-    <div class="col align-self-end">
-        <button class="btn btn-primary" @onclick="ChargerAsync">Charger les demandes</button>
+    <div class="mt-3 mt-md-0">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
+            🔄 Actualiser
+        </button>
     </div>
 </div>
 
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des demandes en attente..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
 @if (erreur is not null)
 {
-    <div class="alert alert-danger">@erreur</div>
+    <div class="alert alert-danger mb-4">@erreur</div>
 }
 
 @if (demandes.Count == 0)
 {
-    <p>Aucune demande en attente.</p>
+    <EtatVide Titre="Aucune demande en attente" Description="Aucune demande de compte entreprise n'attend de validation." Icone="🛡️" />
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Société</th>
-                <th>Profil déclaré</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var demande in demandes)
-            {
-                <tr>
-                    <td>@demande.Id</td>
-                    <td>@demande.Profil</td>
-                    <td>
-                        <button class="btn btn-success btn-sm" @onclick="() => ValiderAsync(demande.Id)">Valider</button>
-                        <InputText class="form-control d-inline-block w-auto" placeholder="Motif de rejet" @bind-Value="motifsRejet[demande.Id]" />
-                        <button class="btn btn-danger btn-sm" @onclick="() => RejeterAsync(demande.Id)">Rejeter</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="cit-card p-0 overflow-hidden mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Entreprise demandeuse</th>
+                        <th>Justificatifs produits</th>
+                        <th>Profil déclaré</th>
+                        <th>Demande reçue le</th>
+                        <th class="text-end">Actions d'instruction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var demande in demandes)
+                    {
+                        <tr>
+                            <td class="text-dark fw-semibold">
+                                @(string.IsNullOrWhiteSpace(demande.InformationsDeclarees)
+                                    ? "Informations non renseignées"
+                                    : demande.InformationsDeclarees)
+                            </td>
+                            @* CPT-01 — l'instruction se fait SUR PIECES : sans elles, la
+                               validation ne pourrait porter que sur du declaratif. *@
+                            <td>
+                                @if (justificatifs.TryGetValue(demande.Id, out var pieces) && pieces.Count > 0)
+                                {
+                                    <div class="d-flex flex-column gap-1">
+                                        @foreach (var piece in pieces)
+                                        {
+                                            <span class="badge bg-info-subtle text-info text-start">
+                                                📎 @piece.PieceCode — @piece.NomFichier
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="small text-muted">Aucune pièce</span>
+                                }
+                            </td>
+                            @* MCT operation 2 / MOT etape 3 — « confirmation ou CORRECTION du
+                               profil declare » (CPT-02). Le profil etait auparavant en lecture
+                               seule ici, et l'ecran de modification du type ne proposait que les
+                               societes deja actives : la correction n'etait donc possible
+                               qu'APRES activation, alors que le MOT la place dans l'acte
+                               d'instruction. Corriger ici ne vaut pas decision : il faut ensuite
+                               valider ou rejeter. *@
+                            <td>
+                                <select class="form-select form-select-sm" style="width: 9rem;"
+                                        @onchange="e => CorrigerProfilAsync(demande.Id, e.Value?.ToString())">
+                                    @foreach (var valeur in Enum.GetValues<TypeClient>())
+                                    {
+                                        <option value="@valeur" selected="@(valeur == demande.Profil)">@valeur</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="small text-muted">@demande.DateCreationUtc.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+                                    <button class="btn btn-success btn-sm fw-bold" @onclick="() => ValiderAsync(demande.Id)">✅ Valider</button>
+                                    <InputText class="form-control form-control-sm d-inline-block w-auto" placeholder="Motif de rejet si refus" @bind-Value="motifsRejet[demande.Id]" />
+                                    <button class="btn btn-outline-danger btn-sm" @onclick="() => RejeterAsync(demande.Id)">❌ Rejeter</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
 }
 
 @code {
     private List<SocieteCliente> demandes = [];
     private readonly Dictionary<Guid, string> motifsRejet = [];
-    private string appelantId = string.Empty;
+    private Guid _appelantId;
+    private readonly Dictionary<Guid, IReadOnlyList<JustificatifVue>> justificatifs = new();
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
     private string? erreur;
 
-    // REMÉDIATION POST-AUDIT (§19, IDOR) : aucun chargement automatique à l'ouverture de la page —
-    // la liste n'est chargée qu'après saisie d'un identifiant et vérification de l'habilitation
-    // par ListerDemandesEnAttenteQuery (Permission.CompteValider, côté serveur).
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    // ANTI-IDOR : l'administrateur instruisant la demande est l'utilisateur authentifié, jamais un
+    // identifiant saisi. Le chargement automatique est donc sûr — l'habilitation
+    // (Permission.CompteValider) reste vérifiée côté serveur par ListerDemandesEnAttenteQuery.
     private async Task ChargerAsync()
     {
+        _chargement = true;
         erreur = null;
-        if (!Guid.TryParse(appelantId, out var appelant))
+        try
         {
-            erreur = "Identifiant invalide.";
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour instruire les demandes de compte.";
+                return;
+            }
+
+            _appelantId = contexte.UtilisateurId;
+            demandes = (await ListerDemandes.ExecuterAsync(_appelantId)).ToList();
+            justificatifs.Clear();
+            foreach (var demande in demandes)
+            {
+                motifsRejet.TryAdd(demande.Id, string.Empty);
+                // CPT-01 : instruire sur pieces suppose de les avoir sous les yeux.
+                justificatifs[demande.Id] = await ListerJustificatifs.ExecuterAsync(_appelantId, demande.Id);
+            }
+            _nonAutorise = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            demandes = [];
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    /// <summary>
+    /// MCT operation 2 — la correction du profil fait partie de l'instruction, pas de l'apres-coup.
+    /// L'autorisation dediee (CPT-06) reste exigee cote serveur par la commande : corriger et
+    /// decider sont deux droits distincts, et les reunir ici ne les confond pas.
+    /// </summary>
+    private async Task CorrigerProfilAsync(Guid societeId, string? profil)
+    {
+        if (!Enum.TryParse<TypeClient>(profil, out var nouveauProfil))
+        {
             return;
         }
 
         try
         {
-            demandes = (await ListerDemandes.ExecuterAsync(appelant)).ToList();
-            foreach (var demande in demandes)
-            {
-                motifsRejet.TryAdd(demande.Id, string.Empty);
-            }
+            await ModifierTypeClient.ExecuterAsync(_appelantId, societeId, nouveauProfil);
+            await ChargerAsync();
         }
-        catch (AccesRefuseException ex)
+        catch (Exception ex)
         {
-            demandes = [];
-            erreur = ex.Message;
+            _messageNonAutorise = ex.Message;
         }
     }
 
@@ -102,7 +204,7 @@ else
         erreur = null;
         try
         {
-            await ValiderOuRejeter.ValiderAsync(societeId, Guid.Parse(appelantId));
+            await ValiderOuRejeter.ValiderAsync(societeId, _appelantId);
             await ChargerAsync();
         }
         catch (AccesRefuseException ex)
@@ -116,7 +218,7 @@ else
         erreur = null;
         try
         {
-            await ValiderOuRejeter.RejeterAsync(societeId, Guid.Parse(appelantId), motifsRejet.GetValueOrDefault(societeId, string.Empty));
+            await ValiderOuRejeter.RejeterAsync(societeId, _appelantId, motifsRejet.GetValueOrDefault(societeId, string.Empty));
             await ChargerAsync();
         }
         catch (Exception ex) when (ex is AccesRefuseException or ArgumentException)

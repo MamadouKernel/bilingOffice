@@ -1,0 +1,139 @@
+@page "/comptes/invitation/{Jeton}"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@inject ConsulterInvitationQuery ConsulterInvitation
+@inject AccepterInvitationCommand AccepterInvitationCommande
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+
+@* ENT-01 (Must) — « Une société cliente peut rattacher plusieurs utilisateurs à son compte. »
+
+   Page PUBLIQUE par nécessité : l'invité n'a pas encore de compte, le jeton est son seul titre
+   d'accès. Elle se distingue de /comptes/soumettre sur le point décisif : elle rattache à une
+   société EXISTANTE et n'ouvre AUCUNE demande de société. C'est ce chemin qui manquait et qui
+   obligeait un collaborateur à créer une société parasite pour obtenir un compte.
+
+   Le compte Identity est créé ici, comme pour la soumission d'une demande (decision D1). *@
+
+<PageTitle>Rejoindre une entreprise — CIT</PageTitle>
+
+<div class="container" style="max-width: 32rem;">
+    <div class="cit-page-header">
+        <div>
+            <h2 class="cit-page-title"><span>✉️</span> Rejoindre une entreprise</h2>
+        </div>
+    </div>
+
+    @if (_chargement)
+    {
+        <p class="text-muted">Vérification de l'invitation…</p>
+    }
+    else if (_invitation is null)
+    {
+        <div class="alert alert-danger">
+            <strong>Cette invitation n'est pas utilisable.</strong>
+            <div class="small mt-1">
+                Elle a peut-être expiré, été révoquée, ou déjà servi. Demandez à l'administrateur
+                de votre entreprise de vous en envoyer une nouvelle.
+            </div>
+        </div>
+    }
+    else if (_termine)
+    {
+        <div class="alert alert-success">
+            <strong>Votre compte est créé.</strong>
+            <div class="small mt-1">Vous êtes rattaché à @_invitation.SocieteNom.</div>
+            <a class="btn btn-primary btn-sm mt-3" href="/comptes/connexion">Se connecter</a>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <p class="small text-muted">
+                    Vous avez été invité à rejoindre
+                    <strong class="text-dark">@_invitation.SocieteNom</strong>.
+                </p>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Adresse e-mail</label>
+                    <input class="form-control form-control-sm" value="@_invitation.Email" disabled />
+                    <div class="form-text">
+                        L'invitation est nominative : le compte porte cette adresse.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold" for="mdp">Choisissez votre mot de passe</label>
+                    <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
+                </div>
+
+                @if (_erreur is not null)
+                {
+                    <div class="alert alert-danger small">@_erreur</div>
+                }
+
+                <button class="btn btn-primary w-100 fw-bold" @onclick="CreerAsync">
+                    Créer mon compte
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Jeton { get; set; } = string.Empty;
+
+    private InvitationOuverteVue? _invitation;
+    private bool _chargement = true;
+    private bool _termine;
+    private string _motDePasse = string.Empty;
+    private string? _erreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _invitation = await ConsulterInvitation.ExecuterAsync(Jeton);
+        _chargement = false;
+    }
+
+    private async Task CreerAsync()
+    {
+        _erreur = null;
+        if (_invitation is null)
+        {
+            return;
+        }
+
+        var collaborateur = new ApplicationUser
+        {
+            UserName = _invitation.Email,
+            Email = _invitation.Email,
+            NomAffiche = _invitation.Email,
+            Nature = NatureUtilisateur.Client,
+        };
+
+        var resultat = await UserManager.CreateAsync(collaborateur, _motDePasse);
+        if (!resultat.Succeeded)
+        {
+            _erreur = string.Join(" ", resultat.Errors.Select(e => e.Description));
+            return;
+        }
+
+        try
+        {
+            await AccepterInvitationCommande.ExecuterAsync(Jeton, collaborateur.Id, _invitation.Email);
+            _termine = true;
+        }
+        catch (Exception ex)
+        {
+            // Le rattachement a échoué après la création du compte : le laisser en place
+            // produirait un compte orphelin, sans société, incapable de se connecter.
+            await UserManager.DeleteAsync(collaborateur);
+            _erreur = ex.Message;
+        }
+    }
+}

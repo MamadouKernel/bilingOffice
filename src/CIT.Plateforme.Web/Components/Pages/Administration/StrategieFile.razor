@@ -1,43 +1,216 @@
 @page "/administration/strategie-file"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Files
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerFilesQuery ListerFiles
 @inject GererFilesCommand GererFiles
 
-<PageTitle>Stratégie d'affectation des files</PageTitle>
+<PageTitle>Stratégie d'affectation des files — CIT</PageTitle>
 
-<h1>Stratégie d'affectation (AFF-07, C-01)</h1>
-
-<p class="text-muted">Le changement de stratégie d'une file est réalisable sans développement.</p>
-
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Identifiant administrateur" @bind="administrateurId" /></div>
-    <div class="col-auto"><input class="form-control" placeholder="Identifiant file" @bind="fileId" /></div>
-    <div class="col-auto">
-        <select class="form-select" @bind="strategieSelectionnee">
-            @foreach (var strategie in Enum.GetValues<StrategieAffectation>())
-            {
-                <option value="@strategie">@strategie</option>
-            }
-        </select>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>⚙️</span> Stratégie d'affectation des files (AFF-07, C-01)
+        </h2>
+        <div class="cit-page-subtitle">Paramétrage dynamique du mode de distribution et d'affectation des tickets sans développement</div>
     </div>
-    <div class="col-auto"><button class="btn btn-primary" @onclick="ChangerAsync">Appliquer</button></div>
+    <div class="mt-3 mt-md-0">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
+            🔄 Actualiser
+        </button>
+    </div>
 </div>
 
-@if (message is not null)
+@if (_chargement)
 {
-    <div class="alert alert-success">@message</div>
+    <IndicateurChargement Message="Chargement des files de traitement..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3">@_erreur</div>
+    }
+
+    @if (_message is not null)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4">✅</span>
+            <div>@_message</div>
+        </div>
+    }
+
+    @if (_files is null || _files.Count == 0)
+    {
+        <EtatVide Titre="Aucune file de traitement"
+                  Description="Aucune file n'est encore configurée : il n'y a donc pas de stratégie d'affectation à paramétrer."
+                  Icone="⚙️" />
+    }
+    else
+    {
+        <div class="cit-card mb-4" style="max-width: 800px;">
+            <h6 class="fw-bold text-dark mb-3">Configuration de la stratégie de file</h6>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label small fw-semibold text-dark" for="file">File de traitement</label>
+                    <select id="file" class="form-select form-select-sm" @bind="_fileSelectionnee">
+                        @foreach (var file in _files)
+                        {
+                            <option value="@file.Id">@file.Nom — @file.Module</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label small fw-semibold text-dark" for="strategie">Stratégie d'affectation</label>
+                    <select id="strategie" class="form-select form-select-sm" @bind="_strategieSelectionnee">
+                        @foreach (var strategie in Enum.GetValues<StrategieAffectation>())
+                        {
+                            <option value="@strategie">@LibelleStrategie(strategie)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary btn-sm fw-bold shadow-sm" @onclick="ChangerAsync">
+                        💾 Appliquer la stratégie
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="cit-card p-0 overflow-hidden" style="max-width: 800px;">
+            <div class="p-3 bg-light border-bottom">
+                <h6 class="fw-bold text-dark mb-0">Files configurées (@_files.Count)</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>File</th>
+                            <th>Module</th>
+                            <th>Stratégie active</th>
+                            <th>Compétence requise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var file in _files)
+                        {
+                            <tr>
+                                <td class="text-dark fw-semibold">@file.Nom</td>
+                                <td class="small text-muted">@file.Module</td>
+                                <td><span class="badge bg-primary-subtle text-primary">@LibelleStrategie(file.StrategieActive)</span></td>
+                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(file.CompetenceRequise) ? "—" : file.CompetenceRequise)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 }
 
 @code {
-    private string administrateurId = string.Empty;
-    private string fileId = string.Empty;
-    private StrategieAffectation strategieSelectionnee = StrategieAffectation.PriseLibre;
-    private string? message;
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _message;
+
+    private Guid _administrateurId;
+    private IReadOnlyList<FileAdministrable>? _files;
+    private Guid _fileSelectionnee;
+    private StrategieAffectation _strategieSelectionnee = StrategieAffectation.PriseLibre;
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    /// <summary>Les valeurs d'énumération sont traduites : l'écran s'adresse à un administrateur
+    /// fonctionnel, pas à un développeur.</summary>
+    private static string LibelleStrategie(StrategieAffectation strategie) => strategie switch
+    {
+        StrategieAffectation.PriseLibre => "Prise libre (l'agent choisit son ticket)",
+        StrategieAffectation.AffectationManuelle => "Affectation manuelle (par le superviseur)",
+        StrategieAffectation.RoundRobin => "Tour de rôle (répartition égale)",
+        StrategieAffectation.Charge => "Selon la charge (au moins occupé)",
+        StrategieAffectation.Disponibilite => "Selon la disponibilité (agents présents)",
+        StrategieAffectation.Competence => "Selon la compétence requise",
+        _ => strategie.ToString()
+    };
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour administrer les files de traitement.";
+                return;
+            }
+
+            // L'administrateur est l'utilisateur authentifié ; son habilitation
+            // (Permission.AdministrationFiles) est vérifiée côté serveur par la requête elle-même.
+            _administrateurId = contexte.UtilisateurId;
+            _files = await ListerFiles.ExecuterAsync(_administrateurId);
+
+            var courante = _files.FirstOrDefault(f => f.Id == _fileSelectionnee) ?? _files.FirstOrDefault();
+            if (courante is not null)
+            {
+                _fileSelectionnee = courante.Id;
+                _strategieSelectionnee = courante.StrategieActive;
+            }
+            _nonAutorise = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
 
     private async Task ChangerAsync()
     {
-        await GererFiles.ChangerStrategieAsync(Guid.Parse(administrateurId), Guid.Parse(fileId), strategieSelectionnee);
-        message = $"Stratégie appliquée sans développement : {strategieSelectionnee} (AFF-07).";
+        _erreur = null;
+        _message = null;
+
+        if (_fileSelectionnee == Guid.Empty)
+        {
+            _erreur = "Veuillez sélectionner une file de traitement.";
+            return;
+        }
+
+        try
+        {
+            await GererFiles.ChangerStrategieAsync(_administrateurId, _fileSelectionnee, _strategieSelectionnee);
+            _message = $"Stratégie appliquée sans développement : {LibelleStrategie(_strategieSelectionnee)} (AFF-07).";
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
     }
 }

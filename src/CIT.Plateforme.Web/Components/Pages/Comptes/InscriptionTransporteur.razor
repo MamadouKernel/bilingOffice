@@ -1,0 +1,131 @@
+@page "/comptes/inscription-transporteur"
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject InscrireTransporteurCommand InscrireTransporteur
+
+@* ENR-01 (Must) — « Le chauffeur ou le transporteur RENSEIGNE À DISTANCE les informations
+   nécessaires à son enrôlement. » Le § 6 en fait un profil à part entière et le modèle de
+   données du CDC prévoit un « compte transporteur/chauffeur » distinct du compte client.
+
+   Page PUBLIQUE, comme la demande de compte entreprise : l'intéressé n'a pas encore de compte.
+   Elle s'en distingue sur le point décisif — elle N'OUVRE AUCUNE DEMANDE DE SOCIÉTÉ. Le
+   transporteur est une personne physique unique (CLAR-ENR-01), et c'est précisément ce que les
+   trois autres portes ne savaient pas produire. *@
+
+<PageTitle>Inscription transporteur — CIT</PageTitle>
+
+<div class="container" style="max-width: 34rem;">
+    <div class="cit-page-header">
+        <div>
+            <h2 class="cit-page-title"><span>🚚</span> Inscription transporteur</h2>
+            <div class="cit-page-subtitle">
+                Créez votre accès pour constituer votre dossier d'enrôlement à distance
+            </div>
+        </div>
+    </div>
+
+    @if (_termine)
+    {
+        <div class="alert alert-success">
+            <strong>Votre compte est créé.</strong>
+            <div class="small mt-1">
+                Connectez-vous, puis constituez votre dossier d'enrôlement et déposez vos pièces.
+            </div>
+            <a class="btn btn-primary btn-sm mt-3" href="/comptes/connexion">Se connecter</a>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold" for="email">Adresse e-mail</label>
+                    <input id="email" class="form-control form-control-sm" @bind="_email" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold" for="nom">Nom et prénoms</label>
+                    <input id="nom" class="form-control form-control-sm" @bind="_nomAffiche" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold" for="mdp">Mot de passe</label>
+                    <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
+                    <div class="form-text">10 caractères minimum.</div>
+                </div>
+
+                @if (_erreur is not null)
+                {
+                    <div class="alert alert-danger small">@_erreur</div>
+                }
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="/comptes/connexion" class="text-decoration-none small text-muted">
+                        ← Déjà un compte ? Se connecter
+                    </a>
+                    <button class="btn btn-primary fw-bold px-4" @onclick="CreerAsync">
+                        Créer mon compte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <p class="form-text mt-3">
+            Vous représentez une entreprise cliente ?
+            <a href="/comptes/soumettre">Demandez plutôt un compte entreprise</a>.
+        </p>
+    }
+</div>
+
+@code {
+    private string _email = string.Empty;
+    private string _nomAffiche = string.Empty;
+    private string _motDePasse = string.Empty;
+    private string? _erreur;
+    private bool _termine;
+
+    private async Task CreerAsync()
+    {
+        _erreur = null;
+
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche))
+        {
+            _erreur = "L'adresse e-mail et le nom sont obligatoires.";
+            return;
+        }
+
+        // Le compte Identity est créé côté Web, comme pour la demande de compte société
+        // (decision D1 : aucune modification d'Identity depuis la couche applicative).
+        var transporteur = new ApplicationUser
+        {
+            UserName = _email.Trim(),
+            Email = _email.Trim(),
+            NomAffiche = _nomAffiche.Trim(),
+            Nature = NatureUtilisateur.Client,
+        };
+
+        var resultat = await UserManager.CreateAsync(transporteur, _motDePasse);
+        if (!resultat.Succeeded)
+        {
+            _erreur = string.Join(" ", resultat.Errors.Select(e => e.Description));
+            return;
+        }
+
+        try
+        {
+            await InscrireTransporteur.ExecuterAsync(transporteur.Id);
+            _termine = true;
+        }
+        catch (Exception ex)
+        {
+            // Sans son habilitation, le compte ne pourrait rien soumettre : le laisser en place
+            // produirait un accès inutile et trompeur.
+            await UserManager.DeleteAsync(transporteur);
+            _erreur = ex.Message;
+        }
+    }
+}

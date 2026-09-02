@@ -1,6 +1,19 @@
-@page "/tickets/{TicketId:guid}"
+@* Route distincte de la fiche ticket : /tickets/{id} appartient à FicheTicket.razor. Les deux
+   pages déclaraient auparavant la même route, ce qui faisait échouer TOUTE ouverture de ticket
+   avec une AmbiguousMatchException. *@
+@page "/tickets/{TicketId:guid}/administration"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
 @using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Supervision
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerFilesQuery ListerFiles
+@inject VueChargeQuery VueCharge
 @inject TransfererTicketCommand Transferer
 @inject ReaffecterTicketCommand Reaffecter
 @inject AttenteClientCommand AttenteClient
@@ -9,77 +22,209 @@
 @inject ReouvrirTicketCommand Reouvrir
 @inject DeclarerFinalisationPresentielleCommand DeclarerFinalisationPresentielle
 
-<PageTitle>Détail du ticket</PageTitle>
+<PageTitle>Actions sur le ticket — CIT</PageTitle>
 
-<h1>Détail du ticket</h1>
-
-<p class="text-muted">
-    Actions US2 (transfert, réaffectation) sur le ticket <code>@TicketId</code>. La saisie du
-    module/type et des données métier détaillées relève des features consommatrices — hors
-    périmètre ici.
-</p>
-
-<h2>Transférer (TRF-01)</h2>
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Initiateur" @bind="initiateurId" /></div>
-    <div class="col-auto"><input class="form-control" placeholder="File cible" @bind="fileCibleId" /></div>
-    <div class="col-auto"><input class="form-control" placeholder="Motif (obligatoire)" @bind="motifTransfert" /></div>
-    <div class="col-auto"><button class="btn btn-primary" @onclick="TransfererAsync">Transférer</button></div>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>⚙️</span> Actions opérationnelles sur le ticket
+        </h2>
+        <div class="cit-page-subtitle">Transfert, réaffectation et cycle de vie (US2)</div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="@($"/tickets/{TicketId}")" class="btn btn-outline-secondary btn-sm">← Revenir à la fiche</a>
+    </div>
 </div>
 
-<h2>Réaffecter (TRF-04)</h2>
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Nouvel opérateur" @bind="nouvelOperateurId" /></div>
-    <div class="col-auto"><button class="btn btn-secondary" @onclick="ReaffecterAsync">Réaffecter</button></div>
-</div>
-
-<h2>Attente client (TPS-02)</h2>
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Motif du complément demandé" @bind="motifAttente" /></div>
-    <div class="col-auto"><button class="btn btn-warning" @onclick="MettreEnAttenteAsync">Demander un complément</button></div>
-    <div class="col-auto"><button class="btn btn-outline-secondary" @onclick="RependreAsync">Reprendre après réponse</button></div>
-</div>
-
-<h2>Cycle de vie</h2>
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Motif" @bind="motifCycleDeVie" /></div>
-    <div class="col-auto"><button class="btn btn-outline-danger" @onclick="AnnulerAsync">Annuler</button></div>
-    <div class="col-auto"><button class="btn btn-success" @onclick="ClorerAsync">Clôturer</button></div>
-    <div class="col-auto"><button class="btn btn-outline-primary" @onclick="RouvrirAsync">Rouvrir</button></div>
-</div>
-
-@* Composant partagé (pas de page dédiée) : ne s'applique qu'aux tickets du module Billing IMPORT
-   (IMP-15), une fois validés par le Pilote Manifeste. Aucun mécanisme de rendez-vous — trace
-   uniquement (future Feature Continuité Digital/Présentiel). *@
-<h2>Bascule présentielle — Billing Office IMPORT</h2>
-<p class="text-muted">
-    Réservé aux tickets IMPORT validés par le Pilote Manifeste. Ceci ne prend pas de rendez-vous —
-    la coordination avec le client reste à faire séparément.
-</p>
-<div class="row mb-3">
-    <div class="col-auto"><button class="btn btn-outline-primary" @onclick="DeclarerFinalisationPresentielleAsync">Finaliser au Billing Office</button></div>
-</div>
-
-@if (message is not null)
+@if (_chargement)
 {
-    <div class="alert @(erreur ? "alert-danger" : "alert-success")">@message</div>
+    <IndicateurChargement Message="Chargement des actions disponibles..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (message is not null)
+    {
+        <div class="alert @(erreur ? "alert-danger" : "alert-success") mb-4">@message</div>
+    }
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="cit-card h-100">
+                <h6 class="fw-bold text-dark mb-3">🔄 Transférer vers une autre file (TRF-01)</h6>
+                @if (_files is null || _files.Count == 0)
+                {
+                    <p class="text-muted small mb-0">Vous n'êtes pas habilité à transférer ce ticket, ou aucune file n'est disponible.</p>
+                }
+                else
+                {
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark" for="file-cible">File de destination</label>
+                            <select id="file-cible" class="form-select form-select-sm" @bind="_fileCible">
+                                @foreach (var file in _files)
+                                {
+                                    <option value="@file.Id">@file.Nom — @file.Module</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark" for="motif-transfert">Motif du transfert (obligatoire)</label>
+                            <input id="motif-transfert" class="form-control form-control-sm" @bind="motifTransfert" />
+                        </div>
+                        <div class="col-12 text-end"><button class="btn btn-primary btn-sm" @onclick="TransfererAsync">Transférer</button></div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="cit-card h-100">
+                <h6 class="fw-bold text-dark mb-3">👤 Réaffecter un opérateur (TRF-04)</h6>
+                @if (_operateurs is null || _operateurs.Count == 0)
+                {
+                    <p class="text-muted small mb-0">Vous n'êtes pas habilité à réaffecter ce ticket, ou aucun opérateur n'est enregistré.</p>
+                }
+                else
+                {
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-dark" for="operateur">Nouvel opérateur en charge</label>
+                            <select id="operateur" class="form-select form-select-sm" @bind="_nouvelOperateur">
+                                @foreach (var operateur in _operateurs)
+                                {
+                                    <option value="@operateur.OperateurId">
+                                        @(string.IsNullOrWhiteSpace(operateur.NomOperateur) ? "Opérateur non identifié" : operateur.NomOperateur)
+                                        (@operateur.TicketsEnCours en cours)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 text-end pt-2"><button class="btn btn-secondary btn-sm" @onclick="ReaffecterAsync">Réaffecter</button></div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="cit-card h-100">
+                <h6 class="fw-bold text-dark mb-3">⏳ Gestion de l'attente client (TPS-02)</h6>
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark" for="motif-attente">Complément demandé au client</label>
+                        <input id="motif-attente" class="form-control form-control-sm" @bind="motifAttente" />
+                    </div>
+                    <div class="col-12 d-flex justify-content-end gap-2 pt-2">
+                        <button class="btn btn-warning btn-sm" @onclick="MettreEnAttenteAsync">Demander un complément</button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="RependreAsync">Reprendre après réponse</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="cit-card h-100">
+                <h6 class="fw-bold text-dark mb-3">🔄 Cycle de vie & clôture</h6>
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark" for="motif-cycle">Motif de l'action</label>
+                        <input id="motif-cycle" class="form-control form-control-sm" @bind="motifCycleDeVie" />
+                    </div>
+                    <div class="col-12 d-flex justify-content-end gap-2 pt-2 flex-wrap">
+                        <button class="btn btn-outline-danger btn-sm" @onclick="AnnulerAsync">Annuler</button>
+                        <button class="btn btn-success btn-sm" @onclick="ClorerAsync">Clôturer</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="RouvrirAsync">Rouvrir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="cit-card bg-light">
+                <h6 class="fw-bold text-dark mb-2">🏛️ Bascule présentielle — Billing Office IMPORT (IMP-15)</h6>
+                <p class="text-muted small mb-3">
+                    Réservé aux tickets IMPORT validés par le Pilote Manifeste. Aucun mécanisme de rendez-vous automatique.
+                </p>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm" @onclick="DeclarerFinalisationPresentielleAsync">Déclarer la finalisation au Billing Office</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
     [Parameter]
     public Guid TicketId { get; set; }
 
-    private string initiateurId = string.Empty;
-    private string fileCibleId = string.Empty;
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+
+    private Guid _initiateurId;
+    private IReadOnlyList<FileAdministrable>? _files;
+    private IReadOnlyList<VueOperateur>? _operateurs;
+    private Guid _fileCible;
+    private Guid _nouvelOperateur;
+
     private string motifTransfert = string.Empty;
-    private string nouvelOperateurId = string.Empty;
     private string motifAttente = string.Empty;
     private string motifCycleDeVie = string.Empty;
     private string? message;
     private bool erreur;
 
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    // L'initiateur de chaque action est l'utilisateur authentifié : aucun identifiant n'est saisi,
+    // et chaque commande revérifie l'habilitation côté serveur sur la file courante du ticket.
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour agir sur ce ticket.";
+                return;
+            }
+
+            _initiateurId = contexte.UtilisateurId;
+
+            // Chaque liste est chargée indépendamment : ne pas être habilité au transfert ne doit
+            // pas masquer les actions de cycle de vie, et réciproquement.
+            _files = await ChargerSansEchecAsync(() => ListerFiles.ListerPourTransfertAsync(_initiateurId));
+            _operateurs = await ChargerSansEchecAsync(() => VueCharge.ExecuterAsync(_initiateurId));
+
+            if (_files is { Count: > 0 }) _fileCible = _files[0].Id;
+            if (_operateurs is { Count: > 0 }) _nouvelOperateur = _operateurs[0].OperateurId;
+
+            _nonAutorise = false;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private static async Task<IReadOnlyList<T>?> ChargerSansEchecAsync<T>(Func<Task<IReadOnlyList<T>>> chargement)
+    {
+        try
+        {
+            return await chargement();
+        }
+        catch (AccesRefuseException)
+        {
+            return null;
+        }
+    }
+
     private async Task MettreEnAttenteAsync() => await ExecuterAvecGestionErreurAsync(
-        async () => await AttenteClient.MettreEnAttenteAsync(Guid.Parse(initiateurId), TicketId, motifAttente),
+        async () => await AttenteClient.MettreEnAttenteAsync(_initiateurId, TicketId, motifAttente),
         "Ticket mis en attente client (TPS-02).");
 
     private async Task RependreAsync() => await ExecuterAvecGestionErreurAsync(
@@ -87,20 +232,28 @@
         "Traitement repris après réponse client.");
 
     private async Task AnnulerAsync() => await ExecuterAvecGestionErreurAsync(
-        async () => await Annuler.AnnulerLibrementAsync(Guid.Parse(initiateurId), TicketId, motifCycleDeVie, etapeBloquanteAtteinte: false),
+        async () => await Annuler.AnnulerLibrementAsync(_initiateurId, TicketId, motifCycleDeVie, etapeBloquanteAtteinte: false),
         "Ticket annulé (CYC-01).");
 
     private async Task ClorerAsync() => await ExecuterAvecGestionErreurAsync(
-        async () => await Cloturer.ExecuterAsync(Guid.Parse(initiateurId), TicketId),
+        async () => await Cloturer.ExecuterAsync(_initiateurId, TicketId),
         "Ticket clôturé et archivé automatiquement (SOC-09).");
 
     private async Task RouvrirAsync() => await ExecuterAvecGestionErreurAsync(
-        async () => await Reouvrir.RouvrirAsync(Guid.Parse(initiateurId), TicketId, motifCycleDeVie),
+        async () => await Reouvrir.RouvrirAsync(_initiateurId, TicketId, motifCycleDeVie),
         "Ticket rouvert (CYC-06).");
 
     private async Task DeclarerFinalisationPresentielleAsync() => await ExecuterAvecGestionErreurAsync(
-        async () => await DeclarerFinalisationPresentielle.ExecuterAsync(Guid.Parse(initiateurId), TicketId),
+        async () => await DeclarerFinalisationPresentielle.ExecuterAsync(_initiateurId, TicketId),
         "Bascule présentielle déclarée (IMP-15).");
+
+    private async Task TransfererAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await Transferer.ExecuterAsync(_initiateurId, TicketId, _fileCible, motifTransfert),
+        "Ticket transféré (TRF-01/TRF-02/TRF-05).");
+
+    private async Task ReaffecterAsync() => await ExecuterAvecGestionErreurAsync(
+        async () => await Reaffecter.ExecuterAsync(_initiateurId, TicketId, _nouvelOperateur),
+        "Ticket réaffecté (TRF-04).");
 
     private async Task ExecuterAvecGestionErreurAsync(Func<Task> action, string messageSucces)
     {
@@ -108,36 +261,6 @@
         {
             await action();
             message = messageSucces;
-            erreur = false;
-        }
-        catch (Exception ex)
-        {
-            message = ex.Message;
-            erreur = true;
-        }
-    }
-
-    private async Task TransfererAsync()
-    {
-        try
-        {
-            await Transferer.ExecuterAsync(Guid.Parse(initiateurId), TicketId, Guid.Parse(fileCibleId), motifTransfert);
-            message = "Ticket transféré (TRF-01/TRF-02/TRF-05).";
-            erreur = false;
-        }
-        catch (Exception ex)
-        {
-            message = ex.Message;
-            erreur = true;
-        }
-    }
-
-    private async Task ReaffecterAsync()
-    {
-        try
-        {
-            await Reaffecter.ExecuterAsync(Guid.Parse(initiateurId), TicketId, Guid.Parse(nouvelOperateurId));
-            message = "Ticket réaffecté (TRF-04).";
             erreur = false;
         }
         catch (Exception ex)

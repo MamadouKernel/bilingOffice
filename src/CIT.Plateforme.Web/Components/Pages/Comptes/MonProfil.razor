@@ -1,0 +1,241 @@
+@page "/comptes/mon-profil"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirMonProfilQuery ObtenirMonProfil
+@inject ModifierMonProfilCommand ModifierMonProfil
+
+<PageTitle>Mon profil — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>👤</span> Mon profil
+        </h2>
+        <div class="cit-page-subtitle">Consultez les informations de votre compte et mettez à jour vos coordonnées</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de votre profil..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else if (_profil is not null)
+{
+    <div style="max-width: 760px;">
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-4">@_erreur</div>
+        }
+        @if (_succes is not null)
+        {
+            <div class="alert alert-success mb-4">@_succes</div>
+        }
+
+        <!-- Identité -->
+        <div class="cit-card mb-4">
+            <h6 class="fw-bold text-dark mb-1">Identité</h6>
+            <div class="small text-muted mb-4">Ces informations vous identifient auprès des agents CIT dans vos échanges.</div>
+
+            <div class="mb-3">
+                <label class="form-label" for="nomAffiche">Nom affiché</label>
+                <input id="nomAffiche" class="form-control" maxlength="128"
+                       @bind="_nomAffiche" @bind:event="oninput"
+                       placeholder="Nom et prénoms" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">Adresse e-mail</label>
+                <input id="email" class="form-control" value="@_profil.Email" disabled readonly />
+                <div class="form-text">
+                    Votre adresse e-mail est votre identifiant de connexion : elle ne peut pas être modifiée ici.
+                    Contactez l'administration CIT si elle doit changer.
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <label class="form-label" for="telephone">Téléphone</label>
+                <input id="telephone" class="form-control" maxlength="32"
+                       @bind="_telephone" @bind:event="oninput"
+                       placeholder="Ex. : +225 01 02 03 04 05" />
+                <div class="form-text">Facultatif. Utilisé pour vous joindre au sujet de vos dossiers.</div>
+            </div>
+        </div>
+
+        <!-- Rattachement -->
+        <div class="cit-card mb-4">
+            <h6 class="fw-bold text-dark mb-1">Rattachement</h6>
+            <div class="small text-muted mb-4">Informations gérées par CIT — elles ne sont pas modifiables depuis cette page.</div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted" style="width: 40%;">Espace actif</td>
+                            <td class="fw-semibold text-dark">@LibelleEspace(_contexte!.EspaceActif)</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Type de compte</td>
+                            <td class="fw-semibold text-dark">@_profil.Nature</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Société</td>
+                            <td class="fw-semibold text-dark">@(_contexte.SocieteNom ?? "—")</td>
+                        </tr>
+                        @if (_contexte.SocieteProfil.HasValue)
+                        {
+                            <tr>
+                                <td class="text-muted">Profil client</td>
+                                <td class="fw-semibold text-dark">@_contexte.SocieteProfil</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td class="text-muted">Habilitations</td>
+                            <td class="fw-semibold text-dark">@_contexte.Permissions.Count</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">État du compte</td>
+                            <td>
+                                @if (_profil.EstActif)
+                                {
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Actif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Inactif</span>
+                                }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sécurité -->
+        <div class="cit-card mb-4">
+            <h6 class="fw-bold text-dark mb-1">Sécurité</h6>
+            <div class="small text-muted mb-3">Renforcez la protection de votre compte.</div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="/comptes/double-authentification" class="btn btn-outline-secondary btn-sm">
+                    🛡️ Double authentification (2FA)
+                </a>
+                <a href="/comptes/mot-de-passe-oublie" class="btn btn-outline-secondary btn-sm">
+                    🔑 Changer mon mot de passe
+                </a>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mb-5">
+            <button class="btn btn-outline-secondary" @onclick="AnnulerAsync" disabled="@_enregistrement">Annuler</button>
+            <button class="btn btn-primary px-4 fw-bold" @onclick="EnregistrerAsync" disabled="@(!PeutEnregistrer || _enregistrement)">
+                @(_enregistrement ? "Enregistrement..." : "Enregistrer les modifications")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _enregistrement;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _succes;
+
+    private ContexteUtilisateurVue? _contexte;
+    private MonProfilVue? _profil;
+
+    private string _nomAffiche = string.Empty;
+    private string _telephone = string.Empty;
+
+    private bool PeutEnregistrer => !string.IsNullOrWhiteSpace(_nomAffiche);
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            _contexte = await ContexteService.ObtenirContexteAsync();
+            if (_contexte is null || !_contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à votre profil.";
+                return;
+            }
+
+            // L'identité provient exclusivement du contexte authentifié (anti-IDOR).
+            _profil = await ObtenirMonProfil.ExecuterAsync(_contexte.UtilisateurId);
+            _nomAffiche = _profil.NomAffiche;
+            _telephone = _profil.Telephone ?? string.Empty;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task EnregistrerAsync()
+    {
+        if (!PeutEnregistrer || _contexte is null) return;
+
+        _enregistrement = true;
+        _erreur = null;
+        _succes = null;
+        try
+        {
+            await ModifierMonProfil.ExecuterAsync(
+                _contexte.UtilisateurId,
+                new ModifierMonProfilRequete(_nomAffiche, _telephone));
+
+            _succes = "Vos informations ont été enregistrées.";
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _enregistrement = false;
+        }
+    }
+
+    private async Task AnnulerAsync()
+    {
+        _succes = null;
+        _erreur = null;
+        await ChargerAsync();
+    }
+
+    private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
+    {
+        EspaceFonctionnel.Client => "Espace Client",
+        EspaceFonctionnel.AdministrateurSociete => "Espace Entreprise",
+        EspaceFonctionnel.Agent => "Espace Opérateur CIT",
+        EspaceFonctionnel.Supervision => "Supervision CIT",
+        EspaceFonctionnel.AdministrationCit => "Administration CIT",
+        _ => espace.ToString()
+    };
+}

@@ -1,0 +1,197 @@
+@page "/administration/pieces-exigees-compte"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerPiecesExigeesQuery ListerPieces
+@inject GererPiecesExigeesCommand GererPieces
+
+@* CPT-01 (Must) — « les informations et justificatifs exigés sont PARAMÉTRABLES », et § 17.3
+   « paramétrage des pièces exigées ». Aucune pièce n'est livrée par défaut : le CDC n'en nomme
+   aucune, et en inventer reviendrait à décider à la place du métier. *@
+
+<PageTitle>Pièces exigées à l'ouverture d'un compte — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📎</span> Pièces exigées à l'ouverture d'un compte
+        </h2>
+        <div class="cit-page-subtitle">
+            Justificatifs demandés au client lors de sa demande de compte
+        </div>
+    </div>
+</div>
+
+@if (_refuse)
+{
+    <div class="alert alert-warning">
+        Vous ne disposez pas de la permission <code>administration.comptes</code>.
+    </div>
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger">@_erreur</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Ajouter une pièce</h3>
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold" for="code">Code</label>
+                    <input id="code" class="form-control form-control-sm" @bind="_code"
+                           placeholder="registre_commerce" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold" for="libelle">Libellé présenté au client</label>
+                    <input id="libelle" class="form-control form-control-sm" @bind="_libelle"
+                           placeholder="Registre de Commerce" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold" for="ordre">Ordre</label>
+                    <input id="ordre" type="number" class="form-control form-control-sm" @bind="_ordre" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="form-check">
+                        <input id="obligatoire" type="checkbox" class="form-check-input" @bind="_obligatoire" />
+                        <label class="form-check-label small" for="obligatoire">Obligatoire</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-1">
+                    <button class="btn btn-primary btn-sm w-100" @onclick="AjouterAsync">Ajouter</button>
+                </div>
+            </div>
+            <div class="form-text mt-2">
+                Le code identifie la pièce de façon stable : il ne change pas quand le libellé
+                évolue, et c'est lui que portent les justificatifs déjà déposés.
+            </div>
+        </div>
+    </div>
+
+    @if (_pieces is null)
+    {
+        <p class="text-muted">Chargement…</p>
+    }
+    else if (_pieces.Count == 0)
+    {
+        <div class="alert alert-info">
+            Aucune pièce n'est paramétrée. Tant que la liste est vide, une demande de compte est
+            recevable sans justificatif.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Ordre</th>
+                        <th>Code</th>
+                        <th>Libellé</th>
+                        <th>Caractère</th>
+                        <th>État</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var piece in _pieces)
+                    {
+                        <tr>
+                            <td class="text-muted">@piece.Ordre</td>
+                            <td><code>@piece.Code</code></td>
+                            <td class="fw-bold">@piece.Libelle</td>
+                            <td>
+                                <span class="badge @(piece.Obligatoire ? "bg-primary-subtle text-primary" : "bg-secondary-subtle text-secondary")">
+                                    @(piece.Obligatoire ? "Obligatoire" : "Facultative")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @(piece.EstActif ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                    @(piece.EstActif ? "Active" : "Désactivée")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                @if (piece.EstActif)
+                                {
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick="() => BasculerAsync(piece.Id, false)">Désactiver</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-success btn-sm"
+                                            @onclick="() => BasculerAsync(piece.Id, true)">Activer</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="form-text">
+            Une pièce est désactivée, jamais supprimée : les demandes déjà déposées la
+            référencent, et leur dossier doit rester lisible.
+        </p>
+    }
+}
+
+@code {
+    private IReadOnlyList<PieceExigeeVue>? _pieces;
+    private Guid _appelantId;
+    private bool _refuse;
+    private string? _erreur;
+
+    private string _code = string.Empty;
+    private string _libelle = string.Empty;
+    private bool _obligatoire = true;
+    private int _ordre;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationComptes);
+        await ChargerAsync();
+    }
+
+    // L'écran de paramétrage montre AUSSI les pièces désactivées : les masquer empêcherait de
+    // les réactiver.
+    private async Task ChargerAsync() =>
+        _pieces = await ListerPieces.ExecuterAsync(activesUniquement: false);
+
+    private async Task ExecuterAsync(Func<Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            await action();
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException)
+        {
+            _refuse = true;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async () =>
+    {
+        await GererPieces.DefinirAsync(_appelantId, _code, _libelle, _obligatoire, _ordre);
+        _code = string.Empty;
+        _libelle = string.Empty;
+        _obligatoire = true;
+        _ordre = 0;
+    });
+
+    private Task BasculerAsync(Guid pieceId, bool actif) => ExecuterAsync(
+        () => GererPieces.DefinirActivationAsync(_appelantId, pieceId, actif));
+}

@@ -1,57 +1,161 @@
 @page "/supervision"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Supervision
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
 @inject VueFilesQuery VueFiles
 @inject VueChargeQuery VueCharge
 @implements IAsyncDisposable
 
-<PageTitle>Supervision temps réel</PageTitle>
+<PageTitle>Supervision temps réel — CIT</PageTitle>
 
-<h1>Supervision (SUP-01, SUP-02, SUP-03)</h1>
-
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Identifiant superviseur" @bind="superviseurId" /></div>
-    <div class="col-auto"><button class="btn btn-primary" @onclick="ChargerAsync">Charger ma vue</button></div>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>👁️</span> Supervision temps réel (SUP-01, SUP-02, SUP-03)
+        </h2>
+        <div class="cit-page-subtitle">Vue globale des files de traitement et suivi de la charge opérationnelle des agents</div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
+            🔄 Actualiser
+        </button>
+    </div>
 </div>
 
-@if (vuesFiles is not null)
+@if (_chargement)
 {
-    <h2>Files de mon périmètre</h2>
-    <table class="table">
-        <thead><tr><th>File</th><th>Non affectés</th><th>En cours</th><th>Attente client</th><th>Total actifs</th></tr></thead>
-        <tbody>
-            @foreach (var vue in vuesFiles)
-            {
-                <tr><td>@vue.FileId</td><td>@vue.NonAffectes</td><td>@vue.EnCours</td><td>@vue.EnAttenteClient</td><td>@vue.TotalActifs</td></tr>
-            }
-        </tbody>
-    </table>
+    <IndicateurChargement Message="Chargement de votre vue de supervision..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3">@_erreur</div>
+    }
+
+    @if (vuesFiles is not null)
+{
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="p-3 bg-light border-bottom">
+            <h6 class="fw-bold text-dark mb-0">Files de mon périmètre de supervision</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>File de traitement</th>
+                        <th class="text-end">Non affectés</th>
+                        <th class="text-end">En cours</th>
+                        <th class="text-end">Attente client</th>
+                        <th class="text-end fw-bold">Total actifs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var vue in vuesFiles)
+                    {
+                        <tr>
+                            <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(vue.Nom) ? "File sans nom" : vue.Nom)</td>
+                            <td class="text-end font-monospace @(vue.NonAffectes > 0 ? "text-warning fw-bold" : "text-muted")">@vue.NonAffectes</td>
+                            <td class="text-end font-monospace text-primary fw-bold">@vue.EnCours</td>
+                            <td class="text-end font-monospace text-muted">@vue.EnAttenteClient</td>
+                            <td class="text-end font-monospace text-dark fw-bold">@vue.TotalActifs</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
 
 @if (vuesCharge is not null)
 {
-    <h2>Charge par opérateur</h2>
-    <table class="table">
-        <thead><tr><th>Opérateur</th><th>Disponibilité</th><th>Tickets en cours</th><th>Dernière activité</th></tr></thead>
-        <tbody>
-            @foreach (var vue in vuesCharge)
-            {
-                <tr><td>@vue.OperateurId</td><td>@vue.Disponibilite</td><td>@vue.TicketsEnCours</td><td>@vue.DerniereActiviteUtc</td></tr>
-            }
-        </tbody>
-    </table>
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="p-3 bg-light border-bottom">
+            <h6 class="fw-bold text-dark mb-0">Charge par opérateur</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Opérateur</th>
+                        <th>Disponibilité</th>
+                        <th class="text-end">Tickets en cours</th>
+                        <th>Dernière activité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var vue in vuesCharge)
+                    {
+                        <tr>
+                            <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(vue.NomOperateur) ? "Opérateur non identifié" : vue.NomOperateur)</td>
+                            <td>
+                                <span class="badge @(vue.Disponibilite.ToString() == "Disponible" ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning")">
+                                    @vue.Disponibilite
+                                </span>
+                            </td>
+                            <td class="text-end font-monospace fw-bold text-primary">@vue.TicketsEnCours</td>
+                            <td class="small text-muted font-monospace">@vue.DerniereActiviteUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
 }
 
 @code {
-    private string superviseurId = string.Empty;
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
     private IReadOnlyList<VueFile>? vuesFiles;
     private IReadOnlyList<VueOperateur>? vuesCharge;
 
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
     private async Task ChargerAsync()
     {
-        var id = Guid.Parse(superviseurId);
-        vuesFiles = await VueFiles.ExecuterAsync(id);
-        vuesCharge = await VueCharge.ExecuterAsync(id);
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour accéder à la supervision.";
+                return;
+            }
+
+            // Le périmètre de supervision découle de l'identité authentifiée : aucun identifiant
+            // n'est saisi ni transmis par le navigateur (CLAR-05, anti-usurpation).
+            vuesFiles = await VueFiles.ExecuterAsync(contexte.UtilisateurId);
+            vuesCharge = await VueCharge.ExecuterAsync(contexte.UtilisateurId);
+            _nonAutorise = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;

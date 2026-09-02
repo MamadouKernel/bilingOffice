@@ -1,6 +1,8 @@
 using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Tests.Support;
 using CIT.Plateforme.Domain.Comptes;
+using CIT.Plateforme.Domain.Securite;
+using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Xunit;
 
@@ -14,8 +16,33 @@ public sealed class VerifierAccesCompteTests
     private static (PlateformeDbContext DbContext, VerifierAccesCompteQuery Verifier) ConstruireContexte()
     {
         var dbContext = ContexteDeTest.CreerNouveauContexte();
-        var verifier = new VerifierAccesCompteQuery(new UtilisateurSocieteRepository(dbContext), new SocieteClienteRepository(dbContext));
+        var verifier = new VerifierAccesCompteQuery(
+            new UtilisateurSocieteRepository(dbContext),
+            new SocieteClienteRepository(dbContext),
+            new UtilisateurInfoRepository(dbContext));
         return (dbContext, verifier);
+    }
+
+    /// <summary>
+    /// Le compte doit reellement exister : la requete refuse desormais un identifiant inconnu,
+    /// au lieu de se prononcer sur la seule absence de rattachement. Les cas ci-dessous
+    /// travaillaient auparavant sur des identifiants fictifs, ce que l'implementation ne
+    /// detectait pas.
+    /// </summary>
+    private static Guid CreerCompte(PlateformeDbContext dbContext)
+    {
+        var compte = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"{Guid.NewGuid():N}@test.local",
+            Email = $"{Guid.NewGuid():N}@test.local",
+            NomAffiche = "Compte de test",
+            Nature = NatureUtilisateur.Client,
+            EstActif = true,
+        };
+        dbContext.Users.Add(compte);
+        dbContext.SaveChanges();
+        return compte.Id;
     }
 
     private static SocieteCliente CreerSociete(PlateformeDbContext dbContext, EtatSociete etat)
@@ -40,7 +67,7 @@ public sealed class VerifierAccesCompteTests
     {
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.Active);
-        var utilisateurId = Guid.NewGuid();
+        var utilisateurId = CreerCompte(dbContext);
         dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
@@ -52,7 +79,7 @@ public sealed class VerifierAccesCompteTests
     {
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.EnAttenteValidation);
-        var utilisateurId = Guid.NewGuid();
+        var utilisateurId = CreerCompte(dbContext);
         dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
@@ -64,7 +91,7 @@ public sealed class VerifierAccesCompteTests
     {
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.Refusee);
-        var utilisateurId = Guid.NewGuid();
+        var utilisateurId = CreerCompte(dbContext);
         dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
@@ -76,7 +103,7 @@ public sealed class VerifierAccesCompteTests
     {
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.Active);
-        var utilisateurId = Guid.NewGuid();
+        var utilisateurId = CreerCompte(dbContext);
         var rattachement = UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow);
         rattachement.Desactiver();
         dbContext.UtilisateursSociete.Add(rattachement);
@@ -85,6 +112,11 @@ public sealed class VerifierAccesCompteTests
         Assert.False(await verifier.AccesAutoriseAsync(utilisateurId));
     }
 
+    /// <summary>
+    /// Un identifiant INCONNU est refuse. Ce cas defend la permissivite par defaut : depuis que
+    /// l'absence de demande de societe ouvre l'acces aux personnes physiques (transporteurs),
+    /// rien ne doit autoriser un identifiant qui ne correspond a aucun compte.
+    /// </summary>
     [Fact]
     public async Task Aucun_rattachement_refuse_l_acces()
     {

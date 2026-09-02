@@ -19,8 +19,14 @@ public sealed class SoumettreDemandeCompteTests
         var journalisation = new JournalisationService(dbContext, horloge);
         var uniteDeTravail = new UniteDeTravail(dbContext);
 
+        // CPT-01 : la commande controle desormais la completude du dossier contre le referentiel
+        // PARAMETRABLE des pieces exigees. Les depots reels sont branches ici pour que le
+        // referentiel vide de ce contexte reflete l'etat initial du produit.
         var soumettre = new SoumettreDemandeCompteCommand(
-            new SocieteClienteRepository(dbContext), journalisation, horloge, uniteDeTravail);
+            new SocieteClienteRepository(dbContext),
+            new PieceExigeeCompteRepository(dbContext),
+            new JustificatifDemandeCompteRepository(dbContext),
+            journalisation, horloge, uniteDeTravail);
 
         return (dbContext, soumettre);
     }

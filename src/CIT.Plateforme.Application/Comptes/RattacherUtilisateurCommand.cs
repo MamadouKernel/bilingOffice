@@ -16,8 +16,34 @@ public sealed class RattacherUtilisateurCommand(
     IUtilisateurSocieteRepository rattachements,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    IUtilisateurInfoRepository? utilisateurs = null)
 {
+    /// <summary>
+    /// Rattachement par ADRESSE E-MAIL : c'est la seule désignation qu'un administrateur de société
+    /// connaisse réellement. La résolution vers l'identifiant technique est faite ici, après
+    /// vérification de l'autorité de l'appelant, pour qu'aucun identifiant ne transite par l'UI.
+    /// </summary>
+    public async Task<UtilisateurSociete> RattacherParEmailAsync(Guid appelantId, Guid societeId, string email, CancellationToken ct = default)
+    {
+        await ExigerAdministrateurDeLaSocieteAsync(rattachements, appelantId, societeId, ct).ConfigureAwait(false);
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new ArgumentException("L'adresse e-mail du collaborateur est obligatoire.", nameof(email));
+        }
+
+        if (utilisateurs is null)
+        {
+            throw new InvalidOperationException("La recherche par e-mail n'est pas disponible dans cette configuration.");
+        }
+
+        var utilisateur = await utilisateurs.ObtenirParEmailAsync(email, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Aucun compte ne correspond à l'adresse « {email.Trim()} ».");
+
+        return await ExecuterAsync(appelantId, societeId, utilisateur.Id, ct).ConfigureAwait(false);
+    }
+
     public async Task<UtilisateurSociete> ExecuterAsync(Guid appelantId, Guid societeId, Guid nouvelUtilisateurId, CancellationToken ct = default)
     {
         await ExigerAdministrateurDeLaSocieteAsync(rattachements, appelantId, societeId, ct).ConfigureAwait(false);

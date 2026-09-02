@@ -1,44 +1,41 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Web.Services
-@inject IContexteUtilisateurWeb ContexteService
-@inject NavigationManager NavigationManager
 
 @if (Contexte?.EstAuthentifie == true && Contexte.EspacesDisponibles.Count > 1)
 {
-    <div class="dropdown me-3">
-        <button class="btn btn-outline-primary btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <span>🔄 Espace : <strong>@LibelleEspace(Contexte.EspaceActif)</strong></span>
-        </button>
-        <ul class="dropdown-menu shadow-sm">
+    @* Ouverture par <details> natif et bascule par POST : la mise en page est rendue en SSR
+       statique (Routes.razor ne déclare aucun @rendermode), donc ni @onclick ni Bootstrap JS
+       n'y sont opérants. Le POST dépose un cookie de préférence puis redirige — le choix
+       survit ainsi à la requête, ce que ne permettait pas un champ de service scoped. *@
+    <details class="cit-user-menu cit-persona mb-2">
+        <summary class="cit-user-trigger cit-persona-trigger" aria-haspopup="true">
+            <span class="d-flex align-items-center gap-2 flex-grow-1" style="min-width:0;">
+                <span>🔄</span>
+                <span class="small fw-semibold text-truncate">@LibelleEspace(Contexte.EspaceActif)</span>
+            </span>
+            <span class="cit-user-caret">▾</span>
+        </summary>
+
+        <div class="cit-user-dropdown cit-persona-dropdown" role="menu">
             @foreach (var espace in Contexte.EspacesDisponibles)
             {
-                <li>
-                    <button class="dropdown-item @(espace == Contexte.EspaceActif ? "active" : "")" type="button" @onclick="() => ChangerEspace(espace)">
+                <form method="post" action="/contexte/espace" class="m-0">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="espace" value="@espace" />
+                    <button type="submit" role="menuitem"
+                            class="cit-user-dropdown-item @(espace == Contexte.EspaceActif ? "actif" : "")">
+                        <span>@(espace == Contexte.EspaceActif ? "✓" : "")</span>
                         @LibelleEspace(espace)
                     </button>
-                </li>
+                </form>
             }
-        </ul>
-    </div>
+        </div>
+    </details>
 }
 
 @code {
     [Parameter]
     public ContexteUtilisateurVue? Contexte { get; set; }
-
-    private void ChangerEspace(EspaceFonctionnel nouvelEspace)
-    {
-        ContexteService.BasculerEspace(nouvelEspace);
-        var cible = nouvelEspace switch
-        {
-            EspaceFonctionnel.Supervision => "/supervision",
-            EspaceFonctionnel.AdministrationCit => "/administration/comptes-a-valider",
-            EspaceFonctionnel.Agent => "/agent/dashboard",
-            EspaceFonctionnel.AdministrateurSociete => "/societe/dashboard",
-            _ => "/client/dashboard"
-        };
-        NavigationManager.NavigateTo(cible);
-    }
 
     private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
     {

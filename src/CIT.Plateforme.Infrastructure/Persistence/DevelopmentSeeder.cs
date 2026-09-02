@@ -361,7 +361,12 @@ public sealed partial class DevelopmentSeeder(
             (Permission.SupervisionAgir, null),
             (Permission.ActionDeMasse, null),
             (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null)
+            (Permission.RendezVousGerer, null),
+            // CDC art. 17.3 — administration des comptes agents et de leurs roles (SEC-11).
+            (Permission.AdministrationComptes, null),
+            // Corrige un manque signale : l'ecran d'administration des notifications existait
+            // (COM-03, NOT-02) mais aucun compte seede ne portait sa permission.
+            (Permission.AdministrationNotifications, null)
         });
     }
 }

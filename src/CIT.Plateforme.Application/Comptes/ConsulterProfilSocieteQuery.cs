@@ -7,12 +7,18 @@ namespace CIT.Plateforme.Application.Comptes;
 
 /// <summary>Contrat C2-10 — Consulter le profil d'une société et ses utilisateurs rattachés. CDC :
 /// CPT-04, ENT-01, ENT-03 (cas d'usage #7 déduit de spec.md).</summary>
-public sealed record ProfilSocieteResultat(SocieteCliente Societe, IReadOnlyList<UtilisateurSociete> UtilisateursRattaches);
+/// <summary><paramref name="NomsUtilisateurs"/> permet d'afficher des personnes plutôt que des
+/// identifiants techniques ; il reste facultatif pour ne pas altérer le contrat existant.</summary>
+public sealed record ProfilSocieteResultat(
+    SocieteCliente Societe,
+    IReadOnlyList<UtilisateurSociete> UtilisateursRattaches,
+    IReadOnlyDictionary<Guid, string>? NomsUtilisateurs = null);
 
 public sealed class ConsulterProfilSocieteQuery(
     ISocieteClienteRepository societes,
     IUtilisateurSocieteRepository rattachements,
-    IAutorisationService autorisation)
+    IAutorisationService autorisation,
+    IUtilisateurInfoRepository? utilisateurs = null)
 {
     public async Task<ProfilSocieteResultat> ExecuterAsync(Guid appelantId, Guid societeId, CancellationToken ct = default)
     {
@@ -28,7 +34,22 @@ public sealed class ConsulterProfilSocieteQuery(
                 $"L'utilisateur {appelantId} n'est pas rattaché à la société {societeId} et n'est pas un administrateur fonctionnel habilité (CPT-04).");
         }
 
-        var utilisateurs = await rattachements.ListerParSocieteAsync(societeId, ct).ConfigureAwait(false);
-        return new ProfilSocieteResultat(societe, utilisateurs);
+        var membres = await rattachements.ListerParSocieteAsync(societeId, ct).ConfigureAwait(false);
+
+        // Résolution des noms affichés : la liste des collaborateurs présente des personnes,
+        // l'identifiant technique n'ayant aucun sens pour un utilisateur métier.
+        IReadOnlyDictionary<Guid, string>? noms = null;
+        if (utilisateurs is not null && membres.Count > 0)
+        {
+            var infos = await utilisateurs
+                .ObtenirInfosAsync(membres.Select(m => m.UtilisateurId), ct)
+                .ConfigureAwait(false);
+
+            noms = infos.ToDictionary(
+                paire => paire.Key,
+                paire => string.IsNullOrWhiteSpace(paire.Value.NomAffiche) ? paire.Value.Email : paire.Value.NomAffiche!);
+        }
+
+        return new ProfilSocieteResultat(societe, membres, noms);
     }
 }

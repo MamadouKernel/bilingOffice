@@ -1,78 +1,197 @@
 @page "/comptes/modifier-type"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Comptes
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerSocietesActivesQuery ListerSocietes
 @inject ModifierTypeClientCommand ModifierType
 
-<PageTitle>Modifier le type de client</PageTitle>
+<PageTitle>Modifier le type de client — CIT</PageTitle>
 
-<h1>Modifier le type de client</h1>
-
-@* Contrat C2-12 (CPT-06). Réservé à l'administrateur fonctionnel CIT. Tracé (ancien type, nouveau
-   type, auteur, date/heure) ; sans effet rétroactif sur les dossiers déjà créés. *@
-<p class="text-muted">Le changement est tracé et n'affecte que les nouveaux dossiers — les dossiers déjà créés conservent leur type d'origine.</p>
-
-<EditForm Model="modele" OnValidSubmit="ModifierAsync" FormName="modifier-type-client">
-    <div class="mb-3">
-        <label class="form-label" for="appelant">Identifiant de l'administrateur fonctionnel (démonstration)</label>
-        <InputText id="appelant" class="form-control" @bind-Value="modele.AppelantId" />
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🏷️</span> Modifier le type de client (CPT-06)
+        </h2>
+        <div class="cit-page-subtitle">Modification administrative tracée du profil de facturation (Normal, En Compte, Deposit)</div>
     </div>
-    <div class="mb-3">
-        <label class="form-label" for="societe">Identifiant de la société</label>
-        <InputText id="societe" class="form-control" @bind-Value="modele.SocieteId" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="nouveau-type">Nouveau type de client</label>
-        <InputSelect id="nouveau-type" class="form-select" @bind-Value="modele.NouveauType">
-            @foreach (var valeur in Enum.GetValues<TypeClient>())
-            {
-                <option value="@valeur">@valeur</option>
-            }
-        </InputSelect>
-    </div>
-    <button type="submit" class="btn btn-primary">Modifier</button>
-</EditForm>
+</div>
 
-@if (erreur is not null)
+@if (_chargement)
 {
-    <div class="alert alert-danger mt-3">@erreur</div>
+    <IndicateurChargement Message="Chargement des sociétés clientes..." />
 }
-
-@if (succes)
+else if (_nonAutorise)
 {
-    <div class="alert alert-success mt-3">Type de client modifié et tracé.</div>
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    <div style="max-width: 700px;">
+        @if (_societes is null || _societes.Count == 0)
+        {
+            <EtatVide Titre="Aucune société active"
+                      Description="Aucune société cliente validée n'est disponible : il n'y a pas de type de client à modifier."
+                      Icone="🏷️" />
+        }
+        else
+        {
+            <div class="cit-card mb-4">
+                <p class="text-muted small mb-3">
+                    Le changement est tracé avec horodatage et n'affecte que les nouveaux dossiers — les dossiers déjà créés conservent leur type d'origine.
+                </p>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark" for="societe">Société cliente concernée</label>
+                    <select id="societe" class="form-select form-select-sm" @bind="_societeSelectionnee">
+                        @foreach (var societe in _societes)
+                        {
+                            <option value="@societe.Id">@NomLisible(societe)</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-dark">Type de client actuel</label>
+                    <div>
+                        <span class="badge bg-light text-dark border">@LibelleType(TypeActuel)</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-dark" for="nouveau-type">Nouveau type de client</label>
+                    <select id="nouveau-type" class="form-select form-select-sm" @bind="_nouveauType">
+                        @foreach (var valeur in Enum.GetValues<TypeClient>())
+                        {
+                            <option value="@valeur">@LibelleType(valeur)</option>
+                        }
+                    </select>
+                </div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="ModifierAsync">
+                        💾 Valider la modification
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-4">@_erreur</div>
+        }
+
+        @if (_succes)
+        {
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+                <span class="fs-4">✅</span>
+                <div>Type de client modifié avec succès et consigné dans le journal d'audit.</div>
+            </div>
+        }
+    </div>
 }
 
 @code {
-    [SupplyParameterFromForm]
-    private ModeleModification? modeleFormulaire { get; set; }
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private bool _succes;
 
-    private ModeleModification modele = new();
-    private string? erreur;
-    private bool succes;
+    private Guid _appelantId;
+    private IReadOnlyList<SocieteSelectionnable>? _societes;
+    private Guid _societeSelectionnee;
+    private TypeClient _nouveauType = TypeClient.Normal;
 
-    protected override void OnInitialized() => modele = modeleFormulaire ?? modele;
+    private TypeClient TypeActuel =>
+        _societes?.FirstOrDefault(s => s.Id == _societeSelectionnee)?.Profil ?? TypeClient.Normal;
 
-    private async Task ModifierAsync()
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    /// <summary>Une société est désignée par ses informations déclarées ; l'identifiant technique
+    /// n'apparaît jamais à l'écran et n'est jamais saisi.</summary>
+    private static string NomLisible(SocieteSelectionnable societe) =>
+        string.IsNullOrWhiteSpace(societe.InformationsDeclarees)
+            ? "Société sans informations déclarées"
+            : societe.InformationsDeclarees;
+
+    private static string LibelleType(TypeClient type) => type switch
     {
-        erreur = null;
-        succes = false;
+        TypeClient.Normal => "Normal (paiement à l'acte)",
+        TypeClient.EnCompte => "En compte (facturation différée)",
+        TypeClient.Deposit => "Deposit (provision préalable)",
+        TypeClient.IES => "IES (Import Export Service)",
+        _ => type.ToString()
+    };
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
         try
         {
-            await ModifierType.ExecuterAsync(Guid.Parse(modele.AppelantId), Guid.Parse(modele.SocieteId), modele.NouveauType);
-            succes = true;
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour modifier un type de client.";
+                return;
+            }
+
+            // L'administrateur fonctionnel est l'utilisateur authentifié ; l'habilitation
+            // Permission.CompteTypeModifier est vérifiée côté serveur, à la lecture comme à l'écriture.
+            _appelantId = contexte.UtilisateurId;
+            _societes = await ListerSocietes.ExecuterAsync(_appelantId);
+
+            var courante = _societes.FirstOrDefault(s => s.Id == _societeSelectionnee) ?? _societes.FirstOrDefault();
+            if (courante is not null)
+            {
+                _societeSelectionnee = courante.Id;
+                _nouveauType = courante.Profil;
+            }
+            _nonAutorise = false;
         }
         catch (AccesRefuseException ex)
         {
-            erreur = ex.Message;
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
         }
     }
 
-    private sealed class ModeleModification
+    private async Task ModifierAsync()
     {
-        public string AppelantId { get; set; } = string.Empty;
-        public string SocieteId { get; set; } = string.Empty;
-        public TypeClient NouveauType { get; set; } = TypeClient.Normal;
+        _erreur = null;
+        _succes = false;
+
+        if (_societeSelectionnee == Guid.Empty)
+        {
+            _erreur = "Veuillez sélectionner une société cliente.";
+            return;
+        }
+
+        try
+        {
+            await ModifierType.ExecuterAsync(_appelantId, _societeSelectionnee, _nouveauType);
+            _succes = true;
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
     }
 }

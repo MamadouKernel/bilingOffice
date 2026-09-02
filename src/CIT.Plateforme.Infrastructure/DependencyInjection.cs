@@ -73,6 +73,10 @@ public static class DependencyInjection
         services.AddScoped<RevoquerInvitationCommand>();
         services.AddScoped<ConsulterInvitationQuery>();
         services.AddScoped<AccepterInvitationCommand>();
+
+        // ENR-01 — inscription a distance d'un transporteur/chauffeur : personne physique sans
+        // societe, seul parcours produisant le « compte transporteur/chauffeur » du modele CDC.
+        services.AddScoped<InscrireTransporteurCommand>();
         services.AddScoped<CloisonnementService>();
         services.AddScoped<GererFilesCommand>();
         services.AddScoped<ListerFilesQuery>();
@@ -275,6 +279,10 @@ public static class DependencyInjection
         // Seeder for Development Environment
         services.AddScoped<DevelopmentSeeder>();
 
+        // Amorcage du premier administrateur : s'execute dans TOUS les environnements, a la
+        // difference du jeu de donnees de developpement. Inerte des qu'un administrateur existe.
+        services.AddScoped<Identity.ProvisionnementAdministrateurInitial>();
+
         // FEATURE 006 — Customer Complaint
         services.AddScoped<ICategorieReclamationRepository, CategorieReclamationRepository>();
         services.AddScoped<Application.CustomerComplaint.SoumettreReclamationCommand>();
@@ -314,6 +322,7 @@ public static class DependencyInjection
         // ni « superviseur » : ALE-03 n'est pas raccordée dans cette feature (research.md D6).
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurClientDuDossier>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurCollaborateurMentionne>();
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurDemandeurCompte>();
 
         // Canaux externes — implémentation JOURNALISÉE, AUCUN FOURNISSEUR (research.md D10,
         // PC-16). SMS et WhatsApp sont servis de la même manière : leur branchement réel est
@@ -402,6 +411,15 @@ public static class DependencyInjection
         services.AddScoped<Application.AvoirExoneration.ListerMesDemandesAvoirExonerationQuery>();
         services.AddScoped<Application.AvoirExoneration.ConsulterFileAvoirExonerationQuery>();
         services.AddScoped<Application.AvoirExoneration.ObtenirFicheAvoirExonerationQuery>();
+        // ====================================================================================
+        // FEATURE 016 — Disponibilité Opérationnelle & Health Checks (NFR-03, NFR-04, NFR-10).
+        // ====================================================================================
+        services.AddSingleton<Application.Supervision.GestionnaireMaintenanceService>();
+        services.AddHealthChecks()
+            .AddCheck<HealthChecks.DatabaseHealthCheck>("database", tags: ["ready"])
+            .AddCheck<HealthChecks.StorageHealthCheck>("storage", tags: ["ready"])
+            .AddCheck<HealthChecks.AntivirusHealthCheck>("antivirus", tags: ["ready"])
+            .AddCheck<HealthChecks.MaintenanceHealthCheck>("maintenance", tags: ["ready"]);
 
         return services;
     }

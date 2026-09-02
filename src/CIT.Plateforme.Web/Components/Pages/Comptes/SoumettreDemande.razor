@@ -7,52 +7,106 @@
 @using Microsoft.AspNetCore.Identity
 @inject SoumettreDemandeCompteCommand SoumettreDemandeCommande
 @inject UserManager<ApplicationUser> UserManager
+@inject ListerPiecesExigeesQuery ListerPiecesExigees
+@inject CIT.Plateforme.Domain.Documents.IStockageDocuments StockageDocuments
 
-<PageTitle>Créer un compte société</PageTitle>
+<PageTitle>Créer un compte entreprise — CIT</PageTitle>
 
-<h1>Créer un compte société</h1>
-
-@* Contrat C2-01 (CPT-01, CPT-02). Un compte créé ici reste inutilisable pour s'authentifier tant
-   qu'un administrateur fonctionnel CIT ne l'a pas validé (SC-002). *@
-<p class="text-muted">Après validation par un administrateur CIT, vous pourrez vous connecter et soumettre vos demandes.</p>
-
-<EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-demande-compte">
-    <div class="mb-3">
-        <label class="form-label" for="email">Identifiant de connexion (e-mail)</label>
-        <InputText id="email" class="form-control" @bind-Value="modele.Email" />
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🏢</span> Demande de création de compte entreprise
+        </h2>
+        <div class="cit-page-subtitle">Renseignez les informations de votre entreprise — validation par l'administration CIT sous 24h</div>
     </div>
-    <div class="mb-3">
-        <label class="form-label" for="mot-de-passe">Mot de passe</label>
-        <InputText id="mot-de-passe" type="password" class="form-control" @bind-Value="modele.MotDePasse" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="profil">Profil déclaré</label>
-        <InputSelect id="profil" class="form-select" @bind-Value="modele.Profil">
-            @foreach (var valeur in Enum.GetValues<TypeClient>())
+</div>
+
+<div style="max-width: 700px;">
+    <div class="cit-card mb-4">
+        <EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-demande-compte">
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="email">Identifiant de connexion (e-mail professionnel)</label>
+                <InputText id="email" class="form-control" placeholder="contact@entreprise.ci" @bind-Value="modele.Email" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="mot-de-passe">Mot de passe initial</label>
+                <InputText id="mot-de-passe" type="password" class="form-control" placeholder="••••••••••••" @bind-Value="modele.MotDePasse" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="profil">Profil d'activité sollicité</label>
+                <InputSelect id="profil" class="form-select" @bind-Value="modele.Profil">
+                    @foreach (var valeur in Enum.GetValues<TypeClient>())
+                    {
+                        <option value="@valeur">@valeur</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-dark" for="informations">Informations d'entreprise et justificatifs (RCCM, DFE, etc.)</label>
+                <InputTextArea id="informations" rows="4" class="form-control" placeholder="Raison sociale, Registre de Commerce, Déclaration Fiscale d'Existence..." @bind-Value="modele.InformationsDeclarees" />
+            </div>
+            @* CPT-01 — justificatifs exiges, PARAMETRABLES : la liste vient du referentiel
+               administre, jamais d'une enumeration codee ici. Si aucune piece n'est parametree,
+               ce bloc n'apparait pas et la demande reste recevable. *@
+            @if (piecesExigees is not null && piecesExigees.Count > 0)
             {
-                <option value="@valeur">@valeur</option>
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-dark">Justificatifs à joindre</label>
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var piece in piecesExigees)
+                        {
+                            <div class="p-2 border rounded-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="small fw-bold">@piece.Libelle</span>
+                                    @if (piece.Obligatoire)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary">Obligatoire</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">Facultative</span>
+                                    }
+                                    @if (fichiers.ContainsKey(piece.Code))
+                                    {
+                                        <span class="badge bg-success-subtle text-success">@fichiers[piece.Code].Name</span>
+                                    }
+                                </div>
+                                <InputFile class="form-control form-control-sm"
+                                           OnChange="e => SelectionnerFichier(piece.Code, e)" />
+                            </div>
+                        }
+                    </div>
+                </div>
             }
-        </InputSelect>
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="informations">Informations et justificatifs déclarés</label>
-        <InputTextArea id="informations" class="form-control" @bind-Value="modele.InformationsDeclarees" />
-    </div>
-    <button type="submit" class="btn btn-primary">Soumettre la demande</button>
-</EditForm>
 
-@if (erreur is not null)
-{
-    <div class="alert alert-danger mt-3">@erreur</div>
-}
-
-@if (societeCreee is not null)
-{
-    <div class="alert alert-success mt-3">
-        Demande enregistrée, en attente de validation par un administrateur fonctionnel CIT
-        (identifiant société : <strong>@societeCreee</strong>).
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex flex-column gap-1">
+                    <a href="/comptes/connexion" class="text-decoration-none small text-muted">← Déjà un compte ? Se connecter</a>
+                    @* ENR-01 — le transporteur est une personne physique, pas une entreprise :
+                       son parcours n'ouvre aucune demande de societe. *@
+                    <a href="/comptes/inscription-transporteur" class="text-decoration-none small text-muted">🚚 Transporteur ou chauffeur ? Inscrivez-vous ici</a>
+                </div>
+                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">🚀 Soumettre la demande</button>
+            </div>
+        </EditForm>
     </div>
-}
+
+    @if (erreur is not null)
+    {
+        <div class="alert alert-danger mb-4">@erreur</div>
+    }
+
+    @if (societeCreee is not null)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+            <span class="fs-2">✅</span>
+            <div>
+                <strong>Demande enregistrée avec succès !</strong>
+                <div class="small text-muted">En attente de validation par un administrateur fonctionnel CIT (Identifiant entreprise : <strong class="font-monospace text-primary">@societeCreee</strong>).</div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [SupplyParameterFromForm]
@@ -62,7 +116,32 @@
     private Guid? societeCreee;
     private string? erreur;
 
-    protected override void OnInitialized() => modele = modeleFormulaire ?? modele;
+    private IReadOnlyList<PieceExigeeVue>? piecesExigees;
+    private readonly Dictionary<string, IBrowserFile> fichiers = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Plafond TECHNIQUE de taille, requis par InputFile — ce n'est pas une regle metier : le CDC
+    /// ne fixe aucune limite pour les justificatifs de compte. Le relever releve du parametrage
+    /// d'exploitation, pas d'une decision fonctionnelle.
+    /// </summary>
+    private const long TailleMaxOctets = 10L * 1024 * 1024;
+
+    protected override async Task OnInitializedAsync()
+    {
+        modele = modeleFormulaire ?? modele;
+        piecesExigees = await ListerPiecesExigees.ExecuterAsync();
+    }
+
+    private void SelectionnerFichier(string pieceCode, InputFileChangeEventArgs e)
+    {
+        if (e.File is null)
+        {
+            fichiers.Remove(pieceCode);
+            return;
+        }
+
+        fichiers[pieceCode] = e.File;
+    }
 
     private async Task SoumettreAsync()
     {
@@ -82,11 +161,33 @@
             return;
         }
 
-        var societe = await SoumettreDemandeCommande.ExecuterAsync(new SoumettreDemandeCompteRequete(
-            demandeur.Id, modele.InformationsDeclarees, modele.Profil));
+        // Le contenu binaire part au stockage documentaire ; la commande ne recoit que des
+        // metadonnees, comme pour les documents de ticket.
+        var justificatifs = new List<JustificatifDepose>();
+        foreach (var (pieceCode, fichier) in fichiers)
+        {
+            await using var flux = fichier.OpenReadStream(TailleMaxOctets);
+            var cle = await StockageDocuments.EnregistrerAsync(flux, fichier.Name);
+            justificatifs.Add(new JustificatifDepose(
+                pieceCode, fichier.Name, fichier.ContentType, fichier.Size, cle));
+        }
+
+        SocieteCliente societe;
+        try
+        {
+            societe = await SoumettreDemandeCommande.ExecuterAsync(new SoumettreDemandeCompteRequete(
+                demandeur.Id, modele.InformationsDeclarees, modele.Profil, justificatifs));
+        }
+        catch (DossierIncompletException ex)
+        {
+            // CPT-01 : on nomme ce qui manque plutot que de renvoyer un refus opaque.
+            erreur = ex.Message;
+            return;
+        }
 
         societeCreee = societe.Id;
         modele = new ModeleSoumission();
+        fichiers.Clear();
     }
 
     private sealed class ModeleSoumission

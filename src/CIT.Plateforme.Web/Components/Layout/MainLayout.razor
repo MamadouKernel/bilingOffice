@@ -12,26 +12,17 @@
             <NavMenu />
         </div>
 
-        <!-- Mobile Offcanvas Sidebar -->
-        @if (_mobileMenuOuvert)
-        {
-            <div class="cit-modal-backdrop d-lg-none" @onclick="ToggleMobileMenu">
-                <div class="cit-mobile-sidebar h-100 p-3" @onclick:stopPropagation>
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
-                        <span class="fw-bold fs-5 text-white">Menu</span>
-                        <button type="button" class="btn-close btn-close-white" @onclick="ToggleMobileMenu" aria-label="Fermer"></button>
-                    </div>
-                    <NavMenu />
-                </div>
-            </div>
-        }
+        @* CORRECTIF — le panneau mobile vivait ici, piloté par _mobileMenuOuvert via des
+           @onclick qui ne se déclenchaient jamais (MainLayout est rendu en SSR statique).
+           Il est désormais porté par le <details> natif de HeaderBar, où summary et contenu
+           partagent le même élément. Voir le commentaire détaillé dans HeaderBar.razor. *@
     }
 
     <!-- Main Content Wrapper -->
     <div class="cit-main-wrapper flex-grow-1 d-flex flex-column min-w-0">
         @if (_contexte?.EstAuthentifie == true)
         {
-            <HeaderBar Contexte="@_contexte" OnToggleMobileMenu="ToggleMobileMenu" />
+            <HeaderBar Contexte="@_contexte" />
         }
         
         <main class="cit-main-content @(_contexte?.EstAuthentifie != true ? "d-flex align-items-center justify-content-center" : "")">
@@ -50,7 +41,6 @@
 
 @code {
     private ContexteUtilisateurVue? _contexte;
-    private bool _mobileMenuOuvert;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,11 +55,6 @@
             _contexte = await ContexteService.ObtenirContexteAsync();
             StateHasChanged();
         });
-    }
-
-    private void ToggleMobileMenu()
-    {
-        _mobileMenuOuvert = !_mobileMenuOuvert;
     }
 
     public void Dispose()

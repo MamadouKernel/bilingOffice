@@ -2,42 +2,54 @@
 @rendermode InteractiveServer
 @inject CreerTicketCommand CreerTicket
 
-<PageTitle>Soumettre une demande</PageTitle>
+<PageTitle>Soumettre une demande — CIT</PageTitle>
 
-<h1>Soumettre une demande</h1>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📝</span> Soumettre une demande (US1, C-08)
+        </h2>
+        <div class="cit-page-subtitle">Formulaire technique de création directe de ticket</div>
+    </div>
+</div>
 
-<p class="text-muted">
-    Formulaire générique de soumission (US1, contrat C-08). Le choix du module/type de demande et
-    la saisie détaillée par module (Billing Office, Customer Complaint, Enrôlement) relèvent des
-    features consommatrices de ce socle — hors périmètre ici.
-</p>
+<div style="max-width: 700px;">
+    <div class="cit-card mb-4">
+        <EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-ticket">
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="client-id">Identifiant client (démonstration)</label>
+                <InputText id="client-id" class="form-control font-monospace form-control-sm" @bind-Value="modele.ClientId" />
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label small fw-semibold text-dark" for="module">Module</label>
+                    <InputText id="module" class="form-control" @bind-Value="modele.Module" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label small fw-semibold text-dark" for="type">Type de demande</label>
+                    <InputText id="type" class="form-control" @bind-Value="modele.TypeDemande" />
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-dark" for="file">Identifiant de la file cible (GUID)</label>
+                <InputText id="file" class="form-control font-monospace form-control-sm" @bind-Value="modele.FileCibleId" />
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary px-4 fw-bold">🚀 Soumettre la demande</button>
+            </div>
+        </EditForm>
+    </div>
 
-<EditForm Model="modele" OnValidSubmit="SoumettreAsync" FormName="soumettre-ticket">
-    <div class="mb-3">
-        <label class="form-label" for="client-id">Identifiant client (démonstration)</label>
-        <InputText id="client-id" class="form-control" @bind-Value="modele.ClientId" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="module">Module</label>
-        <InputText id="module" class="form-control" @bind-Value="modele.Module" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="type">Type de demande</label>
-        <InputText id="type" class="form-control" @bind-Value="modele.TypeDemande" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="file">Identifiant de la file cible</label>
-        <InputText id="file" class="form-control" @bind-Value="modele.FileCibleId" />
-    </div>
-    <button type="submit" class="btn btn-primary">Soumettre</button>
-</EditForm>
-
-@if (numeroCree is not null)
-{
-    <div class="alert alert-success mt-3">
-        Ticket créé : <strong>@numeroCree</strong> (SOC-01 — numéro unique communiqué immédiatement).
-    </div>
-}
+    @if (numeroCree is not null)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-2">
+            <span class="fs-4">✅</span>
+            <div>
+                Ticket créé avec succès : <strong class="font-monospace">@numeroCree</strong> (SOC-01 — numéro unique communiqué immédiatement).
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     [SupplyParameterFromForm]

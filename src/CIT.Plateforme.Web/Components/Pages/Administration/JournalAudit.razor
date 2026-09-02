@@ -1,35 +1,121 @@
 @page "/administration/audit"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterJournalAuditQuery ConsulterAudit
 
-<PageTitle>Journal d'audit</PageTitle>
+<PageTitle>Journal d'audit — CIT</PageTitle>
 
-<h1>Journal d'audit (SOC-13, C-25)</h1>
-
-<p class="text-muted">Réservé à l'administrateur technique — distinct de l'historique fonctionnel du ticket.</p>
-
-<div class="row mb-3">
-    <div class="col-auto"><input class="form-control" placeholder="Identifiant administrateur technique" @bind="administrateurId" /></div>
-    <div class="col-auto"><button class="btn btn-primary" @onclick="ChargerAsync">Consulter</button></div>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🛡️</span> Journal d'audit de sécurité
+        </h2>
+        <div class="cit-page-subtitle">Registre d'imputabilité immuable, distinct de l'historique métier — réservé à l'administrateur technique</div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
+            🔄 Actualiser
+        </button>
+    </div>
 </div>
 
-@if (entrees is not null)
+@if (_chargement)
 {
-    <table class="table">
-        <thead><tr><th>Horodatage (UTC)</th><th>Auteur</th><th>Action</th><th>Entité</th></tr></thead>
-        <tbody>
-            @foreach (var entree in entrees)
-            {
-                <tr><td>@entree.HorodatageUtc</td><td>@entree.AuteurId</td><td>@entree.Action</td><td>@entree.EntiteType / @entree.EntiteId</td></tr>
-            }
-        </tbody>
-    </table>
+    <IndicateurChargement Message="Chargement du journal d'audit..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3">@_erreur</div>
+    }
+
+    @if (_entrees is null || _entrees.Count == 0)
+    {
+        <EtatVide Titre="Aucun événement audité" Description="Le journal d'audit ne contient encore aucune entrée." Icone="🛡️" />
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden mb-4">
+            <div class="p-3 bg-light border-bottom">
+                <h6 class="fw-bold text-dark mb-0">Événements audités (@_entrees.Count)</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date et heure (UTC)</th>
+                            <th>Auteur</th>
+                            <th>Action</th>
+                            <th>Élément concerné</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entree in _entrees)
+                        {
+                            <tr>
+                                <td class="small text-muted font-monospace">@entree.HorodatageUtc.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td class="small fw-semibold text-dark">@(entree.AuteurId is null ? "Système CIT" : "Utilisateur")</td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">@entree.Action</span></td>
+                                <td class="small text-dark">@entree.EntiteType</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 }
 
 @code {
-    private string administrateurId = string.Empty;
-    private IReadOnlyList<EntreeJournalAuditVue>? entrees;
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private IReadOnlyList<EntreeJournalAuditVue>? _entrees;
 
-    private async Task ChargerAsync() => entrees = await ConsulterAudit.ExecuterAsync(Guid.Parse(administrateurId));
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Veuillez vous connecter pour consulter le journal d'audit.";
+                return;
+            }
+
+            // L'identité provient du contexte authentifié : l'utilisateur n'a aucun
+            // identifiant technique à saisir. L'habilitation reste vérifiée côté serveur.
+            _entrees = await ConsulterAudit.ExecuterAsync(contexte.UtilisateurId);
+            _nonAutorise = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
 }

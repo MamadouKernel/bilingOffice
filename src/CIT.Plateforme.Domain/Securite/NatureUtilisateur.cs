@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace CIT.Plateforme.Domain.Securite;
 
 public enum NatureUtilisateur
@@ -124,4 +126,31 @@ public static class Permission
     /// FEATURE 007 (AVE-03, research.md D9) — enregistrement de la décision finale (accord / rejet motivé).
     /// </summary>
     public const string AvoirExonerationDecider = "avoirexoneration.decider";
+
+    /// <summary>
+    /// CDC § 17.3 — « Administration : gestion des comptes clients (validation, typage) et des
+    /// comptes agents (RÔLES) ». Porte le cycle de vie d'un compte agent : création, attribution
+    /// et retrait de ses habilitations, activation et désactivation (SEC-11).
+    ///
+    /// Distincte de CompteValider, qui ne concerne que la validation d'une demande de société :
+    /// administrer les comptes internes et arbitrer les demandes clientes sont deux
+    /// responsabilités différentes, et rien dans le CDC ne les confond.
+    /// </summary>
+    public const string AdministrationComptes = "administration.comptes";
+
+    /// <summary>
+    /// Ensemble exhaustif des codes de permission definis ci-dessus, obtenu par reflexion sur les
+    /// constantes de cette classe. Le faire ainsi plutot qu'a la main garantit qu'une permission
+    /// ajoutee plus tard y figure sans qu'on ait a penser a l'y inscrire — une liste tenue
+    /// manuellement finirait par diverger en silence.
+    ///
+    /// Sert a refuser explicitement l'attribution d'un code inconnu, qui n'accorderait rien tout
+    /// en paraissant accorde.
+    /// </summary>
+    public static readonly IReadOnlySet<string> Tous =
+        typeof(Permission)
+            .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+            .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string))
+            .Select(f => (string)f.GetRawConstantValue()!)
+            .ToHashSet(StringComparer.Ordinal);
 }

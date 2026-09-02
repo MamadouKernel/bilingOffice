@@ -63,6 +63,16 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 002 (research.md D2) : rattachements utilisateur↔société.</summary>
     public DbSet<UtilisateurSociete> UtilisateursSociete => Set<UtilisateurSociete>();
 
+    /// <summary>CPT-01 : referentiel PARAMETRABLE des justificatifs exiges a l'ouverture d'un
+    /// compte client, et pieces effectivement deposees a l'appui d'une demande.</summary>
+    public DbSet<PieceExigeeCompte> PiecesExigeesCompte => Set<PieceExigeeCompte>();
+
+    public DbSet<JustificatifDemandeCompte> JustificatifsDemandeCompte => Set<JustificatifDemandeCompte>();
+
+    /// <summary>ENT-01 : invitations permettant a un collaborateur de rejoindre une societe
+    /// deja validee sans ouvrir une demande de societe supplementaire.</summary>
+    public DbSet<InvitationCollaborateur> InvitationsCollaborateur => Set<InvitationCollaborateur>();
+
     public DbSet<EntreeHistorique> HistoriqueTickets => Set<EntreeHistorique>();
 
     public DbSet<EntreeJournalAudit> JournalAudit => Set<EntreeJournalAudit>();
@@ -471,6 +481,52 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .WithMany()
                 .HasForeignKey(u => u.SocieteId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // CPT-01 — « les informations et justificatifs exiges sont PARAMETRABLES ».
+        builder.Entity<PieceExigeeCompte>(b =>
+        {
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Code).IsRequired().HasMaxLength(64);
+            b.Property(p => p.Libelle).IsRequired().HasMaxLength(256);
+            // Le code identifie la piece de facon stable : deux definitions homonymes rendraient
+            // le controle de completude ambigu.
+            b.HasIndex(p => p.Code).IsUnique();
+            b.HasIndex(p => p.EstActif);
+        });
+
+        builder.Entity<JustificatifDemandeCompte>(b =>
+        {
+            b.HasKey(j => j.Id);
+            b.Property(j => j.PieceCode).IsRequired().HasMaxLength(64);
+            b.Property(j => j.NomFichier).IsRequired().HasMaxLength(512);
+            b.Property(j => j.TypeContenu).IsRequired().HasMaxLength(128);
+            b.Property(j => j.CleStockage).IsRequired().HasMaxLength(512);
+            b.HasIndex(j => j.SocieteId);
+            // Un seul depot par piece et par demande : le remplacement retire le precedent, sans
+            // quoi le controle de completude compterait des doublons pour des pieces manquantes.
+            b.HasIndex(j => new { j.SocieteId, j.PieceCode }).IsUnique();
+            b.HasOne<SocieteCliente>()
+                .WithMany()
+                .HasForeignKey(j => j.SocieteId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ENT-01 — parcours d'invitation d'un collaborateur.
+        builder.Entity<InvitationCollaborateur>(b =>
+        {
+            b.HasKey(i => i.Id);
+            b.Property(i => i.Email).IsRequired().HasMaxLength(256);
+            b.Property(i => i.Jeton).IsRequired().HasMaxLength(64);
+            b.Property(i => i.Etat).HasConversion<string>().HasMaxLength(32);
+            // Le jeton est le seul element que detient l'invite : il doit designer au plus une
+            // invitation, et etre retrouve en une lecture indexee.
+            b.HasIndex(i => i.Jeton).IsUnique();
+            b.HasIndex(i => i.SocieteId);
+            b.HasOne<SocieteCliente>()
+                .WithMany()
+                .HasForeignKey(i => i.SocieteId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // FEATURE 005 (research.md D4, D6, D12) : Tarification et Simulation de Proforma.

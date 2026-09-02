@@ -80,7 +80,20 @@ else
     }
 }
 
+// AMORCAGE DU PREMIER ADMINISTRATEUR — hors de la branche ci-dessus, donc dans TOUS les
+// environnements. Sans lui, une production demarre sans qu'aucun compte ne puisse administrer
+// les comptes agents (§ 17.3), et rien ne permet d'y remedier depuis l'application.
+// Inerte des qu'un administrateur existe : voir ProvisionnementAdministrateurInitial.
+using (var scope = app.Services.CreateScope())
+{
+    var amorcage = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Identity.ProvisionnementAdministrateurInitial>();
+    await amorcage.ExecuterAsync();
+}
+
 app.UseSecurityHeaders();
+app.UseMetrologiePerformance();
+app.UseMaintenanceMode();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -95,6 +108,36 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapOpenApi("/swagger/v1/swagger.json");
 CIT.Plateforme.Web.Api.ApiEndpoints.MapPlateformeApi(app);
+
+// FEATURE 016 — Sondes de Disponibilité & Health Checks (NFR-03, NFR-10)
+app.MapHealthChecks("/healthz", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json; charset=utf-8";
+        var json = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            totalDuration = report.TotalDuration.ToString(),
+            entries = report.Entries.ToDictionary(
+                e => e.Key,
+                e => new
+                {
+                    status = e.Value.Status.ToString(),
+                    duration = e.Value.Duration.ToString(),
+                    description = e.Value.Description
+                })
+        }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        await context.Response.WriteAsync(json);
+    }
+});
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 app.MapHub<SupervisionHub>(SupervisionHub.CheminHub);

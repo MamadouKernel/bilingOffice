@@ -161,10 +161,19 @@ public class RaccordementMentionTests
         Assert.DoesNotContain(parametres, t => t.Contains("Message", StringComparison.Ordinal));
     }
 
-    // ---- T052 / T096 : exactement deux résolveurs, aucun superviseur (ALE-03) ----
+    // ---- T052 / T096 : inventaire ferme des resolveurs, aucun superviseur (ALE-03) ----
 
+    /// <summary>
+    /// MISE A JOUR (CPT-01) : ce garde-fou epinglait DEUX resolveurs. Un troisieme a ete ajoute
+    /// pour notifier le demandeur de la decision prise sur sa demande de compte — un silence du
+    /// CDC traite comme un oubli, en canal In-App uniquement.
+    ///
+    /// L'inventaire reste NOMINATIF et ferme : il ne s'agit pas d'un compteur qu'on incremente,
+    /// mais d'une liste qu'on justifie. L'abstention ALE-03 (aucun resolveur superviseur, aucune
+    /// diffusion collective) demeure verifiee ci-dessous, inchangee.
+    /// </summary>
     [Fact]
-    public void IlNExisteQueDeuxResolveursDeDestinataires()
+    public void L_inventaire_des_resolveurs_est_ferme_et_sans_diffusion_collective()
     {
         var implementations = typeof(IResolveurDestinataires).Assembly
             .GetTypes()
@@ -173,7 +182,7 @@ public class RaccordementMentionTests
             .OrderBy(n => n)
             .ToList();
 
-        Assert.Equal(["ResolveurClientDuDossier", "ResolveurCollaborateurMentionne"], implementations);
+        Assert.Equal(["ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte"], implementations);
 
         // ALE-03 : aucun résolveur superviseur — F009 ne fournit que le point d'intégration.
         Assert.DoesNotContain(implementations, n => n.Contains("Superviseur", StringComparison.OrdinalIgnoreCase));

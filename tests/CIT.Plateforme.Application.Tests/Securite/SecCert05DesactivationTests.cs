@@ -86,10 +86,17 @@ public sealed class SecCert05DesactivationTests
         // ── Désactivation : on bascule l'indicateur, on NE SUPPRIME PAS le compte ──
         agent.EstActif = false;
 
-        // VOLET 1 — accès refusé immédiatement.
-        Assert.False(
-            agent.EstActif,
-            "Un compte désactivé ne doit plus pouvoir accéder à la plateforme (SEC-11).");
+        // VOLET 1 — l'indicateur d'activité est bien le mécanisme qui porte la désactivation.
+        //
+        // CORRECTION : cette assertion affirmait auparavant que « un compte désactivé ne doit plus
+        // pouvoir accéder à la plateforme ». Elle ne le démontrait pas — elle écrivait l'indicateur
+        // puis vérifiait qu'il valait ce qu'on venait d'y mettre, sans exercer le moindre chemin
+        // d'accès. L'effet d'accès réel est désormais établi par
+        // AdministrationComptesAgentsTests.Un_compte_desactive_perd_effectivement_tout_acces, qui
+        // désactive via la commande d'administration puis réévalue le contexte utilisateur de
+        // production. La présente suite reste concentrée sur le volet qu'elle sait démontrer :
+        // la conservation intégrale de l'historique.
+        Assert.False(agent.EstActif);
 
         // VOLET 2 — historique intégralement conservé.
         Assert.Equal(historiqueAvant, dbContext.HistoriqueTickets.Count(h => h.AuteurId == agent.Id));

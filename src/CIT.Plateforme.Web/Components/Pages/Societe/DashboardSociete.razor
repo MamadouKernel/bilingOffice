@@ -22,54 +22,71 @@ else if (_erreur is not null)
 }
 else if (_dashboard is not null)
 {
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div class="cit-page-header">
         <div>
-            <h2 class="fw-bold m-0 text-primary">Espace Entreprise</h2>
-            <div class="text-secondary small mt-1">
-                Société <strong>@_dashboard.SocieteNom</strong> · Profil <strong>@_dashboard.SocieteProfil</strong> · Administrateurs actifs : <strong>@_dashboard.NombreAdministrateursActifs</strong>
+            <h2 class="cit-page-title">
+                <span>🏢</span> Espace Entreprise
+            </h2>
+            <div class="cit-page-subtitle">
+                Société <strong class="text-dark">@_dashboard.SocieteNom</strong> · Profil <span class="badge bg-secondary-subtle text-secondary">@_dashboard.SocieteProfil</span> · Administrateurs actifs : <strong>@_dashboard.NombreAdministrateursActifs</strong>
             </div>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 mt-3 mt-md-0">
             <a href="/societe/collaborateurs" class="btn btn-outline-primary btn-sm">
-                👥 Gérer les collaborateurs
+                <span>👥</span> Gérer l'équipe
             </a>
             <a href="/comptes/profil" class="btn btn-outline-secondary btn-sm">
-                ⚙️ Profil société
+                <span>⚙️</span> Profil société
             </a>
         </div>
     </div>
 
-    <!-- 3 Cartes Métriques -->
+    <!-- 3 Cartes Métriques KPI -->
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
-            <div class="cit-card h-100 border-start border-4 border-primary">
-                <div class="text-muted small fw-semibold text-uppercase">Dossiers de la société</div>
-                <div class="fs-2 fw-bold text-dark my-1">@_dashboard.TotalDossiersSociete</div>
-                <div class="small text-muted">Total des importations de l'entreprise</div>
+            <div class="cit-stat-card border-start border-4 border-primary">
+                <div class="cit-stat-icon bg-primary-subtle text-primary">
+                    📦
+                </div>
+                <div>
+                    <div class="cit-stat-label">Dossiers de la société</div>
+                    <div class="cit-stat-value text-primary">@_dashboard.TotalDossiersSociete</div>
+                    <div class="small text-muted">Total des importations de l'entreprise</div>
+                </div>
             </div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="cit-card h-100 border-start border-4 border-warning">
-                <div class="text-muted small fw-semibold text-uppercase">Tickets en cours</div>
-                <div class="fs-2 fw-bold text-warning my-1">@_dashboard.TotalTicketsEnCours</div>
-                <div class="small text-muted">Traitement portuaire en direct</div>
+            <div class="cit-stat-card border-start border-4 border-warning">
+                <div class="cit-stat-icon bg-warning-subtle text-warning">
+                    ⏳
+                </div>
+                <div>
+                    <div class="cit-stat-label">Tickets en cours</div>
+                    <div class="cit-stat-value text-warning">@_dashboard.TotalTicketsEnCours</div>
+                    <div class="small text-muted">Traitement portuaire en direct</div>
+                </div>
             </div>
         </div>
         <div class="col-12 col-md-4">
-            <div class="cit-card h-100 border-start border-4 border-success">
-                <div class="text-muted small fw-semibold text-uppercase">Équipe rattachée</div>
-                <div class="fs-2 fw-bold text-success my-1">@_dashboard.Collaborateurs.Count</div>
-                <div class="small text-muted">Collaborateurs déclarés et habilités</div>
+            <div class="cit-stat-card border-start border-4 border-success">
+                <div class="cit-stat-icon bg-success-subtle text-success">
+                    👥
+                </div>
+                <div>
+                    <div class="cit-stat-label">Équipe rattachée</div>
+                    <div class="cit-stat-value text-success">@_dashboard.Collaborateurs.Count</div>
+                    <div class="small text-muted">Collaborateurs déclarés et habilités</div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Tableau des collaborateurs -->
-    <div class="cit-card mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold m-0 text-dark">Collaborateurs de l'entreprise</h5>
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+            <h6 class="fw-bold m-0 text-dark">Collaborateurs de l'entreprise</h6>
             <a href="/societe/collaborateurs" class="btn btn-primary btn-sm">
-                ➕ Nouveau collaborateur
+                <span>➕</span> Nouveau collaborateur
             </a>
         </div>
 

@@ -365,6 +365,12 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
 /// <summary>FEATURE 002 (research.md D2).</summary>
 public sealed class SocieteClienteRepository(PlateformeDbContext dbContext) : ISocieteClienteRepository
 {
+    public async Task<SocieteCliente?> ObtenirParDemandeurAsync(Guid demandeurId, CancellationToken ct = default) =>
+        await dbContext.Societes
+            .OrderByDescending(s => s.DateCreationUtc)
+            .FirstOrDefaultAsync(s => s.DemandeurId == demandeurId, ct)
+            .ConfigureAwait(false);
+
     public async Task AjouterAsync(SocieteCliente societe, CancellationToken ct = default) =>
         await dbContext.Societes.AddAsync(societe, ct).ConfigureAwait(false);
 

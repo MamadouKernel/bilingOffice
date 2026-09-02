@@ -167,6 +167,129 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("JournalEvenements");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.InvitationCollaborateur", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CreeParId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateCreationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateExpirationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Etat")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Jeton")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("SocieteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Jeton")
+                        .IsUnique();
+
+                    b.HasIndex("SocieteId");
+
+                    b.ToTable("InvitationsCollaborateur");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CleStockage")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<DateTime>("DateDepotUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NomFichier")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("PieceCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("SocieteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("TailleOctets")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TypeContenu")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SocieteId");
+
+                    b.HasIndex("SocieteId", "PieceCode")
+                        .IsUnique();
+
+                    b.ToTable("JustificatifsDemandeCompte");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.PieceExigeeCompte", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("Obligatoire")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("EstActif");
+
+                    b.ToTable("PiecesExigeesCompte");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.SocieteCliente", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1568,6 +1691,24 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.InvitationCollaborateur", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.SocieteCliente", null)
+                        .WithMany()
+                        .HasForeignKey("SocieteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.SocieteCliente", null)
+                        .WithMany()
+                        .HasForeignKey("SocieteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.UtilisateurSociete", b =>

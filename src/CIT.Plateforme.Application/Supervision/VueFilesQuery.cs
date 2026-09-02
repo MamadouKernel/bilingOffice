@@ -7,7 +7,9 @@ namespace CIT.Plateforme.Application.Supervision;
 
 /// <summary>Contrat C-24 — Consulter la supervision temps réel (vue par file). CDC : SUP-01,
 /// SUP-02. Filtrée par le périmètre du superviseur (CLAR-05).</summary>
-public sealed record VueFile(Guid FileId, int NonAffectes, int EnCours, int EnAttenteClient, int TotalActifs);
+/// <summary>Le nom de la file accompagne son identifiant : l'écran de supervision présente un
+/// libellé métier, l'identifiant technique n'étant conservé que pour la navigation.</summary>
+public sealed record VueFile(Guid FileId, int NonAffectes, int EnCours, int EnAttenteClient, int TotalActifs, string Nom = "");
 
 public sealed class VueFilesQuery(
     IFileDeTraitementRepository files,
@@ -34,7 +36,8 @@ public sealed class VueFilesQuery(
                 NonAffectes: ticketsDeLaFile.Count(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge),
                 EnCours: ticketsDeLaFile.Count(t => t.Statut == StatutTicket.EnCours),
                 EnAttenteClient: ticketsDeLaFile.Count(t => t.Statut == StatutTicket.EnAttenteClient),
-                TotalActifs: ticketsDeLaFile.Count(t => t.Statut is not (StatutTicket.Cloture or StatutTicket.Annule))));
+                TotalActifs: ticketsDeLaFile.Count(t => t.Statut is not (StatutTicket.Cloture or StatutTicket.Annule)),
+                Nom: file.Nom));
         }
 
         return vues;

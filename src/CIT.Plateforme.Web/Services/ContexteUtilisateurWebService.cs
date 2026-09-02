@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Web;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CIT.Plateforme.Web.Services;
@@ -19,8 +20,17 @@ public interface IContexteUtilisateurWeb
 
 public sealed class ContexteUtilisateurWebService(
     AuthenticationStateProvider authenticationStateProvider,
-    IServiceScopeFactory scopeFactory) : IContexteUtilisateurWeb
+    IServiceScopeFactory scopeFactory,
+    IHttpContextAccessor? httpContextAccessor = null) : IContexteUtilisateurWeb
 {
+    /// <summary>
+    /// Cookie de session portant l'espace fonctionnel choisi. Nécessaire parce que la mise en page
+    /// est rendue en SSR statique : un champ d'instance de ce service scoped ne survivrait pas à la
+    /// requête suivante. Ce cookie exprime une préférence d'affichage et n'accorde aucun droit —
+    /// sa valeur n'est appliquée que si l'espace figure dans <c>EspacesDisponibles</c>.
+    /// </summary>
+    public const string CookieEspace = "cit.espace";
+
     private ContexteUtilisateurVue? _contexteCache;
     private Task<ContexteUtilisateurVue>? _chargementTask;
     private EspaceFonctionnel? _espaceChoisi;
@@ -106,12 +116,22 @@ public sealed class ContexteUtilisateurWebService(
         var query = scope.ServiceProvider.GetRequiredService<ObtenirContexteUtilisateurQuery>();
         var ctx = await query.ExecuterAsync(userId, ct).ConfigureAwait(false);
 
-        if (_espaceChoisi.HasValue && ctx.EspacesDisponibles.Contains(_espaceChoisi.Value))
+        // Le choix en mémoire (circuit interactif) prime ; à défaut, on relit le cookie déposé par
+        // /contexte/espace. Dans les deux cas l'espace n'est retenu que s'il est réellement
+        // disponible pour cet utilisateur : un cookie forgé ne confère donc aucun accès.
+        var choix = _espaceChoisi ?? LireEspaceDepuisCookie();
+        if (choix.HasValue && ctx.EspacesDisponibles.Contains(choix.Value))
         {
-            ctx = ctx with { EspaceActif = _espaceChoisi.Value };
+            ctx = ctx with { EspaceActif = choix.Value };
         }
 
         return ctx;
+    }
+
+    private EspaceFonctionnel? LireEspaceDepuisCookie()
+    {
+        var valeur = httpContextAccessor?.HttpContext?.Request.Cookies[CookieEspace];
+        return Enum.TryParse<EspaceFonctionnel>(valeur, ignoreCase: false, out var espace) ? espace : null;
     }
 
     public void BasculerEspace(EspaceFonctionnel nouvelEspace)

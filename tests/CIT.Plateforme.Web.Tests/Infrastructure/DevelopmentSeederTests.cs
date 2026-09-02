@@ -58,7 +58,7 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
     }
 
     [Fact]
-    public async Task SeedAsync_DoitAttribuerPermissionTarificationAdministrer_UniquementAuCompteTarification()
+    public async Task SeedAsync_DoitAttribuerPermissionTarificationAdministrer_UniquementAuxComptesHabilites()
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
@@ -73,14 +73,14 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
             .Where(h => h.PermissionCode == Permission.TarificationAdministrer)
             .ToListAsync();
 
-        // Il ne doit y avoir qu'un seul utilisateur avec cette permission
-        Assert.Single(habilitationsTarification);
+        // Seuls les comptes tarification et admin CIT principal doivent avoir cette permission
+        var userIds = habilitationsTarification.Select(h => h.UtilisateurId).ToList();
+        var users = await context.Users.Where(u => userIds.Contains(u.Id)).ToListAsync();
+        var emails = users.Select(u => u.Email).OrderBy(e => e).ToList();
 
-        var userId = habilitationsTarification.First().UtilisateurId;
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        
-        Assert.NotNull(user);
-        Assert.Equal("tarification@test.local", user.Email);
+        Assert.Equal(2, emails.Count);
+        Assert.Contains("tarification@test.local", emails);
+        Assert.Contains("m.konate@cotedivoireterminal.com", emails);
     }
 
     [Fact]

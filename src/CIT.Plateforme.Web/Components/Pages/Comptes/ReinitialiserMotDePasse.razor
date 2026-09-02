@@ -5,33 +5,49 @@
 @using System.Text
 @inject UserManager<ApplicationUser> UserManager
 
-<PageTitle>Réinitialiser le mot de passe</PageTitle>
+<PageTitle>Réinitialiser le mot de passe — CIT</PageTitle>
 
-<h1>Réinitialiser le mot de passe</h1>
-
-@* Contrat C2-04 (CPT-03). La politique de robustesse déjà configurée (Feature 001,
-   AddIdentityCore) s'applique sans changement (US2 scénario 4). *@
-<p class="text-muted">Choisissez un nouveau mot de passe pour votre compte.</p>
-
-<EditForm Model="Modele" OnValidSubmit="ReinitialiserAsync" FormName="reinitialiser-mot-de-passe">
-    <input type="hidden" @bind-value="Modele.UtilisateurId" />
-    <input type="hidden" @bind-value="Modele.Jeton" />
-    <div class="mb-3">
-        <label class="form-label" for="nouveau-mot-de-passe">Nouveau mot de passe</label>
-        <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" />
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🔑</span> Réinitialiser le mot de passe (CPT-03)
+        </h2>
+        <div class="cit-page-subtitle">Définissez un nouveau mot de passe robuste pour sécuriser l'accès à votre espace</div>
     </div>
-    <button type="submit" class="btn btn-primary">Réinitialiser</button>
-</EditForm>
+</div>
 
-@if (erreur is not null)
-{
-    <div class="alert alert-danger mt-3">@erreur</div>
-}
+<div style="max-width: 600px;">
+    <div class="cit-card mb-4">
+        <EditForm Model="Modele" OnValidSubmit="ReinitialiserAsync" FormName="reinitialiser-mot-de-passe">
+            <input type="hidden" @bind-value="Modele.UtilisateurId" />
+            <input type="hidden" @bind-value="Modele.Jeton" />
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-dark" for="nouveau-mot-de-passe">Nouveau mot de passe</label>
+                <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" placeholder="Minimum 8 caractères, majuscule, chiffre..." />
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="/comptes/connexion" class="text-decoration-none small text-muted">← Annuler et se connecter</a>
+                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Valider le nouveau mot de passe</button>
+            </div>
+        </EditForm>
+    </div>
 
-@if (succes)
-{
-    <div class="alert alert-success mt-3">Mot de passe redéfini avec succès.</div>
-}
+    @if (erreur is not null)
+    {
+        <div class="alert alert-danger mb-4">@erreur</div>
+    }
+
+    @if (succes)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <span class="fs-4">✅</span>
+            <div>
+                <strong>Mot de passe redéfini avec succès.</strong>
+                <div class="mt-1"><a href="/comptes/connexion" class="fw-bold text-success text-decoration-underline">Accéder à la connexion ➔</a></div>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     // REMÉDIATION POST-AUDIT (2026-08-29) : voir Connexion.razor pour la justification — le

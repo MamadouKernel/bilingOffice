@@ -86,8 +86,11 @@ public class Imp11EtProducteursTests
         // 19 fichiers producteurs AVANT F009 (research.md D1 : 21 sites d'appel sur 19
         // fichiers) + les 2 commandes de facture (IMP-11) + la commande d'import (IMP-03 / F012)
         // + les 2 commandes d'enrôlement F013 (ENR-05 : RappelerExpirationBadgesCommand, DemanderRenouvellementBadgeCommand)
-        // → 24 fichiers producteurs.
-        Assert.Equal(24, fichiersProducteurs.Count);
+        // + la commande de decision sur une demande de compte (CPT-01 : le demandeur est informe
+        //   du sort de sa demande — silence du CDC traite comme un oubli, canal In-App seul)
+        // → 25 fichiers producteurs.
+        Assert.Equal(25, fichiersProducteurs.Count);
+        Assert.Contains("ValiderDemandeCompteCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureExportCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreDemandeImportCommand.cs", fichiersProducteurs);
@@ -295,7 +298,8 @@ public class Imp11EtProducteursTests
             .Where(t => t is { IsAbstract: false, IsInterface: false } && t.IsAssignableTo(typeof(IResolveurDestinataires)))
             .ToList();
 
-        Assert.Equal(2, implementations.Count);
+        // Trois depuis CPT-01 (cf. RaccordementMentionTests, ou l'inventaire est nominatif).
+        Assert.Equal(3, implementations.Count);
 
         // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale.
         foreach (var implementation in implementations)

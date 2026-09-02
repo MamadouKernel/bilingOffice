@@ -11,14 +11,18 @@
 
 <PageTitle>Administration tarifaire — CIT</PageTitle>
 
-<div class="container-fluid py-3" style="max-width: 1100px;">
-    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-        <div>
-            <h2 class="fw-bold mb-0 text-dark">Administration des grilles tarifaires</h2>
-            <div class="text-muted small">Versionnement et import CSV atomique — aucune valeur tarifaire codée en dur dans l'application</div>
-        </div>
-    </div>
+<PageTitle>Administration tarifaire — CIT</PageTitle>
 
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>⚙️</span> Administration des grilles tarifaires
+        </h2>
+        <div class="cit-page-subtitle">Versionnement et import CSV atomique — aucune valeur tarifaire codée en dur</div>
+    </div>
+</div>
+
+<div style="max-width: 1100px;">
     @if (_chargement)
     {
         <IndicateurChargement Message="Vérification de vos habilitations..." />
@@ -30,24 +34,23 @@
     else
     {
         <div class="cit-card mb-4">
-            <h6 class="fw-bold text-dark mb-3">Importer une nouvelle version (CSV)</h6>
-            <p class="text-muted small">
+            <h6 class="fw-bold text-dark mb-2">Importer une nouvelle version (CSV)</h6>
+            <p class="text-muted small mb-3">
                 Format attendu : UTF-8, séparateur point-virgule, en-tête
                 <code>Sens;Taille;Categorie;Acconage;Relevage;BranchementJour</code>.
-                L'import est atomique : la moindre erreur bloque la totalité du fichier, aucune version
-                partielle n'est jamais créée.
+                L'import est atomique : la moindre erreur bloque la totalité du fichier.
             </p>
             <div class="row g-2 align-items-end mb-2">
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold">N° de version</label>
-                    <input class="form-control form-control-sm" @bind="_numeroVersion" placeholder="v2.0" />
+                    <label class="form-label small fw-semibold text-dark">N° de version</label>
+                    <input class="form-control form-control-sm font-monospace" @bind="_numeroVersion" placeholder="v2.0" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold">Date d'effet</label>
-                    <input type="date" class="form-control form-control-sm" @bind="_dateEffet" />
+                    <label class="form-label small fw-semibold text-dark">Date d'effet</label>
+                    <input type="date" class="form-control form-control-sm font-monospace" @bind="_dateEffet" />
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-semibold">Fichier CSV</label>
+                    <label class="form-label small fw-semibold text-dark">Fichier CSV</label>
                     <InputFile class="form-control form-control-sm" OnChange="ImporterAsync" />
                 </div>
             </div>
@@ -80,17 +83,21 @@
             }
         </div>
 
-        <div class="cit-card">
-            <h6 class="fw-bold text-dark mb-3">Versions existantes</h6>
+        <div class="cit-card p-0 overflow-hidden mb-4">
+            <div class="p-3 bg-light border-bottom">
+                <h6 class="fw-bold text-dark mb-0">Versions des grilles existantes</h6>
+            </div>
             @if (_versions.Count == 0)
             {
-                <EtatVide Titre="Aucune grille tarifaire" Message="Importez un fichier CSV pour créer la première version." Icone="📊" />
+                <div class="p-4">
+                    <EtatVide Titre="Aucune grille tarifaire" Message="Importez un fichier CSV pour créer la première version." Icone="📊" />
+                </div>
             }
             else
             {
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th>Version</th>
                                 <th>Date d'effet</th>
@@ -103,18 +110,18 @@
                             @foreach (var v in _versions)
                             {
                                 <tr>
-                                    <td class="fw-semibold">@v.NumeroVersion</td>
-                                    <td>@v.DateEffetUtc.ToString("dd/MM/yyyy")</td>
-                                    <td>@v.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="text-end">@v.NombreLignes</td>
+                                    <td class="fw-bold text-primary font-monospace">@v.NumeroVersion</td>
+                                    <td class="small text-muted font-monospace">@v.DateEffetUtc.ToString("dd/MM/yyyy")</td>
+                                    <td class="small text-muted font-monospace">@v.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end font-monospace">@v.NombreLignes</td>
                                     <td>
                                         @if (v.EstActive)
                                         {
-                                            <span class="cit-badge cit-badge-encours">Active</span>
+                                            <span class="badge bg-success-subtle text-success">Active</span>
                                         }
                                         else
                                         {
-                                            <span class="cit-badge cit-badge-cloture">Inactive</span>
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
                                         }
                                     </td>
                                 </tr>

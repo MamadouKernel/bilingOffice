@@ -38,6 +38,13 @@ public sealed class ValiderOuRejeterDemandeCompteCommand(
 
         await journalisation.ConsignerAuditAsync(appelantId, "CompteValide", nameof(SocieteCliente), societe.Id, ancienEtat, societe.Etat.ToString(), ct).ConfigureAwait(false);
 
+        // Le demandeur est informe du sort de sa demande. Le CDC ne le prevoit pas explicitement
+        // — ses exigences de notification portent sur les tickets — mais laisser un demandeur
+        // sans reponse est un oubli, pas une intention. Reutilise le socle F009 en canal In-App :
+        // aucun fournisseur externe n'est introduit. Voir ResolveurDemandeurCompte.
+        await journalisation.PublierEvenementAsync(
+            "CompteValide", $"{{\"demandeurId\":\"{societe.DemandeurId}\",\"societeId\":\"{societe.Id}\"}}", ct).ConfigureAwait(false);
+
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 
@@ -57,6 +64,11 @@ public sealed class ValiderOuRejeterDemandeCompteCommand(
         societe.Rejeter();
 
         await journalisation.ConsignerAuditAsync(appelantId, "CompteRejete", nameof(SocieteCliente), societe.Id, ancienEtat, motif, ct).ConfigureAwait(false);
+
+        // Un refus doit parvenir a son destinataire, motif compris : sans cela le demandeur ne
+        // peut ni comprendre ni corriger. Meme canal In-App que la validation.
+        await journalisation.PublierEvenementAsync(
+            "CompteRejete", $"{{\"demandeurId\":\"{societe.DemandeurId}\",\"societeId\":\"{societe.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }

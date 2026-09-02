@@ -202,6 +202,13 @@ public interface ISocieteClienteRepository
     /// <summary>Alimente la file de l'administrateur fonctionnel CIT (contrat C2-02) — consultation
     /// des demandes en attente, corollaire nécessaire de CPT-01 (déduit, non une FR séparée).</summary>
     Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.SocieteCliente>> ListerParEtatAsync(CIT.Plateforme.Domain.Comptes.EtatSociete etat, CancellationToken ct = default);
+
+    /// <summary>
+    /// Demande deposee PAR cet utilisateur, quel que soit son etat. Permet de distinguer un
+    /// demandeur dont le dossier n'est pas encore tranche — a qui l'acces doit etre refuse
+    /// (CPT-01) — d'une personne physique qui n'a jamais depose de demande.
+    /// </summary>
+    Task<CIT.Plateforme.Domain.Comptes.SocieteCliente?> ObtenirParDemandeurAsync(Guid demandeurId, CancellationToken ct = default);
 }
 
 /// <summary>FEATURE 002 (research.md D2) : port des rattachements utilisateur↔société (ENT-01,
@@ -223,6 +230,67 @@ public interface IHabilitationRepository
     Task AjouterAsync(CIT.Plateforme.Domain.Securite.HabilitationUtilisateur habilitation, CancellationToken ct = default);
 
     Task<IReadOnlyList<CIT.Plateforme.Domain.Securite.HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
+
+    /// <summary>CDC § 17.3 — retrait d'un rôle. Sans lui, une habilitation accordée par erreur
+    /// serait définitive : l'attribution ne serait pas réellement administrable.</summary>
+    Task RetirerAsync(Guid utilisateurId, string permissionCode, Guid? fileId = null, CancellationToken ct = default);
+}
+
+/// <summary>
+/// CDC § 17.3 — port d'administration du cycle de vie des comptes agents. Distinct de
+/// <see cref="IUtilisateurInfoRepository"/>, qui est en lecture seule : ici on ÉCRIT l'existence
+/// et l'état d'activité d'un compte, ce qui n'appartient qu'à l'administration.
+/// </summary>
+public interface IAdministrationComptesRepository
+{
+    /// <summary>Les seuls comptes internes ; les comptes clients relèvent du parcours société.</summary>
+    Task<IReadOnlyList<UtilisateurInfo>> ListerAgentsAsync(CancellationToken ct = default);
+
+    Task<ResultatCreationCompte> CreerAgentAsync(string email, string nomAffiche, string motDePasseInitial, CancellationToken ct = default);
+
+    /// <summary>SEC-11 — bascule l'indicateur d'activité. Ne supprime JAMAIS le compte : son
+    /// historique doit rester attribuable nominativement.</summary>
+    Task DefinirActivationAsync(Guid utilisateurId, bool actif, CancellationToken ct = default);
+}
+
+/// <summary>Issue d'une création de compte : la politique de mot de passe et l'unicité de
+/// l'adresse sont vérifiées par le fournisseur d'identité, dont les motifs sont remontés tels
+/// quels plutôt que reformulés.</summary>
+public sealed record ResultatCreationCompte(bool Succes, Guid UtilisateurId, IReadOnlyList<string> Erreurs);
+
+/// <summary>CPT-01 — referentiel PARAMETRABLE des justificatifs exiges a l'ouverture d'un compte.</summary>
+public interface IPieceExigeeCompteRepository
+{
+    /// <summary><paramref name="activesUniquement"/> : le formulaire public ne propose que les
+    /// pieces en vigueur, tandis que l'ecran de parametrage doit voir aussi les desactivees.</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.PieceExigeeCompte>> ListerAsync(bool activesUniquement, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Comptes.PieceExigeeCompte?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<bool> CodeExisteAsync(string code, CancellationToken ct = default);
+
+    Task AjouterAsync(CIT.Plateforme.Domain.Comptes.PieceExigeeCompte piece, CancellationToken ct = default);
+}
+
+/// <summary>CPT-01 — justificatifs deposes a l'appui d'une demande de compte societe.</summary>
+public interface IJustificatifDemandeCompteRepository
+{
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
+
+    Task AjouterAsync(CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte justificatif, CancellationToken ct = default);
+}
+
+/// <summary>ENT-01 — invitations de collaborateurs.</summary>
+public interface IInvitationCollaborateurRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Comptes.InvitationCollaborateur invitation, CancellationToken ct = default);
+
+    /// <summary>Le jeton est la seule designation dont dispose l'invite.</summary>
+    Task<CIT.Plateforme.Domain.Comptes.InvitationCollaborateur?> ObtenirParJetonAsync(string jeton, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Comptes.InvitationCollaborateur?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.InvitationCollaborateur>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
 }
 
 /// <summary>FEATURE 003.5 : port d'accès en lecture aux informations de base utilisateur (email, nom, état actif).</summary>

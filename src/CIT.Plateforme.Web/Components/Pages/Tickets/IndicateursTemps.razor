@@ -3,19 +3,75 @@
 @using CIT.Plateforme.Domain.SuiviTemps
 @inject CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext DbContext
 
-<PageTitle>Indicateurs temps et SLA</PageTitle>
+<PageTitle>Indicateurs temps et SLA — CIT</PageTitle>
 
-<h1>Temps et SLA (TPS-01, SLA-02)</h1>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>⏱️</span> Temps et SLA (TPS-01, SLA-02)
+        </h2>
+        <div class="cit-page-subtitle">Décomposition des temps de parcours pour le ticket <span class="font-monospace text-primary">@TicketId</span></div>
+    </div>
+</div>
 
 @if (mesure is not null)
 {
-    <ul>
-        <li>Temps d'attente : @mesure.TempsAttente</li>
-        <li>Temps de traitement : @mesure.TempsTraitement</li>
-        <li>Temps d'attente client (jamais imputé — TPS-04) : @mesure.TempsAttenteClient</li>
-        <li>Temps interne CIT : @mesure.TempsInterneCit</li>
-        <li>Temps total du parcours : @mesure.TempsTotal</li>
-    </ul>
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="cit-stat-card border-start border-4 border-primary">
+                <div class="cit-stat-icon bg-primary-subtle text-primary">⏳</div>
+                <div>
+                    <div class="cit-stat-label">Temps d'attente initial</div>
+                    <div class="cit-stat-value text-primary font-monospace">@mesure.TempsAttente.ToString(@"hh\:mm\:ss")</div>
+                    <div class="small text-muted">Avant première prise en charge</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="cit-stat-card border-start border-4 border-info">
+                <div class="cit-stat-icon bg-info-subtle text-info">⚙️</div>
+                <div>
+                    <div class="cit-stat-label">Temps de traitement</div>
+                    <div class="cit-stat-value text-info font-monospace">@mesure.TempsTraitement.ToString(@"hh\:mm\:ss")</div>
+                    <div class="small text-muted">Par les opérateurs CIT</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="cit-stat-card border-start border-4 border-warning">
+                <div class="cit-stat-icon bg-warning-subtle text-warning">⏸️</div>
+                <div>
+                    <div class="cit-stat-label">Attente client (neutralisée)</div>
+                    <div class="cit-stat-value text-warning font-monospace">@mesure.TempsAttenteClient.ToString(@"hh\:mm\:ss")</div>
+                    <div class="small text-muted">Non imputée au SLA (TPS-04)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-6">
+            <div class="cit-stat-card border-start border-4 border-secondary">
+                <div class="cit-stat-icon bg-secondary-subtle text-secondary">🏢</div>
+                <div>
+                    <div class="cit-stat-label">Temps interne CIT</div>
+                    <div class="cit-stat-value text-dark font-monospace">@mesure.TempsInterneCit.ToString(@"hh\:mm\:ss")</div>
+                    <div class="small text-muted">Temps net sous responsabilité CIT</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-6">
+            <div class="cit-stat-card border-start border-4 border-success">
+                <div class="cit-stat-icon bg-success-subtle text-success">🏁</div>
+                <div>
+                    <div class="cit-stat-label">Temps total du parcours</div>
+                    <div class="cit-stat-value text-success font-monospace">@mesure.TempsTotal.ToString(@"hh\:mm\:ss")</div>
+                    <div class="small text-muted">Depuis la création initiale</div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {

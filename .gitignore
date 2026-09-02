@@ -35,3 +35,13 @@ Thumbs.db
 
 # Logs
 *.log
+
+# --- Exclusions de publication ---------------------------------------------
+# Outillage de developpement, artefacts de specification et documentation
+# interne : hors du perimetre du depot distant.
+.claude/
+.specify/
+.vs/
+docs/
+scratch/
+specs/

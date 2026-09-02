@@ -14,103 +14,102 @@
 
 <PageTitle>File Back Office EXPORT — CIT</PageTitle>
 
-<div class="container-fluid py-3">
-    <!-- En-tête -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
-        <div>
-            <h2 class="fw-bold mb-0 text-dark">File Back Office EXPORT</h2>
-            <div class="text-muted small">Instruction initiale et contrôle des réservations Export (Bookings)</div>
-        </div>
-        <div class="mt-2 mt-md-0 d-flex align-items-center gap-2">
-            <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
-            <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm">Mon tableau de bord</a>
-        </div>
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>📦</span> File Back Office EXPORT
+        </h2>
+        <div class="cit-page-subtitle">Instruction initiale et contrôle des réservations Export (Bookings)</div>
     </div>
+    <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
+        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">Mon tableau de bord</a>
+    </div>
+</div>
 
-    @if (_chargement)
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des tickets de la file Back Office Export..." />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
     {
-        <IndicateurChargement Message="Chargement des tickets de la file Back Office Export..." />
+        <div class="alert alert-danger mb-3">@_erreur</div>
     }
-    else if (_nonAutorise)
+
+    @if (!string.IsNullOrWhiteSpace(_actionSuccess))
     {
-        <PermissionDenied Message="@_messageNonAutorise" />
+        <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+    }
+
+    @if (_tickets.Count == 0)
+    {
+        <EtatVide Titre="Aucun ticket en instance"
+                  Description="Tous les dossiers de la file Back Office Export ont été traités."
+                  Icone="📦" />
     }
     else
     {
-        @if (_erreur is not null)
-        {
-            <div class="alert alert-danger mb-3">@_erreur</div>
-        }
-
-        @if (!string.IsNullOrWhiteSpace(_actionSuccess))
-        {
-            <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
-        }
-
-        @if (_tickets.Count == 0)
-        {
-            <EtatVide Titre="Aucun ticket en instance"
-                      Description="Tous les dossiers de la file Back Office Export ont été traités."
-                      Icone="📦" />
-        }
-        else
-        {
-            <div class="cit-card p-0 overflow-hidden">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+        <div class="cit-card mb-4 p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Ticket</th>
+                            <th>Numéro Booking</th>
+                            <th>Statut</th>
+                            <th>Arrivée en file</th>
+                            <th class="text-end">Actions d'instruction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in _tickets)
+                        {
+                            var t = ticket;
                             <tr>
-                                <th>N° Ticket</th>
-                                <th>Numéro Booking</th>
-                                <th>Statut</th>
-                                <th>Arrivée en file</th>
-                                <th class="text-end">Actions d'instruction</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ticket in _tickets)
-                            {
-                                var t = ticket;
-                                <tr>
-                                    <td>
-                                        <a href="/tickets/@t.Id" class="fw-bold text-decoration-none">
-                                            @t.Numero
+                                <td>
+                                    <a href="/tickets/@t.Id" class="fw-bold text-decoration-none text-primary font-monospace">
+                                        @t.Numero
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark font-monospace">@t.NumeroBooking</span>
+                                </td>
+                                <td>
+                                    <StatutBadge Statut="@t.Statut" />
+                                </td>
+                                <td class="small text-muted font-monospace">
+                                    @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
+                                            🔍 Fiche
                                         </a>
-                                    </td>
-                                    <td>
-                                        <span class="fw-bold text-dark">@t.NumeroBooking</span>
-                                    </td>
-                                    <td>
-                                        <StatutBadge Statut="@t.Statut" />
-                                    </td>
-                                    <td class="small text-muted">
-                                        @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
-                                                🔍 Fiche
-                                            </a>
-                                            <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="Valider le Booking">
-                                                ✅ Valider
-                                            </button>
-                                            <button class="btn btn-outline-warning" @onclick="() => OuvrirModalComplement(t.Id)" title="Demander un complément">
-                                                💬 Complément
-                                            </button>
-                                            <button class="btn btn-outline-danger" @onclick="() => OuvrirModalRejet(t.Id)" title="Rejeter la demande">
-                                                ❌ Rejeter
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                                        <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="Valider le Booking">
+                                            ✅ Valider
+                                        </button>
+                                        <button class="btn btn-outline-warning" @onclick="() => OuvrirModalComplement(t.Id)" title="Demander un complément">
+                                            💬 Complément
+                                        </button>
+                                        <button class="btn btn-outline-danger" @onclick="() => OuvrirModalRejet(t.Id)" title="Rejeter la demande">
+                                            ❌ Rejeter
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        }
+        </div>
     }
-</div>
+}
 
 @if (_ticketIdPourAction.HasValue && _modeModal == "rejet")
 {

@@ -28,14 +28,14 @@
                     <div class="p-5 p-lg-5 w-100">
                         <div class="mb-5 text-center text-md-start">
                             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
-                            <h2 class="fw-bold text-dark">Mot de passe oublié</h2>
+                            <h2 class="fw-bold" style="color: var(--ink);">Mot de passe oublié</h2>
                             <p class="text-muted">Renseignez votre e-mail pour recevoir un lien de réinitialisation.</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="DemanderAsync" FormName="mot-de-passe-oublie">
                             <div class="mb-4">
                                 <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">E-mail Professionnel</label>
-                                <InputText id="email" class="form-control form-control-lg bg-light border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" />
+                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3" style="border-radius: 0.75rem;">
