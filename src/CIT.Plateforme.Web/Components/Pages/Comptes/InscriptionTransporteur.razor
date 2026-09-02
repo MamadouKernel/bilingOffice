@@ -166,10 +166,12 @@
 
                             <div class="mb-4">
                                 <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="mdp">Mot de Passe <span class="text-danger">*</span></label>
-                                <input id="mdp" type="password" class="form-control form-control-lg border-0 shadow-xs px-3 py-3" 
-                                       placeholder="••••••••••••" 
-                                       style="background-color: var(--surface); border-radius: 0.75rem;" 
-                                       @bind="_motDePasse" />
+                                <ChampMotDePasse>
+                                    <input id="mdp" type="password" class="form-control form-control-lg border-0 shadow-xs px-3 py-3"
+                                           placeholder="••••••••••••"
+                                           style="background-color: var(--surface); border-radius: 0.75rem;"
+                                           @bind="_motDePasse" />
+                                </ChampMotDePasse>
                                 <div class="form-text small text-muted">10 caractères minimum recommandés.</div>
                             </div>
 

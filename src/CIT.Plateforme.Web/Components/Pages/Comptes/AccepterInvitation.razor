@@ -68,7 +68,9 @@
 
                 <div class="mb-3">
                     <label class="form-label small fw-bold" for="mdp">Choisissez votre mot de passe</label>
-                    <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
+                    <ChampMotDePasse>
+                        <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
+                    </ChampMotDePasse>
                 </div>
 
                 @if (_erreur is not null)

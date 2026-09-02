@@ -4,6 +4,8 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using System.Text
 @inject UserManager<ApplicationUser> UserManager
+@inject IWebHostEnvironment Environnement
+@inject ILogger<MotDePasseOublie> Journal
 
 <PageTitle>Mot de passe oublié</PageTitle>
 
@@ -47,11 +49,24 @@
                             <a href="/comptes/connexion" class="text-decoration-none fw-bold" style="color: var(--marine-600);">← Retour à la connexion</a>
                         </div>
 
-                        @if (lienGenere is not null)
+                        @if (demandeEnregistree)
                         {
-                            <div class="alert alert-info border-0 bg-info bg-opacity-10 mt-4 rounded-3 p-3 text-break">
-                                <strong class="d-block mb-1 text-info">Lien de réinitialisation généré (mode démo) :</strong>
-                                <code>@lienGenere</code>
+                            @* Message volontairement identique que le compte existe ou non :
+                               toute différence observable renseignerait un anonyme sur les
+                               adresses réellement enregistrées. *@
+                            <div class="alert alert-info border-0 bg-info bg-opacity-10 mt-4 rounded-3 p-3">
+                                Si un compte correspond à cette adresse, la marche à suivre pour
+                                réinitialiser le mot de passe lui sera communiquée.
+                            </div>
+                        }
+
+                        @if (lienDeveloppement is not null)
+                        {
+                            @* Affiché UNIQUEMENT en environnement de développement (voir @code).
+                               Ce bloc n'est jamais rendu en Staging ni en Production. *@
+                            <div class="alert alert-warning border-0 mt-4 rounded-3 p-3 text-break">
+                                <strong class="d-block mb-1">Environnement de développement uniquement</strong>
+                                <code>@lienDeveloppement</code>
                             </div>
                         }
                     </div>
@@ -68,22 +83,59 @@
     [SupplyParameterFromForm]
     private ModeleDemande Modele { get; set; } = default!;
 
-    private string? lienGenere;
+    private bool demandeEnregistree;
+    private string? lienDeveloppement;
 
     protected override void OnInitialized() => Modele ??= new();
 
+    /// <summary>
+    /// G-04 — CORRECTION DE SÉCURITÉ.
+    ///
+    /// Cette page est publique : elle ne porte aucun <c>[Authorize]</c>, et <c>Program.cs</c>
+    /// appelle <c>AddAuthorization()</c> sans politique de repli. Elle rendait auparavant le lien
+    /// de réinitialisation — jeton compris — dans la réponse HTTP, sans aucune garde
+    /// d'environnement : le libellé annonçait un « mode démo » que le code ne vérifiait nulle
+    /// part. N'importe qui pouvait saisir une adresse, lire le lien à l'écran, le suivre et
+    /// prendre le compte.
+    ///
+    /// PRINCIPE RETENU : tant qu'aucun canal de distribution approuvé n'est configuré (PC-16 non
+    /// résolu), la plateforme préfère une réinitialisation NON DISTRIBUABLE à une
+    /// réinitialisation PUBLIQUE. Le jeton est produit puis abandonné ; il n'est ni affiché, ni
+    /// journalisé, ni transmis.
+    ///
+    /// Le jour où un canal est retenu, il se substitue ici derrière l'abstraction existante
+    /// <c>ICanalNotification</c>, sans rien changer au reste du parcours.
+    /// </summary>
     private async Task DemanderAsync()
     {
+        // Posé AVANT toute recherche : la réponse est ainsi rigoureusement la même que le compte
+        // existe ou non, ce qui prive un anonyme de tout oracle d'énumération.
+        demandeEnregistree = true;
+        lienDeveloppement = null;
+
         var utilisateur = await UserManager.FindByEmailAsync(Modele.Email);
         if (utilisateur is null)
         {
-            // Ne révèle jamais si l'e-mail existe ou non (même principe que la connexion).
             return;
         }
 
         var jeton = await UserManager.GeneratePasswordResetTokenAsync(utilisateur);
         var jetonEncode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(jeton));
-        lienGenere = $"/comptes/reinitialiser-mot-de-passe?utilisateurId={utilisateur.Id}&jeton={jetonEncode}";
+        var lien = $"/comptes/reinitialiser-mot-de-passe?utilisateurId={utilisateur.Id}&jeton={jetonEncode}";
+
+        if (Environnement.IsDevelopment())
+        {
+            // Sans canal de distribution, c'est le seul moyen d'exercer le parcours en local.
+            // La garde est explicite, et c'est précisément ce qui manquait.
+            lienDeveloppement = lien;
+            return;
+        }
+
+        // Hors développement : aucune trace du lien nulle part. Le message ci-dessous ne contient
+        // ni jeton, ni adresse, ni identifiant — seulement le fait qu'aucun canal n'est configuré.
+        Journal.LogWarning(
+            "Demande de réinitialisation de mot de passe reçue, mais aucun canal de distribution "
+            + "approuvé n'est configuré (PC-16) : le lien n'a pas été transmis.");
     }
 
     private sealed class ModeleDemande

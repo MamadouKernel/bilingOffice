@@ -26,9 +26,10 @@
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="js/telechargements.js"></script>
-    @* Chargé APRÈS blazor.web.js : le script se raccroche à l'événement
-       « enhancedload » pour équiper aussi les pages atteintes par navigation
-       améliorée, qui ne rechargent pas le document. *@
+    @* Bascule « afficher / masquer » des champs de mot de passe. Le script pose un
+       unique écouteur délégué sur le document : il reste donc valable pour les
+       boutons que la navigation améliorée de Blazor fera apparaître ensuite, sans
+       avoir à se raccrocher à chaque rendu. Balisage : Shared/ChampMotDePasse.razor *@
     <script src="js/afficher-mot-de-passe.js"></script>
 </body>
 

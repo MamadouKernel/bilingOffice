@@ -18,230 +18,200 @@ public sealed partial class DevelopmentSeeder(
         var password = Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
         if (string.IsNullOrWhiteSpace(password))
         {
-            logger.LogWarning("La variable d'environnement CIT_TEST_USERS_PASSWORD n'est pas définie. Le jeu de données de test ne sera pas créé.");
-            return;
+            password = "Bonjour@2026#";
         }
 
-        logger.LogInformation("Début du seeding du jeu de données de test Development.");
+        logger.LogInformation("Nettoyage et initialisation épurée : Conservation exclusive de M. KONATE et du socle métier indispensable.");
 
-        await SeedSocietesEtComptesAsync(password);
-        await SeedFilesEtAgentsAsync(password);
-        await SeedTicketsDemoAsync();
-        await SeedEnrolementAsync(password);
-        await SeedAdminCitAsync(password);
+        // 1. Purge intégrale de toutes les données de test antérieures
+        await PurgerDonneesTestAsync();
+
+        // 2. Initialisation du socle de base (Files, Catégories, Pièces réglementaires)
+        await SeedFilesAsync();
+        await SeedCategoriesReclamationAsync();
         await SeedPiecesExigeesAsync();
-        await SeedNotificationsAsync();
+
+        // 3. Initialisation exclusive du Super Administrateur M. KONATE (54 permissions)
+        await SeedAdminCitAsync(password);
 
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Fin du seeding du jeu de données de test Development.");
+        logger.LogInformation("Initialisation épurée terminée avec succès. Seul le compte M. KONATE est présent.");
     }
 
-    private async Task SeedSocietesEtComptesAsync(string password)
+    /// <summary>
+    /// Purge tous les comptes utilisateurs, sociétés de test, tickets et historiques
+    /// en conservant STRICTEMENT ET UNIQUEMENT le compte Super Administrateur M. KONATE.
+    /// </summary>
+    private async Task PurgerDonneesTestAsync()
     {
-        var societesConf = new[]
-        {
-            new { Nom = "NORMAL TEST SA", Profil = TypeClient.Normal },
-            new { Nom = "EN COMPTE TEST SA", Profil = TypeClient.EnCompte },
-            new { Nom = "DEPOSIT TEST SA", Profil = TypeClient.Deposit },
-            new { Nom = "IES TEST SA", Profil = TypeClient.IES }
-        };
+        const string konateEmail = "m.konate@cotedivoireterminal.com";
 
-        foreach (var s in societesConf)
+        try
         {
-            var nomProfil = s.Profil.ToString().ToLowerInvariant();
-            var adminEmail = $"client.{nomProfil}.admin@test.local";
-            
-            // 1. Créer l'utilisateur Admin
-            var adminUser = await CreerUtilisateurDeBaseAsync(adminEmail, $"Admin {s.Profil}", password);
+            // A. Identifier les utilisateurs autres que M. KONATE
+            var usersToPurge = await userManager.Users
+                .Where(u => u.Email == null || u.Email != konateEmail)
+                .ToListAsync();
 
-            // 2. Créer la société si elle n'existe pas
-            var societe = await context.Societes.FirstOrDefaultAsync(x => x.InformationsDeclarees.Contains(s.Nom));
-            if (societe == null)
+            var userIdsToPurge = usersToPurge.Select(u => u.Id).ToHashSet();
+
+            if (userIdsToPurge.Count > 0)
             {
-                societe = SocieteCliente.Soumettre(
-                    adminUser.Id, 
-                    $"{{\"RaisonSociale\": \"{s.Nom}\", \"RCCM\": \"CI-ABJ-2026-B-0000\"}}", 
-                    s.Profil, 
-                    DateTime.UtcNow);
-                societe.Valider();
-                context.Societes.Add(societe);
-                await context.SaveChangesAsync();
+                // Supprimer les habilitations des utilisateurs purgés
+                var habs = await context.Habilitations
+                    .Where(h => userIdsToPurge.Contains(h.UtilisateurId))
+                    .ToListAsync();
+                context.Habilitations.RemoveRange(habs);
+
+                // Supprimer les rattachements aux sociétés
+                var rattachs = await context.UtilisateursSociete
+                    .Where(u => userIdsToPurge.Contains(u.UtilisateurId))
+                    .ToListAsync();
+                context.UtilisateursSociete.RemoveRange(rattachs);
+
+                // Supprimer les notifications des utilisateurs purgés
+                var notifs = await context.Notifications
+                    .Where(n => userIdsToPurge.Contains(n.DestinataireId))
+                    .ToListAsync();
+                context.Notifications.RemoveRange(notifs);
+
+                // Supprimer les invitations
+                var invites = await context.InvitationsCollaborateur.ToListAsync();
+                context.InvitationsCollaborateur.RemoveRange(invites);
+
+                // Supprimer les utilisateurs Identity
+                foreach (var user in usersToPurge)
+                {
+                    await userManager.DeleteAsync(user);
+                }
             }
 
-            // 3. Rattacher l'Admin
-            // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.4/§2.5) : Permission.ComplaintSoumettre
-            // n'était accordée à aucun compte client seedé — REC-01/use-cases.md C7-01 exigent
-            // pourtant cette habilitation pour soumettre une réclamation (spec.md §6, CLIENT).
-            await RattacherClientASocieteAsync(adminUser, societe, DroitConsultation.ToutesDemandesSociete, true, new[] { Permission.CompteGererCollaborateurs, Permission.ComplaintSoumettre, Permission.ComplaintRepondre });
-            
-            // On enregistre l'admin actif si ce n'est pas déjà fait (idempotent basique ici en vérifiant si déjà rattaché)
-            if (societe.NombreAdministrateursActifs == 0)
-            {
-                societe.EnregistrerAdministrateurActif();
-                await context.SaveChangesAsync();
-            }
+            // B. Supprimer toutes les sociétés de test existantes
+            var societes = await context.Societes.ToListAsync();
+            context.Societes.RemoveRange(societes);
 
-            // 4. Créer et rattacher l'utilisateur standard
-            var standardEmail = $"client.{nomProfil}.user@test.local";
-            var standardUser = await CreerUtilisateurDeBaseAsync(standardEmail, $"User {s.Profil}", password);
-            await RattacherClientASocieteAsync(standardUser, societe, DroitConsultation.PropresDemandesUniquement, false, new[] { Permission.ComplaintSoumettre, Permission.ComplaintRepondre });
-            
-            // Client sans droit (sur la société Normal uniquement)
-            if (s.Profil == TypeClient.Normal)
-            {
-                var sansDroitUser = await CreerUtilisateurDeBaseAsync("client.sansdroit@test.local", "Client Sans Droit", password);
-                await RattacherClientASocieteAsync(sansDroitUser, societe, DroitConsultation.PropresDemandesUniquement, false, Array.Empty<string>());
-            }
-        }
-    }
+            // C. Supprimer les tickets, dossiers et historiques de test
+            var tickets = await context.Tickets.ToListAsync();
+            context.Tickets.RemoveRange(tickets);
 
-    private async Task<ApplicationUser> CreerUtilisateurDeBaseAsync(string email, string nomAffiche, string password)
-    {
-        var user = await userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            user = new ApplicationUser
-            {
-                UserName = email,
-                Email = email,
-                NomAffiche = nomAffiche,
-                Nature = NatureUtilisateur.Client,
-                EmailConfirmed = true,
-                EstActif = true
-            };
-            await userManager.CreateAsync(user, password);
-        }
-        else
-        {
-            user.LockoutEnd = null;
-            user.AccessFailedCount = 0;
-            user.EstActif = true;
-            await userManager.UpdateAsync(user);
+            var dossiers = await context.Dossiers.ToListAsync();
+            context.Dossiers.RemoveRange(dossiers);
 
-            var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
-            await userManager.ResetPasswordAsync(user, resetToken, password);
-        }
-        return user;
-    }
+            var historiques = await context.HistoriqueTickets.ToListAsync();
+            context.HistoriqueTickets.RemoveRange(historiques);
 
-    private async Task RattacherClientASocieteAsync(ApplicationUser user, SocieteCliente societe, DroitConsultation droit, bool estAdmin, string[] permissions)
-    {
-        var existe = await context.UtilisateursSociete.AnyAsync(u => u.UtilisateurId == user.Id);
-        if (!existe)
-        {
-            var rattach = UtilisateurSociete.Rattacher(user.Id, societe.Id, DateTime.UtcNow, estAdmin, droitSoumission: true);
-            rattach.ModifierDroits(droit, droitSoumission: true); // simplified for this seed
-            context.UtilisateursSociete.Add(rattach);
+            var periodes = await context.PeriodesAttenteClient.ToListAsync();
+            context.PeriodesAttenteClient.RemoveRange(periodes);
 
-            foreach (var perm in permissions)
-            {
-                context.Habilitations.Add(HabilitationUtilisateur.Attribuer(user.Id, perm));
-            }
+            var rdv = await context.RendezVous.ToListAsync();
+            context.RendezVous.RemoveRange(rdv);
+
+            var brouillons = await context.BrouillonsSaisie.ToListAsync();
+            context.BrouillonsSaisie.RemoveRange(brouillons);
+
+            var suivisIes = await context.SuivisBranchesIes.ToListAsync();
+            context.SuivisBranchesIes.RemoveRange(suivisIes);
+
             await context.SaveChangesAsync();
+            logger.LogInformation("Données de test purgées avec succès.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Erreur lors de la purge des données de test (non bloquante) : {Message}", ex.Message);
         }
     }
 
-    private async Task SeedFilesEtAgentsAsync(string password)
+    /// <summary>
+    /// Initialise les 10 files de traitement opérationnelles standard.
+    /// </summary>
+    private async Task SeedFilesAsync()
     {
         var files = new[]
         {
-            "Pilote Manifeste",
-            "Facturation",
-            "Validation Paiement",
-            "Contrôle Documentaire",
-            "Comptabilité Client",
-            "Back Office Export",
-            "IES",
-            "Support Opérationnel",
-            "Avoir & Exonération"
+            (Nom: "Pilote Manifeste", Module: "Billing Office"),
+            (Nom: "Facturation", Module: "Billing Office"),
+            (Nom: "Validation Paiement", Module: "Billing Office"),
+            (Nom: "Contrôle Documentaire", Module: "Billing Office"),
+            (Nom: "Comptabilité Client", Module: "Billing Office"),
+            (Nom: "Back Office Export", Module: "Billing Office"),
+            (Nom: "IES", Module: "Billing Office"),
+            (Nom: "Support Opérationnel", Module: "Billing Office"),
+            (Nom: "Avoir & Exonération", Module: "AvoirExoneration"),
+            (Nom: "Agent Gate", Module: "Enrolement")
         };
 
         foreach (var f in files)
         {
-            if (!await context.Files.AnyAsync(x => x.Nom == f))
+            if (!await context.Files.AnyAsync(x => x.Nom == f.Nom))
             {
-                var module = f == "Avoir & Exonération" ? "AvoirExoneration" : "Billing Office";
-                context.Files.Add(FileDeTraitement.Creer(module, f));
+                context.Files.Add(FileDeTraitement.Creer(f.Module, f.Nom));
             }
         }
         await context.SaveChangesAsync();
+    }
 
-        await CreerAgentAsync("agent.import@test.local", "Agent Import", password, new (string, string?)[]
+    /// <summary>
+    /// Initialise les catégories de réclamations standard reliées à la file Support Opérationnel.
+    /// </summary>
+    private async Task SeedCategoriesReclamationAsync()
+    {
+        if (!await context.CategoriesReclamation.AnyAsync())
         {
-            (Permission.BillingImportSoumettre, null),
-            (Permission.BillingImportManifesteInstruire, "Pilote Manifeste")
-        });
+            var fileSupportId = await context.Files
+                .Where(f => f.Nom == "Support Opérationnel")
+                .Select(f => f.Id)
+                .FirstOrDefaultAsync();
 
-        await CreerAgentAsync("agent.export@test.local", "Agent Export", password, new (string, string?)[]
+            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("FACT", "Problème de facturation", fileSupportId));
+            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("TECH", "Problème technique", fileSupportId));
+            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("INFO", "Demande d'information", fileSupportId));
+            await context.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Initialise le référentiel des 4 pièces justificatives officielles pour les créations de compte.
+    /// </summary>
+    private async Task SeedPiecesExigeesAsync()
+    {
+        var piecesInitiales = new[]
         {
-            (Permission.BillingExportSoumettre, null),
-            (Permission.BillingExportBackOfficeInstruire, "Back Office Export")
-        });
+            (Code: "RCCM", Libelle: "Registre du Commerce et du Crédit Mobilier (RCCM)", Obligatoire: false, Ordre: 1),
+            (Code: "DFE", Libelle: "Déclaration Fiscale d'Existence (DFE / Fiche Contribuable)", Obligatoire: false, Ordre: 2),
+            (Code: "CNI_REP", Libelle: "Pièce d'Identité du Représentant Légal (CNI / Passeport)", Obligatoire: false, Ordre: 3),
+            (Code: "RIB", Libelle: "Relevé d'Identité Bancaire (RIB) Entreprise", Obligatoire: false, Ordre: 4)
+        };
 
-        await CreerAgentAsync("agent.facturation@test.local", "Agent Facturation", password, new (string, string?)[]
+        foreach (var (code, libelle, obligatoire, ordre) in piecesInitiales)
         {
-            (Permission.BillingImportFacturationEditer, "Facturation"),
-            (Permission.BillingExportFacturationEditer, "Facturation"),
-            (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null),
-            (Permission.AvoirExonerationInstruire, "Avoir & Exonération"),
-            (Permission.AvoirExonerationDecider, null)
-        });
+            if (!await context.PiecesExigeesCompte.AnyAsync(p => p.Code == code))
+            {
+                context.PiecesExigeesCompte.Add(PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre));
+            }
+        }
+        await context.SaveChangesAsync();
+    }
 
-        await CreerAgentAsync("agent.paiement@test.local", "Agent Paiement", password, new (string, string?)[]
-        {
-            (Permission.BillingImportPaiementValider, "Validation Paiement"),
-            (Permission.BillingExportPaiementValider, "Validation Paiement"),
-            (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null)
-        });
+    /// <summary>
+    /// Compte Super Administrateur CIT (M. KONATE) :
+    /// - Email : m.konate@cotedivoireterminal.com
+    /// - Nom : Mamadou KONATE
+    /// - Mot de passe : Bonjour@2026#
+    /// - Habilitations : Intégralité des 54 permissions du système (Permission.Tous)
+    /// - Idempotence : Ne recrée pas le compte s'il existe déjà et ne duplique pas ses habilitations.
+    /// </summary>
+    private async Task SeedAdminCitAsync(string password)
+    {
+        const string konateEmail = "m.konate@cotedivoireterminal.com";
+        const string konateNom = "Mamadou KONATE";
+        const string konatePassword = "Bonjour@2026#";
 
-        await CreerAgentAsync("agent.cd@test.local", "Agent CD", password, new (string, string?)[]
-        {
-            (Permission.BillingImportControleDocumentaireTraiter, "Contrôle Documentaire"),
-            (Permission.BillingExportControleDocumentaireTraiter, "Contrôle Documentaire")
-        });
+        var permissionsSuperAdmin = Permission.Tous
+            .Select(p => (Permission: p, NomFile: (string?)null))
+            .ToArray();
 
-        await CreerAgentAsync("agent.compta@test.local", "Agent Compta", password, new (string, string?)[]
-        {
-            (Permission.BillingImportComptabiliteConfirmerLettrage, "Comptabilité Client"),
-            (Permission.BillingExportComptabiliteConfirmerLettrage, "Comptabilité Client"),
-            (Permission.AvoirExonerationInstruire, "Avoir & Exonération"),
-            (Permission.AvoirExonerationDecider, null)
-        });
-
-        await CreerAgentAsync("agent.ies@test.local", "Agent IES", password, new (string, string?)[]
-        {
-            (Permission.BillingImportIesManifesteInstruire, "IES"),
-            (Permission.BillingImportIesControleDocumentaireInstruire, "IES"),
-            (Permission.BillingExportIesBackOfficeInstruire, "IES"),
-            (Permission.BillingExportIesControleDocumentaireInstruire, "IES")
-        });
-
-        await CreerAgentAsync("superviseur@test.local", "Superviseur", password, new (string, string?)[]
-        {
-            (Permission.SupervisionConsulter, null),
-            (Permission.SupervisionAgir, null),
-            (Permission.ActionDeMasse, null),
-            (Permission.AdministrationFiles, null),
-            (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null)
-        });
-
-        await CreerAgentAsync("tarification@test.local", "Admin Tarification", password, new (string, string?)[]
-        {
-            (Permission.TarificationAdministrer, null)
-        });
-
-        await CreerAgentAsync("agent.support@test.local", "Agent Support", password, new (string, string?)[]
-        {
-            (Permission.ComplaintInstruire, "Support Opérationnel"),
-            (Permission.AdministrationCategoriesReclamation, null)
-        });
-
-        // Agent sans droit (pour tester 403)
-        await CreerAgentAsync("agent.sansdroit@test.local", "Agent Sans Droit", password, Array.Empty<(string, string?)>());
+        await CreerAgentAsync(konateEmail, konateNom, konatePassword, permissionsSuperAdmin);
     }
 
     private async Task CreerAgentAsync(string email, string nomAffiche, string password, (string Permission, string? NomFile)[] permissions)
@@ -279,7 +249,7 @@ public sealed partial class DevelopmentSeeder(
             {
                 fileId = await context.Files.Where(f => f.Nom == nomFile).Select(f => f.Id).FirstOrDefaultAsync();
             }
-            
+
             var habExiste = await context.Habilitations.AnyAsync(h => h.UtilisateurId == user.Id && h.PermissionCode == perm && h.FileId == fileId);
             if (!habExiste)
             {
@@ -287,97 +257,5 @@ public sealed partial class DevelopmentSeeder(
             }
         }
         await context.SaveChangesAsync();
-    }
-
-    private async Task SeedTicketsDemoAsync()
-    {
-        if (!await context.CategoriesReclamation.AnyAsync())
-        {
-            // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.5) : toute catégorie active
-            // proposée au client doit avoir une file cible — sans quoi SoumettreReclamationCommand
-            // refuse systématiquement la soumission (règle métier déjà existante, non modifiée
-            // ici). "INFO" pointait vers null par erreur ; elle route désormais vers la même file
-            // Support Opérationnel que FACT/TECH (résolue par nom, jamais par un Guid en dur).
-            var fileSupportId = await context.Files.Where(f => f.Nom == "Support Opérationnel").Select(f => f.Id).FirstOrDefaultAsync();
-            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("FACT", "Problème de facturation", fileSupportId));
-            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("TECH", "Problème technique", fileSupportId));
-            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("INFO", "Demande d'information", fileSupportId));
-            await context.SaveChangesAsync();
-        }
-    }
-
-    /// <summary>
-    /// FEATURE 008 (Enrôlement Transporteurs, research.md D4/D9, tasks.md T011-T013) : file
-    /// "Agent Gate" (Module="Enrolement"), un compte Agent Gate habilité EnrolementInstruire, et un
-    /// compte Transporteur/Chauffeur de démonstration — CLAR-ENR-01 : personne physique unique,
-    /// sans société rattachée (Nature=Client, aucun UtilisateurSociete créé pour ce compte).
-    /// </summary>
-    private async Task SeedEnrolementAsync(string password)
-    {
-        if (!await context.Files.AnyAsync(x => x.Nom == "Agent Gate"))
-        {
-            context.Files.Add(FileDeTraitement.Creer("Enrolement", "Agent Gate"));
-            await context.SaveChangesAsync();
-        }
-
-        await CreerAgentAsync("agent.gate@test.local", "Agent Gate", password, new (string, string?)[]
-        {
-            (Permission.EnrolementInstruire, "Agent Gate"),
-            (Permission.GuichetRecherche, null),
-            (Permission.RendezVousGerer, null)
-        });
-
-        // Décision d'attribution tracée (research.md D3/D9, tasks.md T013) : EnrolementSoumettre
-        // est accordée par défaut à tout compte Nature=Client non rattaché à une société — mirroring
-        // ComplaintSoumettre/BillingImportSoumettre déjà accordés de façon équivalente.
-        var transporteur = await CreerUtilisateurDeBaseAsync("transporteur.chauffeur@test.local", "Transporteur Chauffeur Test", password);
-        if (!await context.Habilitations.AnyAsync(h => h.UtilisateurId == transporteur.Id && h.PermissionCode == Permission.EnrolementSoumettre))
-        {
-            context.Habilitations.Add(HabilitationUtilisateur.Attribuer(transporteur.Id, Permission.EnrolementSoumettre));
-            await context.SaveChangesAsync();
-        }
-    }
-
-    /// <summary>
-    /// Compte Super Administrateur CIT (M. KONATE) :
-    /// - Email : m.konate@cotedivoireterminal.com
-    /// - Mot de passe : Bonjour@2026#
-    /// - Habilitations : Intégralité des 54 permissions du système (Permission.Tous)
-    /// - Idempotence : Ne recrée pas le compte s'il existe déjà et ne duplique pas ses habilitations.
-    /// </summary>
-    private async Task SeedAdminCitAsync(string password)
-    {
-        const string konateEmail = "m.konate@cotedivoireterminal.com";
-        const string konateNom = "Mamadou KONATE";
-        const string konatePassword = "Bonjour@2026#";
-
-        var permissionsSuperAdmin = Permission.Tous
-            .Select(p => (Permission: p, NomFile: (string?)null))
-            .ToArray();
-
-        await CreerAgentAsync(konateEmail, konateNom, konatePassword, permissionsSuperAdmin);
-    }
-
-    /// <summary>
-    /// CPT-01 — Référentiel initial des pièces justificatives exigées à l'ouverture d'un compte entreprise.
-    /// Idempotent : n'insère que si la pièce n'existe pas déjà.
-    /// </summary>
-    private async Task SeedPiecesExigeesAsync()
-    {
-        var piecesInitiales = new[]
-        {
-            (Code: "RCCM", Libelle: "Registre du Commerce et du Crédit Mobilier (RCCM)", Obligatoire: false, Ordre: 1),
-            (Code: "DFE", Libelle: "Déclaration Fiscale d'Existence (DFE / Fiche Contribuable)", Obligatoire: false, Ordre: 2),
-            (Code: "CNI_REP", Libelle: "Pièce d'Identité du Représentant Légal (CNI / Passeport)", Obligatoire: false, Ordre: 3),
-            (Code: "RIB", Libelle: "Relevé d'Identité Bancaire (RIB) Entreprise", Obligatoire: false, Ordre: 4)
-        };
-
-        foreach (var (code, libelle, obligatoire, ordre) in piecesInitiales)
-        {
-            if (!await context.PiecesExigeesCompte.AnyAsync(p => p.Code == code))
-            {
-                context.PiecesExigeesCompte.Add(PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre));
-            }
-        }
     }
 }

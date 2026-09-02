@@ -23,7 +23,9 @@
             <input type="hidden" @bind-value="Modele.Jeton" />
             <div class="mb-4">
                 <label class="form-label small fw-semibold text-dark" for="nouveau-mot-de-passe">Nouveau mot de passe</label>
-                <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" placeholder="Minimum 8 caractères, majuscule, chiffre..." />
+                <ChampMotDePasse>
+                    <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" placeholder="Minimum 8 caractères, majuscule, chiffre..." />
+                </ChampMotDePasse>
             </div>
             <div class="d-flex justify-content-between align-items-center">
                 <a href="/comptes/connexion" class="text-decoration-none small text-muted">← Annuler et se connecter</a>

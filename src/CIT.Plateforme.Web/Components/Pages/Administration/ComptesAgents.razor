@@ -62,7 +62,9 @@ else
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label small fw-bold" for="mdp">Mot de passe initial</label>
-                    <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
+                    <ChampMotDePasse>
+                        <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
+                    </ChampMotDePasse>
                 </div>
                 <div class="col-12 col-md-2">
                     <button class="btn btn-primary btn-sm w-100" @onclick="CreerAsync">Créer</button>
