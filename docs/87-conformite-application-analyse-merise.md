@@ -2,29 +2,49 @@
 
 > **Document** : `docs/87-conformite-application-analyse-merise.md`
 > **Établi le** : 2026-09-03, sur le commit `1208a0c`
+> **Mis à jour le** : 2026-09-03, après remédiation
 > **Référence** : `docs/85-analyse-merise.md` — modèle dérivé du CDC
 > **Grille** : `docs/86-grille-comparaison-cdc-implementation.md`
 
 ---
 
+## État après remédiation
+
+Les quatre écarts qui portaient une exigence contractuelle ont été refermés. Le corps du document
+conserve le constat d'origine — c'est lui qui explique **pourquoi** chaque écart comptait ; chaque
+section porte désormais son état courant.
+
+| Écart | Exigence | État |
+|:---|:---|:---|
+| Aucune mesure du temps par étape | TPS-01, TPS-05 | **Refermé** — entité `PassageEnFile`, synchronisée au point d'enregistrement unique |
+| Temps total du parcours mal borné | TPS-03 | **Refermé** — `MesureTemps` distingue l'étape du parcours |
+| Statuts non paramétrables | §9.10, §11.4 | **Refermé** — référentiel `LibelleStatutTicket`, approvisionnement additif |
+| Motifs de transfert non paramétrables | §9.10, §17.3 | **Refermé** — référentiel `MotifTransfert` + écran d'administration |
+
+**Ce qui reste ouvert n'est pas corrigible par le code** : l'escalade IA et `CONVERSATION_IA`
+attendent l'arbitrage d'un fournisseur (PC-18), et la conformité du MOT s'observe en recette.
+
+---
+
 ## Réponse en une phrase
 
-**Oui, largement — mais pas totalement.** L'application respecte l'essentiel des règles de gestion,
-du MCD, du MLD et du MPD. **Trois écarts portent une exigence contractuelle non satisfaite**, et
-tous trois concernent la **mesure du temps par étape** (§9.5 du CDC).
+**Constat d'origine — désormais remédié.** L'application respectait déjà l'essentiel des règles de
+gestion, du MCD, du MLD et du MPD. **Trois écarts portaient une exigence contractuelle non
+satisfaite**, tous trois sur la **mesure du temps par étape** (§9.5), auxquels s'ajoutait un
+quatrième référentiel non paramétrable (§9.10). Les quatre sont refermés.
 
 ---
 
 ## Verdict par livrable
 
-| Livrable | Verdict | Détail |
+| Livrable | Verdict à l'audit | Verdict après remédiation |
 |:---|:---|:---|
-| **Règles de gestion** | **Conforme à 93 %** | 3 écarts sur 45 règles vérifiées |
-| **MCD** | **Conforme avec écarts** | 61 entités implémentées vs 62 modélisées ; 4 écarts structurels |
-| **MLD** | **Conforme** | Associations porteuses présentes, cardinalités respectées |
-| **MPD** | **Conforme, et supérieur** | Index filtrés, garde append-only, contraintes d'unicité |
-| **MCT** | **Conforme avec écarts** | 11 traitements sur 13 ; les 2 manquants sont des blocages externes |
-| **MOT** | **Non vérifiable** | Nécessite l'observation d'une organisation réelle |
+| **Règles de gestion** | Conforme à 93 % — 3 écarts sur 45 | **45 / 45 conformes** |
+| **MCD** | Conforme avec écarts — 4 écarts structurels | **Conforme** ; ne restent que les 2 écarts assumés (`TRANSFERT`/`RÉAFFECTATION` en historique) et `CONVERSATION_IA`, bloqué |
+| **MLD** | Conforme | **Conforme** — associations porteuses présentes, cardinalités respectées |
+| **MPD** | Conforme, et supérieur | **Conforme, et supérieur** — index filtrés, garde append-only, contraintes d'unicité |
+| **MCT** | Conforme avec écarts — 11 sur 13 | **12 sur 13** ; l'escalade IA reste bloquée par PC-18 |
+| **MOT** | Non vérifiable | **Moitié vérifiable — et vérifiée conforme** : les 10 traitements annoncés automatisés ont tous une implémentation. La moitié organisationnelle (postes, lieux, horaires) relève de la recette |
 
 ---
 
@@ -166,13 +186,13 @@ l'ARTCI sans détailler de mécanisme. L'implémentation va plus loin — c'est 
 
 ## 4. Conformité détaillée par livrable
 
-### 4.1 Règles de gestion — 42 / 45 vérifiées conformes
+### 4.1 Règles de gestion — 42 / 45 à l'audit, **45 / 45 après remédiation**
 
 | Domaine | Vérifié | Conforme | Écarts |
 |:---|---:|---:|:---|
 | Cycle de vie du ticket | 6 | 6 | — |
 | Workflow et orientation | 9 | 9 | — |
-| **Temps et SLA** | **6** | **3** | **ÉCART-01, 02, 03** |
+| **Temps et SLA** | **6** | **6** | ÉCART-01, 02, 03 — **refermés** |
 | Affectation et supervision | 6 | 6 | — |
 | Notifications | 6 | 6 | — |
 | Simulation | 10 | 10 | — |
@@ -193,13 +213,13 @@ l'ARTCI sans détailler de mécanisme. L'implémentation va plus loin — c'est 
 
 ### 4.2 MCD — 61 entités implémentées vs 62 modélisées
 
-| Écart structurel | Nature |
-|:---|:---|
-| `PASSAGE_EN_FILE` | **ABSENT** — ÉCART-01 |
-| `STATUT` en table | **ABSENT** — ÉCART-03 (enum) |
-| `MOTIF_TRANSFERT` en référentiel | **ABSENT** — §9.10 le liste comme paramétrable |
-| `TRANSFERT` / `REAFFECTATION` | Absents en tables — ÉCART-CHOIX-03 |
-| `CONVERSATION_IA` | **ABSENT** — écart **attendu**, fournisseur non arbitré |
+| Écart structurel | Nature à l'audit | État |
+|:---|:---|:---|
+| `PASSAGE_EN_FILE` | **ABSENT** — ÉCART-01 | **Présent** — `PassageEnFile` |
+| `STATUT` en table | **ABSENT** — ÉCART-03 (enum) | **Présent** — `LibelleStatutTicket` |
+| `MOTIF_TRANSFERT` en référentiel | **ABSENT** — §9.10 le liste comme paramétrable | **Présent** — `MotifTransfert` |
+| `TRANSFERT` / `REAFFECTATION` | Absents en tables — ÉCART-CHOIX-03 | Inchangé — **choix assumé**, tracés en historique |
+| `CONVERSATION_IA` | **ABSENT** — écart **attendu**, fournisseur non arbitré | Inchangé — **bloqué** (PC-18) |
 
 **Entités présentes non modélisées par moi** : `InvitationCollaborateur`, `LotPurgeRetention`,
 `EvenementSocle`, `BrouillonSaisie`. Les trois premières sont des surplus utiles ; la quatrième
@@ -227,60 +247,95 @@ Toutes portent des propriétés propres — aucune n'est une simple table de jon
 base. Un accès direct à la base contourne la garde. Ce n'est pas un manque au CDC — SEC-05 dit
 « non modifiable » sans préciser le niveau — mais c'est une défense en profondeur absente.
 
-### 4.5 MCT — 11 traitements sur 13
+### 4.5 MCT — 11 traitements sur 13 à l'audit, **12 sur 13 après remédiation**
 
 | Traitement | État |
 |:---|:---|
 | Création de compte, soumission, traitement en file, orientation, transfert, relance, annulation, SLA, notification, simulation, réclamation, enrôlement | **Conformes** |
+| **Mesure du temps par étape** | **Conforme** — était ÉCART-01, refermé |
 | **Escalade IA** | **Absent** — écart attendu, PC-18 |
-| **Mesure du temps par étape** | **Écart** — ÉCART-01 |
 
-### 4.6 MOT — non vérifiable
+### 4.6 MOT — la moitié vérifiable est conforme
 
-Le MOT décrit **qui fait quoi, où et quand**. Cela s'observe dans une organisation, pas dans du
-code. Ce que le code peut confirmer :
+Le MOT décrit **qui fait quoi, où et quand**. Il a d'abord été porté « non vérifiable », ce qui
+était excessif : deux de ses quatre colonnes se lisent dans le code.
 
-- la **nature** des opérations — automatisée vs manuelle : les services de fond correspondent aux
-  traitements que le MOT annonce comme automatisés ;
-- la **répartition des habilitations** par profil.
+**Ce que le code confirme — colonne « nature ».** Chaque traitement que le MOT §8.6 annonce
+automatisé a été recherché dans les sources. Les dix ont une implémentation :
 
-Ce qu'il ne peut pas confirmer : les postes de travail, les lieux, les horaires réels. **La
-vérification du MOT relève de la recette**, avec des utilisateurs réels.
+| Traitement annoncé automatisé | Règle | Implémentation constatée |
+|:---|:---|:---|
+| Évaluer les SLA et les seuils | RG-41 | `SurveillanceSlaService`, `SurveillerEcheancesUseCase` |
+| Générer les alertes | RG-63 | `TypeAlerte.SlaSeuilInformation` / `SlaSeuilAlerte` |
+| Escalader les dépassements | RG-65 | **Notification uniquement** — voir la réserve ci-dessous |
+| Relancer l'absence de réponse | RG-69 | `RelancesAbsenceReponseService` |
+| **Suggérer** la clôture | RG-69 | `EstEligibleASuggestionDeCloture` |
+| **Décider** la clôture — annoncé *manuel* | RG-69 | Aucun automate ne clôture : **conforme par absence** |
+| Reprendre les envois en échec | RG-111 | `DistributionNotificationsService` |
+| Rappeler l'expiration de badge | ENR-05 | `RappelerExpirationBadgesCommand` |
+| Expirer les sessions inactives | RG-113 | `ConfigureApplicationCookie` — `ExpireTimeSpan` (SEC-10) |
+| Purger selon les durées de conservation | RG-115 | `GestionnaireRetentionService` |
+
+**La ligne la plus importante est la sixième** : le MOT annonce la décision de clôture comme
+manuelle. La vérifier consiste à s'assurer qu'**aucun** automate ne la prend — une conformité qui se
+prouve par l'absence, non par la présence. `EstEligibleASuggestionDeCloture` ne fait que suggérer.
+
+**Réserve sur l'escalade (RG-65).** La règle énonce que le dépassement « **peut** déclencher :
+notification, remontée de priorité, réaffectation ». Seule la notification est automatisée. Les deux
+autres formes supposent de décider quel seuil déclenche quelle action — un arbitrage métier que le
+CDC ne donne pas. L'implémenter reviendrait à inventer une politique d'escalade.
+
+**Les cadences restent `À VALIDER`.** Le CDC n'en fixe aucune (§8.6 de l'analyse). Les mécanismes
+existent et lisent leur paramétrage ; leur déclenchement périodique attend une décision métier.
+
+**Ce que le code ne peut pas confirmer** : les postes de travail, les lieux et les horaires réels —
+que le CDC lui-même laisse `À VALIDER` pour 10 postes sur 15. **Cette moitié du MOT relève de la
+recette**, avec des utilisateurs réels.
 
 ---
 
 ## 5. Synthèse
 
-| Nature | Nombre |
-|:---|---:|
-| **`ÉCART-MANQUE`** — exigence CDC non satisfaite | **3** |
-| `ÉCART-CHOIX` — autre implémentation, exigence satisfaite | 4 |
-| `ÉCART-SURPLUS` — au-delà du CDC | 3 |
-| Écarts **attendus** — bloqués par une décision externe | 1 |
-| Points vérifiés **conformes** | ~120 |
+| Nature | À l'audit | Après remédiation |
+|:---|---:|---:|
+| **`ÉCART-MANQUE`** — exigence CDC non satisfaite | **3** | **0** |
+| `ÉCART-CHOIX` — autre implémentation, exigence satisfaite | 4 | 4 |
+| `ÉCART-SURPLUS` — au-delà du CDC | 3 | 3 |
+| Écarts **attendus** — bloqués par une décision externe | 1 | 1 |
+| Points vérifiés **conformes** | ~120 | ~124 |
 
-### Les trois manques, par ordre d'importance
+### Les manques constatés, et ce qui les a refermés
 
-| # | Écart | Exigence | Effort de correction |
+| # | Écart | Exigence | Correction apportée |
 |---:|:---|:---|:---|
-| **1** | Pas de mesure par étape | **TPS-01, TPS-05** | **Élevé** — nouvelle entité, migration, reprise des mesures |
-| **2** | Temps total mal calculé | **TPS-03** | **Faible** — passer `DateCreationUtc` au lieu de `DateArriveeEnFileUtc` |
-| **3** | Statuts non paramétrables | **§9.10, §11.4** | **Moyen** — référentiel + migration |
+| **1** | Pas de mesure par étape | **TPS-01, TPS-05** | `PassageEnFile` — un enregistrement par passage, ses quatre bornes ; synchronisation branchée au point d'enregistrement unique plutôt qu'aux 34 appelants |
+| **2** | Temps total mal calculé | **TPS-03** | `MesureTemps` borne le parcours à la création, l'étape à l'arrivée en file |
+| **3** | Statuts non paramétrables | **§9.10, §11.4** | `LibelleStatutTicket` — approvisionnement strictement additif |
+| **4** | Motifs de transfert non paramétrables | **§9.10, §17.3** | `MotifTransfert` + écran `/administration/motifs-transfert` |
 
-**L'écart 2 est le plus rentable à corriger** : une ligne, et un indicateur affiché cesse d'être
-trompeur. Il ne referme pas TPS-01, mais il supprime une mesure fausse.
+**Sur les écarts 3 et 4, la propriété qui compte n'est pas la table mais son comportement** : un
+approvisionnement qui réécrirait les valeurs par défaut à chaque démarrage annulerait le paramétrage
+de l'administrateur, et la fonctionnalité paraîtrait présente sans l'être. Un test verrouille ce
+point dans les deux cas.
+
+**Aucune valeur métier n'a été inventée.** Le CDC ne nomme aucun motif de transfert : le référentiel
+est livré **vide**, et tant qu'il l'est un motif libre reste recevable — le motif demeurant
+obligatoire (TRF-03). Dès qu'un motif y est saisi, le référentiel fait autorité. Même convention que
+les pièces exigées à l'ouverture d'un compte.
 
 ---
 
 ## 6. Ce que ce constat ne dit pas
 
-**Il ne remet pas en cause le score CDC de 174/188.** Les trois manques concernent des exigences
-Must (TPS-01, TPS-03, TPS-05) déjà comptabilisées dans la matrice de conformité. Savoir si elles y
-sont comptées conformes est une **question distincte**, à instruire contre `docs/33` — et si elles
-l'étaient à tort, le score baisserait.
+**Il ne modifie pas le score CDC de 174/188.** Les manques concernaient des exigences Must
+(TPS-01, TPS-03, TPS-05) déjà comptabilisées dans la matrice. Elles sont désormais satisfaites, mais
+le score reste **inchangé** faute d'avoir instruit comment `docs/33` les comptait.
 
-**C'est le point le plus important de ce document.** Je n'ai pas vérifié comment la matrice traite
-TPS-01, TPS-03 et TPS-05. Si elle les déclare conformes, il y a une contradiction à trancher.
+**C'est le point ouvert le plus important de ce document.** Deux lectures, et une seule est vraie :
+si la matrice les déclarait déjà conformes, elle était fausse à la date de l'audit et le score
+n'avait pas lieu d'être relevé ; si elle les déclarait non conformes, le score doit monter. Trancher
+demande de lire `docs/33`, pas de raisonner — et personne ne devrait relever un score sans cette
+lecture.
 
 **Il ne juge pas la qualité du code.** Un écart au modèle n'est pas un défaut de qualité : deux des
 quatre `ÉCART-CHOIX` constatés sont **meilleurs** que ce que j'avais modélisé.
@@ -292,4 +347,6 @@ qui portent l'information.
 
 ---
 
-**Statut : `CONFRONTATION EFFECTUÉE`.** 133 points de la grille instruits, dont ~120 conformes.
+**Statut : `CONFRONTATION EFFECTUÉE, REMÉDIATION APPLIQUÉE`.** 133 points de la grille instruits.
+Les quatre écarts qui portaient une exigence sont refermés et couverts par des tests. Ce qui reste
+ouvert relève d'un arbitrage externe (PC-18) ou de la recette (MOT).
