@@ -44,19 +44,37 @@ public sealed class ProvisionnementAdministrateurInitial(
 
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
+        // Le seul verrou qui compte : tant qu'un administrateur existe, ce code est inerte.
+        var administrateurExiste = await context.Habilitations
+            .AnyAsync(h => h.PermissionCode == Permission.AdministrationComptes, ct)
+            .ConfigureAwait(false);
+
+        if (administrateurExiste)
+        {
+            return;
+        }
+
         var email = configuration[SectionEmail]
             ?? Environment.GetEnvironmentVariable("CIT_ADMIN_EMAIL")
-            ?? Environment.GetEnvironmentVariable("CIT_INITIAL_ADMIN_EMAIL")
-            ?? "m.konate@cotedivoireterminal.com";
+            ?? Environment.GetEnvironmentVariable("CIT_INITIAL_ADMIN_EMAIL");
 
         var motDePasse = configuration[SectionMotDePasse]
             ?? Environment.GetEnvironmentVariable("CIT_ADMIN_PASSWORD")
-            ?? Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD")
-            ?? "Bonjour@2026#";
+            ?? Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
 
         var nom = configuration[SectionNom]
             ?? Environment.GetEnvironmentVariable("CIT_ADMIN_NAME")
-            ?? "Mamadou KONATE";
+            ?? "Administrateur Initial CIT";
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(motDePasse))
+        {
+            logger.LogWarning(
+                "Aucun compte ne détient la permission « {Permission} » et aucun administrateur initial n'est " +
+                "configuré : l'administration des comptes est inaccessible. Renseignez « {CleEmail} » et " +
+                "« {CleMotDePasse} » (ou variables d'environnement CIT_ADMIN_EMAIL / CIT_ADMIN_PASSWORD), puis redémarrez.",
+                Permission.AdministrationComptes, SectionEmail, SectionMotDePasse);
+            return;
+        }
 
         var compte = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
 
