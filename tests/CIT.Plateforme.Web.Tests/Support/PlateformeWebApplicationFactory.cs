@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CIT.Plateforme.Web.Tests.Support;
 
@@ -37,9 +38,23 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
 
         builder.ConfigureServices(services =>
         {
+            // ISOLATION (incident INC-05) : `ConfigureAppConfiguration` ci-dessus ne suffit pas.
+            // En environnement Development, les user-secrets sont chargés par
+            // `WebApplication.CreateBuilder` et PRIMENT sur la valeur injectée par la fabrique —
+            // les tests atteignaient donc `DbBillingOffice`, la base de développement réelle, et
+            // l'ont supprimée puis recréée. Refaire l'enregistrement du DbContext ici est le seul
+            // point que l'ordre des sources de configuration ne peut pas renverser.
+            services.RemoveAll<DbContextOptions<PlateformeDbContext>>();
+            services.RemoveAll<PlateformeDbContext>();
+            services.AddDbContext<PlateformeDbContext>(options =>
+                options.UseSqlServer(GardeBaseDeTest.Verifier(ChaineConnexion)));
+
             using var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
+
+            // Contrôle final sur la base RÉELLEMENT résolue, avant toute opération de schéma.
+            GardeBaseDeTest.VerifierContexte(dbContext);
 
             // Voir CIT.Plateforme.Infrastructure.Tests.Support.BaseDeTestSql pour la même
             // justification : une base de test persistante peut porter un schéma périmé.
