@@ -54,21 +54,26 @@ public sealed class ProvisionnementAdministrateurInitial(
             return;
         }
 
-        var email = configuration[SectionEmail];
-        var motDePasse = configuration[SectionMotDePasse];
-        var nom = configuration[SectionNom];
+        var email = configuration[SectionEmail]
+            ?? Environment.GetEnvironmentVariable("CIT_ADMIN_EMAIL")
+            ?? Environment.GetEnvironmentVariable("CIT_INITIAL_ADMIN_EMAIL");
 
-        if (string.IsNullOrWhiteSpace(email))
+        var motDePasse = configuration[SectionMotDePasse]
+            ?? Environment.GetEnvironmentVariable("CIT_ADMIN_PASSWORD")
+            ?? Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
+
+        var nom = configuration[SectionNom]
+            ?? Environment.GetEnvironmentVariable("CIT_ADMIN_NAME")
+            ?? "Administrateur Initial CIT";
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(motDePasse))
         {
-            email = "m.konate@cotedivoireterminal.com";
-        }
-        if (string.IsNullOrWhiteSpace(motDePasse))
-        {
-            motDePasse = "Bonjour@2026#";
-        }
-        if (string.IsNullOrWhiteSpace(nom))
-        {
-            nom = "Mamadou KONATE";
+            logger.LogWarning(
+                "Aucun compte ne détient la permission « {Permission} » et aucun administrateur initial n'est " +
+                "configuré : l'administration des comptes est inaccessible. Renseignez « {CleEmail} » et " +
+                "« {CleMotDePasse} » (ou variables d'environnement CIT_ADMIN_EMAIL / CIT_ADMIN_PASSWORD), puis redémarrez.",
+                Permission.AdministrationComptes, SectionEmail, SectionMotDePasse);
+            return;
         }
 
         var compte = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
