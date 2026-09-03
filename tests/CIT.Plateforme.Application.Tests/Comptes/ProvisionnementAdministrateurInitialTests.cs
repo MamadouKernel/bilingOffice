@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Tests.Support;
+﻿using CIT.Plateforme.Application.Tests.Support;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Infrastructure.Persistence;
@@ -81,6 +81,70 @@ public sealed class ProvisionnementAdministrateurInitialTests
         await provisionnement.ExecuterAsync();
 
         Assert.Empty(dbContext.Habilitations.Where(h => h.PermissionCode == Permission.AdministrationComptes));
+    }
+
+    /// <summary>
+    /// RÉGRESSION — la chaîne vide n'est pas une valeur.
+    ///
+    /// <c>appsettings.json</c> déclare <c>Email</c> et <c>NomAffiche</c> à <c>""</c> : un gabarit
+    /// montrant les clés attendues. Les sources étaient chaînées avec <c>??</c>, qui ne bascule que
+    /// sur <c>null</c> — la configuration renvoyant <c>""</c>, les variables d'environnement
+    /// n'étaient JAMAIS consultées et l'amorçage sortait par son avertissement.
+    ///
+    /// Le mécanisme paraissait présent et ne pouvait pas s'exécuter : exactement la panne qu'il
+    /// existe pour empêcher. Ce test échouerait sur le code d'origine.
+    /// </summary>
+    [Fact]
+    public async Task Une_valeur_vide_en_configuration_laisse_la_main_aux_variables_d_environnement()
+    {
+        await using var dbContext = ContexteDeTest.CreerNouveauContexte();
+
+        var compte = new ApplicationUser { Id = Guid.NewGuid(), Email = "amorcage@cit.test" };
+        var userManager = UserManagerQuiAccepte(compte);
+
+        var precedentEmail = Environment.GetEnvironmentVariable("CIT_ADMIN_EMAIL");
+        var precedentMotDePasse = Environment.GetEnvironmentVariable("CIT_ADMIN_PASSWORD");
+        try
+        {
+            Environment.SetEnvironmentVariable("CIT_ADMIN_EMAIL", compte.Email);
+            Environment.SetEnvironmentVariable("CIT_ADMIN_PASSWORD", "SecretDeTest123!");
+
+            // La configuration porte les clés, mais VIDES — le cas réel d'appsettings.json.
+            var provisionnement = new ProvisionnementAdministrateurInitial(
+                dbContext,
+                userManager,
+                Configuration(
+                    ("Administration:AdministrateurInitial:Email", ""),
+                    ("Administration:AdministrateurInitial:NomAffiche", "")),
+                NullLogger<ProvisionnementAdministrateurInitial>.Instance);
+
+            await provisionnement.ExecuterAsync();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CIT_ADMIN_EMAIL", precedentEmail);
+            Environment.SetEnvironmentVariable("CIT_ADMIN_PASSWORD", precedentMotDePasse);
+        }
+
+        // Les 54 permissions, faute de quoi le compte amorcé n'administrerait rien.
+        var accordees = dbContext.Habilitations.Where(h => h.UtilisateurId == compte.Id).ToList();
+        Assert.Equal(Permission.Tous.Count(), accordees.Count);
+        Assert.Contains(accordees, h => h.PermissionCode == Permission.AdministrationComptes);
+    }
+
+    /// <summary>Substitut permissif : le compte existe déjà, la remise à niveau doit aboutir.</summary>
+    private static UserManager<ApplicationUser> UserManagerQuiAccepte(ApplicationUser compte)
+    {
+        var mock = new Mock<UserManager<ApplicationUser>>(
+            Mock.Of<IUserStore<ApplicationUser>>(), null!, null!, null!, null!, null!, null!, null!, null!);
+
+        mock.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync(compte);
+        mock.Setup(m => m.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
+        mock.Setup(m => m.GeneratePasswordResetTokenAsync(It.IsAny<ApplicationUser>())).ReturnsAsync("jeton");
+        mock.Setup(m => m.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        return mock.Object;
     }
 
     /// <summary>Une adresse sans mot de passe est une configuration incomplète, pas une intention.</summary>

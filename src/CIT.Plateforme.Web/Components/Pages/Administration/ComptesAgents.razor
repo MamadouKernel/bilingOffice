@@ -5,159 +5,180 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
-@inject ListerComptesAgentsQuery ListerComptes
-@inject CreerCompteAgentCommand CreerCompte
-@inject DefinirActivationCompteCommand DefinirActivation
-@inject GererHabilitationAgentCommand GererHabilitation
-
-@* CDC § 17.3 — « Administration : gestion des comptes clients (validation, typage) et des
-   comptes agents (RÔLES). » Cet écran porte le second volet, qui n'existait pas : les comptes
-   internes n'étaient produits que par le jeu de données de développement, jamais exécuté en
-   production. Il rend également SEC-11 opérant. *@
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>Comptes agents — CIT</PageTitle>
 
-<div class="cit-page-header">
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
-        <h2 class="cit-page-title">
-            <span>🛠️</span> Comptes agents
-        </h2>
-        <div class="cit-page-subtitle">
-            Création des comptes internes, attribution de leurs rôles et désactivation
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🛡️</span> Administration des Rôles & Comptes Internes • SEC-11
         </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">
+            Gestion des Comptes Agents
+        </h2>
+        <div class="cit-page-subtitle text-muted">
+            Création des collaborateurs internes CIT, attribution des permissions d'exploitation et gestion des accès.
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            <span>🔄</span> Actualiser
+        </button>
     </div>
 </div>
 
-@if (_refuse)
+@if (_chargement)
 {
-    <div class="alert alert-warning">
-        Vous ne disposez pas de la permission <code>administration.comptes</code>.
-    </div>
+    <IndicateurChargement Message="Chargement des comptes agents et vérification des habilitations..." />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
 }
 else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger">@_erreur</div>
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+            <span class="me-2 fs-5">⚠️</span> @_erreur
+        </div>
     }
     @if (_succes is not null)
     {
-        <div class="alert alert-success">@_succes</div>
+        <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+            <span class="me-2 fs-5">✅</span> @_succes
+        </div>
     }
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <h3 class="h6 fw-bold mb-3">Créer un compte agent</h3>
-            <div class="row g-2 align-items-end">
-                <div class="col-12 col-md-4">
-                    <label class="form-label small fw-bold" for="email">Adresse e-mail</label>
-                    <input id="email" class="form-control form-control-sm" @bind="_email" />
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold" for="nom">Nom affiché</label>
-                    <input id="nom" class="form-control form-control-sm" @bind="_nomAffiche" />
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold" for="mdp">Mot de passe initial</label>
-                    <ChampMotDePasse>
-                        <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
-                    </ChampMotDePasse>
-                </div>
-                <div class="col-12 col-md-2">
-                    <button class="btn btn-primary btn-sm w-100" @onclick="CreerAsync">Créer</button>
-                </div>
+    <!-- 1. Formulaire de Création d'Agent -->
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4">➕</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">Créer un nouveau compte agent CIT</h4>
+        </div>
+        
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold text-dark" for="email">Adresse e-mail professionnelle</label>
+                <input id="email" type="email" class="form-control" placeholder="agent@cotedivoireterminal.com" @bind="_email" />
             </div>
-            <div class="form-text mt-2">
-                Le mot de passe est communiqué à l'agent par le canal interne : aucun envoi
-                automatique n'existe sur la plateforme.
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="nom">Nom complet affiché</label>
+                <input id="nom" type="text" class="form-control" placeholder="Prénom NOM" @bind="_nomAffiche" />
             </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="mdp">Mot de passe initial</label>
+                <ChampMotDePasse>
+                    <input id="mdp" type="password" class="form-control" placeholder="Minimum 10 caractères" @bind="_motDePasse" />
+                </ChampMotDePasse>
+            </div>
+            <div class="col-12 col-md-2">
+                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" @onclick="CreerAsync">
+                    <span>✨</span> Créer
+                </button>
+            </div>
+        </div>
+        <div class="form-text text-muted mt-2 small">
+            🔒 Le mot de passe initial doit être communiqué de manière sécurisée à l'agent.
         </div>
     </div>
 
-    @if (_comptes is null)
+    <!-- 2. Liste des Comptes Agents Existants -->
+    @if (_comptes is null || _comptes.Count == 0)
     {
-        <p class="text-muted">Chargement…</p>
-    }
-    else if (_comptes.Count == 0)
-    {
-        <p class="text-muted">Aucun compte agent.</p>
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+            <div class="fs-1 mb-3">👥</div>
+            <h4 class="fw-bold text-dark mb-2">Aucun compte agent enregistré</h4>
+            <p class="text-muted mb-0">Utilisez le formulaire ci-dessus pour créer le premier collaborateur interne.</p>
+        </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-sm align-middle">
-                <thead>
-                    <tr>
-                        <th>Agent</th>
-                        <th>État</th>
-                        <th>Rôles accordés</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var compte in _comptes)
-                    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem; background-color: var(--surface);">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-dark small">Collaborateurs Internes (@_comptes.Count)</span>
+                <span class="badge bg-secondary-subtle text-dark">Supervision CIT</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <td>
-                                <div class="fw-bold">@compte.NomAffiche</div>
-                                <div class="small text-muted">@compte.Email</div>
-                            </td>
-                            <td>
-                                <span class="badge @(compte.EstActif ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
-                                    @(compte.EstActif ? "Actif" : "Désactivé")
-                                </span>
-                            </td>
-                            <td>
-                                @if (compte.Permissions.Count == 0)
-                                {
-                                    <span class="small text-muted">Aucun</span>
-                                }
-                                else
-                                {
-                                    @foreach (var permission in compte.Permissions)
+                            <th class="ps-4">Collaborateur</th>
+                            <th>État</th>
+                            <th>Rôles & Permissions Accordés</th>
+                            <th class="text-end pe-4">Actions d'Administration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var compte in _comptes)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@compte.NomAffiche</div>
+                                    <div class="small text-muted font-monospace">@compte.Email</div>
+                                </td>
+                                <td>
+                                    <span class="badge @(compte.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                        @(compte.EstActif ? "Actif" : "Désactivé")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (compte.Permissions.Count == 0)
                                     {
-                                        <span class="badge bg-secondary-subtle text-secondary me-1 mb-1">
-                                            @permission
-                                            <button class="btn btn-link btn-sm p-0 ms-1 text-danger"
-                                                    title="Retirer ce rôle"
-                                                    @onclick="() => RetirerAsync(compte.Id, permission)">×</button>
-                                        </span>
-                                    }
-                                }
-                            </td>
-                            <td class="text-end">
-                                <div class="d-inline-flex gap-1 align-items-center">
-                                    <select class="form-select form-select-sm" style="width: 15rem;"
-                                            @onchange="e => AttribuerAsync(compte.Id, e.Value?.ToString())">
-                                        <option value="">Attribuer un rôle…</option>
-                                        @foreach (var permission in _permissionsDisponibles)
-                                        {
-                                            <option value="@permission">@permission</option>
-                                        }
-                                    </select>
-                                    @if (compte.EstActif)
-                                    {
-                                        <button class="btn btn-outline-danger btn-sm"
-                                                @onclick="() => BasculerActivationAsync(compte.Id, false)">
-                                            Désactiver
-                                        </button>
+                                        <span class="small text-muted fst-italic">Aucune permission attribuée</span>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-outline-success btn-sm"
-                                                @onclick="() => BasculerActivationAsync(compte.Id, true)">
-                                            Réactiver
-                                        </button>
+                                        <div class="d-flex flex-wrap gap-1" style="max-width: 500px;">
+                                            @foreach (var permission in compte.Permissions)
+                                            {
+                                                <span class="badge bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill small">
+                                                    @permission
+                                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.55rem;"
+                                                            title="Retirer cette permission"
+                                                            @onclick="() => RetirerAsync(compte.Id, permission)"></button>
+                                                </span>
+                                            }
+                                        </div>
                                     }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-inline-flex gap-2 align-items-center">
+                                        <select class="form-select form-select-sm" style="width: 14rem;"
+                                                @onchange="e => AttribuerAsync(compte.Id, e.Value?.ToString())">
+                                            <option value="">+ Attribuer une permission…</option>
+                                            @foreach (var permission in _permissionsDisponibles)
+                                            {
+                                                <option value="@permission">@permission</option>
+                                            }
+                                        </select>
+                                        @if (compte.EstActif)
+                                        {
+                                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                    @onclick="() => BasculerActivationAsync(compte.Id, false)">
+                                                Désactiver
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                                    @onclick="() => BasculerActivationAsync(compte.Id, true)">
+                                                Réactiver
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     }
 }
@@ -165,7 +186,9 @@ else
 @code {
     private IReadOnlyList<CompteAgentVue>? _comptes;
     private Guid _appelantId;
+    private bool _chargement = true;
     private bool _refuse;
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des comptes (administration.comptes) pour accéder à cette interface.";
     private string? _erreur;
     private string? _succes;
 
@@ -173,11 +196,6 @@ else
     private string _nomAffiche = string.Empty;
     private string _motDePasse = string.Empty;
 
-    /// <summary>
-    /// Aucun rôle métier n'est nommé en dur (decision D4, PC-03 non résolu) : la liste proposée
-    /// est l'ensemble des permissions réellement définies par le socle, pas un catalogue de rôles
-    /// figé qui divergerait du code.
-    /// </summary>
     private static readonly IReadOnlyList<string> _permissionsDisponibles =
         Permission.Tous.OrderBy(p => p, StringComparer.Ordinal).ToList();
 
@@ -190,32 +208,45 @@ else
 
     private async Task ChargerAsync()
     {
+        _chargement = true;
+        _erreur = null;
         try
         {
-            _comptes = await ListerComptes.ExecuterAsync(_appelantId);
+            using var scope = ScopeFactory.CreateScope();
+            var listerComptes = scope.ServiceProvider.GetRequiredService<ListerComptesAgentsQuery>();
+            _comptes = await listerComptes.ExecuterAsync(_appelantId);
             _refuse = false;
         }
-        catch (AccesRefuseException)
+        catch (AccesRefuseException ex)
         {
             _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
         }
     }
 
-    /// <summary>Chaque action réévalue l'autorisation côté serveur ; l'affichage n'en tient
-    /// jamais lieu.</summary>
-    private async Task ExecuterAsync(Func<Task> action, string messageSucces)
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action, string messageSucces)
     {
         _erreur = null;
         _succes = null;
         try
         {
-            await action();
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
             _succes = messageSucces;
             await ChargerAsync();
         }
-        catch (AccesRefuseException)
+        catch (AccesRefuseException ex)
         {
             _refuse = true;
+            _messageRefus = ex.Message;
         }
         catch (Exception ex)
         {
@@ -223,9 +254,10 @@ else
         }
     }
 
-    private Task CreerAsync() => ExecuterAsync(async () =>
+    private Task CreerAsync() => ExecuterAsync(async sp =>
     {
-        var resultat = await CreerCompte.ExecuterAsync(_appelantId, _email, _nomAffiche, _motDePasse);
+        var creerCompte = sp.GetRequiredService<CreerCompteAgentCommand>();
+        var resultat = await creerCompte.ExecuterAsync(_appelantId, _email, _nomAffiche, _motDePasse);
         if (!resultat.Succes)
         {
             throw new InvalidOperationException(string.Join(" ", resultat.Erreurs));
@@ -234,20 +266,32 @@ else
         _email = string.Empty;
         _nomAffiche = string.Empty;
         _motDePasse = string.Empty;
-    }, "Compte agent créé.");
+    }, "Compte agent créé avec succès.");
 
     private Task BasculerActivationAsync(Guid cibleId, bool actif) => ExecuterAsync(
-        () => DefinirActivation.ExecuterAsync(_appelantId, cibleId, actif),
-        actif ? "Compte réactivé." : "Compte désactivé — son historique est conservé.");
+        sp =>
+        {
+            var definirActivation = sp.GetRequiredService<DefinirActivationCompteCommand>();
+            return definirActivation.ExecuterAsync(_appelantId, cibleId, actif);
+        },
+        actif ? "Compte réactivé avec succès." : "Compte désactivé — son historique et ses actions passées sont conservés.");
 
     private Task AttribuerAsync(Guid cibleId, string? permissionCode) =>
         string.IsNullOrWhiteSpace(permissionCode)
             ? Task.CompletedTask
             : ExecuterAsync(
-                () => GererHabilitation.AttribuerAsync(_appelantId, cibleId, permissionCode),
-                "Rôle attribué.");
+                sp =>
+                {
+                    var gererHabilitation = sp.GetRequiredService<GererHabilitationAgentCommand>();
+                    return gererHabilitation.AttribuerAsync(_appelantId, cibleId, permissionCode);
+                },
+                "Rôle / Permission attribué avec succès.");
 
     private Task RetirerAsync(Guid cibleId, string permissionCode) => ExecuterAsync(
-        () => GererHabilitation.RetirerAsync(_appelantId, cibleId, permissionCode),
-        "Rôle retiré.");
+        sp =>
+        {
+            var gererHabilitation = sp.GetRequiredService<GererHabilitationAgentCommand>();
+            return gererHabilitation.RetirerAsync(_appelantId, cibleId, permissionCode);
+        },
+        "Rôle / Permission retiré avec succès.");
 }

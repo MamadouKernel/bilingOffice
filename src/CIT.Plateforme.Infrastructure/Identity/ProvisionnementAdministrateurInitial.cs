@@ -42,6 +42,23 @@ public sealed class ProvisionnementAdministrateurInitial(
     private const string SectionMotDePasse = "Administration:AdministrateurInitial:MotDePasse";
     private const string SectionNom = "Administration:AdministrateurInitial:NomAffiche";
 
+    /// <summary>
+    /// Retient la première source RÉELLEMENT renseignée, en traitant la chaîne vide comme absente.
+    ///
+    /// DÉFAUT CORRIGÉ : ces valeurs étaient chaînées avec <c>??</c>, qui ne bascule que sur
+    /// <c>null</c>. Or <c>appsettings.json</c> déclare <c>Email</c> et <c>NomAffiche</c> à la chaîne
+    /// vide — un gabarit destiné à montrer les clés attendues. La configuration renvoyait donc
+    /// <c>""</c>, jamais <c>null</c> : les variables d'environnement placées ensuite dans la chaîne
+    /// n'étaient **jamais consultées**, et l'amorçage sortait systématiquement par son
+    /// avertissement.
+    ///
+    /// La conséquence était exactement la panne que cette classe existe pour empêcher : une
+    /// plateforme livrée sans aucun compte capable d'administrer les comptes, et aucun moyen d'y
+    /// remédier depuis l'application. Le mécanisme paraissait présent et n'a jamais pu s'exécuter.
+    /// </summary>
+    private static string? PremiereValeurRenseignee(params string?[] sources) =>
+        Array.Find(sources, v => !string.IsNullOrWhiteSpace(v));
+
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
         // Le seul verrou qui compte : tant qu'un administrateur existe, ce code est inerte.
@@ -54,16 +71,19 @@ public sealed class ProvisionnementAdministrateurInitial(
             return;
         }
 
-        var email = configuration[SectionEmail]
-            ?? Environment.GetEnvironmentVariable("CIT_ADMIN_EMAIL")
-            ?? Environment.GetEnvironmentVariable("CIT_INITIAL_ADMIN_EMAIL");
+        var email = PremiereValeurRenseignee(
+            configuration[SectionEmail],
+            Environment.GetEnvironmentVariable("CIT_ADMIN_EMAIL"),
+            Environment.GetEnvironmentVariable("CIT_INITIAL_ADMIN_EMAIL"));
 
-        var motDePasse = configuration[SectionMotDePasse]
-            ?? Environment.GetEnvironmentVariable("CIT_ADMIN_PASSWORD")
-            ?? Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
+        var motDePasse = PremiereValeurRenseignee(
+            configuration[SectionMotDePasse],
+            Environment.GetEnvironmentVariable("CIT_ADMIN_PASSWORD"),
+            Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD"));
 
-        var nom = configuration[SectionNom]
-            ?? Environment.GetEnvironmentVariable("CIT_ADMIN_NAME")
+        var nom = PremiereValeurRenseignee(
+            configuration[SectionNom],
+            Environment.GetEnvironmentVariable("CIT_ADMIN_NAME"))
             ?? "Administrateur Initial CIT";
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(motDePasse))
