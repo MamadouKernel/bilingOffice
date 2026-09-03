@@ -101,7 +101,17 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext>();
     if (dbContext.Database.IsRelational())
     {
-        await dbContext.Database.MigrateAsync();
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+        catch (Exception ex) when (app.Environment.IsDevelopment() && ex is Microsoft.Data.SqlClient.SqlException or InvalidOperationException)
+        {
+            // La base locale contenait des objets créés sans historique de migration EF Core (__EFMigrationsHistory).
+            // En développement, on réinitialise proprement la base avec l'intégralité des migrations ordonnées.
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.MigrateAsync();
+        }
     }
 }
 
