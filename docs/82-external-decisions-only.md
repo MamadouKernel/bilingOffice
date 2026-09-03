@@ -138,10 +138,15 @@
 |:---|:---|
 | **QUESTION** | Combien de tentatives, à quel intervalle ? |
 | **OWNER** | Métier / DSI |
+| **CLÉS À RENSEIGNER** | **`Notifications:Reessai:NombreTentativesMax`** et **`Notifications:Reessai:DelaiEntreTentatives`** |
 | **WHY** | ERR-02 exige une nouvelle tentative **sans en fixer la valeur** |
 | **BLOCKS** | **Le démarrage de l'application** hors développement |
 | **TECHNICAL_READINESS** | **Prête** — le code refuse de démarrer plutôt que de deviner. `docs/55 § 1` |
 | **RECOMMENDED_OPTIONS** | Aucune. Les valeurs de développement (3 tentatives / 5 min) sont explicitement non contractuelles |
+
+Ces deux clés ne figurent que dans la configuration de développement. Elles se fournissent par
+variable d'environnement (`Notifications__Reessai__NombreTentativesMax`,
+`Notifications__Reessai__DelaiEntreTentatives`) ou par un `appsettings` propre à l'environnement.
 
 ---
 
@@ -151,10 +156,28 @@
 |:---|:---|
 | **QUESTION** | Quel chemin persistant pour les pièces déposées ? |
 | **OWNER** | Exploitation |
+| **CLÉ À RENSEIGNER** | **`Stockage:RepertoireDocuments`** |
 | **WHY** | Sans lui, les documents seraient perdus. Le code **refuse désormais de servir** hors développement plutôt que de se rabattre sur un répertoire temporaire |
 | **BLOCKS** | Tout dépôt documentaire hors développement |
 | **TECHNICAL_READINESS** | **Prête** — comportement fail-safe et testé |
 | **RECOMMENDED_OPTIONS** | Aucune — deviner un chemin de production n'aurait aucun sens |
+
+---
+
+## D-15 — Sauvegardes et procédure de restauration testée (NFR-06)
+
+| | |
+|:---|:---|
+| **QUESTION** | Quelle politique de sauvegarde des données **et des documents**, et quand la restauration sera-t-elle réellement testée ? |
+| **OWNER** | Exploitation / DSI |
+| **DECISION_REQUIRED** | Périodicité, rétention des sauvegardes, RPO / RTO, et exécution d'un test de restauration |
+| **WHY** | NFR-06 est une exigence **Must** : « sauvegardes régulières (données et documents) et procédure de restauration **testée** ». Le mot testée est contractuel — une sauvegarde jamais restaurée n'est pas une sauvegarde démontrée |
+| **BLOCKS** | NFR-06 |
+| **TECHNICAL_READINESS** | **Sans objet côté applicatif** — la sauvegarde est une responsabilité d'infrastructure. La plateforme n'a aucun mécanisme à fournir ; elle a seulement deux jeux à protéger : la base SQL **et** le répertoire documentaire de D-11 |
+| **RECOMMENDED_OPTIONS** | Aucune — RPO et RTO sont des engagements de service, pas des valeurs techniques. Éléments préparatoires : `docs/41` |
+
+**Point d'attention** : sauvegarder la base sans sauvegarder le répertoire documentaire donnerait
+une restauration incohérente — les références de documents survivraient, les fichiers non.
 
 ---
 
@@ -214,8 +237,9 @@ mais ce serait alors une décision assumée, non un défaut subi.
 | D-07 | COM-01, ENR-04 | Moyenne |
 | D-09 | G-02 | Moyenne |
 | D-08 | IA-01 à IA-07 | Basse |
+| **D-15** | **NFR-06 — sauvegardes** | Haute — avec D-02 |
 | D-12, D-13, D-14 | Rien de contractuel | Basse |
 
-**14 décisions. Aucune n'est prise par défaut. Aucune n'est inventée.**
+**15 décisions. Aucune n'est prise par défaut. Aucune n'est inventée.**
 
 Tout le reste — code, tests, configuration, durcissement, documentation — a été traité.
