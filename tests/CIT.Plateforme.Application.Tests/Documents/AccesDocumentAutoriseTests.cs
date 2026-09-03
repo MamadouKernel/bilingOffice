@@ -26,7 +26,7 @@ public sealed class AccesDocumentAutoriseTests
         var journalisation = new JournalisationService(dbContext, horloge);
         var uniteDeTravail = new UniteDeTravail(dbContext);
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        var stockage = new StockageDocumentsFichiers(configuration);
+        var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var autorisation = new AutorisationService(dbContext);
         var ticketRepo = new TicketRepository(dbContext);
         var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));

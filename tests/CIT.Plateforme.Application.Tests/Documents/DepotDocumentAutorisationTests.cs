@@ -31,7 +31,7 @@ public sealed class DepotDocumentAutorisationTests
         var journalisation = new JournalisationService(dbContext, horloge);
         var uniteDeTravail = new UniteDeTravail(dbContext);
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        var stockage = new StockageDocumentsFichiers(configuration);
+        var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
         var ticketRepo = new TicketRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);

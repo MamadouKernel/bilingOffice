@@ -38,7 +38,7 @@ public sealed class CycleCompletEnrolementIntegrationTests
         var messageRepo = new MessageRepository(dbContext);
         var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        var stockage = new StockageDocumentsFichiers(configuration);
+        var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
         var documentRepo = new DocumentRepository(dbContext);
 

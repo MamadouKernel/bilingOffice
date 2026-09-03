@@ -1,5 +1,6 @@
 using System.Text;
 using CIT.Plateforme.Infrastructure.Documents;
+using CIT.Plateforme.Infrastructure.Tests.Support;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 
@@ -20,7 +21,7 @@ public sealed class StockageSecuriseTests
             ["Stockage:RepertoireDocuments"] = tempStorageDir
         };
         var config = new ConfigurationBuilder().AddInMemoryCollection(inMemoryConfig).Build();
-        var storage = new StockageDocumentsFichiers(config);
+        var storage = new StockageDocumentsFichiers(config, new EnvironnementDeTest("Development"));
 
         var contenu = new MemoryStream(Encoding.UTF8.GetBytes("Contenu confidentiel GED"));
         var nomFichierOriginal = "dossier_douane_2026.pdf";
@@ -62,7 +63,7 @@ public sealed class StockageSecuriseTests
             ["Stockage:RepertoireDocuments"] = tempStorageDir
         };
         var config = new ConfigurationBuilder().AddInMemoryCollection(inMemoryConfig).Build();
-        var storage = new StockageDocumentsFichiers(config);
+        var storage = new StockageDocumentsFichiers(config, new EnvironnementDeTest("Development"));
 
         var contenu = new MemoryStream(Encoding.UTF8.GetBytes("Attaque traversal"));
         var nomFichierMalveillant = "../../../etc/passwd.pdf";

@@ -50,7 +50,7 @@ public sealed class CircuitClientNormalExportTests
         var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var deposerDocument = new DeposerDocumentCommand(
-            new DocumentRepository(dbContext), ticketRepository, new StockageDocumentsFichiers(configuration),
+            new DocumentRepository(dbContext), ticketRepository, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")),
             new AucuneAnalyseAntivirusConfiguree(), autorisation, cloisonnement, journalisation, horloge, uniteDeTravail);
 
         dbContext.Files.AddRange(

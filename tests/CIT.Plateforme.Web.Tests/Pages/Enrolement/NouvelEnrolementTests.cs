@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using CIT.Plateforme.Web.Tests.Support;
 
 namespace CIT.Plateforme.Web.Tests.Pages.Enrolement;
 
@@ -49,7 +50,7 @@ public sealed class NouvelEnrolementTests : BunitContext
 
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         Services.AddSingleton(new DeposerDocumentCommand(
-            new DocumentRepository(db), ticketRepo, new StockageDocumentsFichiers(configuration), new AucuneAnalyseAntivirusConfiguree(),
+            new DocumentRepository(db), ticketRepo, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")), new AucuneAnalyseAntivirusConfiguree(),
             autorisation, new CloisonnementService(ticketRepo, dossierRepo), journalisation, horloge, uow));
     }
 

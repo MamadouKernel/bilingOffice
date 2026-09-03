@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using CIT.Plateforme.Web.Tests.Support;
 
 namespace CIT.Plateforme.Web.Tests.Pages.Enrolement;
 
@@ -54,7 +55,7 @@ public sealed class FicheEnrolementTests : BunitContext
         Services.AddSingleton(new DeclencherConvocationCommand(ticketRepo, autorisation, journalisation, uow));
         Services.AddSingleton(new ConstaterRemiseBadgeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new PublierMessageCommand(messageRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));
-        Services.AddSingleton(new DeposerDocumentCommand(documentRepo, ticketRepo, new StockageDocumentsFichiers(configuration), new AucuneAnalyseAntivirusConfiguree(), autorisation, cloisonnement, journalisation, horloge, uow));
+        Services.AddSingleton(new DeposerDocumentCommand(documentRepo, ticketRepo, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")), new AucuneAnalyseAntivirusConfiguree(), autorisation, cloisonnement, journalisation, horloge, uow));
     }
 
     private static void AjouterUtilisateur(PlateformeDbContext db, Guid id, NatureUtilisateur nature) =>
