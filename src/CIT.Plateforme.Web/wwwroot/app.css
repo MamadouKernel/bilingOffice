@@ -1386,3 +1386,62 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
 .cit-champ-mot-de-passe:has(input[type="password"]) .cit-icone-barre {
     display: none;
 }
+
+/* ==========================================================================
+   BADGES & PILLULES — HAUTE VISIBILITÉ & CONTRASTE ACCESSIBLE
+   ========================================================================== */
+
+.bg-primary.bg-opacity-10,
+.bg-primary-subtle,
+.cit-badge-primary {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bfdbfe !important;
+    font-weight: 600;
+}
+
+.bg-success.bg-opacity-10,
+.bg-success-subtle,
+.cit-badge-success {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-weight: 600;
+}
+
+.bg-warning.bg-opacity-10,
+.bg-warning-subtle,
+.cit-badge-warning {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+    font-weight: 600;
+}
+
+.bg-danger.bg-opacity-10,
+.bg-danger-subtle,
+.cit-badge-danger {
+    background-color: #fef2f2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+    font-weight: 600;
+}
+
+.bg-info.bg-opacity-10,
+.bg-info-subtle,
+.cit-badge-info {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    font-weight: 600;
+}
+
+.bg-dark.bg-opacity-10,
+.bg-dark-subtle,
+.cit-badge-dark {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 600;
+}
+
