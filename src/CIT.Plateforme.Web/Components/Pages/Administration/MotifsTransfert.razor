@@ -1,0 +1,186 @@
+@page "/administration/motifs-transfert"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerMotifsTransfertQuery ListerMotifs
+@inject GererMotifsTransfertCommand GererMotifs
+
+@* § 9.10 — « les motifs de transfert » figurent parmi les référentiels administrables sans
+   développement, et § 17.3 les reprend dans les « référentiels paramétrables ». Aucun motif n'est
+   livré par défaut : le CDC n'en nomme aucun, et en inventer reviendrait à décider à la place du
+   métier. *@
+
+<PageTitle>Motifs de transfert — CIT</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h2 class="cit-page-title">
+            <span>🔀</span> Motifs de transfert
+        </h2>
+        <div class="cit-page-subtitle">
+            Motifs proposés à l'opérateur qui réoriente un ticket vers une autre file
+        </div>
+    </div>
+</div>
+
+@if (_refuse)
+{
+    <div class="alert alert-warning">
+        Vous ne disposez pas de la permission <code>administration.files</code>.
+    </div>
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger">@_erreur</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">Ajouter un motif</h3>
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold" for="code">Code</label>
+                    <input id="code" class="form-control form-control-sm" @bind="_code"
+                           placeholder="mauvaise_orientation" />
+                </div>
+                <div class="col-12 col-md-5">
+                    <label class="form-label small fw-bold" for="libelle">Libellé présenté à l'opérateur</label>
+                    <input id="libelle" class="form-control form-control-sm" @bind="_libelle" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-bold" for="ordre">Ordre</label>
+                    <input id="ordre" type="number" class="form-control form-control-sm" @bind="_ordre" />
+                </div>
+                <div class="col-6 col-md-1">
+                    <button class="btn btn-primary btn-sm w-100" @onclick="AjouterAsync">Ajouter</button>
+                </div>
+            </div>
+            <div class="form-text mt-2">
+                Le code identifie le motif de façon stable : il ne change pas quand le libellé
+                évolue, et c'est lui que porte l'historique des transferts déjà effectués.
+            </div>
+        </div>
+    </div>
+
+    @if (_motifs is null)
+    {
+        <p class="text-muted">Chargement…</p>
+    }
+    else if (_motifs.Count == 0)
+    {
+        <div class="alert alert-info">
+            Aucun motif n'est paramétré. Tant que la liste est vide, l'opérateur saisit un motif
+            libre — le motif reste obligatoire, mais il n'est pas contraint. Dès qu'un motif est
+            ajouté ici, seuls les motifs actifs de cette liste sont acceptés.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Ordre</th>
+                        <th>Code</th>
+                        <th>Libellé</th>
+                        <th>État</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var motif in _motifs)
+                    {
+                        <tr>
+                            <td class="text-muted">@motif.Ordre</td>
+                            <td><code>@motif.Code</code></td>
+                            <td class="fw-bold">@motif.Libelle</td>
+                            <td>
+                                <span class="badge @(motif.EstActif ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                    @(motif.EstActif ? "Actif" : "Désactivé")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                @if (motif.EstActif)
+                                {
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick="() => BasculerAsync(motif.Id, false)">Désactiver</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-success btn-sm"
+                                            @onclick="() => BasculerAsync(motif.Id, true)">Activer</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="form-text">
+            Un motif est désactivé, jamais supprimé : les transferts déjà tracés le référencent, et
+            le journal d'audit n'est pas modifiable (SEC-05).
+        </p>
+    }
+}
+
+@code {
+    private IReadOnlyList<MotifTransfertVue>? _motifs;
+    private Guid _appelantId;
+    private bool _refuse;
+    private string? _erreur;
+
+    private string _code = string.Empty;
+    private string _libelle = string.Empty;
+    private int _ordre;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationFiles);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+    }
+
+    // L'écran de paramétrage montre AUSSI les motifs désactivés : les masquer empêcherait de les
+    // réactiver.
+    private async Task ChargerAsync() => _motifs = await ListerMotifs.ExecuterAsync(_appelantId);
+
+    private async Task ExecuterAsync(Func<Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            await action();
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException)
+        {
+            _refuse = true;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async () =>
+    {
+        await GererMotifs.DefinirAsync(_appelantId, _code, _libelle, _ordre);
+        _code = string.Empty;
+        _libelle = string.Empty;
+        _ordre = 0;
+    });
+
+    private Task BasculerAsync(Guid motifId, bool actif) => ExecuterAsync(
+        () => GererMotifs.DefinirActivationAsync(_appelantId, motifId, actif));
+}

@@ -73,6 +73,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// compte client, et pieces effectivement deposees a l'appui d'une demande.</summary>
     public DbSet<PieceExigeeCompte> PiecesExigeesCompte => Set<PieceExigeeCompte>();
 
+    /// <summary>SS 9.10 / SS 17.3 — referentiel administrable des motifs de transfert.</summary>
+    public DbSet<MotifTransfert> MotifsTransfert => Set<MotifTransfert>();
+
     public DbSet<JustificatifDemandeCompte> JustificatifsDemandeCompte => Set<JustificatifDemandeCompte>();
 
     /// <summary>ENT-01 : invitations permettant a un collaborateur de rejoindre une societe
@@ -528,6 +531,17 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // le controle de completude ambigu.
             b.HasIndex(p => p.Code).IsUnique();
             b.HasIndex(p => p.EstActif);
+        });
+
+        builder.Entity<MotifTransfert>(b =>
+        {
+            b.HasKey(m => m.Id);
+            b.Property(m => m.Code).IsRequired().HasMaxLength(64);
+            b.Property(m => m.Libelle).IsRequired().HasMaxLength(256);
+            // Le code identifie le motif de facon stable : deux definitions homonymes rendraient
+            // l'historique des transferts ambigu.
+            b.HasIndex(m => m.Code).IsUnique();
+            b.HasIndex(m => m.EstActif);
         });
 
         builder.Entity<JustificatifDemandeCompte>(b =>

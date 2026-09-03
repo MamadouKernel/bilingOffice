@@ -448,6 +448,38 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("Files");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Files.MotifTransfert", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("EstActif");
+
+                    b.ToTable("MotifsTransfert");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Files.TransitionAutorisee", b =>
                 {
                     b.Property<Guid>("Id")

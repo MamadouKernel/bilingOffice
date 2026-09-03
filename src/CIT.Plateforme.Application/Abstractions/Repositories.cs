@@ -72,6 +72,27 @@ public interface ITransitionAutoriseeRepository
     Task<TransitionAutorisee?> ObtenirAsync(Guid fileSourceId, Guid fileCibleId, CancellationToken ct = default);
 }
 
+/// <summary>Port du referentiel des motifs de transfert (SS 9.10, SS 17.3, TRF-03).</summary>
+public interface IMotifTransfertRepository
+{
+    /// <summary><paramref name="activesUniquement"/> : l'operateur qui transfere ne choisit que
+    /// parmi les motifs en vigueur, tandis que l'ecran de parametrage doit voir aussi les
+    /// desactives, faute de quoi ils seraient irrecuperables.</summary>
+    Task<IReadOnlyList<MotifTransfert>> ListerAsync(bool activesUniquement, CancellationToken ct = default);
+
+    Task<MotifTransfert?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<bool> CodeExisteAsync(string code, CancellationToken ct = default);
+
+    /// <summary>Vrai si au moins un motif actif existe. Tant que le referentiel est vide, un motif
+    /// libre reste recevable : cette question doit donc se poser sans charger la liste.</summary>
+    Task<bool> ContientAuMoinsUnMotifActifAsync(CancellationToken ct = default);
+
+    Task<bool> CodeActifExisteAsync(string code, CancellationToken ct = default);
+
+    Task AjouterAsync(MotifTransfert motif, CancellationToken ct = default);
+}
+
 /// <summary>Port du fil de messages/notes internes (SOC-05, MSG-01..05).</summary>
 public interface IMessageRepository
 {

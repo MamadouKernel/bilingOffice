@@ -46,7 +46,8 @@ public sealed class MatriceTransitionsTests
         await dbContext.SaveChangesAsync();
 
         var transferer = new TransfererTicketCommand(
-            ticketRepo, new TransitionAutoriseeRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
+            ticketRepo, new TransitionAutoriseeRepository(dbContext), new MotifTransfertRepository(dbContext),
+            autorisation, journalisation, horloge, uniteDeTravail);
 
         await Assert.ThrowsAsync<TransitionNonAutoriseeException>(() =>
             transferer.ExecuterAsync(agentId, ticket.Id, fileCible, "Motif quelconque"));
@@ -74,7 +75,8 @@ public sealed class MatriceTransitionsTests
         await dbContext.SaveChangesAsync();
 
         var transferer = new TransfererTicketCommand(
-            new TicketRepository(dbContext), new TransitionAutoriseeRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
+            new TicketRepository(dbContext), new TransitionAutoriseeRepository(dbContext),
+            new MotifTransfertRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
 
         await Assert.ThrowsAsync<TransitionNonAutoriseeException>(() =>
             transferer.ExecuterAsync(agentId, ticket.Id, fileCible, "Motif non listé"));

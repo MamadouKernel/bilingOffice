@@ -38,7 +38,8 @@ public sealed class TransfertSansAffectationTests
         await dbContext.SaveChangesAsync();
 
         var transferer = new TransfererTicketCommand(
-            new TicketRepository(dbContext), new TransitionAutoriseeRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
+            new TicketRepository(dbContext), new TransitionAutoriseeRepository(dbContext),
+            new MotifTransfertRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
 
         await transferer.ExecuterAsync(agentId, ticket.Id, fileCible, "Motif", destinataireId: null);
 
@@ -70,7 +71,8 @@ public sealed class TransfertSansAffectationTests
         await dbContext.SaveChangesAsync();
 
         var transferer = new TransfererTicketCommand(
-            new TicketRepository(dbContext), new TransitionAutoriseeRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
+            new TicketRepository(dbContext), new TransitionAutoriseeRepository(dbContext),
+            new MotifTransfertRepository(dbContext), autorisation, journalisation, horloge, uniteDeTravail);
 
         await transferer.ExecuterAsync(agentId, ticket.Id, fileCible, "Motif", destinataireId);
 

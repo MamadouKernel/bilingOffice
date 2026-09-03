@@ -103,6 +103,11 @@ public static class DependencyInjection
         // User Story 2 — affectation, réaffectation, transfert.
         services.AddScoped<ITransitionAutoriseeRepository, TransitionAutoriseeRepository>();
         services.AddScoped<GererMatriceTransitionsCommand>();
+
+        // SS 9.10 / SS 17.3 - referentiel des motifs de transfert.
+        services.AddScoped<Application.Abstractions.IMotifTransfertRepository, Persistence.MotifTransfertRepository>();
+        services.AddScoped<Application.Administration.GererMotifsTransfertCommand>();
+        services.AddScoped<Application.Administration.ListerMotifsTransfertQuery>();
         services.AddScoped<TransfererTicketCommand>();
         services.AddScoped<ReaffecterTicketCommand>();
         services.AddScoped<AffecterManuellementCommand>();

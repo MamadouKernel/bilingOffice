@@ -10,12 +10,20 @@ namespace CIT.Plateforme.Application.Tickets;
 public sealed class TransitionNonAutoriseeException(string message) : Exception(message);
 
 /// <summary>
+/// Levée quand le motif fourni ne figure pas parmi les motifs actifs du référentiel (§ 9.10).
+/// Ne survient QUE si le référentiel est peuplé : tant qu'il est vide, un motif libre est
+/// recevable, faute de quoi la plateforme serait intransférable avant tout paramétrage.
+/// </summary>
+public sealed class MotifTransfertInconnuException(string message) : Exception(message);
+
+/// <summary>
 /// Contrat C-15 — Transférer un ticket vers une autre file. CDC : TRF-01, TRF-02, TRF-03, TRF-05,
 /// TRF-06. Applique CLAR-03 (ticket non affecté après transfert sauf destinataire désigné).
 /// </summary>
 public sealed class TransfererTicketCommand(
     ITicketRepository tickets,
     ITransitionAutoriseeRepository transitions,
+    IMotifTransfertRepository motifsTransfert,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     IHorloge horloge,
@@ -26,6 +34,21 @@ public sealed class TransfererTicketCommand(
         if (string.IsNullOrWhiteSpace(motif))
         {
             throw new ArgumentException("Le motif de transfert est obligatoire (TRF-03).", nameof(motif));
+        }
+
+        // § 9.10 — « les motifs de transfert » sont un référentiel administrable. Dès qu'il porte au
+        // moins un motif actif, il fait autorité : le texte libre cesse d'être accepté, sans quoi le
+        // paramétrage n'aurait aucun effet et deux opérateurs continueraient de nommer différemment
+        // la même situation.
+        //
+        // Tant qu'il est vide, un motif libre reste recevable. C'est ce qui permet de livrer la
+        // plateforme sans avoir inventé une nomenclature que le CDC ne donne pas.
+        var motifNormalise = motif.Trim();
+        if (await motifsTransfert.ContientAuMoinsUnMotifActifAsync(ct).ConfigureAwait(false)
+            && !await motifsTransfert.CodeActifExisteAsync(motifNormalise, ct).ConfigureAwait(false))
+        {
+            throw new MotifTransfertInconnuException(
+                $"Le motif « {motifNormalise} » ne figure pas parmi les motifs de transfert actifs du référentiel (§ 9.10).");
         }
 
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
