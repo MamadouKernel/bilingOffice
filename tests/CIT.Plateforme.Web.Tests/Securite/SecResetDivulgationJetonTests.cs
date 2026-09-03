@@ -76,6 +76,8 @@ public sealed class SecResetDivulgationJetonTests
                 // `ConnectionStrings:PlateformeDb` à la chaîne vide, et leurs sources priment sur
                 // celle ajoutée ici. L'enregistrement du DbContext est donc refait explicitement :
                 // c'est le seul point à l'abri de l'ordre des sources de configuration.
+                TraitementsDeFondDeTest.Retirer(services);
+
                 services.RemoveAll<DbContextOptions<PlateformeDbContext>>();
                 services.RemoveAll<PlateformeDbContext>();
                 services.AddDbContext<PlateformeDbContext>(options =>

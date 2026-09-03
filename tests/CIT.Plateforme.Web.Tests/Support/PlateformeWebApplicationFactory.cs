@@ -17,7 +17,7 @@ namespace CIT.Plateforme.Web.Tests.Support;
 /// (T111, CLARIFICATION REQUIRED) — LocalDB est utilisé ici comme commodité de développement
 /// local pour obtenir des résultats réels dans cette session.
 /// </summary>
-public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Program>
+public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public const string ChaineConnexion =
         "Server=(localdb)\\MSSQLLocalDB;Database=CitPlateformeTestsWeb;Trusted_Connection=True;TrustServerCertificate=True;";
@@ -44,6 +44,8 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
             // les tests atteignaient donc `DbBillingOffice`, la base de développement réelle, et
             // l'ont supprimée puis recréée. Refaire l'enregistrement du DbContext ici est le seul
             // point que l'ordre des sources de configuration ne peut pas renverser.
+            TraitementsDeFondDeTest.Retirer(services);
+
             services.RemoveAll<DbContextOptions<PlateformeDbContext>>();
             services.RemoveAll<PlateformeDbContext>();
             services.AddDbContext<PlateformeDbContext>(options =>
@@ -71,6 +73,49 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
             }
         });
     }
+
+    /// <summary>
+    /// xUnit appelle cette méthode UNE FOIS PAR INSTANCE DE FIXTURE — donc une fois par classe de
+    /// test, la fixture de collection mise à part. C'est le seul point qui s'exécute avant la
+    /// construction de l'hôte, et donc avant que le démarrage de l'application ne réinsère ses
+    /// données de référence : la purge doit précéder cette construction pour que chaque classe
+    /// reparte du même état.
+    ///
+    /// Le contexte est ouvert directement, sans passer par l'hôte : y accéder ici déclencherait
+    /// la construction que l'on cherche justement à devancer.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        var options = new DbContextOptionsBuilder<PlateformeDbContext>()
+            .UseSqlServer(GardeBaseDeTest.Verifier(ChaineConnexion))
+            .Options;
+
+        await using var contexte = new PlateformeDbContext(options);
+
+        // Contrôle sur la base réellement résolue, avant toute écriture (incident INC-05).
+        GardeBaseDeTest.VerifierContexte(contexte);
+
+        if (!baseDejaCreee)
+        {
+            lock (VerrouCreation)
+            {
+                if (!baseDejaCreee)
+                {
+                    SchemaBaseDeTest.Reconstruire(contexte.Database, ChaineConnexion);
+                    baseDejaCreee = true;
+                }
+            }
+        }
+
+        await ReinitialisationDonneesDeTest.ViderAsync(contexte);
+    }
+
+    /// <summary>
+    /// Implémentation explicite : <c>WebApplicationFactory</c> expose déjà un
+    /// <c>DisposeAsync</c> renvoyant <c>ValueTask</c>, que celui d'<c>IAsyncLifetime</c>
+    /// masquerait. La libération réelle reste celle de la classe de base.
+    /// </summary>
+    Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
 
     private static readonly Lock VerrouCreation = new();
     private static bool baseDejaCreee;

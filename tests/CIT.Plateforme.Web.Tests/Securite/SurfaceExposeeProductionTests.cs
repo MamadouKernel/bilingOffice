@@ -49,6 +49,8 @@ public sealed class SurfaceExposeeProductionTests
 
             builder.ConfigureServices(services =>
             {
+                TraitementsDeFondDeTest.Retirer(services);
+
                 services.RemoveAll<DbContextOptions<PlateformeDbContext>>();
                 services.RemoveAll<PlateformeDbContext>();
                 services.AddDbContext<PlateformeDbContext>(options =>
