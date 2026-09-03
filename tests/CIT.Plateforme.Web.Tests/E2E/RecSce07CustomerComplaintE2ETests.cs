@@ -19,6 +19,7 @@ using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -52,14 +53,15 @@ public sealed class RecSce07CustomerComplaintE2ETests : BunitContext, IClassFixt
         var context = sp.GetRequiredService<PlateformeDbContext>();
         var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
 
-        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
+        // Les catégories de réclamation viennent de l'amorçage : elles sont le paramétrage que ce
+        // scénario exerce. Les COMPTES, eux, sont créés explicitement — un amorçage applicatif
+        // n'est pas une fixture de test, et sa réécriture a déjà fait tomber ce scénario une fois.
+        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "MotDePasseDeTest123!");
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
         await seeder.SeedAsync();
 
-        var client = await userManager.FindByEmailAsync("client.normal.user@test.local");
-        var agent = await userManager.FindByEmailAsync("agent.support@test.local");
-        Assert.NotNull(client);
-        Assert.NotNull(agent);
+        var client = await FixtureComptesDeTest.CreerClientNormalRattacheAsync(sp);
+        var agent = await FixtureComptesDeTest.CreerAgentSupportAsync(sp);
 
         var rattachement = await context.UtilisateursSociete.SingleAsync(u => u.UtilisateurId == client.Id);
         var categorie = await context.CategoriesReclamation.FirstAsync(c => c.EstActif);

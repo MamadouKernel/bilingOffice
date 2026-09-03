@@ -9,6 +9,7 @@ using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -32,19 +33,28 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         
         // Simuler la variable d'environnement
-        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
-        
+        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "MotDePasseDeTest123!");
+
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
+
         // Premier passage
         await seeder.SeedAsync();
-        
+
         var nbSocietes1 = await context.Societes.CountAsync();
         var nbUsers1 = await context.Users.CountAsync();
         var nbHabs1 = await context.Habilitations.CountAsync();
 
-        Assert.True(nbSocietes1 >= 4); // Au moins nos 4 sociétés
-        
+        // Le sujet de ce test est l'IDEMPOTENCE, vérifiée plus bas.
+        //
+        // Une précondition « au moins 4 sociétés » figurait ici, héritée de l'époque où
+        // l'amorçage créait quatre sociétés de démonstration. Il ne les crée plus, et cette
+        // ligne ne passait que grâce à des données résiduelles de la base de test partagée —
+        // elle ne vérifiait donc plus rien du produit. Ce qui est réellement garanti aujourd'hui,
+        // c'est que l'amorçage produit son socle de référence et son compte d'administration.
+        Assert.True(nbUsers1 >= 1, "L'amorçage doit avoir produit au moins le compte d'administration.");
+        Assert.True(await context.Files.AnyAsync(), "L'amorçage doit avoir produit les files de traitement.");
+        Assert.True(await context.CategoriesReclamation.AnyAsync(), "L'amorçage doit avoir produit les catégories de réclamation.");
+
         // Deuxième passage
         await seeder.SeedAsync();
 
@@ -64,11 +74,15 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
         var context = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         
-        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
+        // Le compte de tarification est une fixture explicite ; l'amorçage n'en crée plus.
+        await FixtureComptesDeTest.CreerAdministrateurTarificationAsync(scope.ServiceProvider);
+
+        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "MotDePasseDeTest123!");
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
         await seeder.SeedAsync();
 
-        // Récupérer toutes les habilitations TarificationAdministrer
+        // La propriété vérifiée reste celle d'origine : l'amorçage n'accorde cette permission à
+        // AUCUN compte au-delà de ceux qui doivent la porter. Il n'en crée plus qu'un.
         var habilitationsTarification = await context.Habilitations
             .Where(h => h.PermissionCode == Permission.TarificationAdministrer)
             .ToListAsync();
@@ -91,7 +105,7 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         
         Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
         await seeder.SeedAsync();
 
         // Vérifier que chaque société test a exactement 1 administrateur actif déclaré
@@ -114,7 +128,7 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
         
         Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", ""); // Vide
         
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
         
         // Count initial
         var countSocietesInitial = await context.Societes.CountAsync();
@@ -138,7 +152,7 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
         await seeder.SeedAsync();
 
         var categoriesActives = await context.CategoriesReclamation.Where(c => c.EstActif).ToListAsync();
@@ -154,12 +168,13 @@ public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicat
         var context = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
+        // Les catégories actives viennent de l'amorçage : elles SONT le sujet de ce test. Le
+        // compte client, lui, est une fixture explicite.
+        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "MotDePasseDeTest123!");
+        var seeder = new DevelopmentSeeder(context, userManager, scope.ServiceProvider.GetRequiredService<IHostEnvironment>(), NullLogger<DevelopmentSeeder>.Instance);
         await seeder.SeedAsync();
 
-        var client = await userManager.FindByEmailAsync("client.normal.user@test.local");
-        Assert.NotNull(client);
+        var client = await FixtureComptesDeTest.CreerClientNormalRattacheAsync(scope.ServiceProvider);
         var rattachement = await context.UtilisateursSociete.SingleAsync(u => u.UtilisateurId == client.Id);
 
         var command = scope.ServiceProvider.GetRequiredService<SoumettreReclamationCommand>();

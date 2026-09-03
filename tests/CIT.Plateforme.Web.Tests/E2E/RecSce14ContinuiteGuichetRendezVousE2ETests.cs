@@ -20,6 +20,7 @@ using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -61,14 +62,10 @@ public sealed class RecSce14ContinuiteGuichetRendezVousE2ETests : IClassFixture<
         var context = sp.GetRequiredService<PlateformeDbContext>();
         var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
 
-        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
-        await seeder.SeedAsync();
-
-        var client = await userManager.FindByEmailAsync("client.normal.user@test.local");
-        var agentGuichet = await userManager.FindByEmailAsync("agent.facturation@test.local");
-        Assert.NotNull(client);
-        Assert.NotNull(agentGuichet);
+        // Fixtures explicites : la société de profil Normal et le rattachement du client sont
+        // créés ici, et non hérités de l'amorçage applicatif.
+        var client = await FixtureComptesDeTest.CreerClientNormalRattacheAsync(sp);
+        var agentGuichet = await FixtureComptesDeTest.CreerAgentFacturationAsync(sp);
 
         var maintenant = DateTime.UtcNow;
         var suffixe = Guid.NewGuid().ToString("N")[..8];

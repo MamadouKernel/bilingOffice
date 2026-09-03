@@ -16,6 +16,7 @@ using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -51,14 +52,11 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
         var context = sp.GetRequiredService<PlateformeDbContext>();
         var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
 
-        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", "TestPwd123!");
-        var seeder = new DevelopmentSeeder(context, userManager, NullLogger<DevelopmentSeeder>.Instance);
-        await seeder.SeedAsync();
-
-        var transporteur = await userManager.FindByEmailAsync("transporteur.chauffeur@test.local");
-        var agentGate = await userManager.FindByEmailAsync("agent.gate@test.local");
-        Assert.NotNull(transporteur);
-        Assert.NotNull(agentGate);
+        // Fixtures explicites : ce scénario ne dépend plus de ce que l'amorçage applicatif crée.
+        // Le transporteur est volontairement SANS société rattachée — c'est la situation qu'ENR-01
+        // doit couvrir.
+        var transporteur = await FixtureComptesDeTest.CreerTransporteurAsync(sp);
+        var agentGate = await FixtureComptesDeTest.CreerAgentGateAsync(sp);
 
         var ticketRepo = sp.GetRequiredService<ITicketRepository>();
 

@@ -4,6 +4,7 @@ using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace CIT.Plateforme.Infrastructure.Persistence;
@@ -11,32 +12,55 @@ namespace CIT.Plateforme.Infrastructure.Persistence;
 public sealed partial class DevelopmentSeeder(
     PlateformeDbContext context,
     UserManager<ApplicationUser> userManager,
+    IHostEnvironment environnement,
     ILogger<DevelopmentSeeder> logger)
 {
+    /// <summary>
+    /// Amorçage du jeu de démonstration, sous quatre barrières cumulatives évaluées par
+    /// <see cref="PolitiqueAmorcageDemo"/> : environnement de développement, secret fourni,
+    /// consentement explicite aux opérations destructives, et identité de la base confirmée.
+    ///
+    /// INCIDENT À L'ORIGINE DE CES BARRIÈRES : cette méthode repliait sur un mot de passe écrit en
+    /// dur lorsque la variable attendue était absente. La purge devenait donc inconditionnelle, et
+    /// s'est appliquée à la base de développement réelle. Une absence de configuration autorisait
+    /// la destruction ; elle l'empêche désormais.
+    /// </summary>
     public async Task SeedAsync()
     {
-        var password = Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
-        if (string.IsNullOrWhiteSpace(password))
+        var motDePasseComptesDemo = Environment.GetEnvironmentVariable(PolitiqueAmorcageDemo.CleMotDePasse);
+
+        var decision = PolitiqueAmorcageDemo.Decider(
+            environnement.EnvironmentName,
+            motDePasseComptesDemo,
+            Environment.GetEnvironmentVariable(PolitiqueAmorcageDemo.CleOptInPurge),
+            Environment.GetEnvironmentVariable(PolitiqueAmorcageDemo.CleBaseDemo),
+            context.Database.GetDbConnection().Database);
+
+        // Le motif décrit la décision, jamais la valeur d'un secret.
+        logger.LogInformation("Amorçage de démonstration : {Motif}", decision.Motif);
+
+        if (!decision.AmorcageAutorise)
         {
-            password = "Bonjour@2026#";
+            return;
         }
 
-        logger.LogInformation("Nettoyage et initialisation épurée : Conservation exclusive de M. KONATE et du socle métier indispensable.");
+        if (decision.PurgeAutorisee)
+        {
+            await PurgerDonneesTestAsync();
+        }
 
-        // 1. Purge intégrale de toutes les données de test antérieures
-        await PurgerDonneesTestAsync();
-
-        // 2. Initialisation du socle de base (Files, Catégories, Pièces réglementaires)
+        // Données de référence : additives et idempotentes, sans effet destructif.
         await SeedFilesAsync();
         await SeedCategoriesReclamationAsync();
         await SeedPiecesExigeesAsync();
 
-        // 3. Initialisation exclusive du Super Administrateur M. KONATE (54 permissions)
-        await SeedAdminCitAsync(password);
+        await SeedAdminCitAsync(motDePasseComptesDemo!);
 
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Initialisation épurée terminée avec succès. Seul le compte M. KONATE est présent.");
+        logger.LogInformation(
+            "Amorçage de démonstration terminé (purge {EtatPurge}).",
+            decision.PurgeAutorisee ? "effectuée" : "non effectuée");
     }
 
     /// <summary>
@@ -197,21 +221,20 @@ public sealed partial class DevelopmentSeeder(
     /// Compte Super Administrateur CIT (M. KONATE) :
     /// - Email : m.konate@cotedivoireterminal.com
     /// - Nom : Mamadou KONATE
-    /// - Mot de passe : Bonjour@2026#
-    /// - Habilitations : Intégralité des 54 permissions du système (Permission.Tous)
-    /// - Idempotence : Ne recrée pas le compte s'il existe déjà et ne duplique pas ses habilitations.
+    /// - Mot de passe : fourni par <c>CIT_TEST_USERS_PASSWORD</c>, **jamais écrit dans le code**
+    /// - Habilitations : intégralité des permissions du système (<c>Permission.Tous</c>)
+    /// - Idempotence : ne recrée pas le compte s'il existe déjà, et ne duplique pas ses habilitations.
     /// </summary>
-    private async Task SeedAdminCitAsync(string password)
+    private async Task SeedAdminCitAsync(string motDePasseComptesDemo)
     {
         const string konateEmail = "m.konate@cotedivoireterminal.com";
         const string konateNom = "Mamadou KONATE";
-        const string konatePassword = "Bonjour@2026#";
 
         var permissionsSuperAdmin = Permission.Tous
             .Select(p => (Permission: p, NomFile: (string?)null))
             .ToArray();
 
-        await CreerAgentAsync(konateEmail, konateNom, konatePassword, permissionsSuperAdmin);
+        await CreerAgentAsync(konateEmail, konateNom, motDePasseComptesDemo, permissionsSuperAdmin);
     }
 
     private async Task CreerAgentAsync(string email, string nomAffiche, string password, (string Permission, string? NomFile)[] permissions)
@@ -233,13 +256,15 @@ public sealed partial class DevelopmentSeeder(
         }
         else
         {
-            user.LockoutEnd = null;
-            user.AccessFailedCount = 0;
-            user.EstActif = true;
-            await userManager.UpdateAsync(user);
-
-            var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
-            await userManager.ResetPasswordAsync(user, resetToken, password);
+            // Le mot de passe d'un compte existant n'est JAMAIS réécrit ici.
+            //
+            // Auparavant, l'amorçage réinitialisait le secret à chaque démarrage : toute rotation
+            // effectuée par un administrateur était défaite au lancement suivant, sans que rien ne
+            // le signale. Un compte dont le secret a été compromis serait ainsi revenu à sa valeur
+            // compromise. L'amorçage crée un compte absent ; il ne reprend pas la main sur un
+            // compte existant.
+            logger.LogInformation(
+                "Compte de démonstration déjà présent : identifiants laissés intacts, seules les habilitations sont complétées.");
         }
 
         foreach (var (perm, nomFile) in permissions)
