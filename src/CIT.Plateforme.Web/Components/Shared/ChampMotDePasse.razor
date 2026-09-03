@@ -1,0 +1,47 @@
+@using Microsoft.Extensions.Localization
+@using CIT.Plateforme.Web.Resources
+@inject IStringLocalizer<SharedResources> Loc
+
+@*
+    Enveloppe un champ de mot de passe et lui adjoint la bascule « afficher / masquer ».
+
+    POURQUOI LE BOUTON EST RENDU CÔTÉ SERVEUR ET NON INJECTÉ EN JAVASCRIPT :
+    la navigation améliorée de Blazor synchronise le DOM avec le HTML renvoyé par
+    le serveur. Tout nœud absent de ce HTML est supprimé — un bouton injecté par
+    script disparaît donc au premier rendu suivant. En le déclarant ici, il fait
+    partie du HTML de référence et survit à la synchronisation.
+
+    POURQUOI L'ÉTAT N'EST PAS STOCKÉ :
+    l'icône affichée découle du type effectif du champ (`:has()` en CSS), et non
+    d'une classe posée par le script. Si la synchronisation remet le champ en
+    `type="password"`, l'icône suit d'elle-même — il n'y a pas d'état à perdre.
+
+    SANS JAVASCRIPT le bouton reste masqué (règle CSS conditionnée à `js-actif`) :
+    mieux vaut aucun bouton qu'un bouton inerte.
+*@
+
+<div class="cit-champ-mot-de-passe">
+    @ChildContent
+    <button type="button"
+            class="cit-bascule-mot-de-passe"
+            aria-pressed="false"
+            aria-label="@Loc["Auth.ShowPassword"]"
+            title="@Loc["Auth.ShowPassword"]"
+            data-libelle-afficher="@Loc["Auth.ShowPassword"]"
+            data-libelle-masquer="@Loc["Auth.HidePassword"]">
+        <svg class="cit-icone-oeil" viewBox="0 0 24 24" width="18" height="18" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true" focusable="false">
+            <path d="M2 12c3.5-5 6.5-7.5 10-7.5S18.5 7 22 12c-3.5 5-6.5 7.5-10 7.5S5.5 17 2 12Z" />
+            <circle cx="12" cy="12" r="3" />
+            @* Le trait barré ne s'affiche que lorsque le mot de passe est visible. *@
+            <line class="cit-icone-barre" x1="3" y1="21" x2="21" y2="3" />
+        </svg>
+    </button>
+</div>
+
+@code {
+    /// <summary>Le champ de saisie à envelopper — <c>InputText</c> ou <c>input</c> natif.</summary>
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+}
