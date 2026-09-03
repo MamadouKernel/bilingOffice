@@ -1,6 +1,7 @@
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CIT.Plateforme.Infrastructure.Identity;
 
@@ -10,14 +11,15 @@ namespace CIT.Plateforme.Infrastructure.Identity;
 /// </summary>
 public sealed class AutorisationService(
     PlateformeDbContext? dbContext = null,
-    IDbContextFactory<PlateformeDbContext>? dbContextFactory = null) : IAutorisationService
+    IServiceScopeFactory? scopeFactory = null) : IAutorisationService
 {
     public async Task<bool> EstAutoriseAsync(Guid utilisateurId, string permissionCode, Guid? fileId = null, CancellationToken ct = default)
     {
-        if (dbContextFactory is not null)
+        if (scopeFactory is not null)
         {
-            await using var context = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
-            return await context.Habilitations
+            using var scope = scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
+            return await db.Habilitations
                 .Where(h => h.UtilisateurId == utilisateurId && h.PermissionCode == permissionCode)
                 .AnyAsync(h => h.FileId == null || h.FileId == fileId, ct)
                 .ConfigureAwait(false);
