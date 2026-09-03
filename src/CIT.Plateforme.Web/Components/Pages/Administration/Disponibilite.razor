@@ -8,9 +8,9 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
-@inject VueChargeQuery VueCharge
-@inject GererDisponibiliteCommand GererDisponibilite
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>Disponibilité des agents — CIT</PageTitle>
 
@@ -159,7 +159,9 @@ else
             // L'appelant est l'utilisateur authentifié : son habilitation est vérifiée côté serveur
             // par GererDisponibiliteCommand, aucun identifiant n'est accepté depuis le navigateur.
             _appelantId = contexte.UtilisateurId;
-            _operateurs = await VueCharge.ExecuterAsync(_appelantId);
+            using var scope = ScopeFactory.CreateScope();
+            var vueCharge = scope.ServiceProvider.GetRequiredService<VueChargeQuery>();
+            _operateurs = await vueCharge.ExecuterAsync(_appelantId);
 
             if (_operateurs.Count > 0 && !_operateurs.Any(o => o.OperateurId == _operateurSelectionne))
             {
@@ -195,7 +197,9 @@ else
 
         try
         {
-            await GererDisponibilite.DefinirAsync(_appelantId, _operateurSelectionne, _statutSelectionne);
+            using var scope = ScopeFactory.CreateScope();
+            var gererDisponibilite = scope.ServiceProvider.GetRequiredService<GererDisponibiliteCommand>();
+            await gererDisponibilite.DefinirAsync(_appelantId, _operateurSelectionne, _statutSelectionne);
             _message = $"Disponibilité mise à jour : {_statutSelectionne} (DIS-03 : tracée).";
             await ChargerAsync();
         }

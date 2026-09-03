@@ -7,9 +7,9 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
-@inject ListerFilesQuery ListerFiles
-@inject GererFilesCommand GererFiles
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>Stratégie d'affectation des files — CIT</PageTitle>
 
@@ -162,7 +162,9 @@ else
             // L'administrateur est l'utilisateur authentifié ; son habilitation
             // (Permission.AdministrationFiles) est vérifiée côté serveur par la requête elle-même.
             _administrateurId = contexte.UtilisateurId;
-            _files = await ListerFiles.ExecuterAsync(_administrateurId);
+            using var scope = ScopeFactory.CreateScope();
+            var listerFiles = scope.ServiceProvider.GetRequiredService<ListerFilesQuery>();
+            _files = await listerFiles.ExecuterAsync(_administrateurId);
 
             var courante = _files.FirstOrDefault(f => f.Id == _fileSelectionnee) ?? _files.FirstOrDefault();
             if (courante is not null)
@@ -200,7 +202,9 @@ else
 
         try
         {
-            await GererFiles.ChangerStrategieAsync(_administrateurId, _fileSelectionnee, _strategieSelectionnee);
+            using var scope = ScopeFactory.CreateScope();
+            var gererFiles = scope.ServiceProvider.GetRequiredService<GererFilesCommand>();
+            await gererFiles.ChangerStrategieAsync(_administrateurId, _fileSelectionnee, _strategieSelectionnee);
             _message = $"Stratégie appliquée sans développement : {LibelleStrategie(_strategieSelectionnee)} (AFF-07).";
             await ChargerAsync();
         }

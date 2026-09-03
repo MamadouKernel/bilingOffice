@@ -5,8 +5,9 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
-@inject ConsulterJournalAuditQuery ConsulterAudit
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>Journal d'audit — CIT</PageTitle>
 
@@ -101,7 +102,9 @@ else
 
             // L'identité provient du contexte authentifié : l'utilisateur n'a aucun
             // identifiant technique à saisir. L'habilitation reste vérifiée côté serveur.
-            _entrees = await ConsulterAudit.ExecuterAsync(contexte.UtilisateurId);
+            using var scope = ScopeFactory.CreateScope();
+            var consulterAudit = scope.ServiceProvider.GetRequiredService<ConsulterJournalAuditQuery>();
+            _entrees = await consulterAudit.ExecuterAsync(contexte.UtilisateurId);
             _nonAutorise = false;
         }
         catch (AccesRefuseException ex)
