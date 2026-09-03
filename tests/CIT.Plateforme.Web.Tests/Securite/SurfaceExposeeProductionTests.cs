@@ -28,6 +28,9 @@ public sealed class SurfaceExposeeProductionTests
         private const string ChaineConnexionDediee =
             "Server=(localdb)\\MSSQLLocalDB;Database=CitPlateformeTestsSurface;Trusted_Connection=True;TrustServerCertificate=True;";
 
+        private static readonly Lock VerrouCreation = new();
+        private static bool baseDejaCreee;
+
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment(environnement);
@@ -51,11 +54,28 @@ public sealed class SurfaceExposeeProductionTests
                 services.AddDbContext<PlateformeDbContext>(options =>
                     options.UseSqlServer(GardeBaseDeTest.Verifier(ChaineConnexionDediee)));
 
-                using var provider = services.BuildServiceProvider();
-                using var scope = provider.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
-                GardeBaseDeTest.VerifierContexte(db);
-                db.Database.EnsureCreated();
+                // La base de test est persistante d'une exécution à l'autre. `EnsureCreated` seul
+                // est inopérant si elle existe déjà : son schéma reste figé à ce qu'il était lors
+                // de sa création, et toute entité ajoutée depuis manque à l'appel. Même motif que
+                // PlateformeWebApplicationFactory.
+                if (!baseDejaCreee)
+                {
+                    lock (VerrouCreation)
+                    {
+                        if (!baseDejaCreee)
+                        {
+                            using var provider = services.BuildServiceProvider();
+                            using var scope = provider.CreateScope();
+                            var db = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
+                            GardeBaseDeTest.VerifierContexte(db);
+
+                            Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
+                            db.Database.EnsureDeleted();
+                            db.Database.EnsureCreated();
+                            baseDejaCreee = true;
+                        }
+                    }
+                }
             });
         }
     }

@@ -1262,6 +1262,38 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("LiaisonsTicket");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.LibelleStatutTicket", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EstEngageant")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LibelleEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("LibelleFr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("Ordre");
+
+                    b.ToTable("LibellesStatutTicket");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.ModificationPriorite", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1310,6 +1342,44 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("NiveauxPriorite");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.PassageEnFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateArriveeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DatePriseEnChargeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateSortieUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("OperateurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rang")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId", "DateArriveeUtc")
+                        .HasFilter("[DateSortieUtc] IS NULL");
+
+                    b.HasIndex("TicketId", "Rang")
+                        .IsUnique();
+
+                    b.ToTable("PassagesEnFile");
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.PeriodeAttenteClient", b =>

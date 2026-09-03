@@ -159,6 +159,20 @@ public interface ICompetenceOperateurRepository
 /// client d'un ticket, nécessaires à un calcul SLA « ouvré » cohérent (voir
 /// <see cref="PeriodeAttenteClient"/>). Entité autonome (comme l'historique/l'audit), sans
 /// relation EF configurée vers <c>Ticket</c>.</summary>
+/// <summary>
+/// TPS-01 / TPS-05 — accès aux passages en file d'un ticket, qui portent la chronologie par étape.
+/// </summary>
+public interface IPassageEnFileRepository
+{
+    Task AjouterAsync(PassageEnFile passage, CancellationToken ct = default);
+
+    /// <summary>Le passage encore ouvert, c'est-à-dire l'étape courante. Au plus un par ticket.</summary>
+    Task<PassageEnFile?> ObtenirOuvertPourTicketAsync(Guid ticketId, CancellationToken ct = default);
+
+    /// <summary>La chronologie complète, ordonnée par rang (TPS-05).</summary>
+    Task<IReadOnlyList<PassageEnFile>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+}
+
 public interface IPeriodeAttenteClientRepository
 {
     Task AjouterAsync(PeriodeAttenteClient periode, CancellationToken ct = default);

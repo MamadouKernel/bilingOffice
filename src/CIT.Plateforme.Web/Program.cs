@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
@@ -94,6 +95,16 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// APPLICATION AUTOMATIQUE DES MIGRATIONS EF CORE (création/mise à jour automatique des tables en base)
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext>();
+    if (dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -108,6 +119,16 @@ else
         var seeder = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.DevelopmentSeeder>();
         await seeder.SeedAsync();
     }
+}
+
+// §11.4 / §9.10 : le référentiel des libellés de statut doit exister dans tous les
+// environnements. L'opération est strictement additive — un libellé modifié par
+// l'administrateur fonctionnel n'est jamais réécrit.
+using (var scope = app.Services.CreateScope())
+{
+    var libelles = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementLibellesStatut>();
+    await libelles.ExecuterAsync();
 }
 
 // AMORCAGE DU PREMIER ADMINISTRATEUR — hors de la branche ci-dessus, donc dans TOUS les

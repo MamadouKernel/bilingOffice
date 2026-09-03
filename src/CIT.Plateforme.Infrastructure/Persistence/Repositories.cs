@@ -252,6 +252,25 @@ public sealed class CandidatsAffectationProvider(PlateformeDbContext dbContext) 
     }
 }
 
+public sealed class PassageEnFileRepository(PlateformeDbContext dbContext) : IPassageEnFileRepository
+{
+    public async Task AjouterAsync(Domain.Tickets.PassageEnFile passage, CancellationToken ct = default) =>
+        await dbContext.PassagesEnFile.AddAsync(passage, ct).ConfigureAwait(false);
+
+    public Task<Domain.Tickets.PassageEnFile?> ObtenirOuvertPourTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        dbContext.PassagesEnFile
+            .Where(p => p.TicketId == ticketId && p.DateSortieUtc == null)
+            .OrderByDescending(p => p.Rang)
+            .FirstOrDefaultAsync(ct);
+
+    public async Task<IReadOnlyList<Domain.Tickets.PassageEnFile>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        await dbContext.PassagesEnFile
+            .Where(p => p.TicketId == ticketId)
+            .OrderBy(p => p.Rang)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+}
+
 public sealed class PeriodeAttenteClientRepository(PlateformeDbContext dbContext) : IPeriodeAttenteClientRepository
 {
     public async Task AjouterAsync(Domain.Tickets.PeriodeAttenteClient periode, CancellationToken ct = default) =>
@@ -314,6 +333,11 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
     {
         // T098 : le journal d'audit est append-only — vérifié avant toute écriture (SOC-13).
         JournalAuditAppendOnlyGuard.VerifierAvantEnregistrement(dbContext);
+
+        // TPS-01 / TPS-05 : le journal des passages en file est tenu ici, au point d'enregistrement
+        // unique, à partir des valeurs d'origine que le suivi de changements expose encore. Le
+        // placer ici plutôt que dans chaque cas d'usage garantit qu'aucun chemin ne l'oublie.
+        SuiviPassagesEnFile.Synchroniser(dbContext, DateTime.UtcNow);
 
         try
         {

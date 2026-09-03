@@ -68,8 +68,21 @@ public sealed class NormalisationBookingSqlTests
         contexte.Tickets.Add(NouveauTicketExport(dossier.Id, bookingB, $"TCK-BN3-B-{id}"));
 
         var uow = new UniteDeTravail(contexte);
-        var nb = await uow.EnregistrerAsync();
-        Assert.Equal(3, nb); // Dossier + 2 Tickets
+        await uow.EnregistrerAsync();
+
+        // La propriété vérifiée est que l'index d'unicité filtré n'a PAS rejeté le second
+        // booking. Elle s'assertait auparavant par le nombre de lignes écrites (« Dossier +
+        // 2 Tickets ») — un indice indirect, qui devient faux dès qu'une entité satellite
+        // s'ajoute à l'enregistrement. Le contrôle porte désormais sur ce qui est réellement
+        // en base.
+        var bookingsPersistes = await contexte.Tickets
+            .Where(t => t.DossierId == dossier.Id)
+            .Select(t => t.NumeroBooking)
+            .ToListAsync();
+
+        Assert.Equal(2, bookingsPersistes.Count);
+        Assert.Contains(bookingA, bookingsPersistes);
+        Assert.Contains(bookingB, bookingsPersistes);
     }
 
     [Fact]
@@ -86,8 +99,21 @@ public sealed class NormalisationBookingSqlTests
         contexte.Tickets.Add(NouveauTicketExport(dossier.Id, bookingB, $"TCK-BN4-B-{id}"));
 
         var uow = new UniteDeTravail(contexte);
-        var nb = await uow.EnregistrerAsync();
-        Assert.Equal(3, nb); // Dossier + 2 Tickets
+        await uow.EnregistrerAsync();
+
+        // La propriété vérifiée est que l'index d'unicité filtré n'a PAS rejeté le second
+        // booking. Elle s'assertait auparavant par le nombre de lignes écrites (« Dossier +
+        // 2 Tickets ») — un indice indirect, qui devient faux dès qu'une entité satellite
+        // s'ajoute à l'enregistrement. Le contrôle porte désormais sur ce qui est réellement
+        // en base.
+        var bookingsPersistes = await contexte.Tickets
+            .Where(t => t.DossierId == dossier.Id)
+            .Select(t => t.NumeroBooking)
+            .ToListAsync();
+
+        Assert.Equal(2, bookingsPersistes.Count);
+        Assert.Contains(bookingA, bookingsPersistes);
+        Assert.Contains(bookingB, bookingsPersistes);
     }
 
     [Fact]

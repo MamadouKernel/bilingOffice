@@ -49,6 +49,12 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// périodes d'attente client, pour un calcul SLA « ouvré » cohérent.</summary>
     public DbSet<PeriodeAttenteClient> PeriodesAttenteClient => Set<PeriodeAttenteClient>();
 
+    /// <summary>TPS-01 / TPS-05 : un enregistrement par passage du ticket dans une file.</summary>
+    public DbSet<PassageEnFile> PassagesEnFile => Set<PassageEnFile>();
+
+    /// <summary>§11.4 / §9.10 : libellés de statut paramétrables, sans développement.</summary>
+    public DbSet<LibelleStatutTicket> LibellesStatutTicket => Set<LibelleStatutTicket>();
+
     public DbSet<Domain.Tickets.NiveauPriorite> NiveauxPriorite => Set<Domain.Tickets.NiveauPriorite>();
 
     public DbSet<Domain.Tickets.ModificationPriorite> ModificationsPriorite => Set<Domain.Tickets.ModificationPriorite>();
@@ -216,6 +222,32 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         {
             b.HasKey(p => p.Id);
             b.HasIndex(p => p.TicketId);
+        });
+
+        // TPS-01 / TPS-05 : entité satellite autonome, même choix que PeriodeAttenteClient —
+        // aucune relation EF vers Ticket, pour ne pas mêler les jetons de concurrence.
+        // §11.4 / §9.10 : référentiel des libellés de statut. Le code est la clé primaire —
+        // c'est le nom de la valeur d'énumération, qui porte l'identité technique du statut.
+        builder.Entity<LibelleStatutTicket>(b =>
+        {
+            b.HasKey(l => l.Code);
+            b.Property(l => l.Code).HasMaxLength(64);
+            b.Property(l => l.LibelleFr).IsRequired().HasMaxLength(200);
+            b.Property(l => l.LibelleEn).IsRequired().HasMaxLength(200);
+            b.HasIndex(l => l.Ordre);
+        });
+
+        builder.Entity<PassageEnFile>(b =>
+        {
+            b.HasKey(p => p.Id);
+
+            // Chronologie du ticket (TPS-05) : lecture ordonnée par rang.
+            b.HasIndex(p => new { p.TicketId, p.Rang }).IsUnique();
+
+            // Backlog non pris en charge par file (SUP-02) : index filtré sur les seuls passages
+            // encore ouverts — les seuls qui comptent pour cette question.
+            b.HasIndex(p => new { p.FileId, p.DateArriveeUtc })
+                .HasFilter("[DateSortieUtc] IS NULL");
         });
 
         // FEATURE 003 (research.md D8) : entité satellite autonome, même style que

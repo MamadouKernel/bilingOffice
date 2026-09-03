@@ -110,6 +110,13 @@ public static class DependencyInjection
 
         // User Story 3 — attente client, relances.
         services.AddScoped<IPeriodeAttenteClientRepository, PeriodeAttenteClientRepository>();
+
+        // TPS-01 / TPS-05 : chronologie par étape. Sans cet enregistrement, les horodatages du
+        // passage précédent sont écrasés au premier transfert.
+        services.AddScoped<Application.Abstractions.IPassageEnFileRepository, Persistence.PassageEnFileRepository>();
+
+        // §11.4 / §9.10 : approvisionnement additif des libellés de statut paramétrables.
+        services.AddScoped<Persistence.ProvisionnementLibellesStatut>();
         services.AddScoped<AttenteClientCommand>();
         services.AddScoped<RelancesAbsenceReponseUseCase>();
         services.AddHostedService<TraitementsDeFond.RelancesAbsenceReponseService>();

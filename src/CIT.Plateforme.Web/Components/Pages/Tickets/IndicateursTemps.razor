@@ -85,8 +85,14 @@
         var ticket = await DbContext.Tickets.FindAsync(TicketId);
         if (ticket is not null)
         {
+            // TPS-03 : le temps total court depuis la CRÉATION, non depuis l'arrivée dans la file
+            // courante — celle-ci est réinitialisée à chaque transfert.
             mesure = MesureTemps.Calculer(
-                ticket.DateArriveeEnFileUtc, ticket.DatePriseEnChargeUtc, DateTime.UtcNow, ticket.DureeAttenteClienteCumulee);
+                ticket.DateCreationUtc,
+                ticket.DateArriveeEnFileUtc,
+                ticket.DatePriseEnChargeUtc,
+                ticket.DateClotureUtc ?? DateTime.UtcNow,
+                ticket.DureeAttenteClienteCumulee);
         }
     }
 }
