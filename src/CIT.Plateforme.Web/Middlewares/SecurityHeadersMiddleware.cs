@@ -4,32 +4,82 @@ using Microsoft.AspNetCore.Http;
 namespace CIT.Plateforme.Web.Middlewares;
 
 /// <summary>
-/// Middleware de durcissement des en-têtes HTTP (SEC-04).
-/// Injecte les protections contre le MIME-sniffing, le clickjacking, l'exposition de référent,
-/// et la politique CSP compatible Blazor Server.
+/// Middleware de durcissement des en-têtes HTTP (SEC-04) : MIME-sniffing, clickjacking, fuite de
+/// référent, politique de sécurité du contenu, fonctionnalités du navigateur et mise en cache des
+/// réponses authentifiées.
 /// </summary>
 public sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
+    /// <summary>
+    /// Politique CSP unique de la plateforme.
+    ///
+    /// <c>'unsafe-eval'</c> A ÉTÉ RETIRÉ de <c>script-src</c>. Il figure dans les recommandations
+    /// Blazor pour le mode WebAssembly, qui compile du code à l'exécution. Cette plateforme est
+    /// rendue en Static SSR avec navigation améliorée : rien n'y évalue de code construit
+    /// dynamiquement. Le conserver revenait à désarmer la principale protection de la CSP contre
+    /// l'injection de script, sans contrepartie — vérifié sans erreur console sur les parcours.
+    ///
+    /// <c>'unsafe-inline'</c> est conservé : le balisage porte des styles et des scripts en ligne
+    /// (importmap, styles d'écran). Le retirer suppose de basculer sur des nonces — consigné
+    /// comme reste à traiter, car cela dépasse un durcissement à comportement constant.
+    /// </summary>
+    private const string PolitiqueCsp =
+        "default-src 'self'; " +
+        "img-src 'self' data:; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "script-src 'self' 'unsafe-inline'; " +
+        "connect-src 'self' ws: wss:; " +
+        "font-src 'self'; " +
+        "base-uri 'self'; " +
+        "form-action 'self'; " +
+        "object-src 'none'; " +
+        "frame-ancestors 'self'";
+
+    private const string PolitiquePermissions =
+        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), " +
+        "microphone=(), payment=(), usb=()";
+
     public async Task InvokeAsync(HttpContext context)
     {
-        // 1. Prévention du MIME-sniffing
-        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        // Les en-têtes sont posés À L'ÉMISSION de la réponse, et non à l'entrée du pipeline.
+        //
+        // POURQUOI : ce middleware est le premier du pipeline. L'infrastructure Blazor ajoute
+        // ensuite sa propre en-tête `Content-Security-Policy: frame-ancestors 'self'`. La réponse
+        // en portait donc DEUX, concaténées en une valeur malformée. Posés au dernier moment,
+        // l'affectation par indexeur remplace ce qui a été ajouté, et la plateforme émet une
+        // politique unique.
+        //
+        // Second effet : `context.User` est alors renseigné, ce qui n'est pas le cas à l'entrée —
+        // ce middleware s'exécute avant UseAuthentication.
+        context.Response.OnStarting(() =>
+        {
+            var entetes = context.Response.Headers;
 
-        // 2. Prévention du clickjacking (encapsulation en iframe)
-        context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
+            entetes["X-Content-Type-Options"] = "nosniff";
+            entetes["X-Frame-Options"] = "SAMEORIGIN";
+            entetes["Referrer-Policy"] = "strict-origin-when-cross-origin";
+            entetes["Content-Security-Policy"] = PolitiqueCsp;
+            entetes["Permissions-Policy"] = PolitiquePermissions;
 
-        // 3. Protection du Referrer
-        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+            // Pas de mise en cache des PAGES authentifiées : sans cela, une page portant des
+            // données de dossier reste dans le cache du navigateur ou d'un proxy, et peut être
+            // restituée après déconnexion — sur un poste partagé, par le bouton « précédent ».
+            //
+            // La restriction au type HTML est délibérée : ce middleware s'exécute avant le service
+            // des ressources statiques, et sans elle un utilisateur connecté cesserait de mettre en
+            // cache feuilles de style, scripts et images. Ce ne sont pas eux qui portent des
+            // données ; les en priver dégraderait chaque navigation sans rien protéger.
+            var estPageHtml = context.Response.ContentType?
+                .StartsWith("text/html", StringComparison.OrdinalIgnoreCase) == true;
 
-        // 4. Content Security Policy (progressive et compatible Blazor Server & SSR)
-        context.Response.Headers["Content-Security-Policy"] =
-            "default-src 'self'; " +
-            "img-src 'self' data:; " +
-            "style-src 'self' 'unsafe-inline'; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-            "connect-src 'self' ws: wss:; " +
-            "font-src 'self'; " +
-            "frame-ancestors 'self';";
+            if (estPageHtml && context.User?.Identity?.IsAuthenticated == true)
+            {
+                entetes["Cache-Control"] = "no-store, no-cache, must-revalidate";
+                entetes["Pragma"] = "no-cache";
+            }
+
+            return Task.CompletedTask;
+        });
 
         await next(context).ConfigureAwait(false);
     }

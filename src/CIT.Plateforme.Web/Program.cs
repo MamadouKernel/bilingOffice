@@ -55,6 +55,36 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+
+    // Sur les routes d'API, répondre par un CODE et non par une redirection.
+    //
+    // Le gestionnaire de cookie redirige par défaut vers la page de connexion : un appelant d'API
+    // non authentifié recevait donc un 302 puis une page HTML, au lieu d'un 401. C'est
+    // inexploitable pour un client programmatique, et cela sert une page d'interface là où seule
+    // une réponse d'API a un sens. Les routes d'interface conservent la redirection.
+    var comportementParDefautConnexion = options.Events.OnRedirectToLogin;
+    options.Events.OnRedirectToLogin = contexte =>
+    {
+        if (contexte.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        {
+            contexte.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        return comportementParDefautConnexion(contexte);
+    };
+
+    var comportementParDefautRefus = options.Events.OnRedirectToAccessDenied;
+    options.Events.OnRedirectToAccessDenied = contexte =>
+    {
+        if (contexte.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+        {
+            contexte.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+
+        return comportementParDefautRefus(contexte);
+    };
 });
 
 builder.Services.AjouterInfrastructure(builder.Configuration);
@@ -106,7 +136,18 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-app.MapOpenApi("/swagger/v1/swagger.json");
+
+// La description OpenAPI n'est publiée QU'EN DÉVELOPPEMENT.
+//
+// Elle était exposée dans tous les environnements, sans authentification : elle décrit alors à
+// un visiteur anonyme l'intégralité de la surface d'API — routes, paramètres, formes de réponse.
+// Ce n'est pas une faille en soi, mais c'est de la reconnaissance offerte, et le premier réflexe
+// d'un test d'intrusion. Les endpoints eux-mêmes restent protégés par RequireAuthorization().
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi("/swagger/v1/swagger.json");
+}
+
 CIT.Plateforme.Web.Api.ApiEndpoints.MapPlateformeApi(app);
 
 // FEATURE 016 — Sondes de Disponibilité & Health Checks (NFR-03, NFR-10)
