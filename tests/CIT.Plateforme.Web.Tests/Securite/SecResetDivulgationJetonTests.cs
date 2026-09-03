@@ -92,7 +92,7 @@ public sealed class SecResetDivulgationJetonTests
                             var db = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
                             Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
                             db.Database.EnsureDeleted();
-                            db.Database.EnsureCreated();
+                            db.Database.Migrate();
                             baseDejaCreee = true;
                         }
                     }

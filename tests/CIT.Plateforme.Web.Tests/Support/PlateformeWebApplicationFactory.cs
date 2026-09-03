@@ -66,7 +66,7 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
                     {
                         Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
                         dbContext.Database.EnsureDeleted();
-                        dbContext.Database.EnsureCreated();
+                        dbContext.Database.Migrate();
                         baseDejaCreee = true;
                     }
                 }

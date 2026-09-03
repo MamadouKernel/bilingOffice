@@ -54,10 +54,14 @@ public sealed class SurfaceExposeeProductionTests
                 services.AddDbContext<PlateformeDbContext>(options =>
                     options.UseSqlServer(GardeBaseDeTest.Verifier(ChaineConnexionDediee)));
 
-                // La base de test est persistante d'une exécution à l'autre. `EnsureCreated` seul
-                // est inopérant si elle existe déjà : son schéma reste figé à ce qu'il était lors
-                // de sa création, et toute entité ajoutée depuis manque à l'appel. Même motif que
-                // PlateformeWebApplicationFactory.
+                // La base de test est persistante d'une exécution à l'autre : son schéma reste
+                // figé à ce qu'il était lors de sa création, et toute entité ajoutée depuis
+                // manque à l'appel. D'où la suppression puis la recréation.
+                //
+                // Le schéma est créé par `Migrate`, non par `EnsureCreated` : le démarrage de
+                // l'application applique lui-même les migrations, et une base créée sans
+                // `__EFMigrationsHistory` le ferait échouer en rejouant la première migration
+                // sur des objets déjà présents. Même motif dans les deux autres fabriques.
                 if (!baseDejaCreee)
                 {
                     lock (VerrouCreation)
@@ -71,7 +75,7 @@ public sealed class SurfaceExposeeProductionTests
 
                             Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
                             db.Database.EnsureDeleted();
-                            db.Database.EnsureCreated();
+                            db.Database.Migrate();
                             baseDejaCreee = true;
                         }
                     }
