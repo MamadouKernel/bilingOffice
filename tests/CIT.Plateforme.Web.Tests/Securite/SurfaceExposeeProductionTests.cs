@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using CIT.Plateforme.Infrastructure.Persistence;
 using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Hosting;
@@ -73,9 +73,7 @@ public sealed class SurfaceExposeeProductionTests
                             var db = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
                             GardeBaseDeTest.VerifierContexte(db);
 
-                            Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
-                            db.Database.EnsureDeleted();
-                            db.Database.Migrate();
+                            SchemaBaseDeTest.Reconstruire(db.Database, ChaineConnexionDediee);
                             baseDejaCreee = true;
                         }
                     }

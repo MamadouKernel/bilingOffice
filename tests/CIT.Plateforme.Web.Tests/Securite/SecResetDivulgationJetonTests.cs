@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Infrastructure.Persistence;
@@ -90,9 +90,7 @@ public sealed class SecResetDivulgationJetonTests
                             using var provider = services.BuildServiceProvider();
                             using var scope = provider.CreateScope();
                             var db = scope.ServiceProvider.GetRequiredService<PlateformeDbContext>();
-                            Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
-                            db.Database.EnsureDeleted();
-                            db.Database.Migrate();
+                            SchemaBaseDeTest.Reconstruire(db.Database, ChaineConnexionDediee);
                             baseDejaCreee = true;
                         }
                     }

@@ -1,4 +1,4 @@
-using CIT.Plateforme.Infrastructure.Persistence;
+﻿using CIT.Plateforme.Infrastructure.Persistence;
 using CIT.Plateforme.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -64,9 +64,7 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
                 {
                     if (!baseDejaCreee)
                     {
-                        Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
-                        dbContext.Database.EnsureDeleted();
-                        dbContext.Database.Migrate();
+                        SchemaBaseDeTest.Reconstruire(dbContext.Database, ChaineConnexion);
                         baseDejaCreee = true;
                     }
                 }
