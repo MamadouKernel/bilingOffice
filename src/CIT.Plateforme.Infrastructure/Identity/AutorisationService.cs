@@ -8,11 +8,22 @@ namespace CIT.Plateforme.Infrastructure.Identity;
 /// Implémentation serveur du contrôle d'autorisation (T013/T015, decision D4, Principe VII).
 /// Consulte exclusivement les habilitations paramétrables — jamais un rôle codé en dur.
 /// </summary>
-public sealed class AutorisationService(PlateformeDbContext dbContext) : IAutorisationService
+public sealed class AutorisationService(
+    PlateformeDbContext? dbContext = null,
+    IDbContextFactory<PlateformeDbContext>? dbContextFactory = null) : IAutorisationService
 {
     public async Task<bool> EstAutoriseAsync(Guid utilisateurId, string permissionCode, Guid? fileId = null, CancellationToken ct = default)
     {
-        var habilitations = dbContext.Habilitations
+        if (dbContextFactory is not null)
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+            return await context.Habilitations
+                .Where(h => h.UtilisateurId == utilisateurId && h.PermissionCode == permissionCode)
+                .AnyAsync(h => h.FileId == null || h.FileId == fileId, ct)
+                .ConfigureAwait(false);
+        }
+
+        var habilitations = dbContext!.Habilitations
             .Where(h => h.UtilisateurId == utilisateurId && h.PermissionCode == permissionCode);
 
         // Une habilitation globale (FileId == null) couvre toutes les files ; une habilitation

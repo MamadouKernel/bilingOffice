@@ -1,7 +1,8 @@
 @page "/tickets/{TicketId:guid}/temps"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Domain.SuiviTemps
-@inject CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext DbContext
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>Indicateurs temps et SLA — CIT</PageTitle>
 
@@ -82,7 +83,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var ticket = await DbContext.Tickets.FindAsync(TicketId);
+        using var scope = ScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext>();
+        var ticket = await db.Tickets.FindAsync(TicketId);
         if (ticket is not null)
         {
             // TPS-03 : le temps total court depuis la CRÉATION, non depuis l'arrivée dans la file

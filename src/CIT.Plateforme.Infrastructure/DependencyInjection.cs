@@ -22,6 +22,8 @@ public static class DependencyInjection
         var chaineConnexion = configuration.GetConnectionString("PlateformeDb");
         services.AddDbContext<PlateformeDbContext>(options =>
             options.UseSqlServer(chaineConnexion));
+        services.AddDbContextFactory<PlateformeDbContext>(options =>
+            options.UseSqlServer(chaineConnexion));
 
         services.AddIdentityCore<ApplicationUser>(options =>
             {
