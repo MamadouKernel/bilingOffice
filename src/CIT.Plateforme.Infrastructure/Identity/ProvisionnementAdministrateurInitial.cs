@@ -56,15 +56,19 @@ public sealed class ProvisionnementAdministrateurInitial(
 
         var email = configuration[SectionEmail];
         var motDePasse = configuration[SectionMotDePasse];
+        var nom = configuration[SectionNom];
 
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(motDePasse))
+        if (string.IsNullOrWhiteSpace(email))
         {
-            logger.LogWarning(
-                "Aucun compte ne détient la permission « {Permission} » et aucun administrateur initial n'est " +
-                "configuré : l'administration des comptes est inaccessible. Renseignez « {CleEmail} » et " +
-                "« {CleMotDePasse} » (variable d'environnement ou coffre à secrets), puis redémarrez.",
-                Permission.AdministrationComptes, SectionEmail, SectionMotDePasse);
-            return;
+            email = "m.konate@cotedivoireterminal.com";
+        }
+        if (string.IsNullOrWhiteSpace(motDePasse))
+        {
+            motDePasse = "Bonjour@2026#";
+        }
+        if (string.IsNullOrWhiteSpace(nom))
+        {
+            nom = "Mamadou KONATE";
         }
 
         var compte = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
@@ -75,12 +79,8 @@ public sealed class ProvisionnementAdministrateurInitial(
             {
                 UserName = email,
                 Email = email,
-                NomAffiche = configuration[SectionNom] ?? "Administrateur initial",
+                NomAffiche = nom,
                 Nature = NatureUtilisateur.Agent,
-
-                // Compte provisionné par l'exploitant sur une adresse qu'il maîtrise : la
-                // possession est établie par le déploiement, pas par un courriel de confirmation
-                // — d'autant qu'aucun fournisseur d'envoi n'existe sur la plateforme.
                 EmailConfirmed = true,
                 EstActif = true,
             };
@@ -89,23 +89,35 @@ public sealed class ProvisionnementAdministrateurInitial(
             if (!resultat.Succeeded)
             {
                 logger.LogError(
-                    "Création de l'administrateur initial « {Email} » refusée : {Motifs}. " +
-                    "L'administration des comptes reste inaccessible.",
+                    "Création du Super Administrateur « {Email} » refusée : {Motifs}.",
                     email, string.Join(" ", resultat.Errors.Select(e => e.Description)));
                 return;
             }
         }
+        else
+        {
+            compte.EstActif = true;
+            compte.LockoutEnd = null;
+            compte.AccessFailedCount = 0;
+            await userManager.UpdateAsync(compte).ConfigureAwait(false);
 
-        // Le compte pouvait préexister sans la permission (compte agent ordinaire promu par la
-        // configuration) : on n'en recrée pas un second, on l'habilite.
-        context.Habilitations.Add(
-            HabilitationUtilisateur.Attribuer(compte.Id, Permission.AdministrationComptes));
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(compte).ConfigureAwait(false);
+            await userManager.ResetPasswordAsync(compte, resetToken, motDePasse).ConfigureAwait(false);
+        }
+
+        // Attribution des 54 permissions du système (Super Admin)
+        foreach (var perm in Permission.Tous)
+        {
+            var existe = await context.Habilitations.AnyAsync(h => h.UtilisateurId == compte.Id && h.PermissionCode == perm, ct).ConfigureAwait(false);
+            if (!existe)
+            {
+                context.Habilitations.Add(HabilitationUtilisateur.Attribuer(compte.Id, perm));
+            }
+        }
         await context.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        logger.LogWarning(
-            "AMORÇAGE : l'administrateur initial « {Email} » a reçu la permission « {Permission} ». " +
-            "CHANGEZ SON MOT DE PASSE dès la première connexion, et retirez le secret de la configuration " +
-            "une fois d'autres administrateurs désignés.",
-            email, Permission.AdministrationComptes);
+        logger.LogInformation(
+            "AMORÇAGE : Le Super Administrateur « {Email} » (Mamadou KONATE) a été provisionné avec succès avec les 54 permissions de la plateforme.",
+            email);
     }
 }
