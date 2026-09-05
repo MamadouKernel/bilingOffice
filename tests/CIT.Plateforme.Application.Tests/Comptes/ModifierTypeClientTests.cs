@@ -21,7 +21,7 @@ public sealed class ModifierTypeClientTests
         var dbContext = ContexteDeTest.CreerNouveauContexte();
         var horloge = HorlogeDeTest.Defaut();
         var administrateurFonctionnelId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurFonctionnelId, Permission.CompteTypeModifier));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurFonctionnelId), Permission.CompteTypeModifier));
 
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "Informations déclarées", TypeClient.Normal, horloge.MaintenantUtc);
         societe.Valider();

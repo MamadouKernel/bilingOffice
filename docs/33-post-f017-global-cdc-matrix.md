@@ -1,7 +1,15 @@
 # Matrice CDC globale post-F017 — 188 exigences
 
 > **Document** : `docs/33-post-f017-global-cdc-matrix.md`  
-> **Établi le** : 2026-09-02, sur le commit `d80a126`  
+> **Établi le** : 2026-09-02, sur le commit `d80a126`
+> **Révisé le** : 2026-09-03 — **huit exigences déclassées** après audit indépendant
+> (`docs/88-audit-conformite-cdc.md`)
+> **Révisé le** : 2026-09-04 — **sept de ces huit refermées**, corrigées et testées
+> **Révisé le** : 2026-09-04 (soir) — **audit complet des 188** (`docs/89`) : treize exigences
+> supplémentaires déclassées, dont deux de sécurité, refermées le même jour
+> **Révisé le** : 2026-09-04 (nuit) — **les neuf dernières fonctions sans interface sont
+> câblées** : `SUP-04`, `PEC-05`, `MAS-01`, `MAS-02`, `PRI-03`, `SOC-10`, `SOC-02`, `SOC-14`,
+> `ENR-05`. Score : **172 / 188 (91,49 %)**  
 > **Sources** : `docs/cdc_text.txt` (texte contractuel), `docs/01-matrice-exigences.md`,
 > `specs/001` à `specs/017`, `docs/32-post-f017-feature-selection-gate.md`  
 > **Méthode** : extraction automatique des 188 lignes de la matrice, rattachement aux
@@ -14,13 +22,199 @@
 
 | Statut | Nombre | Part |
 |:---|---:|---:|
-| `CERTIFIED` | 174 | 92,55 % |
+| `CERTIFIED` | 172 | 91,49 % |
+| `PARTIAL` | 2 | 1,06 % |
 | `IMPLEMENTED_NOT_ENVIRONMENT_PROVEN` | 3 | 1,60 % |
 | `NOT_IMPLEMENTED` (dont bloquées) | 11 | 5,85 % |
 | **Total** | **188** | **100 %** |
 
-La baseline officielle **174 / 188 (92,55 %)** est **confirmée**. Aucune divergence de
-comptage n'a été trouvée : 174 + 3 + 11 = 188.
+Le comptage reste exact : 172 + 2 + 3 + 11 = 188.
+
+**La baseline de 174 / 188 (92,55 %) n'était pas tenable.** Elle était fondée sur un rattachement
+des exigences aux `spec.md`, c'est-à-dire sur l'**intention** déclarée par une feature — non sur
+une lecture du code livré. L'audit du 2026-09-03 a confronté huit de ces exigences à
+l'implémentation : aucune n'était entièrement satisfaite. Sept l'ont été depuis, par du code et
+des tests. L'audit complet du 2026-09-04 (`docs/89`) a ensuite confronté **les 188** au code, et
+non plus un échantillon : il en a déclassé treize de plus, dont deux de sécurité — refermées
+depuis, ainsi que le parcours client. Le **163** d'aujourd'hui est constaté exigence par
+exigence, non hérité d'un rattachement aux specs.
+
+### Correction d'audit du 2026-09-03 — huit exigences déclassées, sept refermées depuis
+
+**État au 2026-09-04 : sept des huit sont corrigées et testées.** Seule `COM-01` reste `PARTIAL`,
+et pour une raison qui n'est pas d'ingénierie — voir la fin de cette section.
+
+| Réf. | Ce que le CDC exige | Ce que le code livre |
+|:---|:---|:---|
+| `SLA-01` | Paramétrage par module, type de demande, **étape, file, priorité** | `ParametreSlaAdministrable` porte `Module` et `TypeDemande`. **Deux axes sur cinq** |
+| `SLA-02` | Quatre seuils : information, alerte, dépassement, **escalade** | `SeuilInformation` et `SeuilAlerte` seuls ; aucun seuil d'escalade |
+| `SLA-05` | Seuils et durées cibles administrables **sans développement** | `GererParametresSlaCommand` existe ; **aucun écran ne l'expose** |
+| `ALE-02` | Règles, seuils, **destinataires** et canaux paramétrables | Les destinataires sont **deux classes C#** ; en ajouter un exige d'écrire du code |
+| `ALE-03` | Escalade : notifier, remonter la priorité, réaffecter | Notification seule. `IResolveurDestinataires` **déclare lui-même** : « ALE-03 reste hors périmètre de raccordement » |
+| `SOC-07` | Types de pièces paramétrables **par étape** | Formats et taille : conformes. **Par étape : absent** |
+| `COM-03` | Modèles paramétrables **par module, par étape**, par canal | `RegleDiffusion` porte `TypeEvenement` et `Canal` seuls |
+| `COM-01` | Au moins **un canal de messagerie mobile** | `CanalNotification` déclare `Sms` et `WhatsApp` ; **aucun fournisseur implémenté** |
+
+#### Ce qui a été livré le 2026-09-04
+
+| Réf. | Correction | Preuve |
+|:---|:---|:---|
+| `SLA-01` | `FileId` (l'étape) et `PrioriteId` sur `ParametreSlaAdministrable` ; résolution du plus spécifique, ordre total | `ParametresSlaAxesTests` (8) |
+| `SLA-02` | `SeuilEscalade`, refusé s'il précède le dépassement ; `StatutSla.Escalade` | idem |
+| `SLA-05` | Écran `/administration/parametres-sla` | — |
+| `ALE-02` | Destinataires déduits des `PerimetreSupervision` administrés | `RegleEscaladeTests` (8) |
+| `ALE-03` | `RegleEscalade` — notifier / remonter la priorité / remettre en distribution ; écran `/administration/regles-escalade` | idem |
+| `SOC-07` | `PieceExigeeEtape` + écran `/administration/pieces-exigees-etape` | `PieceExigeeEtapeTests` (8) |
+| `COM-03` | `Module` et `FileId` sur `RegleDiffusion` ; filtrage à la distribution | `DistribuerNotificationsUseCaseTests` (4) |
+
+**Toutes ces corrections sont livrées VIDES** — référentiels sans contenu, axes optionnels nuls.
+Le comportement d'une plateforme non paramétrée est strictement inchangé, et aucune valeur métier
+n'a été inventée. Quatre migrations, toutes additives.
+
+#### Audit complet du 2026-09-04 — treize exigences déclassées
+
+`docs/89-audit-complet-188-exigences.md` a confronté **les 188 exigences** au code livré, et non
+plus un échantillon. Sa découverte centrale :
+
+> **29 des 150 commandes et requêtes applicatives ne sont appelées par aucun écran.** Cinq sont des
+> traitements de fond, légitimement sans interface. Les autres portent des fonctions exigées par le
+> CDC : implémentées, testées, tracées — et hors d'atteinte de tout utilisateur.
+
+Déclassées : `SUP-04`, `PEC-05`, `MAS-01`, `MAS-02`, `PRI-03`, `SOC-10`, `SOC-02`, `ERR-01`,
+`IMP-10`, `SOC-14`, `ENR-05`, `SEC-03`, `SEC-12`.
+
+**`SEC-03` et `SEC-12` relèvent de la sécurité**, pas de l'ergonomie : quatre écrans prototypes
+(`Tickets/Documents`, `FilMessages`, `MaFile`, `Soumettre`) ne vérifient ni authentification ni
+habilitation, injectent un repository en contournant la couche applicative, et font **saisir
+l'identité de l'auteur dans un champ de formulaire**. Le contrôle d'habilitation porte donc sur
+une valeur choisie par l'appelant.
+
+#### Correction du 2026-09-04 (soir) — `SEC-03` et `SEC-12` refermées
+
+Les quatre écrans prototypes sont traités :
+
+| Écran | Traitement |
+|:---|:---|
+| `Tickets/FilMessages` | **Retiré** — `FicheTicket` publie déjà les messages |
+| `Tickets/MaFile` | **Retiré** — les files par module font le travail |
+| `Tickets/Soumettre` | **Retiré** — les soumissions par module font le travail |
+| `Tickets/Documents` | **Sécurisé** — seul à porter le dépôt de document, sans équivalent |
+
+Aucun lien de l'interface ne menait à ces routes. `Documents.razor` lit désormais par
+`ObtenirFicheTicketQuery`, qui applique le cloisonnement, et prend l'identité dans le contexte
+authentifié.
+
+**Deux autres fuites, trouvées par le test structurel** : `PrendreRendezVous` lisait un ticket
+par `ITicketRepository` — un client pouvait afficher le numéro, le module et le BL de n'importe
+quel ticket en devinant son identifiant. `AgendaGuichet` lisait l'agenda sans habilitation. Les
+deux passent par un cas d'usage.
+
+**21 pages reçoivent `[Authorize]`.** Elles vérifiaient déjà l'habilitation en page ; la garde de
+route ajoute une redirection vers la connexion au lieu d'une page qui se rend puis refuse.
+
+`SurfaceRoutableTests` ferme la porte : toute page routable qui injecterait un repository, ou qui
+n'aurait ni `[Authorize]` ni inscription explicite parmi les pages publiques, échoue désormais au
+build. Ce test a lui-même trouvé les deux fuites ci-dessus.
+
+#### Correction du 2026-09-04 (soir) — parcours client : `IMP-10` et `ERR-01` refermées
+
+| Réf. | Correction |
+|:---|:---|
+| `IMP-10` | Bouton « Demander ma facture » sur la fiche du ticket, pour le client, sur un ticket Billing actif. Le droit `PeutDemanderFacture` est calculé dans `ObtenirFicheTicketQuery`, comme tous les autres — jamais déduit dans la page |
+| `ERR-01` | Le brouillon est écrit **avant** l'envoi et effacé **au succès seulement** : si la soumission échoue, la saisie est retrouvée au retour, avec un bandeau qui le dit |
+| `IMP-12` / `EXP-03` | Lien « Joindre un document » depuis la fiche : l'écran existait, rien n'y menait. C'est par là que le client attache sa preuve de paiement |
+
+`ServicesAtteignablesTests` empêche désormais tout nouveau service applicatif d'être livré sans
+écran. Il porte une liste de **dette connue** — les fonctions encore hors d'atteinte, chacune avec
+l'exigence qu'elle bloque. Cette liste ne doit que rétrécir, et un second test échoue si une
+entrée y reste alors qu'elle a été câblée.
+
+**Le test a immédiatement révélé un effet de bord de mes propres retraits** : `ConsulterFileQuery`,
+`PriseLibreCommand` et `CreerTicketCommand` n'étaient appelés que par les écrans prototypes
+supprimés. Ce sont désormais trois services morts — à supprimer, mais c'est une décision du
+projet, pas de l'audit.
+
+#### Correction du 2026-09-04 (nuit) — les neuf dernières fonctions sans interface
+
+La dette laissée par l'audit était de **quinze fonctions écrites, testées et hors d'atteinte**.
+Elle est résorbée. Ce qui a été câblé, et par où :
+
+| Réf. | Ce qui manquait | Ce qui a été livré |
+|:---|:---|:---|
+| `SUP-04`, `PEC-05` | L'écran de supervision n'injectait que deux requêtes de **comptage** : le superviseur voyait combien de tickets attendaient sans pouvoir en désigner un | `ListerTicketsDeLaFileQuery` — nommer les tickets d'une file, sous le **même périmètre** que les vues de comptage (CLAR-05). Affectation et réaffectation par des cas d'usage distincts : l'historique doit les séparer |
+| `MAS-01`, `MAS-02` | Aucune redistribution en masse | Sélection multiple sur la file ouverte, appliquée par `ActionDeMasseCommand` — **ticket par ticket**, avec le détail des succès et des échecs plutôt qu'un verdict global |
+| `PRI-03` | Aucun écran ne modifiait une priorité | Changement de priorité en masse, **motif obligatoire** : sans motif, le changement serait inexplicable après coup |
+| `SOC-02` | Les documents se déposaient et se listaient ; ils ne se **téléchargeaient** pas | Bouton de téléchargement par document, voie agent ou voie client selon la nature authentifiée (SEC-12 : contrôle à **chaque** accès). Un document non analysé n'offre pas de bouton, il dit pourquoi |
+| `SOC-10` | Aucune liaison entre tickets, et la fiche n'en montrait aucune | Panneau « Tickets liés » sur la fiche, visible du client comme des agents ; l'agent lie par **numéro** de ticket, la seule référence qu'il ait sous les yeux |
+| `SOC-14` | Aucun export | Export CSV de la file pour le superviseur, de ses demandes pour le client. Format partagé `FormatCsv`, qui porte la **neutralisation des formules tableur** |
+| `ENR-05` | La commande de rappel n'était appelée **par rien** — ni écran, ni ordonnancement | `RappelExpirationBadgesService` : un traitement de fond, puisque sa nature est d'être périodique. Il ne fait rien tant que les paramètres métier ne sont pas administrés, et le dit sans lever d'erreur |
+| `ENR` (renouvellement) | Le titulaire d'un badge délivré ne pouvait pas le renouveler | Bouton « Renouveler » sur un enrôlement clôturé |
+| `MSG-04` | La mention d'un collaborateur était `CERTIFIED` sans écran | Champ d'adresse sur une note interne. Mentionner un **compte client** est refusé : MSG-02 interdit qu'il voie une note interne |
+| `SIM-11` | Les contrôles de cohérence étaient `CERTIFIED` sans écran : on calculait un proforma sur des dates inversées sans rien dire | Contrôles exécutés **avant** le calcul et avant l'enregistrement ; les incohérences bloquent, les messages d'aide informent |
+| § 17.3, `SUP-05`, `AFF-06` | Matrice de transitions, périmètres de supervision, compétences : trois commandes d'administration sans écran | Trois écrans, avec lecture, correction et retrait |
+
+**Deux défauts trouvés en câblant, qui n'auraient pas été vus autrement.**
+
+`ExporterIndicateursQuery` n'exigeait **ni habilitation ni périmètre**. Elle prenait un
+identifiant de file et rendait ses tickets. Le défaut restait théorique tant qu'aucun écran ne
+l'appelait ; la brancher telle quelle aurait ouvert l'export de n'importe quelle file à qui en
+devine l'identifiant. Elle applique désormais le contrôle de `ListerTicketsDeLaFileQuery`.
+
+`GererPerimetresSupervisionCommand` et `GererMatriceTransitionsCommand` ne savaient qu'**ajouter**.
+Les deux dépôts lisent par `SingleOrDefaultAsync` : redéfinir un périmètre aurait créé une seconde
+ligne, et la lecture aurait **levé à chaque ouverture de la supervision**. Corriger un périmètre
+aurait donc interdit de superviser ; corriger une transition aurait bloqué tout transfert entre
+les deux files. Les deux redéfinissent maintenant en place. `AdministrationRedefinitionTests`
+couvre les deux cas.
+
+**Ce qui reste dans `DetteConnue` n'est plus une fonction manquante** : huit entrées, dont six de
+code mort — la fonction est livrée par un autre chemin — et deux services internes à qualifier.
+`DeposerPreuvePaiementExportCommand` en fait partie : c'est un simple relais vers
+`DeposerDocumentCommand`, que l'écran des documents appelle déjà. `EXP-03` est donc satisfaite,
+et cette commande est du code mort, pas une fonction absente.
+
+**Une réserve, à trancher par le projet.** `ValiderCoherenceSimulationQuery`, désormais visible du
+client, porte deux valeurs métier écrites en dur : une franchise de séjour de **10 jours** et des
+masses maximales de **32 t / 40 t**. Elles y étaient déjà ; les brancher les rend opposables au
+client. Elles relèvent de PC-12 et devraient être administrées, non codées.
+
+#### Correction du 2026-09-04 (soir) — `NFR-07` déclassée
+
+L'utilisateur a signalé que le changement de langue ne produit aucun effet. Vérification faite :
+
+| Constat | Mesure |
+|:---|---:|
+| Clés de traduction définies (`SharedResourcesLocalizer`) | 182 |
+| Composants qui les utilisent | **1** sur 97 |
+| Chaînes françaises codées en dur dans l'interface | **880** |
+
+Le mécanisme est pourtant complet et correct : fournisseurs de culture, cookie, sélecteur de
+langue, redirection. **Il n'est simplement branché sur presque rien** — seul
+`ChampMotDePasse.razor` l'emploie. Basculer en anglais change la culture et n'affiche rien
+d'autre.
+
+`NFR-07` (« Interface disponible en anglais ») passe donc de `CERTIFIED` à `PARTIAL`. C'est une
+`Should`, pas un bloquant contractuel, mais l'écart était réel et la matrice le masquait.
+
+**Cet écart a échappé à l'audit du 2026-09-03**, qui avait contrôlé la traçabilité — `NFR-07` est
+bien cité dans le code — sans vérifier la substance. C'est exactement le défaut de méthode que
+cet audit reprochait à la matrice, reproduit par l'audit lui-même.
+
+**`COM-01` ne peut pas être fermée par du code.** L'abstraction est complète et les canaux `Sms`
+et `WhatsApp` sont déclarés ; écrire l'adaptateur suppose de **nommer un fournisseur**, ce qui est
+une décision d'achat. Elle reste `PARTIAL` avec `ENR-04`, qui dépend du même arbitrage.
+
+**Une incohérence interne est corrigée par la même occasion.** `COM-01` et `ENR-04` dépendent du
+même fournisseur de messagerie absent. `ENR-04` était classée `NOT_IMPLEMENTED /
+BLOCKED_PROVIDER`, `COM-01` était classée `CERTIFIED` : deux verdicts opposés pour une cause
+unique.
+
+**Le fil rouge — l'axe « étape ».** Trois de ces exigences (`SOC-07`, `COM-03`, `SLA-01`) échouent
+sur le même point : la plateforme modélise le workflow mais n'expose pas l'étape comme axe de
+paramétrage. Ce n'est pas trois oublis, c'est une dimension absente du modèle — ce qui explique
+qu'aucun contrôle antérieur ne l'ait vue, chacun examinant les exigences une par une. L'entité
+`PassageEnFile`, ajoutée le 2026-09-03, matérialise enfin cette notion et donne au correctif un
+point d'ancrage qui n'existait pas.
 
 ---
 
@@ -97,27 +291,37 @@ l'est profondément.
 - **`BLOCKED_DSI` (9)** — l'information manquante est une décision, pas un développement.
 - **`BLOCKED_ENVIRONMENT` (1)** — NFR-06 dépend d'une infrastructure de sauvegarde.
 - **`BLOCKED_PROVIDER` (1)** — ENR-04 dépend d'un contrat fournisseur.
+- **`PARTIAL` (8)** — l'exigence est implémentée **en partie** : le comportement principal est
+  livré, mais un élément explicitement nommé par le CDC manque. Le détail figure au § 1. Six de
+  ces huit relèvent du code seul ; `COM-01` attend un fournisseur de messagerie, et `ALE-03`
+  attend un arbitrage métier **en plus** du raccordement manquant.
 
 ---
 
-## 4. Répartition des 174 exigences certifiées par module
+## 4. Répartition des exigences certifiées par module
+
+> Ce décompte par module n'a pas été recalculé après l'audit complet du 2026-09-04. Le total
+> officiel est **159 / 188** ; les chiffres ci-dessous datent de la révision précédente.
+
+Les huit exigences déclassées au § 1 avaient été retirées de ce décompte le 2026-09-03 ; sept y
+sont réintégrées au 2026-09-04. Seule `COM-01` (Notifications) en reste exclue.
 
 | Module | Certifiées |
 |:---|---:|
 | Socle | 67 |
 | Billing IMPORT | 24 |
-| Transverse | 13 |
+| Transverse | 12 |
 | Sécurité | 12 |
 | Comptes | 11 |
 | Proforma | 11 |
-| Notifications | 9 |
+| Notifications | 8 |
 | Socle / Supervision | 7 |
 | Customer Complaint | 6 |
 | Billing EXPORT | 5 |
 | Avoir/Exo | 4 |
 | Enrôlement | 4 |
 | Espace client | 1 |
-| **Total** | **174** |
+| **Total** | **172** |
 
 ---
 
@@ -268,7 +472,7 @@ Une exigence peut apparaître dans plusieurs specs lorsqu'elle a été traitée 
 | `ENR-03` | Must | Enrôlement | `CERTIFIED` | 008, 009 | Le déplacement physique du chauffeur n'est requis que pour les étapes qui l'exigent (photo, bad |
 | `ENR-04` | Should | Enrôlement | `NOT_IMPLEMENTED` | — | Notification au chauffeur (SMS/WhatsApp prioritaires) à chaque étape clé : dossier validé, conv |
 | `ENR-05` | Could | Enrôlement | `CERTIFIED` | 005, 008, 009, 013 | Gestion du renouvellement des badges avec rappel automatique avant expiration |
-| `COM-01` | Must | Notifications | `CERTIFIED` | 002, 003, 004, 007, 008, 009 | La plateforme notifie le client via : e-mail, notifications portail, et au moins un canal de me |
+| `COM-01` | Must | Notifications | `PARTIAL` | 002, 003, 004, 007, 008, 009 | La plateforme notifie le client via : e-mail, notifications portail, et au moins un canal de me |
 | `COM-02` | Must | Notifications | `CERTIFIED` | 003, 009 | Chaque notification comporte un lien invitant le client à se connecter directement à son ticket |
 | `COM-03` | Must | Notifications | `CERTIFIED` | 009 | Les événements déclencheurs et les modèles de messages sont paramétrables par l'administrateur  |
 | `COM-04` | Must | Notifications | `CERTIFIED` | 009 | Le chat/commentaires dans le ticket constitue le canal d'échange de référence entre le client e |
@@ -306,7 +510,7 @@ Une exigence peut apparaître dans plusieurs specs lorsqu'elle a été traitée 
 | `NFR-04` | Must | Transverse | `IMPLEMENTED_NOT_ENVIRONMENT_PROVEN` | F016 | Temps de réponse < 3 secondes pour les écrans courants dans des conditions normales de charge |
 | `NFR-05` | Must | Transverse | `NOT_IMPLEMENTED` | — | Volumétrie dimensionnante à confirmer en phase de cadrage : tickets/jour, taille des pièces joi |
 | `NFR-06` | Must | Transverse | `NOT_IMPLEMENTED` | — | Sauvegardes régulières (données et documents) et procédure de restauration testée |
-| `NFR-07` | Should | Transverse | `CERTIFIED` | 011, 013, 014 | Interface disponible en anglais (clients internationaux) |
+| `NFR-07` | Should | Transverse | `PARTIAL` | 011, 013, 014 | Interface disponible en anglais (clients internationaux) |
 | `NFR-08` | Should | Transverse | `CERTIFIED` | 011, 013, 014, 015, 016, 017 | Architecture ouverte exposant des API pour faciliter d'éventuelles intégrations futures |
 | `NFR-09` | Should | Transverse | `NOT_IMPLEMENTED` | — | Hébergement conforme aux standards du groupe ; le choix (infrastructure CIT/AGL ou cloud) sera  |
 | `NFR-10` | Must | Transverse | `IMPLEMENTED_NOT_ENVIRONMENT_PROVEN` | F016 | La plateforme est accessible 24h/24 et 7j/7, hors périodes de maintenance planifiées |
@@ -321,11 +525,27 @@ Une exigence peut apparaître dans plusieurs specs lorsqu'elle a été traitée 
 
 ## 6. Réserve de méthode
 
-Le statut `CERTIFIED` des 174 exigences est **repris des rapports de clôture des features**
-et n'a pas été recontrôlé exigence par exigence dans cette passe : le faire supposerait de
-rejouer les 1041 tests en les rattachant individuellement, ce que le périmètre de cet audit
-ne couvrait pas.
+Le statut `CERTIFIED` était **repris des rapports de clôture des features** et n'avait pas été
+recontrôlé exigence par exigence : le faire supposait de confronter chaque exigence au code
+livré, ce que le périmètre de la passe du 2026-09-02 ne couvrait pas.
 
-Ce qui **a** été vérifié de façon indépendante : le comptage (188 lignes extraites), les
-priorités (relues dans le texte contractuel), et le rattachement aux features (recherche
-effective dans les specs). Les erreurs trouvées l'ont été par cette vérification.
+Ce qui **avait** été vérifié de façon indépendante : le comptage (188 lignes extraites), les
+priorités (relues dans le texte contractuel), et le rattachement aux features.
+
+### Ce que l'audit du 2026-09-03 change à cette réserve
+
+L'audit `docs/88-audit-conformite-cdc.md` a effectué, **sur un échantillon**, le contrôle que
+cette section différait : confronter l'exigence au code. Environ **trente exigences** ont été
+lues au fond, en priorisant les familles porteuses de paramétrabilité (`SLA`, `ALE`, `COM`,
+`SOC`, `SEC`, `UNI`, `TPS`, `WKF`). **Huit se sont révélées sur-certifiées.**
+
+**Ce taux interdit de tenir les 166 restantes pour acquises.** Huit défauts sur une trentaine
+d'exigences examinées ne se projette pas mécaniquement sur les 158 non examinées — l'échantillon
+visait délibérément les zones à risque — mais il établit que le rattachement aux `spec.md` ne
+vaut **pas** preuve de conformité. Le chiffre de 166 est un plafond constaté, non un acquis
+démontré.
+
+Ce qui soutient malgré tout les 166 : **150 exigences disposent à la fois d'un code applicatif et
+d'un test qui les cite**, et les parcours métier centraux sont couverts par des tests de bout en
+bout. C'est une présomption sérieuse — ce n'est pas la vérification exigence par exigence, qui
+reste à faire.

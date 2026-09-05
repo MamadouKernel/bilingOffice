@@ -48,11 +48,11 @@ public sealed class SecCert06LienNotificationTests
         var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var autorisation = new AutorisationService(dbContext);
         var ticketRepo = new TicketRepository(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var proprietaire = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        var dossier = Dossier.Creer("DOS-SEC12-001", proprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-SEC12-001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, proprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-SEC12-001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);
@@ -87,14 +87,14 @@ public sealed class SecCert06LienNotificationTests
         var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var autorisation = new AutorisationService(dbContext);
         var ticketRepo = new TicketRepository(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var proprietaire = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
 
         // NE PAS attribuer Permission.DocumentTelecharger → l'agent n'a pas l'habilitation.
-        var dossier = Dossier.Creer("DOS-SEC12-002", proprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-SEC12-002", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, proprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-SEC12-002", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);

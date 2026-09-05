@@ -32,4 +32,22 @@ public sealed class LierTicketsCommand(
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// SOC-10 depuis une fiche : l'agent désigne l'autre ticket par son NUMÉRO, seule référence
+    /// qu'il a sous les yeux. Résoudre l'identifiant ici plutôt que dans la page évite d'exposer
+    /// une recherche de ticket non cloisonnée à la couche Web.
+    /// </summary>
+    public async Task ExecuterParNumeroAsync(Guid agentId, Guid ticketId, string numeroTicketLie, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(numeroTicketLie))
+        {
+            throw new ArgumentException("Le numéro du ticket à lier est obligatoire.", nameof(numeroTicketLie));
+        }
+
+        var lie = await tickets.ObtenirParNumeroAsync(numeroTicketLie.Trim(), ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Aucun ticket ne porte le numéro « {numeroTicketLie.Trim()} ».");
+
+        await ExecuterAsync(agentId, ticketId, lie.Id, ct).ConfigureAwait(false);
+    }
 }

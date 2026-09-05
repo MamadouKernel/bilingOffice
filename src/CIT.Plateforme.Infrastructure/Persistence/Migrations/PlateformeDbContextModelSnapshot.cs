@@ -74,6 +74,75 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("Disponibilites");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.ConversationAssistant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateDernierMessageUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateEscaladeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOuvertureUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("EstEscaladee")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MotifEscalade")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UtilisateurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.HasIndex("UtilisateurId", "EstEscaladee");
+
+                    b.ToTable("ConversationsAssistant", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.MessageAssistant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Auteur")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Contenu")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<Guid>("ConversationAssistantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("HorodatageUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Rang")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationAssistantId", "Rang")
+                        .IsUnique();
+
+                    b.ToTable("MessagesAssistant", (string)null);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Audit.EntreeHistorique", b =>
                 {
                     b.Property<Guid>("Id")
@@ -419,6 +488,47 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("TicketId");
 
                     b.ToTable("Documents");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Documents.PieceExigeeEtape", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<bool>("Obligatoire")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PiecesExigeesEtape_File_Code");
+
+                    b.ToTable("PiecesExigeesEtape", (string)null);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Files.FileDeTraitement", b =>
@@ -819,6 +929,13 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<bool>("EstObligatoire")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
                     b.Property<string>("TypeEvenement")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -900,6 +1017,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<long>("DureeCible")
                         .HasColumnType("bigint");
 
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<TimeOnly>("HeureDebut")
                         .HasColumnType("time");
 
@@ -913,7 +1033,13 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<Guid?>("PrioriteId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<double>("SeuilAlerte")
+                        .HasColumnType("float");
+
+                    b.Property<double>("SeuilEscalade")
                         .HasColumnType("float");
 
                     b.Property<double>("SeuilInformation")
@@ -1010,16 +1136,54 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("PerimetresSupervision");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Supervision.RegleEscalade", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("EstActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("PrioriteCibleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TypeDemande")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Module", "TypeDemande", "FileId")
+                        .HasDatabaseName("IX_ReglesEscalade_Portee")
+                        .HasFilter("[EstActive] = 1");
+
+                    b.ToTable("ReglesEscalade", (string)null);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CategorieMarchandise")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                    b.Property<Guid>("CategorieMarchandiseId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("EstDangereux")
                         .HasColumnType("bit");
@@ -1060,18 +1224,6 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<decimal>("PartCit")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PartOic")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PartPaa")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("PoidsTonnes")
                         .HasPrecision(8, 2)
                         .HasColumnType("decimal(8,2)");
@@ -1079,19 +1231,25 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("SimulationProformaId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Taille")
-                        .HasColumnType("int");
+                    b.Property<Guid>("TailleConteneurId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("TotalLigneXof")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
+                    b.Property<Guid>("TypeConteneurId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategorieMarchandiseId");
+
                     b.HasIndex("SimulationProformaId");
+
+                    b.HasIndex("TailleConteneurId");
+
+                    b.HasIndex("TypeConteneurId");
 
                     b.ToTable("LignesResultatsSimulation");
                 });
@@ -1106,20 +1264,18 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("CategorieMarchandise")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                    b.Property<Guid>("CategorieMarchandiseId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Relevage")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Sens")
-                        .HasColumnType("int");
+                    b.Property<Guid>("SensOperationId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Taille")
-                        .HasColumnType("int");
+                    b.Property<Guid>("TailleConteneurId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("TarifJourBranchement")
                         .HasPrecision(18, 2)
@@ -1130,10 +1286,297 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VersionGrilleTarifaireId", "Sens", "Taille", "CategorieMarchandise")
+                    b.HasIndex("CategorieMarchandiseId");
+
+                    b.HasIndex("SensOperationId");
+
+                    b.HasIndex("TailleConteneurId");
+
+                    b.HasIndex("VersionGrilleTarifaireId", "SensOperationId", "TailleConteneurId", "CategorieMarchandiseId")
                         .IsUnique();
 
                     b.ToTable("LignesTarifaires");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.FranchiseStationnement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("NombreJours")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SensOperationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VersionGrilleTarifaireId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SensOperationId");
+
+                    b.HasIndex("VersionGrilleTarifaireId", "SensOperationId")
+                        .IsUnique();
+
+                    b.ToTable("FranchisesStationnement", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.ParametreMajoration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Taux")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("decimal(5,4)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("VersionGrilleTarifaireId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VersionGrilleTarifaireId", "Type")
+                        .IsUnique();
+
+                    b.ToTable("ParametresMajoration", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.QuotePartBeneficiaire", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Beneficiaire")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<decimal>("Pourcentage")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("decimal(5,4)");
+
+                    b.Property<Guid>("VersionGrilleTarifaireId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VersionGrilleTarifaireId", "Beneficiaire")
+                        .IsUnique();
+
+                    b.ToTable("QuotesPartsBeneficiaire", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.SeuilPoidsMajoration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("SeuilPoidsTonnes")
+                        .HasPrecision(8, 2)
+                        .HasColumnType("decimal(8,2)");
+
+                    b.Property<Guid>("TailleConteneurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VersionGrilleTarifaireId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TailleConteneurId");
+
+                    b.HasIndex("VersionGrilleTarifaireId", "TailleConteneurId")
+                        .IsUnique();
+
+                    b.ToTable("SeuilsPoidsMajoration", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.TrancheStationnement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("BorneMaxJour")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BorneMinJour")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TarifJournalier")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("VersionGrilleTarifaireId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VersionGrilleTarifaireId", "BorneMinJour")
+                        .IsUnique();
+
+                    b.ToTable("TranchesStationnement", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.PartStationnementSimulee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Beneficiaire")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<Guid>("LigneResultatSimulationConteneurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Montant")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LigneResultatSimulationConteneurId", "Beneficiaire")
+                        .IsUnique();
+
+                    b.ToTable("PartsStationnementSimulees", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Referentiels.CategorieMarchandise", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid>("SensOperationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SensOperationId");
+
+                    b.HasIndex("Code", "SensOperationId")
+                        .IsUnique();
+
+                    b.ToTable("CategoriesMarchandise", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Referentiels.SensOperation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("SensOperations", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Referentiels.TailleConteneur", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("TaillesConteneur", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Referentiels.TypeConteneur", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<bool>("DeclencheBranchementFrigorifique")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("TypesConteneur", (string)null);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.SimulationProforma", b =>
@@ -1178,10 +1621,13 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<int>("Sens")
-                        .HasColumnType("int");
+                    b.Property<Guid>("SensOperationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SocieteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("TicketId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("VersionGrilleLibelle")
@@ -1196,6 +1642,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Reference")
                         .IsUnique();
+
+                    b.HasIndex("SensOperationId");
+
+                    b.HasIndex("TicketId");
 
                     b.HasIndex("SocieteId", "DateCreationUtc");
 
@@ -1219,6 +1669,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("EstActive")
                         .HasColumnType("bit");
+
+                    b.Property<int>("FranchiseBranchementJours")
+                        .HasColumnType("int");
 
                     b.Property<string>("NumeroVersion")
                         .IsRequired()
@@ -1265,6 +1718,43 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Dossiers");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.EtapeBloquanteAnnulation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Motif")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("TypeDemande")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("Module", "TypeDemande", "FileId")
+                        .IsUnique()
+                        .HasFilter("[TypeDemande] IS NOT NULL");
+
+                    b.ToTable("EtapesBloquantesAnnulation", (string)null);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.LiaisonTicket", b =>
@@ -1840,6 +2330,23 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.ConversationAssistant", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tickets.Ticket", null)
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.MessageAssistant", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Assistant.ConversationAssistant", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationAssistantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.InvitationCollaborateur", b =>
                 {
                     b.HasOne("CIT.Plateforme.Domain.Comptes.SocieteCliente", null)
@@ -1891,15 +2398,51 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", b =>
                 {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.CategorieMarchandise", null)
+                        .WithMany()
+                        .HasForeignKey("CategorieMarchandiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("CIT.Plateforme.Domain.Tarification.SimulationProforma", null)
                         .WithMany("LignesConteneurs")
                         .HasForeignKey("SimulationProformaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.TailleConteneur", null)
+                        .WithMany()
+                        .HasForeignKey("TailleConteneurId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.TypeConteneur", null)
+                        .WithMany()
+                        .HasForeignKey("TypeConteneurId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneTarifaire", b =>
                 {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.CategorieMarchandise", null)
+                        .WithMany()
+                        .HasForeignKey("CategorieMarchandiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.SensOperation", null)
+                        .WithMany()
+                        .HasForeignKey("SensOperationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.TailleConteneur", null)
+                        .WithMany()
+                        .HasForeignKey("TailleConteneurId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", null)
                         .WithMany("Lignes")
                         .HasForeignKey("VersionGrilleTarifaireId")
@@ -1907,75 +2450,101 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", b =>
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.FranchiseStationnement", b =>
                 {
-                    b.OwnsOne("CIT.Plateforme.Domain.Tarification.ParametresTarification", "Parametres", b1 =>
-                        {
-                            b1.Property<Guid>("VersionGrilleTarifaireId")
-                                .HasColumnType("uniqueidentifier");
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.SensOperation", null)
+                        .WithMany()
+                        .HasForeignKey("SensOperationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                            b1.Property<int>("FranchiseBranchementJours")
-                                .HasColumnType("int");
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", null)
+                        .WithMany("Franchises")
+                        .HasForeignKey("VersionGrilleTarifaireId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                            b1.Property<int>("FranchiseStationnementImportLocalJours")
-                                .HasColumnType("int");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.ParametreMajoration", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", null)
+                        .WithMany("Majorations")
+                        .HasForeignKey("VersionGrilleTarifaireId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                            b1.Property<int>("FranchiseStationnementImportTransitJours")
-                                .HasColumnType("int");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.QuotePartBeneficiaire", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", null)
+                        .WithMany("QuotesParts")
+                        .HasForeignKey("VersionGrilleTarifaireId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                            b1.Property<decimal>("QuotePartCit")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("decimal(5,2)");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.SeuilPoidsMajoration", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.TailleConteneur", null)
+                        .WithMany()
+                        .HasForeignKey("TailleConteneurId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                            b1.Property<decimal>("QuotePartOic")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("decimal(5,2)");
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", null)
+                        .WithMany("SeuilsPoids")
+                        .HasForeignKey("VersionGrilleTarifaireId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                            b1.Property<decimal>("QuotePartPaa")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("decimal(5,2)");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.TrancheStationnement", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", null)
+                        .WithMany("Tranches")
+                        .HasForeignKey("VersionGrilleTarifaireId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                            b1.Property<decimal>("SeuilPoidsLourd20Pieds")
-                                .HasPrecision(8, 2)
-                                .HasColumnType("decimal(8,2)");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.PartStationnementSimulee", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", null)
+                        .WithMany("RepartitionStationnement")
+                        .HasForeignKey("LigneResultatSimulationConteneurId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
-                            b1.Property<decimal>("SeuilPoidsLourd40Pieds")
-                                .HasPrecision(8, 2)
-                                .HasColumnType("decimal(8,2)");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Referentiels.CategorieMarchandise", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.SensOperation", null)
+                        .WithMany()
+                        .HasForeignKey("SensOperationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
 
-                            b1.Property<decimal>("TarifStationnementTranche1Jour")
-                                .HasPrecision(18, 2)
-                                .HasColumnType("decimal(18,2)");
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.SimulationProforma", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Tarification.Referentiels.SensOperation", null)
+                        .WithMany()
+                        .HasForeignKey("SensOperationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                            b1.Property<decimal>("TarifStationnementTranche2Jour")
-                                .HasPrecision(18, 2)
-                                .HasColumnType("decimal(18,2)");
+                    b.HasOne("CIT.Plateforme.Domain.Tickets.Ticket", null)
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
 
-                            b1.Property<decimal>("TarifStationnementTranche3Jour")
-                                .HasPrecision(18, 2)
-                                .HasColumnType("decimal(18,2)");
-
-                            b1.Property<decimal>("TauxMajorationDangereux")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("decimal(5,2)");
-
-                            b1.Property<decimal>("TauxMajorationLourd")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("decimal(5,2)");
-
-                            b1.Property<decimal>("TauxMajorationOog")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("decimal(5,2)");
-
-                            b1.HasKey("VersionGrilleTarifaireId");
-
-                            b1.ToTable("VersionsGrillesTarifaires");
-
-                            b1.WithOwner()
-                                .HasForeignKey("VersionGrilleTarifaireId");
-                        });
-
-                    b.Navigation("Parametres")
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.EtapeBloquanteAnnulation", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Files.FileDeTraitement", null)
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -2038,6 +2607,16 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.ConversationAssistant", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", b =>
+                {
+                    b.Navigation("RepartitionStationnement");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.SimulationProforma", b =>
                 {
                     b.Navigation("LignesConteneurs");
@@ -2045,7 +2624,17 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.VersionGrilleTarifaire", b =>
                 {
+                    b.Navigation("Franchises");
+
                     b.Navigation("Lignes");
+
+                    b.Navigation("Majorations");
+
+                    b.Navigation("QuotesParts");
+
+                    b.Navigation("SeuilsPoids");
+
+                    b.Navigation("Tranches");
                 });
 #pragma warning restore 612, 618
         }

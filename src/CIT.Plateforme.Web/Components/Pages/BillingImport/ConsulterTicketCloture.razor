@@ -1,6 +1,8 @@
 @page "/billing-import/ticket-cloture"
 @page "/billing-import/ticket-cloture/{TicketId:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.BillingImport
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Documents
@@ -111,7 +113,11 @@
                 return;
             }
 
-            _documents = await ConsulterDocuments.ExecuterAsync(contexte.SocieteId.Value, TicketId.Value);
+            // CONSOLIDATION SÉCURITÉ : l'identité transmise est celle de l'UTILISATEUR, résolue
+            // côté serveur. Ce site passait `contexte.SocieteId` — une société n'est pas un compte,
+            // elle ne s'authentifie pas et n'agit pas. Le contrôle central résout lui-même le
+            // rattachement société de la personne, et applique ENT-03 (RG-CPT-07).
+            _documents = await ConsulterDocuments.ExecuterAsync(contexte.UtilisateurId, TicketId.Value);
         }
         catch (AccesRefuseException ex)
         {

@@ -1,12 +1,15 @@
 @page "/comptes/connexion"
 @using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Infrastructure.Identity
 @using CIT.Plateforme.Web.Resources
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
-@inject VerifierAccesCompteQuery VerifierAcces
+@inject RegleAccesConnexion RegleAcces
+@inject CIT.Plateforme.Application.Securite.JournalConnexionService JournalConnexion
+@inject IHttpContextAccessor AccesContexteHttp
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["Auth.LoginTitle"]</PageTitle>
@@ -29,11 +32,11 @@
             <div class="row g-0">
                 
                 <!-- Left Side: 3D Illustration -->
-                <div class="col-md-6 d-none d-md-block" style="background-color: #eaf4fc;">
+                <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
                         <img src="images/login-illustration.jpg" alt="Terminal Maritime 3D" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: #1e3a8a;">Bienvenue sur l'Espace Digital</h3>
+                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">Bienvenue sur l'Espace Digital</h3>
                             <p class="text-muted mb-0">Gérez vos expéditions, conteneurs et facturations maritimes en toute simplicité grâce à la plateforme.</p>
                         </div>
                     </div>
@@ -72,7 +75,7 @@
                         @if (erreur is not null)
                         {
                             <div class="alert mt-4 rounded-3 p-3 d-flex align-items-center shadow-sm" 
-                                 style="background-color: #fef2f2 !important; color: #991b1b !important; border: 1px solid #fecaca !important;">
+                                 style="background-color: var(--stop-100); color: var(--stop-600); border: 1px solid var(--stop-border);">
                                 <span class="me-2 fs-5">⚠️</span>
                                 <span class="fw-semibold small">@erreur</span>
                             </div>
@@ -116,6 +119,9 @@
         var utilisateur = await UserManager.FindByEmailAsync(Modele.Email);
         if (utilisateur is null)
         {
+            // P2-03 (RG-SEC-03) : identifiant inconnu. Le journal ne porte AUCUNE identité — en
+            // inventer une attribuerait la tentative à un tiers.
+            await JournalConnexion.ConnexionRefuseeAsync(null, MotifRefusConnexion.IdentifiantsInvalides, Origine());
             erreur = messageRefusGenerique;
             return;
         }
@@ -132,17 +138,23 @@
             // le parcours, sans exposer l'existence d'un second facteur à un compte non autorisé).
             if (!await EstAccesAutoriseAsync(utilisateur))
             {
+                await JournalConnexion.ConnexionRefuseeAsync(utilisateur.Id, MotifRefus(utilisateur), Origine());
                 await SignInManager.SignOutAsync();
                 erreur = messageRefusGenerique;
                 return;
             }
 
+            await JournalConnexion.SecondFacteurDemandeAsync(utilisateur.Id, Origine());
             Navigation.NavigateTo("/comptes/verifier-code");
             return;
         }
 
         if (!resultat.Succeeded)
         {
+            await JournalConnexion.ConnexionRefuseeAsync(
+                utilisateur.Id,
+                resultat.IsLockedOut ? MotifRefusConnexion.CompteVerrouille : MotifRefusConnexion.IdentifiantsInvalides,
+                Origine());
             erreur = messageRefusGenerique;
             return;
         }
@@ -152,10 +164,13 @@
         // connexion si le compte n'est pas autorisé (US2 scénario 2).
         if (!await EstAccesAutoriseAsync(utilisateur))
         {
+            await JournalConnexion.ConnexionRefuseeAsync(utilisateur.Id, MotifRefus(utilisateur), Origine());
             await SignInManager.SignOutAsync();
             erreur = messageRefusGenerique;
             return;
         }
+
+        await JournalConnexion.ConnexionReussieAsync(utilisateur.Id, Origine());
 
         // Redirection immédiate post-connexion : évite que la page reste statique et empêche
         // les soumissions multiples (double-clic) qui invalidaient le jeton Antiforgery anonyme
@@ -166,13 +181,36 @@
         Navigation.NavigateTo(destination, forceLoad: true);
     }
 
-    // CORRECTIF (2026-08-30) : VerifierAccesCompteQuery vérifie une règle propre aux comptes
-    // société (CPT-03 — société active + rattachement actif) ; elle ne s'applique qu'aux comptes
-    // Client. L'appliquer sans distinction bloquait la connexion de TOUT compte Agent/Admin CIT
-    // interne (jamais rattaché à une société par conception, CLAR-01) — découvert en pratique via
-    // un compte agent créé pour les tests, refusé malgré des identifiants valides.
-    private async Task<bool> EstAccesAutoriseAsync(ApplicationUser utilisateur) =>
-        utilisateur.Nature != NatureUtilisateur.Client || await VerifierAcces.AccesAutoriseAsync(utilisateur.Id);
+    // DEUX RÈGLES DISTINCTES, ET C'EST TOUT L'ENJEU (remédiation P0-ter).
+    //
+    // 1. ACTIVATION — applicable à TOUS les comptes, sans exception de nature. Un compte désactivé
+    //    n'ouvre aucune session, qu'il soit client, agent ou administrateur.
+    //
+    // 2. RATTACHEMENT SOCIÉTÉ (CPT-03 — société active + rattachement actif) — propre aux comptes
+    //    Client. Un compte interne n'est jamais rattaché à une société, par conception (CLAR-01).
+    //
+    // Le correctif du 2026-08-30 avait raison de soustraire les comptes internes à la règle 2, qui
+    // les bloquait tous. Mais il les a soustraits à la règle 1 par la même occasion, car les deux
+    // étaient portées par une seule expression : `Nature != Client || AccesAutoriseAsync(...)`
+    // rendait vraie la condition entière dès que l'appelant n'était pas un client, sans jamais
+    // regarder son état. C'est ainsi qu'un agent désactivé pouvait ouvrir une session neuve.
+    // Les deux règles sont désormais énoncées séparément, dans cet ordre.
+    // P3 — LA RÈGLE VIT DÉSORMAIS DANS `RegleAccesConnexion`, ET NON PLUS ICI.
+    // Elle était recopiée à l'identique dans les deux voies d'ouverture de session. Deux copies
+    // d'une règle de sécurité finissent par diverger — c'est ce qui a produit le P0-ter, où cette
+    // page portait un contrôle d'activité que l'autre n'avait jamais eu.
+    private Task<bool> EstAccesAutoriseAsync(ApplicationUser utilisateur) =>
+        RegleAcces.AccesAutoriseAsync(utilisateur.Id, utilisateur.Nature, utilisateur.EstActif);
+
+    // Le journal distingue les motifs que l'utilisateur, lui, ne doit pas distinguer : le message
+    // affiché reste générique, la trace est précise. C'est la différence entre ne pas renseigner un
+    // attaquant et ne pas renseigner l'exploitation.
+    private static MotifRefusConnexion MotifRefus(ApplicationUser utilisateur) =>
+        utilisateur.EstActif ? MotifRefusConnexion.AccesSocieteRefuse : MotifRefusConnexion.CompteDesactive;
+
+    // Origine réseau, quand le contexte HTTP est disponible. Aucune autre donnée de requête n'est
+    // consignée — ni en-tête, ni empreinte, ni identifiant de session.
+    private string? Origine() => AccesContexteHttp.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
     private sealed class ModeleConnexion
     {

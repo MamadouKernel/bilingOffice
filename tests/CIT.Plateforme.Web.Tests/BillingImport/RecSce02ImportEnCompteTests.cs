@@ -58,9 +58,9 @@ public sealed class RecSce02ImportEnCompteTests(PlateformeWebApplicationFactory 
         var auteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportFacturationEditer),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportControleDocumentaireTraiter),
             HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer));
@@ -96,7 +96,7 @@ public sealed class RecSce02ImportEnCompteTests(PlateformeWebApplicationFactory 
 
         // Remise des documents (IMP-22) : le client récupère l'ensemble (facture + BADT).
         var consulterDocuments = services.GetRequiredService<ConsulterDocumentsTicketClotureQuery>();
-        var documents = await consulterDocuments.ExecuterAsync(societe.Id, ticket.Id);
+        var documents = await consulterDocuments.ExecuterAsync(auteurId, ticket.Id);
         Assert.Equal(2, documents.Count);
         Assert.Contains(documents, d => d.NomFichier == "facture.pdf");
         Assert.Contains(documents, d => d.NomFichier == "badt.pdf");

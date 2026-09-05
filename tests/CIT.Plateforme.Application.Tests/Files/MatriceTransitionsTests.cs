@@ -38,7 +38,7 @@ public sealed class MatriceTransitionsTests
 
         // L'agent est pleinement habilité à transférer — mais AUCUNE entrée n'existe dans la
         // matrice pour (fileSource -> fileCible).
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketTransferer, fileSource));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileSource));
         var dossier = Domain.Tickets.Dossier.Creer("DOS-MTX-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Domain.Tickets.Ticket.Creer("TCK-MTX-000001", "BillingOffice", "Import", fileSource, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
@@ -66,7 +66,7 @@ public sealed class MatriceTransitionsTests
         var fileSource = Guid.NewGuid();
         var fileCible = Guid.NewGuid();
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketTransferer, fileSource));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileSource));
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileSource, fileCible, ["Motif autorisé"]));
         var dossier = Domain.Tickets.Dossier.Creer("DOS-MTX-000002", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Domain.Tickets.Ticket.Creer("TCK-MTX-000002", "BillingOffice", "Import", fileSource, dossier.Id, horloge.MaintenantUtc);

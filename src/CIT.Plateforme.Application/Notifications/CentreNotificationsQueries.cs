@@ -21,13 +21,21 @@ public sealed record LigneNotification(
 /// Aucun paramètre d'appel ne permet de désigner un autre destinataire — y compris pour un
 /// administrateur fonctionnel, qui n'a AUCUN accès aux notifications d'autrui.
 /// </summary>
-public sealed class ConsulterMesNotificationsQuery(INotificationRepository notifications)
+public sealed class ConsulterMesNotificationsQuery(
+    INotificationRepository notifications,
+    GardeIdentiteService garde)
 {
     public async Task<IReadOnlyList<LigneNotification>> ExecuterAsync(Guid utilisateurAuthentifieId, CancellationToken ct = default)
     {
-        if (utilisateurAuthentifieId == Guid.Empty)
+        // REMÉDIATION P2-06 — LA PORTÉE NE REMPLACE PAS LA GARDE.
+        // Ces requêtes sont bornées par l'appelant lui-même, d'où l'on déduisait qu'aucun contrôle
+        // n'était nécessaire. Le raisonnement répond à « à quelles données ? », pas à « ce compte
+        // a-t-il encore le droit d'utiliser la plateforme ? ». SEC-11 exige une désactivation
+        // immédiate : un compte désactivé ne consulte plus rien, fût-ce ses propres notifications.
+        if (!await garde.CompteEstUtilisableAsync(utilisateurAuthentifieId, ct).ConfigureAwait(false))
         {
-            throw new AccesRefuseException("Accès au centre de notifications refusé : authentification requise.");
+            throw new AccesRefuseException(
+                "Accès au centre de notifications refusé : compte inconnu, désactivé ou non authentifié.");
         }
 
         var mesNotifications = await notifications
@@ -44,13 +52,19 @@ public sealed class ConsulterMesNotificationsQuery(INotificationRepository notif
 /// FEATURE 009 — CONTRAT C9-03 : indicateur permanent de non-lues (NOT-03, Should).
 /// Zéro est un résultat normal, jamais une erreur.
 /// </summary>
-public sealed class CompterNonLuesQuery(INotificationRepository notifications)
+public sealed class CompterNonLuesQuery(
+    INotificationRepository notifications,
+    GardeIdentiteService garde)
 {
     public async Task<int> ExecuterAsync(Guid utilisateurAuthentifieId, CancellationToken ct = default)
     {
-        if (utilisateurAuthentifieId == Guid.Empty)
+        // P2-06 — même règle que la consultation, et MÊME CONTRAT : le refus s'exprime par une
+        // exception, comme il le faisait déjà pour un identifiant vide. Répondre zéro aurait
+        // transformé un refus en résultat, et affaibli l'assertion existante.
+        if (!await garde.CompteEstUtilisableAsync(utilisateurAuthentifieId, ct).ConfigureAwait(false))
         {
-            throw new AccesRefuseException("Accès refusé : authentification requise.");
+            throw new AccesRefuseException(
+                "Accès refusé : compte inconnu, désactivé ou non authentifié.");
         }
 
         return await notifications.CompterNonLuesAsync(utilisateurAuthentifieId, ct).ConfigureAwait(false);

@@ -1,6 +1,7 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Affectation;
 using CIT.Plateforme.Domain.Affectation;
+using CIT.Plateforme.Domain.Assistant;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Files;
@@ -120,6 +121,15 @@ public sealed class TransitionAutoriseeRepository(PlateformeDbContext dbContext)
     public Task<TransitionAutorisee?> ObtenirAsync(Guid fileSourceId, Guid fileCibleId, CancellationToken ct = default) =>
         dbContext.TransitionsAutorisees.SingleOrDefaultAsync(
             t => t.FileSourceId == fileSourceId && t.FileCibleId == fileCibleId, ct);
+
+    public async Task<IReadOnlyList<TransitionAutorisee>> ListerAsync(CancellationToken ct = default) =>
+        await dbContext.TransitionsAutorisees.ToListAsync(ct).ConfigureAwait(false);
+
+    public Task SupprimerAsync(TransitionAutorisee transition, CancellationToken ct = default)
+    {
+        dbContext.TransitionsAutorisees.Remove(transition);
+        return Task.CompletedTask;
+    }
 }
 
 public sealed class MessageRepository(PlateformeDbContext dbContext) : IMessageRepository
@@ -203,6 +213,10 @@ public sealed class PerimetreSupervisionRepository(PlateformeDbContext dbContext
 
     public Task<Domain.Supervision.PerimetreSupervision?> ObtenirParSuperviseurAsync(Guid superviseurId, CancellationToken ct = default) =>
         dbContext.PerimetresSupervision.SingleOrDefaultAsync(p => p.SuperviseurId == superviseurId, ct);
+
+    public async Task<IReadOnlyList<PerimetreSupervision>> ListerAsync(CancellationToken ct = default) =>
+        await dbContext.PerimetresSupervision.ToListAsync(ct).ConfigureAwait(false);
+
 }
 
 public sealed class DisponibiliteRepository(PlateformeDbContext dbContext) : IDisponibiliteRepository
@@ -301,12 +315,36 @@ public sealed class CompetenceOperateurRepository(PlateformeDbContext dbContext)
             .Select(c => c.Code)
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+    public async Task RetirerAsync(Guid operateurId, string code, CancellationToken ct = default)
+    {
+        var aRetirer = await dbContext.CompetencesOperateur
+            .Where(c => c.OperateurId == operateurId && c.Code == code)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        dbContext.CompetencesOperateur.RemoveRange(aRetirer);
+    }
 }
 
 public sealed class ParametreSlaRepository(PlateformeDbContext dbContext) : IParametreSlaRepository
 {
     public async Task AjouterAsync(Domain.SuiviTemps.ParametreSlaAdministrable parametre, CancellationToken ct = default) =>
         await dbContext.ParametresSla.AddAsync(parametre, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Domain.SuiviTemps.ParametreSlaAdministrable>> ListerAsync(CancellationToken ct = default) =>
+        await dbContext.ParametresSla
+            .OrderBy(p => p.Module).ThenBy(p => p.TypeDemande)
+            .ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<Domain.SuiviTemps.ParametreSlaAdministrable?> ObtenirAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.ParametresSla.FirstOrDefaultAsync(p => p.Id == id, ct).ConfigureAwait(false);
+
+    public Task SupprimerAsync(Domain.SuiviTemps.ParametreSlaAdministrable parametre, CancellationToken ct = default)
+    {
+        dbContext.ParametresSla.Remove(parametre);
+        return Task.CompletedTask;
+    }
 }
 
 public sealed class AlerteRepository(PlateformeDbContext dbContext) : IAlerteRepository
@@ -515,6 +553,98 @@ public sealed class HistoriqueTicketRepository(PlateformeDbContext dbContext) : 
         await dbContext.HistoriqueTickets
             .Where(h => h.TicketId == ticketId)
             .OrderBy(h => h.HorodatageUtc)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+}
+
+/// <summary>ALE-03 — référentiel des règles d'escalade.</summary>
+public sealed class RegleEscaladeRepository(PlateformeDbContext dbContext) : IRegleEscaladeRepository
+{
+    public async Task AjouterAsync(RegleEscalade regle, CancellationToken ct = default) =>
+        await dbContext.ReglesEscalade.AddAsync(regle, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<RegleEscalade>> ListerAsync(CancellationToken ct = default) =>
+        await dbContext.ReglesEscalade.OrderBy(r => r.Ordre).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<RegleEscalade?> ObtenirAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.ReglesEscalade.FirstOrDefaultAsync(r => r.Id == id, ct).ConfigureAwait(false);
+}
+
+/// <summary>SOC-07 — référentiel des pièces exigées par étape.</summary>
+public sealed class PieceExigeeEtapeRepository(PlateformeDbContext dbContext) : IPieceExigeeEtapeRepository
+{
+    public async Task AjouterAsync(Domain.Documents.PieceExigeeEtape piece, CancellationToken ct = default) =>
+        await dbContext.PiecesExigeesEtape.AddAsync(piece, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Domain.Documents.PieceExigeeEtape>> ListerAsync(CancellationToken ct = default) =>
+        await dbContext.PiecesExigeesEtape.OrderBy(p => p.Ordre).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<Domain.Documents.PieceExigeeEtape?> ObtenirAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.PiecesExigeesEtape.FirstOrDefaultAsync(p => p.Id == id, ct).ConfigureAwait(false);
+}
+
+/// <summary>
+/// CYC-01 / RG-TCK-07 — accès aux seuils de fermeture de l'annulation directe (remédiation P1-01).
+/// </summary>
+public sealed class EtapeBloquanteAnnulationRepository(PlateformeDbContext dbContext)
+    : IEtapeBloquanteAnnulationRepository
+{
+    public async Task<IReadOnlyList<EtapeBloquanteAnnulation>> ListerActifsAsync(CancellationToken ct = default) =>
+        await dbContext.EtapesBloquantesAnnulation
+            .Where(e => e.EstActif)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<EtapeBloquanteAnnulation>> ListerToutesAsync(CancellationToken ct = default) =>
+        await dbContext.EtapesBloquantesAnnulation
+            .OrderBy(e => e.Module)
+            .ThenBy(e => e.TypeDemande)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<EtapeBloquanteAnnulation?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.EtapesBloquantesAnnulation.SingleOrDefaultAsync(e => e.Id == id, ct).ConfigureAwait(false);
+
+    public async Task AjouterAsync(EtapeBloquanteAnnulation etape, CancellationToken ct = default)
+    {
+        await dbContext.EtapesBloquantesAnnulation.AddAsync(etape, ct).ConfigureAwait(false);
+        await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// RG-IA-02 — persistance des fils de conversation de l'assistant. Le MPD du document n'en
+/// prévoyait aucune table ; la règle exige pourtant que le fil survive à l'escalade.
+/// </summary>
+public sealed class ConversationAssistantRepository(PlateformeDbContext dbContext)
+    : IConversationAssistantRepository
+{
+    public async Task AjouterAsync(ConversationAssistant conversation, CancellationToken ct = default)
+    {
+        await dbContext.ConversationsAssistant.AddAsync(conversation, ct).ConfigureAwait(false);
+    }
+
+    public async Task<ConversationAssistant?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.ConversationsAssistant
+            .Include(c => c.Messages)
+            .SingleOrDefaultAsync(c => c.Id == id, ct)
+            .ConfigureAwait(false);
+
+    public async Task<ConversationAssistant?> ObtenirOuverteParUtilisateurAsync(
+        Guid utilisateurId, CancellationToken ct = default) =>
+        await dbContext.ConversationsAssistant
+            .Include(c => c.Messages)
+            .Where(c => c.UtilisateurId == utilisateurId && !c.EstEscaladee)
+            .OrderByDescending(c => c.DateDernierMessageUtc)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<ConversationAssistant>> ListerParTicketAsync(
+        Guid ticketId, CancellationToken ct = default) =>
+        await dbContext.ConversationsAssistant
+            .Include(c => c.Messages)
+            .Where(c => c.TicketId == ticketId)
+            .OrderBy(c => c.DateOuvertureUtc)
             .ToListAsync(ct)
             .ConfigureAwait(false);
 }

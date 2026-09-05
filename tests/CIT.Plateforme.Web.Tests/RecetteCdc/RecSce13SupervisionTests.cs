@@ -33,10 +33,10 @@ public sealed class RecSce13SupervisionTests(PlateformeWebApplicationFactory fac
         var operateurCibleId = Guid.NewGuid();
         var clientId = Guid.NewGuid();
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationFiles));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationPerimetresSupervision));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.SupervisionConsulter));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.TicketAffecterManuellement));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationFiles));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationPerimetresSupervision));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.TicketAffecterManuellement));
         await dbContext.SaveChangesAsync();
 
         var fileId = await gererFiles.CreerAsync(new CreerFileRequete(administrateurId, "BillingOffice", "Contrôle BL", Domain.Files.StrategieAffectation.PriseLibre));

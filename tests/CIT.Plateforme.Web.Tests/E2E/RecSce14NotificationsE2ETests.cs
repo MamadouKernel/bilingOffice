@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.BillingImport;
 using CIT.Plateforme.Application.Guichet;
@@ -126,7 +126,9 @@ public sealed class RecSce14NotificationsE2ETests(PlateformeWebApplicationFactor
         var spNotif = scopeNotif.ServiceProvider;
         var distributeur = new DistribuerNotificationsUseCase(
             spNotif.GetRequiredService<IEvenementSocleRepository>(),
+            spNotif.GetRequiredService<CIT.Plateforme.Application.Abstractions.ILienPortail>(),
             spNotif.GetRequiredService<IRegleDiffusionRepository>(),
+            spNotif.GetRequiredService<ITicketRepository>(),
             spNotif.GetRequiredService<IModeleNotificationRepository>(),
             spNotif.GetRequiredService<INotificationRepository>(),
             spNotif.GetRequiredService<IEnvoiNotificationRepository>(),
@@ -202,7 +204,10 @@ public sealed class RecSce14NotificationsE2ETests(PlateformeWebApplicationFactor
         var ticket2 = await creerTicket.ExecuterAsync(new CreerTicketRequete(
             societe.Id, "BillingImport", "Complement", fileFacturation.Id, dossierId));
 
-        var dossierComplet = await consulterDossier.ExecuterAsync(dossierId);
+        // REMÉDIATION P0 : la consultation exige l'identité de l'appelant. `clientUser` est
+        // administrateur de la société propriétaire du dossier — il a donc bien qualité pour
+        // le consulter (CLAR-02), et le test conserve son objet : le regroupement multi-tickets.
+        var dossierComplet = await consulterDossier.ExecuterAsync(clientUser.Id, dossierId);
         Assert.Equal(2, dossierComplet.Tickets.Count);
         Assert.Contains(dossierComplet.Tickets, t => t.Id == ticket1.Id);
         Assert.Contains(dossierComplet.Tickets, t => t.Id == ticket2.Id);
@@ -225,7 +230,7 @@ public sealed class RecSce14NotificationsE2ETests(PlateformeWebApplicationFactor
         var consulterAudit = scopeAudit.ServiceProvider.GetRequiredService<ConsulterJournalAuditQuery>();
 
         var adminAuditId = Guid.NewGuid();
-        dbAudit.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminAuditId, Permission.AuditConsulter));
+        dbAudit.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbAudit, adminAuditId), Permission.AuditConsulter));
         await dbAudit.SaveChangesAsync();
 
         var auditEntries = await consulterAudit.ExecuterAsync(adminAuditId, ticket1.Id);

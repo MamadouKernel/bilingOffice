@@ -5,28 +5,41 @@ using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.Tickets;
 
+/// <summary>Levée quand l'annulation directe n'est plus recevable (CYC-01) — seule une demande
+/// d'annulation l'est alors (CYC-02). Dérive d'<see cref="InvalidOperationException"/> pour ne
+/// pas rompre les appelants qui traitaient déjà ce refus.</summary>
+public sealed class AnnulationLibreFermeeException(string message) : InvalidOperationException(message);
+
 /// <summary>
 /// Contrats C-12 (client) / C-20 (interne). CDC : CYC-01 (annulation libre, client, avant étape
 /// bloquante paramétrable), CYC-02 (demande d'annulation au-delà, décision d'un agent habilité),
 /// CYC-03 (motivation et traçabilité systématiques), CYC-05 (règle d'annulation interne).
 /// <para>
-/// Les « étapes bloquantes » sont un paramètre par workflow (Principe VI) — le socle ne connaît
-/// que la distinction annulation libre / demande d'annulation, matérialisée ici par
-/// <paramref name="etapeBloquanteAtteinte"/>, fournie par le module appelant selon son propre
-/// paramétrage (hors périmètre du socle de connaître le contenu de ce paramètre).
+/// REMÉDIATION P1-01. La commande <b>recevait</b> auparavant la réponse en paramètre
+/// (<c>etapeBloquanteAtteinte</c>), à charge pour l'appelant de la calculer. Son unique appelant
+/// passait <c>false</c> en dur : la garde CYC-01 ne s'est jamais déclenchée en production. Elle
+/// décide désormais elle-même, à partir de deux sources et d'elles seules :
 /// </para>
+/// <list type="number">
+///   <item><b>l'état engageant du ticket</b> — paiement confirmé ou document officiel produit,
+///   posé par les commandes métier qui les produisent ;</item>
+///   <item><b>le seuil paramétrable par workflow</b> — <see cref="EtapeBloquanteAnnulation"/> :
+///   le ticket a-t-il traversé une file déclarée bloquante pour son module et son type ?</item>
+/// </list>
+/// Aucun appelant ne peut plus contourner la règle, parce qu'aucun appelant ne la porte.
 /// </summary>
 public sealed class AnnulerTicketCommand(
     ITicketRepository tickets,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     CloisonnementService cloisonnement,
+    IEtapeBloquanteAnnulationRepository etapesBloquantes,
+    IPassageEnFileRepository passages,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
-    /// <summary>CYC-01 : annulation libre par le client, uniquement si l'étape bloquante n'est
-    /// pas atteinte.</summary>
-    public async Task AnnulerLibrementAsync(Guid clientId, Guid ticketId, string motif, bool etapeBloquanteAtteinte, CancellationToken ct = default)
+    /// <summary>CYC-01 : annulation libre par le client, tant que le seuil n'est pas franchi.</summary>
+    public async Task AnnulerLibrementAsync(Guid clientId, Guid ticketId, string motif, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(motif))
         {
@@ -35,14 +48,15 @@ public sealed class AnnulerTicketCommand(
 
         await cloisonnement.ExigerProprieteClientAsync(clientId, ticketId, ct).ConfigureAwait(false);
 
-        if (etapeBloquanteAtteinte)
-        {
-            throw new InvalidOperationException(
-                "L'étape bloquante est atteinte : l'annulation libre n'est plus possible, seule une demande d'annulation est recevable (CYC-02).");
-        }
-
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
+
+        var blocage = await MotifDeBlocageAsync(ticket, ct).ConfigureAwait(false);
+        if (blocage is not null)
+        {
+            throw new AnnulationLibreFermeeException(
+                $"L'annulation directe n'est plus possible : {blocage} Seule une demande d'annulation est recevable (CYC-02).");
+        }
 
         ticket.Annuler(horloge.MaintenantUtc);
 
@@ -73,6 +87,37 @@ public sealed class AnnulerTicketCommand(
         await journalisation.PublierEvenementAsync("DemandeAnnulationSoumise", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// CYC-01 — le seuil est-il franchi, et pourquoi ? Retourne <c>null</c> tant que l'annulation
+    /// directe reste ouverte. Le motif est restitué au client : lui refuser une action sans lui
+    /// dire ce qui l'a fermée serait incompréhensible.
+    /// </summary>
+    public async Task<string?> MotifDeBlocageAsync(Ticket ticket, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(ticket);
+
+        if (ticket.EstEnEtatEngageant)
+        {
+            return "un traitement métier engageant ou un document officiel a déjà été produit.";
+        }
+
+        var seuils = await etapesBloquantes.ListerActifsAsync(ct).ConfigureAwait(false);
+        var applicables = seuils.Where(s => s.SApplique(ticket.Module, ticket.TypeDemande)).ToList();
+        if (applicables.Count == 0)
+        {
+            return null;
+        }
+
+        // Le seuil est franchi dès que la file a été TRAVERSÉE, pas seulement occupée : un ticket
+        // reparti ailleurs a tout de même engagé CIT au passage.
+        var filesTraversees = (await passages.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
+            .Select(p => p.FileId)
+            .ToHashSet();
+        filesTraversees.Add(ticket.FileCouranteId);
+
+        return applicables.FirstOrDefault(s => filesTraversees.Contains(s.FileId))?.Motif;
     }
 
     /// <summary>CYC-02/CYC-05 : décision d'un agent habilité sur une demande d'annulation.</summary>

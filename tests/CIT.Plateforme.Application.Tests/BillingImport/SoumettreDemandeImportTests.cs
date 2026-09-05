@@ -42,7 +42,7 @@ public sealed class SoumettreDemandeImportTests
         societe.Valider();
         var auteurId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var resultat = await soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societe.Id, auteurId, ["BL-001", "BL-002"]));
@@ -60,7 +60,7 @@ public sealed class SoumettreDemandeImportTests
         societe.Valider();
         var utilisateurId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow, droitSoumission: false));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: false));
         await dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(() =>
@@ -75,7 +75,7 @@ public sealed class SoumettreDemandeImportTests
         societe.Valider();
         var auteurId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         // BL-DOUBLON déjà actif avant la soumission multi-BL.

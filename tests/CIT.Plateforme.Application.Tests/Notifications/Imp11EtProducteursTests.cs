@@ -88,8 +88,16 @@ public class Imp11EtProducteursTests
         // + les 2 commandes d'enrôlement F013 (ENR-05 : RappelerExpirationBadgesCommand, DemanderRenouvellementBadgeCommand)
         // + la commande de decision sur une demande de compte (CPT-01 : le demandeur est informe
         //   du sort de sa demande — silence du CDC traite comme un oubli, canal In-App seul)
-        // → 25 fichiers producteurs.
-        Assert.Equal(25, fichiersProducteurs.Count);
+        // + la commande d'escalade de l'assistant virtuel (RG-IA-02, remédiation P1-03 : l'opérateur
+        //   doit être averti qu'un fil lui a été transmis)
+        // → 26 fichiers producteurs.
+        //
+        // CETTE GARDE A FAIT SON OFFICE : elle a signalé l'ajout du 26e producteur au moment où il a
+        // été introduit. Son objectif est inchangé — détecter tout producteur d'événement non
+        // délibéré ; seul l'inventaire attendu est mis à jour, et le nouveau producteur est nommé
+        // ci-dessous pour que sa disparition soit à son tour détectée.
+        Assert.Equal(26, fichiersProducteurs.Count);
+        Assert.Contains("AssistantCommands.cs", fichiersProducteurs);
         Assert.Contains("ValiderDemandeCompteCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureExportCommand.cs", fichiersProducteurs);

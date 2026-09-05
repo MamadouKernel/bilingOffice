@@ -7,6 +7,8 @@
 @using CIT.Plateforme.Web.Services
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreDemandeImportCommand Soumettre
+@using Microsoft.Extensions.DependencyInjection
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["BillingImport.Title"] — @Loc["Common.AppTitle"]</PageTitle>
@@ -150,6 +152,14 @@
     }
 </div>
 
+@if (_brouillonRestaure)
+{
+    <div class="alert alert-info border-0 bg-info bg-opacity-10 text-dark mb-4 rounded-3 p-3 small" role="status">
+        <strong>Saisie restaurée.</strong> Une soumission précédente n'était pas allée à son terme ;
+        vos numéros de BL ont été retrouvés. Vérifiez-les avant d'envoyer.
+    </div>
+}
+
 @code {
     private static readonly SharedResourcesLocalizer Loc = new();
     private bool _chargement = true;
@@ -190,6 +200,8 @@
             _societeNom = contexte.SocieteNom ?? string.Empty;
             _auteurId = contexte.UtilisateurId;
             _auteurNom = contexte.NomAffiche ?? contexte.Email;
+
+            await RestaurerBrouillonAsync();
         }
         finally
         {
@@ -219,9 +231,23 @@
 
         try
         {
+            // ERR-01 — « Aucune perte de données saisies en cas d'incident LORS D'UNE SOUMISSION ».
+            // Le brouillon est écrit AVANT l'envoi et n'est effacé qu'au succès : si la soumission
+            // échoue, ou si le poste tombe pendant l'appel, la saisie est retrouvée au retour.
+            // La commande existait et aucun écran ne l'appelait (audit du 2026-09-04, docs/89).
+            await EnregistrerBrouillonCourantAsync();
+
             _resultat = await Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(
                 _societeId, _auteurId, numerosBl,
                 string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim()));
+
+            using (var scope = ScopeFactory.CreateScope())
+            {
+                await scope.ServiceProvider
+                    .GetRequiredService<CIT.Plateforme.Application.Formulaires.SupprimerBrouillonCommand>()
+                    .ExecuterAsync(_auteurId, TypeFormulaire);
+            }
+            _brouillonRestaure = false;
             _modele.NumerosBl = string.Empty;
             _modele.ReferenceSimulationProforma = string.Empty;
         }
@@ -236,6 +262,52 @@
         finally
         {
             _soumissionEnCours = false;
+        }
+    }
+
+    private const string TypeFormulaire = "BillingImport.Soumission";
+    private bool _brouillonRestaure;
+
+    /// <summary>Sérialise la saisie courante. Le format est propre à cet écran : le brouillon
+    /// n'est relu que par lui.</summary>
+    private async Task EnregistrerBrouillonCourantAsync()
+    {
+        using var scope = ScopeFactory.CreateScope();
+        await scope.ServiceProvider
+            .GetRequiredService<CIT.Plateforme.Application.Formulaires.EnregistrerBrouillonCommand>()
+            .ExecuterAsync(_auteurId, _societeId, TypeFormulaire,
+                System.Text.Json.JsonSerializer.Serialize(_modele));
+    }
+
+    /// <summary>Restaure une saisie interrompue. Un brouillon illisible — format changé depuis —
+    /// est ignoré sans bruit : mieux vaut un formulaire vide qu'une page en erreur.</summary>
+    private async Task RestaurerBrouillonAsync()
+    {
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var brouillon = await scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.Formulaires.ObtenirBrouillonQuery>()
+                .ExecuterAsync(_auteurId, TypeFormulaire);
+            if (brouillon is null)
+            {
+                return;
+            }
+
+            var restaure = System.Text.Json.JsonSerializer.Deserialize<ModeleFormulaire>(brouillon.DonneesJson);
+            if (restaure is not null && !string.IsNullOrWhiteSpace(restaure.NumerosBl))
+            {
+                _modele = restaure;
+                _brouillonRestaure = true;
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // Format changé depuis : mieux vaut un formulaire vide qu'une page en erreur.
+        }
+        catch (InvalidOperationException)
+        {
+            // Brouillons non disponibles dans ce contexte : la soumission reste possible.
         }
     }
 

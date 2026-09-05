@@ -29,7 +29,7 @@ public sealed class RecSce12TempsSlaTests(PlateformeWebApplicationFactory factor
         var surveiller = services.GetRequiredService<SurveillerEcheancesUseCase>();
 
         var administrateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationSla));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationSla));
         await dbContext.SaveChangesAsync();
 
         // SLA-01/SLA-05 : cible administrable, aucune valeur inventée dans le socle lui-même —
@@ -66,7 +66,7 @@ public sealed class RecSce12TempsSlaTests(PlateformeWebApplicationFactory factor
         var clientId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));

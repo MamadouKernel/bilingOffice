@@ -1,0 +1,22 @@
+@page "/comptes/compte-cloture"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+<PageTitle>Compte clôturé — CIT</PageTitle>
+
+<div class="container py-5" style="max-width: 600px;">
+    <div class="cit-card text-center p-5 shadow-sm">
+        <div class="display-4 mb-3">🔒</div>
+        <h3 class="fw-bold text-dark mb-3">Votre compte a été clôturé</h3>
+        <p class="text-muted mb-4">
+            La clôture de votre compte a bien été effectuée.
+            Vos accès à la plateforme CIT ont été révoqués et vos sessions ont été déconnectées.
+        </p>
+        <div class="alert alert-light border small text-start text-muted mb-4">
+            ℹ️ Conformément aux obligations légales et réglementaires portuaires, l'historique de vos opérations passées (tickets, documents officiels, factures) reste archivé et ne fait l'objet d'aucune suppression intempestive.
+        </div>
+        <a href="/comptes/connexion" class="btn btn-primary fw-semibold px-4">
+            Retour à la page de connexion
+        </a>
+    </div>
+</div>

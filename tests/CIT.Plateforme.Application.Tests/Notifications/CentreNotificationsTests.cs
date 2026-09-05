@@ -1,3 +1,5 @@
+using CIT.Plateforme.Domain.Securite;
+using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Notifications;
 using CIT.Plateforme.Application.Securite;
@@ -12,6 +14,19 @@ namespace CIT.Plateforme.Application.Tests.Notifications;
 public class CentreNotificationsTests
 {
     private readonly Mock<INotificationRepository> _notifications = new();
+
+    // P2-06 : ces requêtes consultent désormais la garde d'identité. Le dépôt d'infos simulé décrit
+    // des comptes ACTIFS — les scénarios éprouvés restent donc exactement les mêmes.
+    private readonly Mock<IUtilisateurInfoRepository> _infos = new();
+
+    private GardeIdentiteService Garde()
+    {
+        _infos.Setup(i => i.ObtenirInfoAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid id, CancellationToken _) => id == Guid.Empty
+                ? null
+                : new UtilisateurInfo(id, "u@test", "u@test", "Utilisateur", true, NatureUtilisateur.Client));
+        return new GardeIdentiteService(_infos.Object);
+    }
     private readonly Mock<IJournalisationService> _journalisation = new();
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
     private readonly Mock<IHorloge> _horloge = new();
@@ -36,7 +51,7 @@ public class CentreNotificationsTests
         _notifications.Setup(n => n.ListerParDestinataireAsync(UtilisateurA, It.IsAny<CancellationToken>()))
             .ReturnsAsync([notification]);
 
-        var lignes = await new ConsulterMesNotificationsQuery(_notifications.Object).ExecuterAsync(UtilisateurA);
+        var lignes = await new ConsulterMesNotificationsQuery(_notifications.Object, Garde()).ExecuterAsync(UtilisateurA);
 
         var ligne = Assert.Single(lignes);
         Assert.False(ligne.EstLue);
@@ -59,7 +74,7 @@ public class CentreNotificationsTests
         _notifications.Setup(n => n.ListerParDestinataireAsync(UtilisateurA, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        var lignes = await new ConsulterMesNotificationsQuery(_notifications.Object).ExecuterAsync(UtilisateurA);
+        var lignes = await new ConsulterMesNotificationsQuery(_notifications.Object, Garde()).ExecuterAsync(UtilisateurA);
 
         Assert.Empty(lignes);
         _notifications.Verify(n => n.ListerParDestinataireAsync(UtilisateurA, It.IsAny<CancellationToken>()), Times.Once);
@@ -72,7 +87,7 @@ public class CentreNotificationsTests
     public async Task Liste_NonAuthentifie_EstRefusee()
     {
         await Assert.ThrowsAsync<AccesRefuseException>(
-            () => new ConsulterMesNotificationsQuery(_notifications.Object).ExecuterAsync(Guid.Empty));
+            () => new ConsulterMesNotificationsQuery(_notifications.Object, Garde()).ExecuterAsync(Guid.Empty));
     }
 
     [Fact]
@@ -93,7 +108,7 @@ public class CentreNotificationsTests
     {
         _notifications.Setup(n => n.CompterNonLuesAsync(UtilisateurA, It.IsAny<CancellationToken>())).ReturnsAsync(3);
 
-        var compte = await new CompterNonLuesQuery(_notifications.Object).ExecuterAsync(UtilisateurA);
+        var compte = await new CompterNonLuesQuery(_notifications.Object, Garde()).ExecuterAsync(UtilisateurA);
 
         Assert.Equal(3, compte);
     }
@@ -103,7 +118,7 @@ public class CentreNotificationsTests
     {
         _notifications.Setup(n => n.CompterNonLuesAsync(UtilisateurA, It.IsAny<CancellationToken>())).ReturnsAsync(0);
 
-        var compte = await new CompterNonLuesQuery(_notifications.Object).ExecuterAsync(UtilisateurA);
+        var compte = await new CompterNonLuesQuery(_notifications.Object, Garde()).ExecuterAsync(UtilisateurA);
 
         Assert.Equal(0, compte);
     }
@@ -112,7 +127,7 @@ public class CentreNotificationsTests
     public async Task Compteur_NonAuthentifie_EstRefuse()
     {
         await Assert.ThrowsAsync<AccesRefuseException>(
-            () => new CompterNonLuesQuery(_notifications.Object).ExecuterAsync(Guid.Empty));
+            () => new CompterNonLuesQuery(_notifications.Object, Garde()).ExecuterAsync(Guid.Empty));
     }
 
     // ---- T076 : cas TEST-NOT-01-2 (marquage) ----

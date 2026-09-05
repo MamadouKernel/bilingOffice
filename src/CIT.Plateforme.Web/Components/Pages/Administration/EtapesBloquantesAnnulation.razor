@@ -1,0 +1,234 @@
+@page "/administration/etapes-bloquantes-annulation"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Seuils d'annulation — CIT</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🛑</span> Cycle de vie • CYC-01
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">
+            Seuils de fermeture de l'annulation directe
+        </h2>
+        <div class="cit-page-subtitle text-muted">
+            À partir du moment où un ticket a traversé l'une des files déclarées ici, le client ne peut
+            plus annuler directement : il lui reste la demande d'annulation, soumise à décision.
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            <span>🔄</span> Actualiser
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des seuils d'annulation..." />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+            <span class="me-2 fs-5">⚠️</span> @_erreur
+        </div>
+    }
+
+    <div class="cit-card mb-4">
+        <h6 class="fw-bold text-dark mb-3">Déclarer une étape bloquante</h6>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="module" class="form-label small fw-semibold text-dark">Module</label>
+                <input id="module" class="form-control form-control-sm" placeholder="Ex. BillingImport" @bind="_module" />
+            </div>
+            <div class="col-md-2">
+                <label for="type-demande" class="form-label small fw-semibold text-dark">Type de demande</label>
+                <input id="type-demande" class="form-control form-control-sm" placeholder="Tous" @bind="_typeDemande" />
+            </div>
+            <div class="col-md-3">
+                <label for="file-bloquante" class="form-label small fw-semibold text-dark">File bloquante</label>
+                <select id="file-bloquante" class="form-select form-select-sm" @bind="_fileId">
+                    <option value="@Guid.Empty">— Choisir —</option>
+                    @foreach (var f in _files)
+                    {
+                        <option value="@f.Id">@f.Module — @f.Nom</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="motif-blocage" class="form-label small fw-semibold text-dark">Motif communiqué au client</label>
+                <input id="motif-blocage" class="form-control form-control-sm" placeholder="Ex. la facture a été éditée" @bind="_motif" />
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary btn-sm w-100 fw-semibold" @onclick="DefinirAsync" disabled="@_enregistrement">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cit-card">
+        <h6 class="fw-bold text-dark mb-3">Seuils déclarés (@_seuils.Count)</h6>
+
+        @if (_seuils.Count == 0)
+        {
+            <EtatVide Titre="Aucun seuil déclaré" Icone="🛑"
+                      Message="Tant qu'aucun seuil n'est déclaré, seule la survenue d'un état engageant — paiement confirmé ou document officiel produit — ferme l'annulation directe." />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th>Type de demande</th>
+                            <th>File bloquante</th>
+                            <th>Motif</th>
+                            <th>État</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in _seuils)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@s.Module</td>
+                                <td>@(s.TypeDemande ?? "Tous")</td>
+                                <td>@s.FileNom</td>
+                                <td class="text-muted small">@s.Motif</td>
+                                <td>
+                                    @if (s.EstActif)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success">Actif</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Inactif</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-outline-secondary btn-sm"
+                                            @onclick="() => BasculerAsync(s.Id, !s.EstActif)" disabled="@_enregistrement">
+                                        @(s.EstActif ? "Désactiver" : "Activer")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _refuse;
+    private bool _enregistrement;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+    private Guid _appelantId;
+
+    private IReadOnlyList<EtapeBloquanteAnnulationVue> _seuils = [];
+    private IReadOnlyList<CIT.Plateforme.Domain.Files.FileDeTraitement> _files = [];
+
+    private string _module = string.Empty;
+    private string _typeDemande = string.Empty;
+    private Guid _fileId = Guid.Empty;
+    private string _motif = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            // Scope isolé par opération : évite les collisions de DbContext en Blazor Server.
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<GererEtapesBloquantesAnnulationCommand>();
+            var files = scope.ServiceProvider.GetRequiredService<IFileDeTraitementRepository>();
+
+            _seuils = await commande.ListerAsync(_appelantId);
+            _files = await files.ListerAsync();
+            _refuse = false;
+        }
+        catch (AccesRefuseException)
+        {
+            _refuse = true;
+            _messageRefus = "Vous ne disposez pas de l'habilitation d'administration des files.";
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task DefinirAsync()
+    {
+        _erreur = null;
+        _enregistrement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<GererEtapesBloquantesAnnulationCommand>();
+            await commande.DefinirAsync(_appelantId, _module, _typeDemande, _fileId, _motif);
+
+            _module = string.Empty;
+            _typeDemande = string.Empty;
+            _fileId = Guid.Empty;
+            _motif = string.Empty;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _enregistrement = false;
+        }
+    }
+
+    private async Task BasculerAsync(Guid etapeId, bool actif)
+    {
+        _erreur = null;
+        _enregistrement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<GererEtapesBloquantesAnnulationCommand>();
+            await commande.BasculerActivationAsync(_appelantId, etapeId, actif);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _enregistrement = false;
+        }
+    }
+}

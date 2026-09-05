@@ -50,7 +50,7 @@ public sealed class CircuitClientNormalTests
         var dossierRepository = new DossierRepository(dbContext);
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var deposerDocument = new DeposerDocumentCommand(
             new DocumentRepository(dbContext), ticketRepository, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")),
@@ -68,9 +68,9 @@ public sealed class CircuitClientNormalTests
         var auteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportFacturationEditer),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportPaiementValider),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportControleDocumentaireTraiter),
@@ -113,7 +113,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-N1");
         var fileAvant = (await c.DbContext.Tickets.FindAsync(ticketId))!.FileCouranteId;
 
-        await c.DemanderFacture.ExecuterAsync(c.SocieteId, ticketId);
+        await c.DemanderFacture.ExecuterAsync(c.AuteurId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.Equal(fileAvant, ticket!.FileCouranteId);
@@ -146,7 +146,7 @@ public sealed class CircuitClientNormalTests
         }
         using (var preuve = Contenu("preuve"))
         {
-            await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
+            await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
         }
 
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
@@ -167,7 +167,7 @@ public sealed class CircuitClientNormalTests
         }
         using (var preuveInvalide = Contenu("preuve-invalide"))
         {
-            await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticketId, "preuve1.pdf", "application/pdf", preuveInvalide, preuveInvalide.Length, Regles);
+            await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve1.pdf", "application/pdf", preuveInvalide, preuveInvalide.Length, Regles);
         }
 
         await c.ValiderPreuve.RefuserAsync(c.AgentId, ticketId, "Montant incorrect");
@@ -178,7 +178,7 @@ public sealed class CircuitClientNormalTests
 
         // Le client peut déposer une nouvelle preuve — jamais bloqué par un rejet définitif.
         using var preuveCorrigee = Contenu("preuve-corrigee");
-        await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticketId, "preuve2.pdf", "application/pdf", preuveCorrigee, preuveCorrigee.Length, Regles);
+        await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve2.pdf", "application/pdf", preuveCorrigee, preuveCorrigee.Length, Regles);
         Assert.Contains(c.DbContext.Documents, d => d.TicketId == ticketId && d.NomFichier == "preuve2.pdf");
     }
 
@@ -193,7 +193,7 @@ public sealed class CircuitClientNormalTests
         }
         using (var preuve = Contenu("preuve"))
         {
-            await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
+            await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
         }
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
 
@@ -211,19 +211,19 @@ public sealed class CircuitClientNormalTests
         var c = await ConstruireContexteAsync();
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-N6");
 
-        await c.DemanderFacture.ExecuterAsync(c.SocieteId, ticketId);
+        await c.DemanderFacture.ExecuterAsync(c.AuteurId, ticketId);
         using (var facture = Contenu("facture"))
         {
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var preuveInvalide = Contenu("preuve-invalide"))
         {
-            await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticketId, "preuve1.pdf", "application/pdf", preuveInvalide, preuveInvalide.Length, Regles);
+            await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve1.pdf", "application/pdf", preuveInvalide, preuveInvalide.Length, Regles);
         }
         await c.ValiderPreuve.RefuserAsync(c.AgentId, ticketId, "Montant incorrect");
         using (var preuveCorrigee = Contenu("preuve-corrigee"))
         {
-            await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticketId, "preuve2.pdf", "application/pdf", preuveCorrigee, preuveCorrigee.Length, Regles);
+            await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve2.pdf", "application/pdf", preuveCorrigee, preuveCorrigee.Length, Regles);
         }
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
         using var badt = Contenu("badt");

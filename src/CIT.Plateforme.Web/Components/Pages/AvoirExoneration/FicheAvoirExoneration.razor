@@ -118,7 +118,7 @@ else if (_fiche is not null)
                 @if (_fiche.TicketParent != null)
                 {
                     <div class="mt-3 pt-3 border-top">
-                        <div class="text-muted small">Ticket lié / dossier parent (AVE-04) :</div>
+                        <div class="text-muted small">Ticket lié / dossier parent :</div>
                         <div class="badge bg-light text-dark border p-2 mt-1">
                             🔗 N° <strong>@_fiche.TicketParent.Numero</strong> (Module: @_fiche.TicketParent.Module - @_fiche.TicketParent.TypeDemande)
                         </div>
@@ -197,8 +197,8 @@ else if (_fiche is not null)
                     {
                         <!-- Demande de complément -->
                         <div class="mb-4">
-                            <label class="form-label small fw-semibold text-dark">Demander un complément (ACR-01)</label>
-                            <textarea class="form-control form-control-sm mb-2" rows="3" placeholder="Précisez les pièces ou explications manquantes..." @bind="_motifComplement"></textarea>
+                            <label for="demander-un-complement" class="form-label small fw-semibold text-dark">Demander un complément</label>
+                            <textarea id="demander-un-complement" class="form-control form-control-sm mb-2" rows="3" placeholder="Précisez les pièces ou explications manquantes..." @bind="_motifComplement"></textarea>
                             <button class="btn btn-warning btn-sm w-100 fw-semibold text-dark" @onclick="DemanderComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_motifComplement) || _actionEnCours)">
                                 📩 Mettre en attente client
                             </button>
@@ -206,10 +206,10 @@ else if (_fiche is not null)
 
                         <!-- Décision Finale (Accord / Rejet) -->
                         <div class="pt-3 border-top">
-                            <h6 class="fw-bold text-dark mb-2">Décision Finale (AVE-03)</h6>
+                            <h6 class="fw-bold text-dark mb-2">Décision Finale</h6>
                             <div class="mb-2">
-                                <label class="form-label small fw-semibold text-muted">Verdict :</label>
-                                <select class="form-select form-select-sm" @bind="_decisionChoisie">
+                                <label for="verdict" class="form-label small fw-semibold text-muted">Verdict :</label>
+                                <select id="verdict" class="form-select form-select-sm" @bind="_decisionChoisie">
                                     <option value="Accorde">✅ Accorder la demande</option>
                                     <option value="Rejete">❌ Rejeter la demande</option>
                                 </select>
@@ -218,15 +218,15 @@ else if (_fiche is not null)
                             @if (_decisionChoisie == "Accorde")
                             {
                                 <div class="mb-2">
-                                    <label class="form-label small fw-semibold text-muted">Montant accordé (XOF) :</label>
-                                    <input type="number" step="1000" class="form-control form-control-sm" placeholder="Montant final accordé" @bind="_montantAccordeSaisi" />
+                                    <label for="montant-accorde-xof" class="form-label small fw-semibold text-muted">Montant accordé (XOF) :</label>
+                                    <input id="montant-accorde-xof" type="number" step="1000" class="form-control form-control-sm" placeholder="Montant final accordé" @bind="_montantAccordeSaisi" />
                                 </div>
                             }
                             else
                             {
                                 <div class="mb-2">
-                                    <label class="form-label small fw-semibold text-danger">Motif du rejet * (Obligatoire AVE-03) :</label>
-                                    <textarea class="form-control form-control-sm border-danger" rows="3" placeholder="Expliquez formellement la cause du rejet..." @bind="_motifRejetSaisi"></textarea>
+                                    <label for="motif-du-rejet-obligatoire" class="form-label small fw-semibold text-danger">Motif du rejet * (Obligatoire) :</label>
+                                    <textarea id="motif-du-rejet-obligatoire" class="form-control form-control-sm border-danger" rows="3" placeholder="Expliquez formellement la cause du rejet..." @bind="_motifRejetSaisi"></textarea>
                                 </div>
                             }
 

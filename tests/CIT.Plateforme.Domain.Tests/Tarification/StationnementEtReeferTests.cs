@@ -2,19 +2,25 @@ using CIT.Plateforme.Domain.Tarification;
 using CIT.Plateforme.Domain.Tarification.Exceptions;
 using Xunit;
 
+using A = CIT.Plateforme.Domain.Tarification.ParametrageInitialAnnexeA;
+
 namespace CIT.Plateforme.Domain.Tests.Tarification;
 
 /// <summary>
-/// [TEST-FIRST] Tests unitaires pour la durée de séjour, le stationnement par tranches et le branchement Reefer (SIM-04).
+/// [TEST-FIRST] Tests unitaires pour la durée de séjour, le stationnement par tranches et le
+/// branchement Reefer (SIM-04).
+///
+/// Le branchement ne se décide plus sur le nom du type (<c>Type == TypeConteneur.Reefer</c>) mais
+/// sur l'attribut <c>DeclencheBranchementFrigorifique</c> du référentiel (analyse Merise § 3.3).
 /// </summary>
 public sealed class StationnementEtReeferTests
 {
     private static VersionGrilleTarifaire CreerGrilleAvecReefer()
     {
-        var grille = VersionGrilleTarifaire.Creer("v1.0", DateTime.UtcNow.AddDays(-1), Guid.NewGuid(), DateTime.UtcNow);
-        grille.AjouterLigne(SensTrafic.ImportLocal, TailleConteneur.VingtPieds, "C1", 100000m, 20000m, 35000m);
-        grille.AjouterLigne(SensTrafic.ImportTransit, TailleConteneur.VingtPieds, "C1", 100000m, 20000m, 35000m);
-        grille.AjouterLigne(SensTrafic.ExportLocal, TailleConteneur.VingtPieds, "C1", 100000m, 20000m, 35000m);
+        var grille = GrilleDeTest.NouvelleGrille();
+        grille.AjouterLigneCodes(A.SensImportLocal, A.TailleVingtPieds, "C1", 100000m, 20000m, 35000m);
+        grille.AjouterLigneCodes(A.SensImportTransit, A.TailleVingtPieds, "C4", 100000m, 20000m, 35000m);
+        grille.AjouterLigneCodes(A.SensExportLocal, A.TailleVingtPieds, "C1", 100000m, 20000m, 35000m);
         return grille;
     }
 
@@ -25,11 +31,11 @@ public sealed class StationnementEtReeferTests
     [InlineData("2025-12-31", "2026-01-01", 2)] // Changement d'année
     public void Duree_de_sejour_est_calculee_bornes_incluses(string debut, string fin, int joursAttendus)
     {
-        var dossier = new DossierSimulation(
-            SensTrafic.ImportLocal,
+        var dossier = GrilleDeTest.Dossier(
+            A.SensImportLocal,
             DateOnly.Parse(debut),
             DateOnly.Parse(fin),
-            [new ConteneurSimulation("C1", TailleConteneur.VingtPieds, TypeConteneur.Dry, 10m, false, false, "C1")]);
+            GrilleDeTest.Conteneur(A.SensImportLocal, A.TailleVingtPieds, A.TypeDry, 10m));
 
         Assert.Equal(joursAttendus, dossier.DureeSejourJours);
     }
@@ -41,47 +47,70 @@ public sealed class StationnementEtReeferTests
     [InlineData(10, 280000)]    // 10 jours -> (10 - 2) * 35 000 = 280 000 XOF
     public void Branchement_reefer_deduit_franchise_2_jours(int dureeSejour, decimal montantAttendu)
     {
-        var grille = CreerGrilleAvecReefer();
-        var moteur = new MoteurCalculProforma();
         var dateDebut = new DateOnly(2026, 1, 1);
-        var dateFin = dateDebut.AddDays(dureeSejour - 1);
-
-        var dossier = new DossierSimulation(
-            SensTrafic.ImportLocal,
+        var dossier = GrilleDeTest.Dossier(
+            A.SensImportLocal,
             dateDebut,
-            dateFin,
-            [new ConteneurSimulation("C1", TailleConteneur.VingtPieds, TypeConteneur.Reefer, 10m, false, false, "C1")]);
+            dateDebut.AddDays(dureeSejour - 1),
+            GrilleDeTest.Conteneur(A.SensImportLocal, A.TailleVingtPieds, A.TypeReefer, 10m));
 
-        var res = moteur.Calculer(dossier, grille);
+        var res = new MoteurCalculProforma().Calculer(dossier, CreerGrilleAvecReefer(), GrilleDeTest.Index);
+
         Assert.Equal(montantAttendu, res.LignesConteneurs[0].BranchementFrigorifique);
     }
 
     [Fact]
     public void Conteneur_Dry_aucun_branchement_frigorifique_meme_avec_long_sejour()
     {
-        var grille = CreerGrilleAvecReefer();
-        var moteur = new MoteurCalculProforma();
-        var dossier = new DossierSimulation(
-            SensTrafic.ImportLocal,
+        var dossier = GrilleDeTest.Dossier(
+            A.SensImportLocal,
             new DateOnly(2026, 1, 1),
             new DateOnly(2026, 1, 30),
-            [new ConteneurSimulation("C1", TailleConteneur.VingtPieds, TypeConteneur.Dry, 10m, false, false, "C1")]);
+            GrilleDeTest.Conteneur(A.SensImportLocal, A.TailleVingtPieds, A.TypeDry, 10m));
 
-        var res = moteur.Calculer(dossier, grille);
+        var res = new MoteurCalculProforma().Calculer(dossier, CreerGrilleAvecReefer(), GrilleDeTest.Index);
+
         Assert.Equal(0m, res.LignesConteneurs[0].BranchementFrigorifique);
     }
 
+    /// <summary>
+    /// La combinaison est désormais toujours <b>valide</b> — sens, taille et catégorie sont
+    /// choisis dans des référentiels — mais elle peut ne pas être <b>tarifée</b>. C'est ce trou
+    /// dans la grille que l'exception signale maintenant, et plus une faute de frappe du client.
+    /// </summary>
     [Fact]
     public void Combinaison_non_tarifee_declenche_TarifNonTrouveException()
     {
-        var grille = CreerGrilleAvecReefer();
-        var moteur = new MoteurCalculProforma();
-        var dossier = new DossierSimulation(
-            SensTrafic.ImportLocal,
+        var dossier = GrilleDeTest.Dossier(
+            A.SensImportLocal,
             new DateOnly(2026, 1, 1),
             new DateOnly(2026, 1, 5),
-            [new ConteneurSimulation("C1", TailleConteneur.QuarantePieds, TypeConteneur.Dry, 10m, false, false, "C99_INCONNUE")]);
+            GrilleDeTest.Conteneur(A.SensImportLocal, A.TailleQuarantePieds, A.TypeDry, 10m));
 
-        Assert.Throws<TarifNonTrouveException>(() => moteur.Calculer(dossier, grille));
+        var grille = CreerGrilleAvecReefer();
+
+        var exception = Assert.Throws<TarifNonTrouveException>(
+            () => new MoteurCalculProforma().Calculer(dossier, grille, GrilleDeTest.Index));
+
+        Assert.Equal(A.TailleQuarantePieds, exception.Taille.Code);
+        Assert.Equal("C1", exception.Categorie.Code);
+    }
+
+    /// <summary>
+    /// RG-SIM-08 — l'absence de franchise pour un sens vaut exclusion du stationnement. Vérifié
+    /// sur l'export local, que l'Annexe A ne dote d'aucune franchise.
+    /// </summary>
+    [Fact]
+    public void Un_sens_sans_franchise_enregistree_nest_pas_soumis_au_stationnement()
+    {
+        var dossier = GrilleDeTest.Dossier(
+            A.SensExportLocal,
+            new DateOnly(2026, 1, 1),
+            new DateOnly(2026, 3, 1),
+            GrilleDeTest.Conteneur(A.SensExportLocal, A.TailleVingtPieds, A.TypeDry, 10m));
+
+        var res = new MoteurCalculProforma().Calculer(dossier, CreerGrilleAvecReefer(), GrilleDeTest.Index);
+
+        Assert.Equal(0m, res.LignesConteneurs[0].Stationnement);
     }
 }

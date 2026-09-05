@@ -1,0 +1,276 @@
+@page "/administration/parametres-sla"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.SuiviTemps
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Paramètres SLA — CIT</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span aria-hidden="true">⏱️</span> Temps &amp; engagements de service
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">Paramètres SLA</h2>
+        <div class="cit-page-subtitle text-muted">
+            Durées cibles et seuils, affinables par étape et par priorité. Le paramétrage le plus
+            précis l'emporte ; en l'absence de paramétrage, aucune surveillance n'a lieu.
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            <span aria-hidden="true">🔄</span> Actualiser
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des paramètres SLA..." />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
+            <span class="me-2 fs-5" aria-hidden="true">⚠️</span> @_erreur
+        </div>
+    }
+
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4" aria-hidden="true">➕</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">Ajouter un paramétrage</h4>
+        </div>
+
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="module">Module</label>
+                <input id="module" class="form-control" @bind="_module" placeholder="ex. BillingOffice" />
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="typeDemande">Type de demande</label>
+                <input id="typeDemande" class="form-control" @bind="_typeDemande" placeholder="ex. Import" />
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="file">Étape</label>
+                <select id="file" class="form-select" @bind="_fileId">
+                    <option value="">Toutes les étapes</option>
+                    @foreach (var f in _axes?.Files ?? new List<(Guid, string)>())
+                    {
+                        <option value="@f.Item1">@f.Item2</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="priorite">Priorité</label>
+                <select id="priorite" class="form-select" @bind="_prioriteId">
+                    <option value="">Toutes les priorités</option>
+                    @foreach (var p in _axes?.Priorites ?? new List<(Guid, string)>())
+                    {
+                        <option value="@p.Item1">@p.Item2</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="heures">Durée cible</label>
+                <div class="input-group">
+                    <input id="heures" type="number" step="0.25" min="0.25" class="form-control" @bind="_dureeCibleHeures" />
+                    <span class="input-group-text">heures</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="sInfo">Seuil information</label>
+                <input id="sInfo" type="number" step="0.05" min="0" max="1" class="form-control" @bind="_seuilInformation" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="sAlerte">Seuil alerte</label>
+                <input id="sAlerte" type="number" step="0.05" min="0" max="1" class="form-control" @bind="_seuilAlerte" />
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="sEsc">Seuil escalade</label>
+                <input id="sEsc" type="number" step="0.1" min="0" class="form-control"
+                       aria-describedby="aide-escalade" @bind="_seuilEscalade" />
+                <div id="aide-escalade" class="form-text small">Au-delà de 1. Laisser 0 pour aucune escalade.</div>
+            </div>
+            <div class="col-12 col-md-2">
+                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                    Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (_parametres is null || _parametres.Count == 0)
+    {
+        <div class="cit-card p-5 text-center text-muted border-0 shadow-sm">
+            <div class="fs-1 mb-2" aria-hidden="true">⏱️</div>
+            <div class="fw-semibold">Aucun paramétrage SLA</div>
+            <div class="small">Aucune surveillance SLA n'a lieu tant qu'aucun paramétrage n'est administré.</div>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Paramétrages SLA administrés, du plus précis au plus général</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="small fw-bold">Module</th>
+                            <th scope="col" class="small fw-bold">Type</th>
+                            <th scope="col" class="small fw-bold">Étape</th>
+                            <th scope="col" class="small fw-bold">Priorité</th>
+                            <th scope="col" class="small fw-bold text-end">Durée cible</th>
+                            <th scope="col" class="small fw-bold text-end">Information</th>
+                            <th scope="col" class="small fw-bold text-end">Alerte</th>
+                            <th scope="col" class="small fw-bold text-end">Escalade</th>
+                            <th scope="col" class="small fw-bold text-end">Précision</th>
+                            <th scope="col"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in _parametres.OrderByDescending(x => x.Specificite).ThenBy(x => x.Module))
+                        {
+                            <tr>
+                                <td class="fw-semibold">@p.Module</td>
+                                <td>@p.TypeDemande</td>
+                                <td>@NomFile(p.FileId)</td>
+                                <td>@LibellePriorite(p.PrioriteId)</td>
+                                <td class="text-end">@p.DureeCible.TotalHours.ToString("0.##") h</td>
+                                <td class="text-end">@Pourcent(p.SeuilInformation)</td>
+                                <td class="text-end">@Pourcent(p.SeuilAlerte)</td>
+                                <td class="text-end">@(p.SeuilEscalade == 0 ? "—" : Pourcent(p.SeuilEscalade))</td>
+                                <td class="text-end"><span class="badge bg-secondary bg-opacity-25 text-dark">@p.Specificite</span></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => SupprimerAsync(p.Id)">Retirer</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<ParametreSlaAdministrable>? _parametres;
+    private AxesSlaDisponibles? _axes;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA (administration.sla) pour accéder à cette interface.";
+    private string? _erreur;
+
+    private string _module = string.Empty;
+    private string _typeDemande = string.Empty;
+    private string _fileId = string.Empty;
+    private string _prioriteId = string.Empty;
+    private double _dureeCibleHeures = 1;
+    private double _seuilInformation = 0.5;
+    private double _seuilAlerte = 0.8;
+    private double _seuilEscalade;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationSla);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+        else
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<GererParametresSlaCommand>();
+            _parametres = await commande.ListerAsync(_appelantId);
+            _axes = await commande.ListerAxesAsync(_appelantId);
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async sp =>
+    {
+        var commande = sp.GetRequiredService<GererParametresSlaCommand>();
+        await commande.DefinirAsync(
+            _appelantId, _module, _typeDemande,
+            TimeSpan.FromHours(_dureeCibleHeures), _seuilInformation, _seuilAlerte,
+            Analyser(_fileId), Analyser(_prioriteId), _seuilEscalade);
+
+        _module = string.Empty;
+        _typeDemande = string.Empty;
+        _fileId = string.Empty;
+        _prioriteId = string.Empty;
+        _seuilEscalade = 0;
+    });
+
+    private Task SupprimerAsync(Guid parametreId) => ExecuterAsync(sp =>
+        sp.GetRequiredService<GererParametresSlaCommand>().SupprimerAsync(_appelantId, parametreId));
+
+    private static Guid? Analyser(string valeur) => Guid.TryParse(valeur, out var id) ? id : null;
+
+    private static string Pourcent(double part) => (part * 100).ToString("0.#") + " %";
+
+    private string NomFile(Guid? fileId) =>
+        fileId is null
+            ? "Toutes"
+            : _axes?.Files.FirstOrDefault(f => f.Id == fileId.Value).Nom ?? fileId.Value.ToString();
+
+    private string LibellePriorite(Guid? prioriteId) =>
+        prioriteId is null
+            ? "Toutes"
+            : _axes?.Priorites.FirstOrDefault(p => p.Id == prioriteId.Value).Libelle ?? prioriteId.Value.ToString();
+}

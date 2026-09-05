@@ -45,10 +45,11 @@ public sealed class FicheEnrolementTests : BunitContext
         var horloge = new HorlogeSysteme();
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
 
-        Services.AddSingleton(new ObtenirFicheEnrolementQuery(ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo));
+        Services.AddSingleton(new ObtenirFicheEnrolementQuery(ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
+            Support.FabriqueSecurite.ControleAcces(db)));
         Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new ValiderEnrolementCommand(ticketRepo, autorisation, journalisation, uow));
@@ -67,7 +68,7 @@ public sealed class FicheEnrolementTests : BunitContext
         var db = CreerContexte();
         var transporteurId = Guid.NewGuid();
         AjouterUtilisateur(db, transporteurId, NatureUtilisateur.Client);
-        var dossier = Dossier.Creer("DOS-01", transporteurId, DateTime.UtcNow);
+        var dossier = Dossier.Creer("DOS-01", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), DateTime.UtcNow);
         var ticket = Ticket.Creer("ENR-01", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, DateTime.UtcNow);
         ticket.PrendreEnCharge(Guid.NewGuid(), DateTime.UtcNow);
         ticket.MettreEnAttenteClient(DateTime.UtcNow);
@@ -118,12 +119,12 @@ public sealed class FicheEnrolementTests : BunitContext
         var agentId = Guid.NewGuid();
         AjouterUtilisateur(db, transporteurId, NatureUtilisateur.Client);
         AjouterUtilisateur(db, agentId, NatureUtilisateur.Agent);
-        var dossier = Dossier.Creer("DOS-03", transporteurId, DateTime.UtcNow);
+        var dossier = Dossier.Creer("DOS-03", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), DateTime.UtcNow);
         var ticket = Ticket.Creer("ENR-03", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, DateTime.UtcNow);
         ticket.PrendreEnCharge(agentId, DateTime.UtcNow);
         db.Dossiers.Add(dossier);
         db.Tickets.Add(ticket);
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.EnrolementInstruire, ticket.FileCouranteId));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();
@@ -147,7 +148,7 @@ public sealed class FicheEnrolementTests : BunitContext
         var agentSansDroit = Guid.NewGuid();
         AjouterUtilisateur(db, transporteurId, NatureUtilisateur.Client);
         AjouterUtilisateur(db, agentSansDroit, NatureUtilisateur.Agent);
-        var dossier = Dossier.Creer("DOS-04", transporteurId, DateTime.UtcNow);
+        var dossier = Dossier.Creer("DOS-04", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), DateTime.UtcNow);
         var ticket = Ticket.Creer("ENR-04", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, DateTime.UtcNow);
         db.Dossiers.Add(dossier);
         db.Tickets.Add(ticket);

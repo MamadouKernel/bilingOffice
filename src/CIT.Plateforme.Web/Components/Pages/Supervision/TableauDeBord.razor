@@ -6,9 +6,12 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
 @inject VueFilesQuery VueFiles
 @inject VueChargeQuery VueCharge
+@inject IServiceScopeFactory ScopeFactory
+@inject Microsoft.JSInterop.IJSRuntime Js
 @implements IAsyncDisposable
 
 <PageTitle>Supervision temps réel — CIT</PageTitle>
@@ -16,7 +19,7 @@
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>👁️</span> Supervision temps réel (SUP-01, SUP-02, SUP-03)
+            <span>👁️</span> Supervision temps réel
         </h2>
         <div class="cit-page-subtitle">Vue globale des files de traitement et suivi de la charge opérationnelle des agents</div>
     </div>
@@ -42,7 +45,20 @@ else
         <div class="alert alert-danger mb-3">@_erreur</div>
     }
 
-    @if (vuesFiles is not null)
+    @if (vuesFiles is not null && vuesFiles.Count == 0)
+{
+    @* Un tableau réduit à ses en-têtes se lit comme une panne, pas comme un vide voulu.
+       Le message dit ce que l'absence signifie et ce qu'il faut faire pour la lever. *@
+    <div class="cit-card mb-4 p-5 text-center text-muted">
+        <div class="fs-1 mb-2" aria-hidden="true">🗂️</div>
+        <div class="fw-semibold text-dark">Aucune file dans votre périmètre</div>
+        <div class="small">
+            Votre périmètre de supervision ne couvre aucune file, ou aucune file n'est encore
+            administrée. Un administrateur fonctionnel peut l'ajuster.
+        </div>
+    </div>
+}
+else if (vuesFiles is not null)
 {
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="p-3 bg-light border-bottom">
@@ -57,17 +73,33 @@ else
                         <th class="text-end">En cours</th>
                         <th class="text-end">Attente client</th>
                         <th class="text-end fw-bold">Total actifs</th>
+                        <th class="text-end"><span class="visually-hidden">Export</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var vue in vuesFiles)
                     {
                         <tr>
-                            <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(vue.Nom) ? "File sans nom" : vue.Nom)</td>
+                            <td class="text-dark fw-semibold">
+                                @* Compter ne suffit pas à agir : le nom de la file ouvre la liste
+                                   de ses tickets, seul endroit où le superviseur peut en désigner un. *@
+                                <button type="button" class="btn btn-link p-0 text-decoration-none fw-semibold text-start"
+                                        @onclick="() => OuvrirFileAsync(vue.FileId, vue.Nom)">
+                                    @(string.IsNullOrWhiteSpace(vue.Nom) ? "File sans nom" : vue.Nom)
+                                </button>
+                            </td>
                             <td class="text-end font-monospace @(vue.NonAffectes > 0 ? "text-warning fw-bold" : "text-muted")">@vue.NonAffectes</td>
                             <td class="text-end font-monospace text-primary fw-bold">@vue.EnCours</td>
                             <td class="text-end font-monospace text-muted">@vue.EnAttenteClient</td>
                             <td class="text-end font-monospace text-dark fw-bold">@vue.TotalActifs</td>
+                            <td class="text-end">
+                                @* SOC-14 — export tabulaire de la file, sous le périmètre du superviseur. *@
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        @onclick="() => ExporterAsync(vue.FileId, vue.Nom)"
+                                        disabled="@(_exportEnCours == vue.FileId)">
+                                    @(_exportEnCours == vue.FileId ? "Export..." : "Exporter CSV")
+                                </button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -111,6 +143,121 @@ else
         </div>
     </div>
 }
+
+@if (_fileOuverte is not null)
+{
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="p-3 bg-light border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h6 class="fw-bold text-dark mb-0">Tickets de la file — @_nomFileOuverte</h6>
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="FermerFile">Fermer</button>
+        </div>
+
+        @if (_erreurAction is not null)
+        {
+            <div class="alert alert-danger border-0 m-3 rounded-3" role="alert">@_erreurAction</div>
+        }
+        @if (_messageAction is not null)
+        {
+            <div class="alert alert-success border-0 m-3 rounded-3" role="status">@_messageAction</div>
+        }
+
+        @if (_ticketsFile is null || _ticketsFile.Count == 0)
+        {
+            <div class="p-5 text-center text-muted">
+                <div class="fw-semibold text-dark">Aucun ticket actif dans cette file</div>
+                <div class="small">Rien à affecter ni à réorienter pour le moment.</div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 border-bottom bg-body-tertiary">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-bold text-dark" for="sup-operateur">Opérateur destinataire</label>
+                        <select id="sup-operateur" class="form-select form-select-sm" @bind="_operateurCible">
+                            <option value="">— choisir —</option>
+                            @foreach (var op in vuesCharge ?? [])
+                            {
+                                <option value="@op.OperateurId">
+                                    @(string.IsNullOrWhiteSpace(op.NomOperateur) ? op.OperateurId.ToString() : op.NomOperateur) — @op.TicketsEnCours en cours
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-bold text-dark" for="sup-priorite">Nouvelle priorité</label>
+                        <select id="sup-priorite" class="form-select form-select-sm" @bind="_prioriteCible">
+                            <option value="">— choisir —</option>
+                            @foreach (var niveau in _niveaux)
+                            {
+                                <option value="@niveau.Id">@niveau.Libelle</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small fw-bold text-dark" for="sup-motif">Motif</label>
+                        <input id="sup-motif" class="form-control form-control-sm" @bind="_motif"
+                               placeholder="obligatoire pour la priorité" />
+                    </div>
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="button" class="btn btn-sm btn-primary" @onclick="AppliquerEnMasseAsync"
+                                disabled="@(_selection.Count == 0)">
+                            Appliquer (@_selection.Count)
+                        </button>
+                    </div>
+                </div>
+                <div class="form-text small">
+                    L'action de masse est tracée <strong>ticket par ticket</strong> : une redistribution de
+                    25 tickets laisse 25 traces dans l'historique, pas une ligne globale, et un échec
+                    partiel n'annule pas les tickets déjà traités.
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Tickets actifs de la file sélectionnée</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col"><span class="visually-hidden">Sélection</span></th>
+                            <th scope="col">Ticket</th>
+                            <th scope="col">Statut</th>
+                            <th scope="col">Opérateur</th>
+                            <th scope="col">Priorité</th>
+                            <th scope="col">En file depuis</th>
+                            <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in _ticketsFile)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input"
+                                           aria-label="@($"Sélectionner le ticket {ticket.Numero}")"
+                                           checked="@_selection.Contains(ticket.TicketId)"
+                                           @onchange="e => BasculerSelection(ticket.TicketId, (bool?)e.Value == true)" />
+                                </td>
+                                <td class="text-dark fw-semibold">
+                                    @ticket.Numero <span class="text-muted small fw-normal">@ticket.Module</span>
+                                </td>
+                                <td class="small">@ticket.Statut</td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(ticket.OperateurAssigneNom) ? "Non affecté" : ticket.OperateurAssigneNom)</td>
+                                <td class="small">@ticket.PrioriteLibelle</td>
+                                <td class="small text-muted font-monospace">@ticket.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm @(ticket.OperateurAssigneId is null ? "btn-outline-primary" : "btn-outline-secondary")"
+                                            @onclick="() => AffecterAsync(ticket.TicketId, ticket.OperateurAssigneId is not null)">
+                                        @(ticket.OperateurAssigneId is null ? "Affecter" : "Réaffecter")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
 }
 
 @code {
@@ -120,6 +267,20 @@ else
     private string? _erreur;
     private IReadOnlyList<VueFile>? vuesFiles;
     private IReadOnlyList<VueOperateur>? vuesCharge;
+
+    // SUP-04 / PEC-05 / MAS-01 / MAS-02 / PRI-03 — le superviseur agit, il ne fait plus que lire.
+    private Guid _superviseurId;
+    private Guid? _fileOuverte;
+    private string _nomFileOuverte = string.Empty;
+    private IReadOnlyList<TicketSupervise>? _ticketsFile;
+    private IReadOnlyList<(Guid Id, string Libelle)> _niveaux = [];
+    private readonly HashSet<Guid> _selection = [];
+    private string _operateurCible = string.Empty;
+    private string _prioriteCible = string.Empty;
+    private string _motif = string.Empty;
+    private string? _messageAction;
+    private string? _erreurAction;
+    private Guid? _exportEnCours;
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
@@ -141,7 +302,13 @@ else
             // n'est saisi ni transmis par le navigateur (CLAR-05, anti-usurpation).
             vuesFiles = await VueFiles.ExecuterAsync(contexte.UtilisateurId);
             vuesCharge = await VueCharge.ExecuterAsync(contexte.UtilisateurId);
+            _superviseurId = contexte.UtilisateurId;
             _nonAutorise = false;
+
+            if (_fileOuverte is not null)
+            {
+                await ChargerTicketsFileAsync();
+            }
         }
         catch (AccesRefuseException ex)
         {
@@ -155,6 +322,208 @@ else
         finally
         {
             _chargement = false;
+        }
+    }
+
+    private async Task OuvrirFileAsync(Guid fileId, string nom)
+    {
+        _fileOuverte = fileId;
+        _nomFileOuverte = string.IsNullOrWhiteSpace(nom) ? "File sans nom" : nom;
+        _selection.Clear();
+        _messageAction = null;
+        _erreurAction = null;
+        await ChargerTicketsFileAsync();
+    }
+
+    /// <summary>
+    /// SOC-14 — export tabulaire d'une file. L'export passe par la requête de supervision, qui
+    /// exige l'habilitation ET le périmètre : le bouton n'ouvre pas un accès que l'écran n'aurait pas.
+    /// </summary>
+    private async Task ExporterAsync(Guid fileId, string nom)
+    {
+        _erreur = null;
+        _exportEnCours = fileId;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var csv = await scope.ServiceProvider
+                .GetRequiredService<ExporterIndicateursQuery>()
+                .ExecuterCsvAsync(_superviseurId, fileId);
+
+            var horodatage = DateTime.UtcNow.ToString("yyyyMMdd-HHmm");
+            var fichier = $"file-{(string.IsNullOrWhiteSpace(nom) ? fileId.ToString() : nom)}-{horodatage}.csv";
+
+            await Js.InvokeVoidAsync("telechargerFichier", fichier, "text/csv", Convert.ToBase64String(csv));
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _exportEnCours = null;
+        }
+    }
+
+    private void FermerFile()
+    {
+        _fileOuverte = null;
+        _ticketsFile = null;
+        _selection.Clear();
+        _messageAction = null;
+        _erreurAction = null;
+    }
+
+    private async Task ChargerTicketsFileAsync()
+    {
+        if (_fileOuverte is not Guid fileId)
+        {
+            return;
+        }
+
+        try
+        {
+            // Un scope par opération : le DbContext du circuit Blazor est partagé, deux requêtes
+            // concurrentes s'y télescopent (« A second operation was started on this context »).
+            using var scope = ScopeFactory.CreateScope();
+            var vue = await scope.ServiceProvider
+                .GetRequiredService<ListerTicketsDeLaFileQuery>()
+                .ExecuterAsync(_superviseurId, fileId);
+
+            _ticketsFile = vue.Tickets;
+            _niveaux = vue.NiveauxPriorite;
+            _selection.RemoveWhere(id => !vue.Tickets.Any(t => t.TicketId == id));
+        }
+        catch (Exception ex)
+        {
+            _erreurAction = ex.Message;
+            _ticketsFile = null;
+        }
+    }
+
+    private void BasculerSelection(Guid ticketId, bool selectionne)
+    {
+        if (selectionne)
+        {
+            _selection.Add(ticketId);
+        }
+        else
+        {
+            _selection.Remove(ticketId);
+        }
+    }
+
+    /// <summary>
+    /// SUP-04 / PEC-05 — affecter un ticket non pris en charge, ou le réaffecter. Les deux passent
+    /// par des cas d'usage distincts : réaffecter un ticket déjà pris en charge n'est pas la même
+    /// opération que désigner un premier opérateur, et l'historique doit les distinguer.
+    /// </summary>
+    private async Task AffecterAsync(Guid ticketId, bool dejaAffecte)
+    {
+        _messageAction = null;
+        _erreurAction = null;
+
+        if (!Guid.TryParse(_operateurCible, out var operateurId))
+        {
+            _erreurAction = "Choisissez l'opérateur destinataire avant d'affecter un ticket.";
+            return;
+        }
+
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var actions = scope.ServiceProvider.GetRequiredService<ActionsSuperviseurCommand>();
+
+            if (dejaAffecte)
+            {
+                await actions.ReaffecterAsync(_superviseurId, ticketId, operateurId);
+                _messageAction = "Ticket réaffecté.";
+            }
+            else
+            {
+                await actions.AffecterTicketNonPrisEnChargeAsync(_superviseurId, ticketId, operateurId);
+                _messageAction = "Ticket affecté.";
+            }
+
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreurAction = ex.Message;
+        }
+    }
+
+    /// <summary>
+    /// MAS-01 — affectation ou changement de priorité sur une sélection. MAS-02 exige que chaque
+    /// ticket laisse sa propre trace : <see cref="ActionDeMasseCommand"/> applique l'action ticket
+    /// par ticket et rend le détail des succès et des échecs, plutôt qu'un verdict global.
+    /// </summary>
+    private async Task AppliquerEnMasseAsync()
+    {
+        _messageAction = null;
+        _erreurAction = null;
+
+        var cibles = _selection.ToList();
+        if (cibles.Count == 0)
+        {
+            return;
+        }
+
+        var versPriorite = Guid.TryParse(_prioriteCible, out var prioriteId);
+        var versOperateur = Guid.TryParse(_operateurCible, out var operateurId);
+
+        if (!versPriorite && !versOperateur)
+        {
+            _erreurAction = "Choisissez un opérateur destinataire ou une nouvelle priorité à appliquer.";
+            return;
+        }
+
+        if (versPriorite && string.IsNullOrWhiteSpace(_motif))
+        {
+            // PRI-03 : la modification de priorité enregistre l'ancienne valeur, la nouvelle,
+            // l'auteur, la date ET le motif. Sans motif, le changement serait inexplicable après coup.
+            _erreurAction = "Le motif est obligatoire pour modifier une priorité.";
+            return;
+        }
+
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var actionDeMasse = scope.ServiceProvider.GetRequiredService<ActionDeMasseCommand>();
+
+            IReadOnlyList<ResultatActionDeMasse> resultats;
+            if (versPriorite)
+            {
+                var modifierPriorite = scope.ServiceProvider
+                    .GetRequiredService<CIT.Plateforme.Application.Tickets.ModifierPrioriteCommand>();
+                resultats = await actionDeMasse.ExecuterAsync(
+                    _superviseurId, cibles, TypeActionDeMasse.ModifierPriorite,
+                    (id, ct) => modifierPriorite.ExecuterAsync(_superviseurId, id, prioriteId, _motif, ct));
+            }
+            else
+            {
+                var actions = scope.ServiceProvider.GetRequiredService<ActionsSuperviseurCommand>();
+                resultats = await actionDeMasse.ExecuterAsync(
+                    _superviseurId, cibles, TypeActionDeMasse.Affecter,
+                    (id, ct) => actions.AffecterTicketNonPrisEnChargeAsync(_superviseurId, id, operateurId, ct));
+            }
+
+            var succes = resultats.Count(r => r.Succes);
+            var echecs = resultats.Where(r => !r.Succes).ToList();
+
+            _messageAction = $"{succes} ticket(s) traité(s) sur {resultats.Count}.";
+            if (echecs.Count > 0)
+            {
+                // Un échec partiel doit se lire, pas se deviner : on nomme le premier motif rencontré.
+                _erreurAction = $"{echecs.Count} ticket(s) en échec — {echecs[0].Erreur}";
+            }
+
+            _selection.Clear();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreurAction = ex.Message;
         }
     }
 

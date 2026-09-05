@@ -66,7 +66,7 @@ public sealed class AtomiciteMultiBlSqlTests
         societe.Valider();
         var auteurId = Guid.NewGuid();
         contexte.Societes.Add(societe);
-        contexte.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        contexte.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(contexte, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await contexte.SaveChangesAsync();
 
         var numerotationTruquee = new NumerotationAvecCollisionSurLeDeuxiemeTicket($"DOS-ATOMIC-{suffixe}", numeroTicketDejaUtilise);

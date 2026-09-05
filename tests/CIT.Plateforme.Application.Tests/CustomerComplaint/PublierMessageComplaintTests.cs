@@ -26,7 +26,7 @@ public class PublierMessageComplaintTests
 
     public PublierMessageComplaintTests()
     {
-        _cloisonnement = new CloisonnementService(Mock.Of<ITicketRepository>(), Mock.Of<IDossierRepository>());
+        _cloisonnement = new CloisonnementService(Mock.Of<ITicketRepository>(), CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAccesInerte());
         _command = new PublierMessageCommand(
             _messageRepo.Object,
             _ticketRepo.Object,

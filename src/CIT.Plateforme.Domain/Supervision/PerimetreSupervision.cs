@@ -25,5 +25,20 @@ public sealed class PerimetreSupervision
         return perimetre;
     }
 
+    /// <summary>
+    /// Redéfinit les files couvertes SANS recréer le périmètre.
+    ///
+    /// Le dépôt lit le périmètre d'un superviseur par <c>SingleOrDefaultAsync</c> : redéfinir en
+    /// ajoutant une seconde ligne ferait lever cette lecture à chaque consultation, et la
+    /// supervision deviendrait inaccessible à ce superviseur. La modification se fait donc en
+    /// place. Mutation d'une collection privée : elle dépend du <c>ValueComparer</c> explicite
+    /// configuré dans <c>PlateformeDbContext</c> pour être détectée par EF Core.
+    /// </summary>
+    public void Redefinir(IEnumerable<Guid> nouvellesFiles)
+    {
+        filesCouvertes.Clear();
+        filesCouvertes.AddRange(nouvellesFiles);
+    }
+
     public bool CouvreLaFile(Guid fileId) => filesCouvertes.Count == 0 || filesCouvertes.Contains(fileId);
 }

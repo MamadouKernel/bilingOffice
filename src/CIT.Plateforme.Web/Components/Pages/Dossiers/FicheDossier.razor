@@ -1,4 +1,6 @@
 @page "/dossiers/{Id:guid}"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.Client
 @using CIT.Plateforme.Application.Dossiers
 @using CIT.Plateforme.Domain.Securite

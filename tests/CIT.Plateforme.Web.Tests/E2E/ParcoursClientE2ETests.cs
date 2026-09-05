@@ -98,12 +98,20 @@ public sealed class ParcoursClientE2ETests : BunitContext
         var uow = new UniteDeTravail(db);
         var numService = new FakeNumerotationService();
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
 
         var soumettreCmd = new SoumettreDemandeImportCommand(ticketRepo, dossierRepo, socRepo, userSocRepo, fileRepo, numService, journalisation, horloge, uow);
         var dashboardClientQuery = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
-        var ficheDossierQuery = new ObtenirFicheDossierQuery(dossierRepo, ticketRepo, fileRepo, socRepo, userSocRepo, userInfoRepo);
-        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
+        var ficheDossierQuery = new ObtenirFicheDossierQuery(dossierRepo, ticketRepo, fileRepo, socRepo, userInfoRepo,
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
+        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
 
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);

@@ -16,7 +16,7 @@
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>⚙️</span> Stratégie d'affectation des files (AFF-07, C-01)
+            <span>⚙️</span> Stratégie d'affectation des files
         </h2>
         <div class="cit-page-subtitle">Paramétrage dynamique du mode de distribution et d'affectation des tickets sans développement</div>
     </div>
@@ -205,7 +205,7 @@ else
             using var scope = ScopeFactory.CreateScope();
             var gererFiles = scope.ServiceProvider.GetRequiredService<GererFilesCommand>();
             await gererFiles.ChangerStrategieAsync(_administrateurId, _fileSelectionnee, _strategieSelectionnee);
-            _message = $"Stratégie appliquée sans développement : {LibelleStrategie(_strategieSelectionnee)} (AFF-07).";
+            _message = $"Stratégie appliquée sans développement : {LibelleStrategie(_strategieSelectionnee)}.";
             await ChargerAsync();
         }
         catch (AccesRefuseException ex)

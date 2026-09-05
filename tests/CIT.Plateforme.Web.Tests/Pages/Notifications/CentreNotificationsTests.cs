@@ -1,3 +1,6 @@
+using CIT.Plateforme.Domain.Securite;
+using CIT.Plateforme.Application.Comptes;
+using CIT.Plateforme.Application.Securite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +33,10 @@ public sealed class CentreNotificationsTests : BunitContext
         Services.AddSingleton<IJournalisationService>(new JournalisationMuette());
         Services.AddSingleton<IHorloge>(new HorlogeFigee());
         Services.AddSingleton<IUniteDeTravail>(new UniteDeTravailMuette());
+        // P2-06 : les requêtes de notification consultent la garde d'identité. Le dépôt d'infos
+        // simulé décrit des comptes ACTIFS — le scénario éprouvé par cette suite est inchangé ;
+        // l'état des comptes est éprouvé par GardeIdentiteSurfacesPersonnellesTests.
+        Services.AddSingleton(new GardeIdentiteService(new Support.UtilisateurInfoToujoursActif()));
         Services.AddSingleton<ConsulterMesNotificationsQuery>();
         Services.AddSingleton<CompterNonLuesQuery>();
         Services.AddSingleton<MarquerNotificationLueCommand>();
@@ -167,3 +174,4 @@ public sealed class CentreNotificationsTests : BunitContext
         public Task<int> EnregistrerAsync(CancellationToken ct = default) => Task.FromResult(0);
     }
 }
+

@@ -45,7 +45,7 @@ public sealed class DisponibiliteAutorisationTests
         var (dbContext, commande) = ConstruireContexte();
         var superviseurId = Guid.NewGuid();
         var operateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.DisponibiliteGerer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.DisponibiliteGerer));
         await dbContext.SaveChangesAsync();
 
         await commande.DefinirAsync(superviseurId, operateurId, StatutDisponibilite.Absent); // ne doit pas lever

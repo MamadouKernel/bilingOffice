@@ -26,7 +26,7 @@ public sealed class ConsulterFileBillingExportQueryTests
         dbContext.Tickets.Add(ticket);
 
         var agentId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportBackOfficeInstruire));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingExportBackOfficeInstruire));
         await dbContext.SaveChangesAsync();
 
         var query = new ConsulterFileBillingExportQuery(new TicketRepository(dbContext), new FileDeTraitementRepository(dbContext), new AutorisationService(dbContext));

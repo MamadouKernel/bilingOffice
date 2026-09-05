@@ -52,6 +52,20 @@ public sealed class FicheTicketTests : BunitContext
         soc.Valider();
         db.Societes.Add(soc);
 
+        // Le compte Identity de l'appelant. Il manquait a cette fixture, qui authentifiait un
+        // identifiant sans compte correspondant. Le controle d'acces central (remediation P0-bis)
+        // lit `EstActif` et `Nature` sur la table Identity et refuse un appelant introuvable —
+        // comme en production, ou un cookie survivant a la suppression d'un compte ne doit plus
+        // rien ouvrir. Le scenario eprouve par ce test est inchange.
+        db.Users.Add(new ApplicationUser
+        {
+            Id = userId,
+            UserName = "client-trans-logistics",
+            NomAffiche = "client-trans-logistics",
+            Nature = NatureUtilisateur.Client,
+            EstActif = true,
+        });
+
         var userSoc = UtilisateurSociete.Rattacher(userId, socId, DateTime.UtcNow, false, true);
         db.UtilisateursSociete.Add(userSoc);
 
@@ -78,15 +92,19 @@ public sealed class FicheTicketTests : BunitContext
         var catRepo = new CategorieReclamationRepository(db);
 
         var query = new ObtenirFicheTicketQuery(
-            ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo,
-            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
+            ticketRepo, dossierRepo, fileRepo, socRepo,
+            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
         Services.AddSingleton(query);
 
         var horloge = new HorlogeSysteme();
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
 
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);

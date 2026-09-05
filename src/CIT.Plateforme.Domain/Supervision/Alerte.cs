@@ -1,4 +1,4 @@
-namespace CIT.Plateforme.Domain.Supervision;
+﻿namespace CIT.Plateforme.Domain.Supervision;
 
 /// <summary>ALE-01 : types d'alertes définis par le CDC.</summary>
 public enum TypeAlerte
@@ -8,6 +8,9 @@ public enum TypeAlerte
     SlaSeuilInformation,
     SlaSeuilAlerte,
     SlaDepasse,
+
+    /// <summary>ALE-03 — le dépassement a franchi le seuil d'escalade administré.</summary>
+    SlaEscalade,
     BacklogFile,
     VolumeAnormal,
     OperateurIndisponibleAvecTickets,

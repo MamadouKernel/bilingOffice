@@ -1,4 +1,5 @@
-using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Domain.Tickets;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Notifications;
 using CIT.Plateforme.Domain.Notifications;
 using Moq;
@@ -55,14 +56,85 @@ public class DistribuerNotificationsUseCaseTests
             .Returns(Task.CompletedTask);
     }
 
+    /// <summary>COM-03 : le distributeur lit désormais le module et l'étape du ticket rattaché
+    /// pour filtrer les règles. Le substitut ne renvoie aucun ticket — les règles qui ne
+    /// discriminent pas, seules utilisées ici, restent donc applicables.</summary>
+    private readonly Mock<ITicketRepository> _tickets = new();
+
     private DistribuerNotificationsUseCase Creer() => new(
-        _evenements.Object, _regles.Object, _modeles.Object, _notifications.Object, _envois.Object,
+        _evenements.Object, new CIT.Plateforme.Application.Tests.Support.LienPortailDeTest(), _regles.Object, _tickets.Object, _modeles.Object, _notifications.Object, _envois.Object,
         _preferences.Object, [_resolveur.Object], _executeur.Object, _journalisation.Object,
         _horloge.Object, _uniteDeTravail.Object);
 
     private void AvecRegles(params RegleDiffusion[] regles) =>
         _regles.Setup(r => r.ListerActivesParEvenementAsync(Type, It.IsAny<CancellationToken>()))
             .ReturnsAsync(regles);
+
+    /// <summary>Rattache un ticket réel à l'événement, pour que le distributeur puisse lire son
+    /// module et sa file — le contexte sur lequel COM-03 fait porter le filtrage.</summary>
+    private Ticket AvecTicketEnFile(string module, Guid fileId)
+    {
+        var ticket = Ticket.Creer("TCK-COM03-000001", module, "Import", fileId, Guid.NewGuid(), DateTime.UtcNow);
+        _tickets.Setup(t => t.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ticket);
+        return ticket;
+    }
+
+    // ---- COM-03 : paramétrage par module et par étape ----
+
+    [Fact]
+    public async Task RegleSansModuleNiEtape_ResteApplicable()
+    {
+        // RÉTROCOMPATIBILITÉ : c'est la forme de toutes les règles administrées avant l'ouverture
+        // de ces axes. Les rendre inopérantes couperait silencieusement les notifications.
+        AvecTicketEnFile("BillingOffice", Guid.NewGuid());
+        AvecRegles(RegleDiffusion.Creer(Type, CanalNotification.InApp, false));
+
+        var crees = await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        Assert.Equal(1, crees);
+    }
+
+    [Fact]
+    public async Task RegleBorneeAUnAutreModule_NeSApplique_Pas()
+    {
+        AvecTicketEnFile("BillingOffice", Guid.NewGuid());
+        var regle = RegleDiffusion.Creer(Type, CanalNotification.InApp, false);
+        regle.Cibler("Enrolement", null);
+        AvecRegles(regle);
+
+        var crees = await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        Assert.Equal(0, crees);
+        Assert.Empty(_notificationsAjoutees);
+    }
+
+    [Fact]
+    public async Task RegleBorneeALEtapeDuTicket_SApplique()
+    {
+        var file = Guid.NewGuid();
+        AvecTicketEnFile("BillingOffice", file);
+        var regle = RegleDiffusion.Creer(Type, CanalNotification.InApp, false);
+        regle.Cibler("BillingOffice", file);
+        AvecRegles(regle);
+
+        var crees = await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        Assert.Equal(1, crees);
+    }
+
+    [Fact]
+    public async Task RegleBorneeAUneAutreEtape_NeSApplique_Pas()
+    {
+        AvecTicketEnFile("BillingOffice", Guid.NewGuid());
+        var regle = RegleDiffusion.Creer(Type, CanalNotification.InApp, false);
+        regle.Cibler(null, Guid.NewGuid());
+        AvecRegles(regle);
+
+        var crees = await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        Assert.Equal(0, crees);
+    }
 
     // ---- T053 : silence du paramétrage ----
 
@@ -301,5 +373,60 @@ public class DistribuerNotificationsUseCaseTests
 
         Assert.Equal(0, crees);
         Assert.Empty(_notificationsAjoutees);
+    }
+
+    // ---- P1-02 / RG-COM-01 : interpolation du gabarit et lien direct vers le ticket ----
+
+    /// <summary>
+    /// DÉFAUT CORRIGÉ : le distributeur recopiait le gabarit verbatim. Un modèle portant
+    /// « {numeroTicket} » restituait ce texte littéral au client.
+    /// </summary>
+    [Fact]
+    public async Task Le_gabarit_est_interpole_avec_les_donnees_du_ticket()
+    {
+        var ticket = AvecTicketEnFile("BillingImport", Guid.NewGuid());
+        AvecRegles(RegleDiffusion.Creer(Type, CanalNotification.InApp, false));
+        _modeles.Setup(m => m.ObtenirActifAsync(Type, CanalNotification.InApp, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ModeleNotification.Creer(Type, CanalNotification.InApp,
+                "Ticket {numeroTicket}", "Votre demande {module} a évolué."));
+
+        await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        var notification = Assert.Single(_notificationsAjoutees);
+        Assert.Equal($"Ticket {ticket.Numero}", notification.Titre);
+        Assert.Contains("Votre demande BillingImport a évolué.", notification.Corps);
+    }
+
+    /// <summary>
+    /// RG-COM-01 — « chaque notification comporte un lien direct vers le ticket ». Le lien est
+    /// garanti même lorsque le gabarit administré ne l'a pas prévu : la règle ne peut pas dépendre
+    /// du fait qu'un administrateur ait pensé à écrire un jeton.
+    /// </summary>
+    [Fact]
+    public async Task Le_lien_direct_vers_le_ticket_est_garanti_meme_si_le_gabarit_l_omet()
+    {
+        var ticket = AvecTicketEnFile("BillingImport", Guid.NewGuid());
+        AvecRegles(RegleDiffusion.Creer(Type, CanalNotification.InApp, false));
+        _modeles.Setup(m => m.ObtenirActifAsync(Type, CanalNotification.InApp, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ModeleNotification.Creer(Type, CanalNotification.InApp, "Titre", "Corps sans lien."));
+
+        await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        var notification = Assert.Single(_notificationsAjoutees);
+        Assert.Contains($"/tickets/{ticket.Id}", notification.Corps);
+    }
+
+    /// <summary>NON-RÉGRESSION : sans modèle administré, le comportement de repli est conservé —
+    /// le titre reste le type d'événement.</summary>
+    [Fact]
+    public async Task Sans_modele_administre_le_type_d_evenement_reste_le_titre()
+    {
+        AvecTicketEnFile("BillingImport", Guid.NewGuid());
+        AvecRegles(RegleDiffusion.Creer(Type, CanalNotification.InApp, false));
+
+        await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
+
+        var notification = Assert.Single(_notificationsAjoutees);
+        Assert.Equal(Type, notification.Titre);
     }
 }

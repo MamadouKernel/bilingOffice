@@ -57,7 +57,7 @@ public sealed class AdministrationCategoriesTests : BunitContext
     public void A_AdminHabilite_AccedeALaPage()
     {
         var (db, adminId) = ConstruireBase();
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminId, Permission.AdministrationCategoriesReclamation));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, adminId), Permission.AdministrationCategoriesReclamation));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();
@@ -106,7 +106,7 @@ public sealed class AdministrationCategoriesTests : BunitContext
     public void AdminHabilite_VoitLeBoutonNouvelleCategorie()
     {
         var (db, adminId) = ConstruireBase();
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminId, Permission.AdministrationCategoriesReclamation));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, adminId), Permission.AdministrationCategoriesReclamation));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();
@@ -131,7 +131,7 @@ public sealed class AdministrationCategoriesTests : BunitContext
     public async Task CreationValide_CategorieAffichee_EtDisponiblePourNouvelleReclamation()
     {
         var (db, adminId) = ConstruireBase();
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminId, Permission.AdministrationCategoriesReclamation));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, adminId), Permission.AdministrationCategoriesReclamation));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();

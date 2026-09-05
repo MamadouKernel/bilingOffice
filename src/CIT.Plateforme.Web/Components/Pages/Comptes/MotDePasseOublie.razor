@@ -15,11 +15,11 @@
             <div class="row g-0">
                 
                 <!-- Left Side: 3D Illustration -->
-                <div class="col-md-6 d-none d-md-block" style="background-color: #eaf4fc;">
+                <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
                         <img src="images/login-illustration.jpg" alt="Terminal Maritime 3D" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: #1e3a8a;">Bienvenue sur l'Espace Digital</h3>
+                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">Bienvenue sur l'Espace Digital</h3>
                             <p class="text-muted mb-0">Gérez vos expéditions, conteneurs et facturations maritimes en toute simplicité grâce à la plateforme.</p>
                         </div>
                     </div>
@@ -135,7 +135,7 @@
         // ni jeton, ni adresse, ni identifiant — seulement le fait qu'aucun canal n'est configuré.
         Journal.LogWarning(
             "Demande de réinitialisation de mot de passe reçue, mais aucun canal de distribution "
-            + "approuvé n'est configuré (PC-16) : le lien n'a pas été transmis.");
+            + "approuvé n'est configuré : le lien n'a pas été transmis.");
     }
 
     private sealed class ModeleDemande

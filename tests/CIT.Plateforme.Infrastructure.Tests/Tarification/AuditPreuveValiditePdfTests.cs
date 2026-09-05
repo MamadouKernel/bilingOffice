@@ -1,7 +1,10 @@
 using System.Text;
 using CIT.Plateforme.Domain.Tarification;
+using CIT.Plateforme.Domain.Tarification.Referentiels;
 using CIT.Plateforme.Infrastructure.Documents;
 using Xunit;
+
+using A = CIT.Plateforme.Domain.Tarification.ParametrageInitialAnnexeA;
 
 namespace CIT.Plateforme.Infrastructure.Tests.Tarification;
 
@@ -15,19 +18,40 @@ namespace CIT.Plateforme.Infrastructure.Tests.Tarification;
 /// </summary>
 public sealed class AuditPreuveValiditePdfTests
 {
+    private static readonly ReferentielsAnnexeA Ref = ParametrageInitialAnnexeA.CreerReferentiels();
+
     private static SimulationProforma ConstruireSimulationMinimale()
     {
-        var conteneur = new ConteneurSimulation("AUDIT01", TailleConteneur.VingtPieds, TypeConteneur.Dry, 10m, false, false, "C1");
-        var dossier = new DossierSimulation(SensTrafic.ImportLocal, new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 5), [conteneur]);
-        var ligne = new LigneResultatConteneur(conteneur, 66800m, 25000m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m);
-        return SimulationProforma.Creer("SIM-AUDIT-PDF-0001", Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow, Guid.NewGuid(), "v1.0", dossier, [ligne]);
+        var grille = VersionGrilleTarifaire.Creer(
+            "v1.0", new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), Guid.NewGuid(), DateTime.UtcNow,
+            A.FranchiseBranchementJours);
+        ParametrageInitialAnnexeA.AppliquerParametres(grille, Ref);
+
+        var sens = Ref.ParSens(A.SensImportLocal);
+        var taille = Ref.ParTaille(A.TailleVingtPieds);
+        var type = Ref.ParType(A.TypeDry);
+        var categorie = Ref.ParCategorie(A.SensImportLocal, "C1");
+
+        grille.AjouterLigne(sens.Id, taille.Id, categorie.Id, 66800m, 25000m, 0m);
+
+        var dossier = new DossierSimulation(
+            sens.Id,
+            new DateOnly(2026, 1, 1),
+            new DateOnly(2026, 1, 5),
+            [new ConteneurSimulation("AUDIT01", taille.Id, type.Id, 10m, false, false, categorie.Id)]);
+
+        var resultat = new MoteurCalculProforma().Calculer(dossier, grille, Ref.Index);
+
+        return SimulationProforma.Creer(
+            "SIM-AUDIT-PDF-0001", Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow,
+            grille.Id, "v1.0", dossier, resultat.LignesConteneurs);
     }
 
     [Fact]
     public async Task Document_genere_commence_par_un_en_tete_PDF_et_se_termine_par_EOF()
     {
-        var generateur = new GenerateurDocumentProformaPdf();
-        var resultat = await generateur.GenererPdfAsync(ConstruireSimulationMinimale());
+        var resultat = await new GenerateurDocumentProformaPdf()
+            .GenererPdfAsync(ConstruireSimulationMinimale(), Ref.Index);
         var texte = Encoding.UTF8.GetString(resultat.Contenu);
 
         Assert.StartsWith("%PDF-1.4", texte);
@@ -44,8 +68,8 @@ public sealed class AuditPreuveValiditePdfTests
     [Fact]
     public async Task Document_genere_NE_CONTIENT_PAS_la_structure_minimale_d_un_PDF_valide()
     {
-        var generateur = new GenerateurDocumentProformaPdf();
-        var resultat = await generateur.GenererPdfAsync(ConstruireSimulationMinimale());
+        var resultat = await new GenerateurDocumentProformaPdf()
+            .GenererPdfAsync(ConstruireSimulationMinimale(), Ref.Index);
         var texte = Encoding.UTF8.GetString(resultat.Contenu);
 
         var contientObjetIndirect = texte.Contains(" 0 obj") && texte.Contains("endobj");
@@ -64,14 +88,18 @@ public sealed class AuditPreuveValiditePdfTests
     [Fact]
     public async Task Document_genere_contient_neanmoins_les_champs_normatifs_attendus()
     {
-        var generateur = new GenerateurDocumentProformaPdf();
         var sim = ConstruireSimulationMinimale();
-        var resultat = await generateur.GenererPdfAsync(sim);
+        var resultat = await new GenerateurDocumentProformaPdf().GenererPdfAsync(sim, Ref.Index);
         var texte = Encoding.UTF8.GetString(resultat.Contenu);
 
         Assert.Contains(sim.Reference, texte);
         Assert.Contains("v1.0", texte);
         Assert.Contains(sim.MontantTotalXof.ToString("N0"), texte);
         Assert.Contains(MoteurCalculProforma.MentionLegaleDefaut, texte);
+
+        // Les libellés du référentiel remplacent les valeurs d'énumération autrefois imprimées
+        // telles quelles (« VingtPieds », « Dry »).
+        Assert.Contains("Import local", texte);
+        Assert.Contains("20 pieds", texte);
     }
 }

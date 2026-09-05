@@ -1,5 +1,6 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.AvoirExoneration;
+using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.AvoirExoneration;
 using CIT.Plateforme.Domain.Comptes;
@@ -20,6 +21,9 @@ public sealed class ConsulterAvoirExoTests
     private readonly Mock<IUtilisateurSocieteRepository> _utilisateurSocieteRepo = new();
     private readonly Mock<ISocieteClienteRepository> _societeRepo = new();
     private readonly Mock<IAutorisationService> _autorisation = new();
+    private readonly Mock<IHabilitationRepository> _habilitationRepo = new();
+    private readonly Mock<IPerimetreSupervisionRepository> _perimetreRepo = new();
+    private readonly Mock<IUtilisateurInfoRepository> _utilisateurInfoRepo = new();
 
     private readonly ListerMesDemandesAvoirExonerationQuery _mesDemandesQuery;
     private readonly ConsulterFileAvoirExonerationQuery _fileQuery;
@@ -52,7 +56,22 @@ public sealed class ConsulterAvoirExoTests
             _messageRepo.Object,
             _historiqueRepo.Object,
             _utilisateurSocieteRepo.Object,
-            _autorisation.Object);
+            _autorisation.Object,
+            new ControleAccesRessourceService(
+                _dossierRepo.Object,
+                _ticketRepo.Object,
+                _utilisateurSocieteRepo.Object,
+                _habilitationRepo.Object,
+                _perimetreRepo.Object,
+                new GardeIdentiteService(_utilisateurInfoRepo.Object)));
+
+        // CENTRALISATION P2-01 — la fiche délègue désormais le contrôle générique. L'appelant doit
+        // donc être un compte RÉEL et ACTIF pour que le refus testé plus bas porte bien sur la
+        // propriété du dossier, et non sur une identité que le montage aurait oublié de décrire.
+        _utilisateurInfoRepo.Setup(u => u.ObtenirInfoAsync(_userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UtilisateurInfo(_userId, "client@avoirexo.test", "client@avoirexo.test", "Client", true, NatureUtilisateur.Client));
+        _habilitationRepo.Setup(h => h.ListerParUtilisateurAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<HabilitationUtilisateur>());
 
         _utilisateurSocieteRepo.Setup(u => u.ObtenirParUtilisateurAsync(_userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(UtilisateurSociete.Rattacher(_userId, _societeId, _maintenantUtc, true));

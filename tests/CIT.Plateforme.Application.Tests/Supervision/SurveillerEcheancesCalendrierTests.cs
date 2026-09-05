@@ -49,7 +49,7 @@ public sealed class SurveillerEcheancesCalendrierTests
         var periodesRepo = new PeriodeAttenteClientRepository(dbContext);
         // Seuils à 100% : seul le franchissement de la cible elle-même nous intéresse ici.
         var provider = new ParametresSlaDeTestProvider(new ParametresSla(cible, 1.0, 1.0), calendrier);
-        var useCase = new SurveillerEcheancesUseCase(ticketRepo, periodesRepo, alertesRepo, provider, journalisation, horloge, uniteDeTravail);
+        var useCase = new SurveillerEcheancesUseCase(ticketRepo, periodesRepo, alertesRepo, provider, new RegleEscaladeRepository(dbContext), new PerimetreSupervisionRepository(dbContext), journalisation, horloge, uniteDeTravail);
 
         return await useCase.TraiterTicketAsync(ticketId);
     }

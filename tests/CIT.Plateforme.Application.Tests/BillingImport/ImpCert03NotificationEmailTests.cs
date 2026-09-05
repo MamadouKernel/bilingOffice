@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.BillingImport;
 using CIT.Plateforme.Application.Notifications;
 using CIT.Plateforme.Application.Notifications.Resolveurs;
@@ -129,7 +129,8 @@ public sealed class ImpCert03NotificationEmailTests
         };
 
         var distributeur = new DistribuerNotificationsUseCase(
-            evenementRepo, regleRepo, modeleRepo, notificationRepo, envoiRepo, prefRepo,
+            evenementRepo,
+            new CIT.Plateforme.Application.Tests.Support.LienPortailDeTest(), regleRepo, new TicketRepository(dbContext), modeleRepo, notificationRepo, envoiRepo, prefRepo,
             resolveurs, executeur, journalisation, horloge, uniteDeTravail);
 
         var nbDistribues = await distributeur.DistribuerAsync();

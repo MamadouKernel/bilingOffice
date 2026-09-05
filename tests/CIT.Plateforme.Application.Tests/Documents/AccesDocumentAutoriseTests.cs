@@ -29,14 +29,14 @@ public sealed class AccesDocumentAutoriseTests
         var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var autorisation = new AutorisationService(dbContext);
         var ticketRepo = new TicketRepository(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var clientProprietaire = Guid.NewGuid();
         var agentHabilite = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentHabilite, Permission.DocumentTelecharger, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentHabilite), Permission.DocumentTelecharger, fileId));
 
-        var dossier = Dossier.Creer("DOS-ACC-000001", clientProprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-ACC-000001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-ACC-000001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);

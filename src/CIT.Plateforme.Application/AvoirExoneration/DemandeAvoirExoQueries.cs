@@ -255,6 +255,7 @@ public sealed class ObtenirFicheAvoirExonerationQuery
     private readonly IHistoriqueTicketRepository _historiqueRepo;
     private readonly IUtilisateurSocieteRepository _utilisateurSocieteRepo;
     private readonly IAutorisationService _autorisation;
+    private readonly ControleAccesRessourceService _controleAcces;
 
     public ObtenirFicheAvoirExonerationQuery(
         ITicketRepository ticketRepo,
@@ -265,7 +266,8 @@ public sealed class ObtenirFicheAvoirExonerationQuery
         IMessageRepository messageRepo,
         IHistoriqueTicketRepository historiqueRepo,
         IUtilisateurSocieteRepository utilisateurSocieteRepo,
-        IAutorisationService autorisation)
+        IAutorisationService autorisation,
+        ControleAccesRessourceService controleAcces)
     {
         _ticketRepo = ticketRepo;
         _dossierRepo = dossierRepo;
@@ -276,6 +278,7 @@ public sealed class ObtenirFicheAvoirExonerationQuery
         _historiqueRepo = historiqueRepo;
         _utilisateurSocieteRepo = utilisateurSocieteRepo;
         _autorisation = autorisation;
+        _controleAcces = controleAcces;
     }
 
     public async Task<FicheAvoirExonerationDto> ExecuterAsync(Guid demandeurId, Guid ticketId, CancellationToken ct = default)
@@ -292,15 +295,24 @@ public sealed class ObtenirFicheAvoirExonerationQuery
             throw new InvalidOperationException("Dossier introuvable.");
         }
 
-        var utilisateurSociete = await _utilisateurSocieteRepo.ObtenirParUtilisateurAsync(demandeurId, ct);
-        var societeId = utilisateurSociete?.SocieteId ?? demandeurId;
-        var estAgent = await _autorisation.EstAutoriseAsync(demandeurId, Permission.AvoirExonerationInstruire, null, ct);
+        // ── 1. CONTRÔLE GÉNÉRIQUE — délégué (centralisation P2-01) ────────────────────────
+        //
+        // Cinquième implémentation de la décision d'accès. Celle-ci était correcte sur le fond —
+        // `estAgent` y est une vraie vérification de permission, non la nature de l'appelant — mais
+        // elle réécrivait la propriété du dossier et ignorait l'état du compte (P0-ter).
+        // Le contrôle central porte désormais identité valide, compte actif, propriété, société et
+        // portée de file.
+        await _controleAcces.ExigerConsultationTicketAsync(demandeurId, ticket, ct);
 
-        // Contrôle d'accès strict (Anti-IDOR SEC-AVE-01)
-        if (!estAgent && dossier.ClientId != societeId)
-        {
-            throw new AccesRefuseException("Accès refusé à ce dossier (SEC-AVE-01).");
-        }
+        // ── 2. CONTRÔLE MÉTIER SPÉCIFIQUE — conservé ──────────────────────────────────────
+        //
+        // `avoirexoneration.instruire` distingue l'instructeur du demandeur. Cette distinction ne
+        // décide plus de l'ACCÈS — le contrôle central s'en charge — mais du CONTENU servi : elle
+        // seule ouvre les notes internes, plus bas. Elle est propre au module.
+        // P3 — même portée de file que les commandes du module : un `null` n'aurait reconnu que les
+        // habilitations non bornées, et aurait masqué les notes internes à l'instructeur de la file.
+        var estAgent = await _autorisation.EstAutoriseAsync(
+            demandeurId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, ct);
 
         var societe = await _societeRepo.ObtenirParIdAsync(dossier.ClientId, ct);
         var documents = await _documentRepo.ListerParTicketAsync(ticket.Id, ct);

@@ -28,7 +28,7 @@ public sealed class DerogationWorkflowTests
         var fileCibleHorsMatrice = Guid.NewGuid();
         // Habilité à DÉROGER — permission distincte de TicketTransferer (aucune entrée dans
         // TransitionsAutorisees pour fileSource -> fileCibleHorsMatrice).
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(initiateurId, DerogationWorkflowService.PermissionDeroger, fileSource));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, initiateurId), DerogationWorkflowService.PermissionDeroger, fileSource));
 
         var dossier = Dossier.Creer("DOS-WKF-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-WKF-000001", "BillingOffice", "Import", fileSource, dossier.Id, horloge.MaintenantUtc);

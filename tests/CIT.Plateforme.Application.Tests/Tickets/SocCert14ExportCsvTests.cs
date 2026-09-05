@@ -101,7 +101,7 @@ public sealed class SocCert14ExportCsvTests
         societeA.Valider();
         societeA.EnregistrerAdministrateurActif();
         dbContext.Societes.Add(societeA);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientAId, societeA.Id, horloge.MaintenantUtc, estAdministrateur: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientAId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societeA.Id, horloge.MaintenantUtc, estAdministrateur: true));
 
         var dossierA = Dossier.Creer("DOS-AAA", societeA.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossierA);
@@ -114,7 +114,7 @@ public sealed class SocCert14ExportCsvTests
         societeB.Valider();
         societeB.EnregistrerAdministrateurActif();
         dbContext.Societes.Add(societeB);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientBId, societeB.Id, horloge.MaintenantUtc, estAdministrateur: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientBId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societeB.Id, horloge.MaintenantUtc, estAdministrateur: true));
 
         var dossierB = Dossier.Creer("DOS-BBB", societeB.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossierB);

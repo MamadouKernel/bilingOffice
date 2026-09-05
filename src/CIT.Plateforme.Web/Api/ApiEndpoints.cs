@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tarification;
 using CIT.Plateforme.Application.Web;
 using CIT.Plateforme.Domain.Comptes;
@@ -22,7 +23,7 @@ public static class ApiEndpoints
         api.MapGet("/tickets/{numero}", async (
             string numero,
             ITicketRepository tickets,
-            IDossierRepository dossiers,
+            ControleAccesRessourceService controleAcces,
             IContexteUtilisateurWeb contexteWeb,
             CancellationToken ct) =>
         {
@@ -38,11 +39,11 @@ public static class ApiEndpoints
             }
 
             var ctx = await contexteWeb.ObtenirContexteAsync(ct).ConfigureAwait(false);
-            var dossier = await dossiers.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false);
 
-            // Vérification de sécurité CPT-04 / SEC-03
-            if (ctx.Nature == NatureUtilisateur.Client && ctx.SocieteId.HasValue && dossier is not null &&
-                ctx.SocieteId.Value != dossier.ClientId)
+            // CPT-04 / SEC-03 — décision déléguée au contrôle central, refus par défaut.
+            // Ce point réimplémentait auparavant sa propre règle, qui n'était appliquée que si
+            // l'appelant possédait une société : un compte sans société lisait tout (P0).
+            if (!await controleAcces.PeutConsulterLeTicketAsync(ctx.UtilisateurId, ticket, ct).ConfigureAwait(false))
             {
                 return Results.Forbid();
             }
@@ -63,6 +64,7 @@ public static class ApiEndpoints
             string reference,
             IDossierRepository dossiers,
             ITicketRepository tickets,
+            ControleAccesRessourceService controleAcces,
             IContexteUtilisateurWeb contexteWeb,
             CancellationToken ct) =>
         {
@@ -79,9 +81,8 @@ public static class ApiEndpoints
 
             var ctx = await contexteWeb.ObtenirContexteAsync(ct).ConfigureAwait(false);
 
-            // Vérification de sécurité CPT-04
-            if (ctx.Nature == NatureUtilisateur.Client && ctx.SocieteId.HasValue &&
-                ctx.SocieteId.Value != dossier.ClientId)
+            // CPT-04 / ENT-03 — même contrôle central que pour le ticket, refus par défaut.
+            if (!await controleAcces.PeutConsulterLeDossierAsync(ctx.UtilisateurId, dossier, ct).ConfigureAwait(false))
             {
                 return Results.Forbid();
             }
@@ -108,6 +109,7 @@ public static class ApiEndpoints
         api.MapPost("/simulations/calculer", async (
             CalculerSimulationRequeteDto requete,
             CalculerSimulationProformaQueryHandler handler,
+            IReferentielsTarifairesRepository referentielsRepository,
             CancellationToken ct) =>
         {
             if (requete.Conteneurs is null || requete.Conteneurs.Count == 0)
@@ -115,27 +117,56 @@ public static class ApiEndpoints
                 return Results.BadRequest(new { message = "Au moins un conteneur est requis." });
             }
 
-            if (!Enum.TryParse<SensTrafic>(requete.Sens, ignoreCase: true, out var sens))
+            // Les référentiels sont devenus des tables (analyse Merise § 3.3) : l'API résout donc
+            // les codes reçus au lieu de les convertir en énumérations, et refuse un code inconnu
+            // plutôt que de retomber silencieusement sur une valeur par défaut — l'ancien code
+            // traduisait toute taille non « 40 » en 20 pieds et toute catégorie absente en
+            // « Standard », ce qui produisait un tarif pour une demande que le client n'avait pas
+            // formulée.
+            var referentiels = await referentielsRepository.ChargerAsync(ct).ConfigureAwait(false);
+
+            var sens = referentiels.SensParCode(requete.Sens);
+            if (sens is null)
             {
-                return Results.BadRequest(new { message = $"Sens de trafic invalide: {requete.Sens}" });
+                return Results.BadRequest(new { message = $"Sens d'opération inconnu : {requete.Sens}" });
             }
 
-            var conteneursDomain = requete.Conteneurs.Select(c =>
+            var conteneursDomain = new List<ConteneurSimulationRequete>(requete.Conteneurs.Count);
+            foreach (var c in requete.Conteneurs)
             {
-                var taille = c.Taille == "40" ? TailleConteneur.QuarantePieds : TailleConteneur.VingtPieds;
-                var type = c.Type.Equals("Reefer", StringComparison.OrdinalIgnoreCase) ? TypeConteneur.Reefer : TypeConteneur.Dry;
-                return new ConteneurSimulationRequete(
+                var taille = referentiels.TailleParCode(c.Taille);
+                if (taille is null)
+                {
+                    return Results.BadRequest(new { message = $"Taille de conteneur inconnue : {c.Taille}" });
+                }
+
+                var type = referentiels.TypeParCode(c.Type);
+                if (type is null)
+                {
+                    return Results.BadRequest(new { message = $"Type de conteneur inconnu : {c.Type}" });
+                }
+
+                var categorie = referentiels.CategorieParCode(sens.Id, c.CategorieMarchandise ?? string.Empty);
+                if (categorie is null)
+                {
+                    return Results.BadRequest(new
+                    {
+                        message = $"Catégorie de marchandise « {c.CategorieMarchandise} » inconnue pour le sens « {sens.Code} »."
+                    });
+                }
+
+                conteneursDomain.Add(new ConteneurSimulationRequete(
                     "API-CTR",
-                    taille,
-                    type,
+                    taille.Id,
+                    type.Id,
                     c.Poids,
                     c.EstDangereux,
                     c.EstHorsGabarit,
-                    c.CategorieMarchandise ?? "Standard");
-            }).ToList();
+                    categorie.Id));
+            }
 
             var proformaRequete = new CalculerSimulationProformaRequete(
-                sens,
+                sens.Id,
                 DateOnly.FromDateTime(requete.DateArrivee),
                 DateOnly.FromDateTime(requete.DateEnlevement),
                 conteneursDomain);
@@ -144,7 +175,7 @@ public static class ApiEndpoints
 
             var lignesDto = resultat.Lignes.Select(l => new LigneSimulationDto(
                 l.NumeroConteneur,
-                $"{l.Taille} {l.Type}",
+                $"{l.Taille.Libelle} {l.Type.Libelle}",
                 l.TotalLigne)).ToList();
 
             var responseDto = new SimulationResultatDto(

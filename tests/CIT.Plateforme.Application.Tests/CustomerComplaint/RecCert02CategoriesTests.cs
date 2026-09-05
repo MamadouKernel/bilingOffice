@@ -28,7 +28,7 @@ public sealed class RecCert02CategoriesTests
         var uniteDeTravail = new UniteDeTravail(dbContext);
 
         var adminId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminId, Permission.AdministrationCategoriesReclamation, null));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, adminId), Permission.AdministrationCategoriesReclamation, null));
         await dbContext.SaveChangesAsync();
 
         // 1. Création dynamique d'une nouvelle catégorie

@@ -42,6 +42,27 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // d'usage Application, pas seulement au niveau des routes Web).
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
     .AddIdentityCookies();
+
+// REMÉDIATION P0-ter — SESSION DÉJÀ OUVERTE.
+//
+// Le cookie d'authentification survit à la désactivation du compte : il est signé, non révocable,
+// et valable jusqu'à son expiration. La frontière de sécurité est donc placée côté serveur
+// (GardeIdentiteService, consultée par AutorisationService et ControleAccesRessourceService) : un
+// compte désactivé n'obtient plus aucune autorisation, quel que soit l'état de son cookie.
+//
+// Ce réglage ajoute la déconnexion effective. Identity valide le tampon de sécurité porté par le
+// cookie contre celui stocké en base ; la désactivation fait tourner ce tampon
+// (AdministrationComptesRepository), et l'intervalle nul impose la vérification À CHAQUE REQUÊTE
+// plutôt qu'une fois par tranche de 30 minutes (défaut).
+//
+// COMPROMIS ASSUMÉ : une lecture du compte par requête. C'est le prix d'une désactivation
+// réellement immédiate, telle que l'exige SEC-11 ; l'intervalle par défaut aurait laissé une
+// fenêtre d'une demi-heure. Ce n'est pas cette validation qui protège les données — elle rend le
+// refus lisible pour l'utilisateur au lieu de lui servir une interface vide.
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.Zero;
+});
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
@@ -141,6 +162,17 @@ using (var scope = app.Services.CreateScope())
     await libelles.ExecuterAsync();
 }
 
+// SIM-06 / Annexe A.6 : les référentiels tarifaires (sens, taille, type, catégorie de
+// marchandise) sont devenus des tables (analyse Merise § 3.3). Sans approvisionnement, aucune
+// simulation n'est possible — il n'y aurait rien à choisir dans les listes de saisie.
+// Strictement additif, au même titre que les libellés de statut ci-dessus.
+using (var scope = app.Services.CreateScope())
+{
+    var referentiels = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementReferentielsTarifaires>();
+    await referentiels.ExecuterAsync();
+}
+
 // AMORCAGE DU PREMIER ADMINISTRATEUR — hors de la branche ci-dessus, donc dans TOUS les
 // environnements. Sans lui, une production demarre sans qu'aucun compte ne puisse administrer
 // les comptes agents (§ 17.3), et rien ne permet d'y remedier depuis l'application.
@@ -214,8 +246,21 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 app.MapHub<SupervisionHub>(SupervisionHub.CheminHub);
 
-app.MapPost("/comptes/deconnexion", async (SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager) =>
+app.MapPost("/comptes/deconnexion", async (
+    SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,
+    UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
+    CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    HttpContext contexteHttp) =>
 {
+    // P2-03 (RG-SEC-03) : la déconnexion est consignée AVANT d'être effectuée — après, l'identité
+    // n'est plus lisible dans le principal.
+    var identifiant = userManager.GetUserId(contexteHttp.User);
+    if (Guid.TryParse(identifiant, out var utilisateurId))
+    {
+        await journalConnexion.DeconnexionAsync(
+            utilisateurId, contexteHttp.Connection.RemoteIpAddress?.ToString());
+    }
+
     await signInManager.SignOutAsync();
     return Results.Redirect("/comptes/connexion");
 });

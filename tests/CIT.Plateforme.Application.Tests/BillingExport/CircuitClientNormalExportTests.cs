@@ -47,7 +47,7 @@ public sealed class CircuitClientNormalExportTests
         var dossierRepository = new DossierRepository(dbContext);
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var deposerDocument = new DeposerDocumentCommand(
             new DocumentRepository(dbContext), ticketRepository, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")),
@@ -65,9 +65,9 @@ public sealed class CircuitClientNormalExportTests
         var agentId = Guid.NewGuid();
 
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportBackOfficeInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingExportBackOfficeInstruire),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportFacturationEditer),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportPaiementValider),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportControleDocumentaireTraiter),
@@ -107,7 +107,7 @@ public sealed class CircuitClientNormalExportTests
 
         // 3. Client dépose la preuve de paiement
         var preuveContenu = Encoding.UTF8.GetBytes("Preuve Virement");
-        await c.DeposerPreuve.ExecuterAsync(c.SocieteId, ticket.Id, "Preuve.pdf", "application/pdf", new MemoryStream(preuveContenu), preuveContenu.Length, Regles);
+        await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticket.Id, "Preuve.pdf", "application/pdf", new MemoryStream(preuveContenu), preuveContenu.Length, Regles);
 
         // 4. Validation du paiement -> File Contrôle Documentaire
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticket.Id);

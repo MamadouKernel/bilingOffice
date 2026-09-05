@@ -1,13 +1,21 @@
 using System.Globalization;
 using System.Text;
-using CIT.Plateforme.Domain.Tarification;
 
 namespace CIT.Plateforme.Application.Tarification;
 
+/// <summary>
+/// Une ligne du fichier, exprimée en <b>codes</b> de référentiel.
+///
+/// Le parseur ne résout plus les valeurs lui-même : il produisait auparavant des énumérations et
+/// une catégorie en texte libre, ce qui laissait passer n'importe quel libellé. Depuis la
+/// normalisation (analyse Merise § 3.3), la résolution appartient à la commande, seule à disposer
+/// des référentiels — et un code inconnu devient une erreur d'import nommée, pas une ligne
+/// tarifaire fantôme qu'aucune simulation ne retrouverait.
+/// </summary>
 public sealed record LigneTarifaireCsvModel(
-    SensTrafic Sens,
-    TailleConteneur Taille,
-    string CategorieMarchandise,
+    string SensCode,
+    string TailleCode,
+    string CategorieCode,
     decimal Acconage,
     decimal Relevage,
     decimal TarifJourBranchement);
@@ -18,7 +26,8 @@ public sealed record ResultatAnalyseCsv(
     IReadOnlyList<string> Erreurs);
 
 /// <summary>
-/// Service d'analyse syntaxique et métier atomique d'un fichier CSV de grille tarifaire (SIM-10, CLAR-SIM-01).
+/// Service d'analyse syntaxique atomique d'un fichier CSV de grille tarifaire (SIM-10, CLAR-SIM-01).
+/// Reste volontairement pur : aucune dépendance, aucun accès aux référentiels.
 /// </summary>
 public sealed class ImportateurGrilleTarifaireCsv
 {
@@ -54,25 +63,24 @@ public sealed class ImportateurGrilleTarifaireCsv
                 continue;
             }
 
-            var sensBrut = colonnes[0].Trim();
-            var tailleBrut = colonnes[1].Trim();
-            var categorie = colonnes[2].Trim();
+            var sensCode = colonnes[0].Trim();
+            var tailleCode = colonnes[1].Trim();
+            var categorieCode = colonnes[2].Trim();
             var acconageBrut = colonnes[3].Trim();
             var relevageBrut = colonnes[4].Trim();
             var brfBrut = colonnes[5].Trim();
 
-            if (!Enum.TryParse<SensTrafic>(sensBrut, ignoreCase: true, out var sens))
+            if (string.IsNullOrWhiteSpace(sensCode))
             {
-                erreurs.Add($"Ligne {numeroLigne} : Sens de trafic '{sensBrut}' inconnu.");
+                erreurs.Add($"Ligne {numeroLigne} : Le sens d'opération est vide.");
             }
 
-            if (!int.TryParse(tailleBrut, out var tailleInt) || (tailleInt != 20 && tailleInt != 40))
+            if (string.IsNullOrWhiteSpace(tailleCode))
             {
-                erreurs.Add($"Ligne {numeroLigne} : Taille '{tailleBrut}' invalide (seules 20 ou 40 sont autorisées).");
+                erreurs.Add($"Ligne {numeroLigne} : La taille de conteneur est vide.");
             }
-            var taille = tailleInt == 20 ? TailleConteneur.VingtPieds : TailleConteneur.QuarantePieds;
 
-            if (string.IsNullOrWhiteSpace(categorie))
+            if (string.IsNullOrWhiteSpace(categorieCode))
             {
                 erreurs.Add($"Ligne {numeroLigne} : La catégorie de marchandise est vide.");
             }
@@ -92,15 +100,15 @@ public sealed class ImportateurGrilleTarifaireCsv
                 erreurs.Add($"Ligne {numeroLigne} : Tarif jour branchement '{brfBrut}' invalide ou négatif.");
             }
 
-            var cle = $"{sens}_{taille}_{categorie}";
+            var cle = $"{sensCode}_{tailleCode}_{categorieCode}";
             if (!clesVues.Add(cle))
             {
-                erreurs.Add($"Ligne {numeroLigne} : Détection d'un doublon de clé ({sens}, {tailleInt}\", '{categorie}').");
+                erreurs.Add($"Ligne {numeroLigne} : Détection d'un doublon de clé ({sensCode}, {tailleCode}, '{categorieCode}').");
             }
 
             if (erreurs.Count == 0)
             {
-                lignes.Add(new LigneTarifaireCsvModel(sens, taille, categorie, acconage, relevage, brf));
+                lignes.Add(new LigneTarifaireCsvModel(sensCode, tailleCode, categorieCode, acconage, relevage, brf));
             }
         }
 

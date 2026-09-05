@@ -1,16 +1,19 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Securite;
-using CIT.Plateforme.Domain.Tarification;
 
 namespace CIT.Plateforme.Application.Tarification;
 
+/// <summary>
+/// Import CSV d'une grille. <c>Parametres</c> non renseigné applique le paramétrage initial de
+/// l'Annexe A — c'est le cas courant : le fichier porte les tarifs, pas les taux ni les tranches.
+/// </summary>
 public sealed record ImporterGrilleTarifaireCsvCommande(
     Guid AgentId,
     string NumeroVersion,
     DateTime DateEffetUtc,
-    ParametresTarification Parametres,
-    Stream FluxCsv);
+    Stream FluxCsv,
+    ParametresGrilleSaisie? Parametres = null);
 
 public sealed record ResultatImportCsvVue(
     bool Succes,
@@ -20,6 +23,7 @@ public sealed record ResultatImportCsvVue(
 
 public sealed class ImporterGrilleTarifaireCsvCommandHandler(
     IVersionGrilleTarifaireRepository repository,
+    IReferentielsTarifairesRepository referentielsRepository,
     ImportateurGrilleTarifaireCsv importateur,
     IAutorisationService autorisation)
 {
@@ -37,16 +41,25 @@ public sealed class ImporterGrilleTarifaireCsvCommandHandler(
             return new ResultatImportCsvVue(false, 0, null, analyse.Erreurs);
         }
 
-        var version = VersionGrilleTarifaire.Creer(
+        var referentiels = await referentielsRepository.ChargerAsync(ct);
+
+        var version = ConstructeurGrilleTarifaire.Construire(
             commande.NumeroVersion,
             commande.DateEffetUtc,
             commande.AgentId,
             DateTime.UtcNow,
-            commande.Parametres);
+            commande.Parametres,
+            [.. analyse.Lignes.Select(l => new LigneTarifaireSaisie(
+                l.SensCode, l.TailleCode, l.CategorieCode, l.Acconage, l.Relevage, l.TarifJourBranchement))],
+            referentiels,
+            out var erreurs);
 
-        foreach (var l in analyse.Lignes)
+        // ATOMICITÉ (CLAR-SIM-01) : un seul code inconnu annule tout l'import. Créer la grille
+        // amputée des lignes fautives donnerait une tarification silencieusement incomplète —
+        // et « tarif non trouvé » se manifesterait bien plus tard, chez un client.
+        if (erreurs.Count > 0)
         {
-            version.AjouterLigne(l.Sens, l.Taille, l.CategorieMarchandise, l.Acconage, l.Relevage, l.TarifJourBranchement);
+            return new ResultatImportCsvVue(false, 0, null, erreurs);
         }
 
         await repository.AjouterAsync(version, ct);

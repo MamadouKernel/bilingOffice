@@ -17,7 +17,7 @@
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>⏱️</span> Disponibilité des agents (DIS-01, C-07)
+            <span>⏱️</span> Disponibilité des agents
         </h2>
         <div class="cit-page-subtitle">Modification administrative et traçabilité des statuts de présence des opérateurs</div>
     </div>
@@ -200,7 +200,7 @@ else
             using var scope = ScopeFactory.CreateScope();
             var gererDisponibilite = scope.ServiceProvider.GetRequiredService<GererDisponibiliteCommand>();
             await gererDisponibilite.DefinirAsync(_appelantId, _operateurSelectionne, _statutSelectionne);
-            _message = $"Disponibilité mise à jour : {_statutSelectionne} (DIS-03 : tracée).";
+            _message = $"Disponibilité mise à jour : {_statutSelectionne} (tracée).";
             await ChargerAsync();
         }
         catch (AccesRefuseException ex)

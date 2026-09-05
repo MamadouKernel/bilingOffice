@@ -40,11 +40,11 @@ public sealed class ControleDepotTests
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
         var ticketRepo = new TicketRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var fileId = Guid.NewGuid();
         agentId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.DocumentDeposer, fileId));
 
         var dossier = Dossier.Creer("DOS-DOC-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         ticket = Ticket.Creer("TCK-DOC-000001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);

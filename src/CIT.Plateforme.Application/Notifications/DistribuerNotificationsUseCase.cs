@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Domain.Notifications;
 
 namespace CIT.Plateforme.Application.Notifications;
@@ -29,7 +29,9 @@ namespace CIT.Plateforme.Application.Notifications;
 /// </summary>
 public sealed class DistribuerNotificationsUseCase(
     IEvenementSocleRepository evenements,
+    ILienPortail lienPortail,
     IRegleDiffusionRepository regles,
+    ITicketRepository tickets,
     IModeleNotificationRepository modeles,
     INotificationRepository notifications,
     IEnvoiNotificationRepository envois,
@@ -109,6 +111,23 @@ public sealed class DistribuerNotificationsUseCase(
             var destinataires = await resolveur.ResoudreAsync(typeEvenement, chargeUtile, token).ConfigureAwait(false);
             var ticketId = await resolveur.ResoudreTicketAsync(chargeUtile, token).ConfigureAwait(false);
 
+            // COM-03 — les règles peuvent discriminer sur le module et l'étape (la file). Le
+            // contexte se lit sur le ticket rattaché à l'événement ; un événement sans ticket ne
+            // laisse applicables que les règles qui ne discriminent pas.
+            var contexte = ticketId is Guid id
+                ? await tickets.ObtenirParIdAsync(id, token).ConfigureAwait(false)
+                : null;
+
+            reglesActives = reglesActives
+                .Where(r => r.SApplique(contexte?.Module, contexte?.FileCouranteId))
+                .ToList();
+
+            if (reglesActives.Count == 0)
+            {
+                await uniteDeTravail.EnregistrerAsync(token).ConfigureAwait(false);
+                return 0;
+            }
+
             var crees = 0;
             foreach (var destinataireId in destinataires)
             {
@@ -140,10 +159,31 @@ public sealed class DistribuerNotificationsUseCase(
     {
         var modeleInApp = await modeles.ObtenirActifAsync(typeEvenement, CanalNotification.InApp, ct).ConfigureAwait(false);
 
+        // RG-COM-01 / COM-02 (remédiation P1-02) : les gabarits étaient recopiés VERBATIM. Un
+        // modèle portant « {numeroTicket} » restituait ce texte littéral, et rien ne permettait
+        // d'insérer le lien direct vers le ticket qu'exige RG-COM-01. Le rendu est interpolé ici,
+        // et le lien garanti même si le gabarit l'a omis.
+        var ticket = ticketId is Guid id
+            ? await tickets.ObtenirParIdAsync(id, ct).ConfigureAwait(false)
+            : null;
+
+        var lienTicket = ticket is not null ? lienPortail.VersTicket(ticket.Id) : null;
+
+        var valeurs = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            [GabaritNotification.JetonNumeroTicket] = ticket?.Numero,
+            [GabaritNotification.JetonLienTicket] = lienTicket,
+            [GabaritNotification.JetonModule] = ticket?.Module,
+            [GabaritNotification.JetonTypeDemande] = ticket?.TypeDemande,
+            [GabaritNotification.JetonEvenement] = typeEvenement,
+        };
+
         // Le rendu est FIGÉ à la création : modifier un modèle plus tard n'altère jamais une
         // notification déjà émise (cas TEST-NOT-02-3).
-        var titre = modeleInApp?.GabaritTitre ?? typeEvenement;
-        var corps = modeleInApp?.GabaritCorps ?? string.Empty;
+        var titre = GabaritNotification.Interpoler(modeleInApp?.GabaritTitre ?? typeEvenement, valeurs);
+        var corps = GabaritNotification.GarantirLienVersTicket(
+            GabaritNotification.Interpoler(modeleInApp?.GabaritCorps ?? string.Empty, valeurs),
+            lienTicket);
 
         var notification = Notification.Creer(
             evenementId, destinataireId, typeEvenement, modeleInApp?.Id, titre, corps, ticketId, horloge.MaintenantUtc);

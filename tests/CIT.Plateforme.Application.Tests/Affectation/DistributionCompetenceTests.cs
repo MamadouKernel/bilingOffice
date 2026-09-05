@@ -51,9 +51,9 @@ public sealed class DistributionCompetenceTests
         var candidatsProvider = new CandidatsAffectationProvider(dbContext);
 
         var administrateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationFiles));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.CompetenceGerer));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.DisponibiliteGerer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationFiles));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.CompetenceGerer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.DisponibiliteGerer));
         await dbContext.SaveChangesAsync();
 
         var gererFiles = new GererFilesCommand(filesRepo, autorisation, journalisation, uniteDeTravail);
@@ -86,7 +86,7 @@ public sealed class DistributionCompetenceTests
         var horloge = HorlogeDeTest.Defaut();
 
         var operateurCompetent = Guid.NewGuid();
-        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurCompetent, Permission.TicketPrendreEnCharge, ctx.FileId));
+        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(ctx.DbContext, operateurCompetent), Permission.TicketPrendreEnCharge, ctx.FileId));
         await ctx.DbContext.SaveChangesAsync();
         await ctx.GererCompetences.AttribuerAsync(ctx.AdministrateurId, operateurCompetent, CompetenceDeTest);
 
@@ -107,7 +107,7 @@ public sealed class DistributionCompetenceTests
 
         // Habilité sur la file, mais AUCUNE compétence administrée pour cet opérateur.
         var operateurSansCompetence = Guid.NewGuid();
-        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurSansCompetence, Permission.TicketPrendreEnCharge, ctx.FileId));
+        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(ctx.DbContext, operateurSansCompetence), Permission.TicketPrendreEnCharge, ctx.FileId));
         await ctx.DbContext.SaveChangesAsync();
 
         var ticketId = await CreerTicketEnAttenteAsync(ctx.DbContext, ctx.FileId, horloge);
@@ -127,7 +127,7 @@ public sealed class DistributionCompetenceTests
         var horloge = HorlogeDeTest.Defaut();
 
         var operateurIndisponible = Guid.NewGuid();
-        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurIndisponible, Permission.TicketPrendreEnCharge, ctx.FileId));
+        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(ctx.DbContext, operateurIndisponible), Permission.TicketPrendreEnCharge, ctx.FileId));
         await ctx.DbContext.SaveChangesAsync();
         await ctx.GererCompetences.AttribuerAsync(ctx.AdministrateurId, operateurIndisponible, CompetenceDeTest);
         await ctx.GererDisponibilite.DefinirAsync(ctx.AdministrateurId, operateurIndisponible, StatutDisponibilite.Indisponible);
@@ -148,7 +148,7 @@ public sealed class DistributionCompetenceTests
         var horloge = HorlogeDeTest.Defaut();
 
         var operateur = Guid.NewGuid();
-        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateur, Permission.TicketPrendreEnCharge, ctx.FileId));
+        ctx.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(ctx.DbContext, operateur), Permission.TicketPrendreEnCharge, ctx.FileId));
         await ctx.DbContext.SaveChangesAsync();
 
         var ticketId = await CreerTicketEnAttenteAsync(ctx.DbContext, ctx.FileId, horloge);

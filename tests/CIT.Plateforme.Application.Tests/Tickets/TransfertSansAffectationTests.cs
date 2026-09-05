@@ -28,7 +28,7 @@ public sealed class TransfertSansAffectationTests
         var fileSource = Guid.NewGuid();
         var fileCible = Guid.NewGuid();
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketTransferer, fileSource));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileSource));
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileSource, fileCible, []));
         var dossier = Dossier.Creer("DOS-C03-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-C03-000001", "BillingOffice", "Import", fileSource, dossier.Id, horloge.MaintenantUtc);
@@ -62,7 +62,7 @@ public sealed class TransfertSansAffectationTests
         var fileSource = Guid.NewGuid();
         var fileCible = Guid.NewGuid();
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketTransferer, fileSource));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileSource));
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileSource, fileCible, []));
         var dossier = Dossier.Creer("DOS-C03-000002", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-C03-000002", "BillingOffice", "Import", fileSource, dossier.Id, horloge.MaintenantUtc);

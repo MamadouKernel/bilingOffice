@@ -17,13 +17,14 @@ public sealed class ObtenirFicheTicketQuery(
     IDossierRepository dossierRepository,
     IFileDeTraitementRepository fileRepository,
     ISocieteClienteRepository societeRepository,
-    IUtilisateurSocieteRepository utilisateurSocieteRepository,
     IUtilisateurInfoRepository utilisateurInfoRepository,
     IHistoriqueTicketRepository historiqueRepository,
     IDocumentRepository documentRepository,
     IMessageRepository messageRepository,
     IHabilitationRepository habilitationRepository,
-    ICategorieReclamationRepository categorieReclamationRepository)
+    ICategorieReclamationRepository categorieReclamationRepository,
+    ILiaisonTicketRepository liaisonRepository,
+    ControleAccesRessourceService controleAcces)
 {
     public async Task<FicheTicketVue> ExecuterAsync(Guid appelantId, Guid ticketId, CancellationToken ct = default)
     {
@@ -33,26 +34,33 @@ public sealed class ObtenirFicheTicketQuery(
         var dossier = await dossierRepository.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Dossier {ticket.DossierId} introuvable.");
 
-        var societe = await societeRepository.ObtenirParIdAsync(dossier.ClientId, ct).ConfigureAwait(false)
-            ?? throw new InvalidOperationException($"Société {dossier.ClientId} introuvable.");
+        // ORDRE (remédiation P0-bis) : l'autorisation précède TOUTE autre lecture. Elle
+        // s'exécutait auparavant après la résolution de la société, si bien qu'un appelant non
+        // autorisé déclenchait une requête et recevait un message citant un identifiant interne.
+        // Un refus ne doit rien apprendre.
+        await controleAcces.ExigerConsultationTicketAsync(appelantId, ticket, ct).ConfigureAwait(false);
+
+        // Un dossier PERSONNEL (Enrôlement) porte un utilisateur dans ClientId, non une société :
+        // l'absence de société y est normale et ne doit pas faire échouer la lecture.
+        var societe = await societeRepository.ObtenirParIdAsync(dossier.ClientId, ct).ConfigureAwait(false);
 
         var appelantInfo = await utilisateurInfoRepository.ObtenirInfoAsync(appelantId, ct).ConfigureAwait(false);
-        bool estClient = appelantInfo?.Nature == NatureUtilisateur.Client;
+        // P3 — FAIL-CLOSED. Cette expression valait `appelantInfo?.Nature == Client` : un compte
+        // introuvable donnait `false`, donc la vue AGENT, notes internes comprises. Le chemin est
+        // aujourd'hui inatteignable — la garde d'identité refuse en amont — mais la protection
+        // reposait alors sur l'ordre des opérations plutôt que sur l'expression elle-même.
+        // En cas d'absence d'information, c'est la vue la PLUS RESTRICTIVE qui s'applique.
+        bool estClient = appelantInfo is null || appelantInfo.Nature == NatureUtilisateur.Client;
 
-        // 1. Contrôle de cloisonnement serveur (Principe VII)
-        if (estClient)
-        {
-            var userSoc = await utilisateurSocieteRepository.ObtenirParUtilisateurAsync(appelantId, ct).ConfigureAwait(false);
-            if (userSoc is null || !userSoc.EstActif || userSoc.SocieteId != dossier.ClientId)
-            {
-                throw new AccesRefuseException($"L'utilisateur client {appelantId} n'est pas autorisé à consulter le ticket {ticket.Numero}.");
-            }
-
-            if (userSoc.DroitConsultation == DroitConsultation.PropresDemandesUniquement && !userSoc.EstAdministrateur && dossier.AuteurId != appelantId)
-            {
-                throw new AccesRefuseException($"L'utilisateur {appelantId} ne peut consulter que ses propres demandes.");
-            }
-        }
+        // REMÉDIATION P0-bis. La garde était intégralement enveloppée dans `if (estClient)` : la
+        // branche AGENT n'existait pas. Un compte agent sans la moindre habilitation — et même un
+        // identifiant d'utilisateur inconnu, puisqu'il n'était pas « client » non plus — obtenait
+        // la fiche complète, notes internes comprises. Le raisonnement « ce n'est pas un client,
+        // donc on laisse passer » est exactement ce que le refus par défaut interdit.
+        //
+        // La décision n'est plus réécrite ici : c'est la quatrième réimplémentation qu'il fallait
+        // éviter, et la troisième qui avait déjà divergé. Elle est appliquée plus haut, avant
+        // toute lecture.
 
         // 2. Récupération métadonnées complémentaires
         var file = await fileRepository.ObtenirParIdAsync(ticket.FileCouranteId, ct).ConfigureAwait(false);
@@ -139,11 +147,38 @@ public sealed class ObtenirFicheTicketQuery(
         bool peutAjouterMessage = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
         bool peutDeposerDocument = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
 
-        var societeNom = societe.InformationsDeclarees;
+        // IMP-10 — la demande de facture appartient au CLIENT, sur un ticket Billing encore actif.
+        // La commande vérifie en outre la propriété du ticket (cloisonnement) : ce droit ne fait
+        // qu'afficher ou masquer l'action, il ne la remplace pas.
+        bool peutDemanderFacture = estClient
+            && (ticket.Module == "BillingImport" || ticket.Module == "BillingExport")
+            && ticket.Statut != StatutTicket.Cloture
+            && ticket.Statut != StatutTicket.Annule;
+
+        var societeNom = societe?.InformationsDeclarees ?? string.Empty;
         if (societeNom.Contains("RaisonSociale"))
         {
             societeNom = ExtraireNom(societeNom);
         }
+
+        // SOC-10 — les tickets liés. La liaison se lit dans les deux sens (le repository couvre
+        // les deux côtés) : un ticket créé plus tard et rattaché à celui-ci doit apparaître ici
+        // aussi, sans quoi la liaison ne serait visible que depuis la fiche qui l'a posée.
+        var liaisonsBrutes = await liaisonRepository.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var liaisons = new List<LiaisonItemVue>(liaisonsBrutes.Count);
+        foreach (var liaison in liaisonsBrutes)
+        {
+            var autreId = liaison.TicketId == ticketId ? liaison.TicketLieId : liaison.TicketId;
+            var autre = await ticketRepository.ObtenirParIdAsync(autreId, ct).ConfigureAwait(false);
+            if (autre is not null)
+            {
+                liaisons.Add(new LiaisonItemVue(autre.Id, autre.Numero, autre.Module, autre.Statut, liaison.DateCreationUtc));
+            }
+        }
+
+        // Poser une liaison est un acte d'agent instruisant la file (même habilitation que la
+        // prise en charge, cf. LierTicketsCommand) : le client la consulte, il ne la crée pas.
+        bool peutLierTickets = !estClient && aDroitPriseEnCharge;
 
         // 7. Métadonnées spécifiques Customer Complaint (REC-01, REC-02, REC-04, REC-06)
         string? categorieLibelle = null;
@@ -166,7 +201,7 @@ public sealed class ObtenirFicheTicketQuery(
             FileNom: fileNom,
             OperateurAssigneId: ticket.OperateurAssigneId,
             OperateurAssigneNom: operateurNom,
-            SocieteId: societe.Id,
+            SocieteId: societe?.Id ?? Guid.Empty,
             SocieteNom: societeNom,
             DateCreationUtc: ticket.DateCreationUtc,
             DatePriseEnChargeUtc: ticket.DatePriseEnChargeUtc,
@@ -193,7 +228,10 @@ public sealed class ObtenirFicheTicketQuery(
             ReponseFormalisee: ticket.ReponseFormalisee,
             EvaluationNote: ticket.EvaluationNote,
             EvaluationCommentaire: ticket.EvaluationCommentaire,
-            EvaluationDateUtc: ticket.EvaluationDateUtc
+            EvaluationDateUtc: ticket.EvaluationDateUtc,
+            PeutDemanderFacture: peutDemanderFacture,
+            Liaisons: liaisons,
+            PeutLierTickets: peutLierTickets
         );
     }
 

@@ -24,7 +24,7 @@ public sealed class ClotureArchivageTests
 
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketCloturer, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketCloturer, fileId));
         var dossier = Dossier.Creer("DOS-CLO-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-CLO-000001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);

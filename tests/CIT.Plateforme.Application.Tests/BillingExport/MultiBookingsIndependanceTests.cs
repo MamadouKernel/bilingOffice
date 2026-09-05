@@ -40,7 +40,7 @@ public sealed class MultiBookingsIndependanceTests
         societe.Valider();
         var auteurId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         // 1er booking existant

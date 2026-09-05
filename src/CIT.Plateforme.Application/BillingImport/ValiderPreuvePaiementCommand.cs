@@ -26,6 +26,12 @@ public sealed class ValiderPreuvePaiementCommand(
         var fileControleDocumentaire = toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeImportCommand.Module && f.Nom == NomsFiles.ControleDocumentaire)
             ?? throw new InvalidOperationException($"File « {NomsFiles.ControleDocumentaire} » non paramétrée.");
 
+        // CYC-01 / CYC-05 (remédiation P1-01) : le paiement est confirmé, le ticket devient donc
+        // engageant. `MarquerEtatEngageant` n'avait AUCUN appelant en production : le drapeau
+        // restait faux à jamais, ce qui privait d'effet la fermeture de l'annulation directe
+        // (RG-TCK-07) comme la garde sur la suggestion de clôture (RG-TCK-11).
+        ticket.MarquerEtatEngageant();
+
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "PaiementValide", null, agentId, ct).ConfigureAwait(false);

@@ -25,7 +25,7 @@ public sealed class PrioriteTests
 
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.PrioriteModifier, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.PrioriteModifier, fileId));
         var dossier = Dossier.Creer("DOS-PRI-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-PRI-000001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
@@ -60,7 +60,7 @@ public sealed class PrioriteTests
         var ticketRepo = new TicketRepository(dbContext);
 
         var clientId = Guid.NewGuid(); // jamais habilité PrioriteModifier
-        var dossier = Dossier.Creer("DOS-PRI-000002", clientId, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-PRI-000002", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-PRI-000002", "BillingOffice", "Import", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);

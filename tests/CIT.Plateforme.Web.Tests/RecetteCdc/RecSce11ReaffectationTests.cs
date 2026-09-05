@@ -28,8 +28,8 @@ public sealed class RecSce11ReaffectationTests(PlateformeWebApplicationFactory f
         var operateurB = Guid.NewGuid();
         var fileId = Guid.NewGuid();
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurA, Permission.TicketPrendreEnCharge, fileId));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurA, Permission.TicketReaffecter, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketReaffecter, fileId));
         await dbContext.SaveChangesAsync();
 
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));
@@ -64,7 +64,7 @@ public sealed class RecSce11ReaffectationTests(PlateformeWebApplicationFactory f
         var operateurB = Guid.NewGuid();
         var fileId = Guid.NewGuid();
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurA, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));

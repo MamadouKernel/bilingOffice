@@ -1,5 +1,6 @@
 using CIT.Plateforme.Application.BillingImport;
 using CIT.Plateforme.Domain.Files;
+using CIT.Plateforme.Domain.Tarification;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,6 +62,18 @@ public static class BaseDeTestSql
                     // s'exécutent en parallèle ou en séquence).
                     contexte.Files.Add(FileDeTraitement.Creer(SoumettreDemandeImportCommand.Module, SoumettreDemandeImportCommand.FilePiloteManifeste));
                     contexte.Files.Add(FileDeTraitement.Creer("BillingExport", "Back Office Export"));
+
+                    // Référentiels tarifaires (analyse Merise § 3.3) : sens, taille, type et
+                    // catégorie de marchandise sont devenus des tables, référencées par clés
+                    // étrangères depuis les lignes de tarif et les simulations. Semés ici, dans la
+                    // même section verrouillée que les files, pour la même raison : l'unicité des
+                    // codes interdit que deux classes de test les insèrent chacune de leur côté.
+                    var referentiels = ParametrageInitialAnnexeA.CreerReferentiels();
+                    contexte.SensOperations.AddRange(referentiels.Sens);
+                    contexte.TaillesConteneur.AddRange(referentiels.Tailles);
+                    contexte.TypesConteneur.AddRange(referentiels.Types);
+                    contexte.CategoriesMarchandise.AddRange(referentiels.Categories);
+
                     contexte.SaveChanges();
 
                     baseDejaCreee = true;

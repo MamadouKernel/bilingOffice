@@ -227,8 +227,19 @@ body {
 a { color: var(--action); text-decoration: none; }
 a:hover { color: var(--action-hover); text-decoration: underline; text-underline-offset: 2px; }
 
+/* Indicateur de focus clavier.
+   DÉFAUT CORRIGÉ (audit UI du 2026-09-04) : l'outline natif était supprimé et remplacé par le
+   seul halo `--ring`, un azure à 28 % d'opacité. Composé sur la barre latérale (#060d13), il
+   donnait un contraste mesuré de 1,39:1 — la moitié du minimum de 3:1 exigé par WCAG 2.2
+   (SC 2.4.11). Le focus était donc perceptible de justesse sur fond clair, et à peine sur la
+   navigation, que les agents parcourent au clavier toute la journée.
+
+   `currentColor` résout le problème sans table de correspondance par thème : c'est la couleur du
+   texte de l'élément, qui contraste déjà avec son propre fond par construction. Le halo est
+   conservé — il adoucit le rendu — mais ce n'est plus lui qui porte la lisibilité. */
 :focus-visible {
-    outline: none;
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
     box-shadow: var(--ring);
     border-radius: var(--r-sm);
 }

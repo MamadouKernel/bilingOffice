@@ -1,4 +1,4 @@
-using CIT.Plateforme.Domain.Audit;
+﻿using CIT.Plateforme.Domain.Audit;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Securite;
@@ -35,7 +35,13 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     public DbSet<LiaisonTicket> LiaisonsTicket => Set<LiaisonTicket>();
 
+    /// <summary>SOC-07 — pièces attendues par étape du parcours, livrées vides.</summary>
+    public DbSet<Domain.Documents.PieceExigeeEtape> PiecesExigeesEtape => Set<Domain.Documents.PieceExigeeEtape>();
+
     public DbSet<Domain.Supervision.Alerte> Alertes => Set<Domain.Supervision.Alerte>();
+
+    /// <summary>ALE-03 — référentiel des règles d'escalade, livré vide.</summary>
+    public DbSet<Domain.Supervision.RegleEscalade> ReglesEscalade => Set<Domain.Supervision.RegleEscalade>();
 
     public DbSet<Domain.SuiviTemps.ParametreSlaAdministrable> ParametresSla => Set<Domain.SuiviTemps.ParametreSlaAdministrable>();
 
@@ -130,6 +136,46 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     /// <summary>FEATURE 005 (research.md D6) : lignes de résultat des conteneurs de simulation.</summary>
     public DbSet<Domain.Tarification.LigneResultatSimulationConteneur> LignesResultatsSimulation => Set<Domain.Tarification.LigneResultatSimulationConteneur>();
+
+    /// <summary>RG-IA-02 — fils de conversation de l'assistant virtuel, rattachables à un ticket.</summary>
+    public DbSet<Domain.Assistant.ConversationAssistant> ConversationsAssistant => Set<Domain.Assistant.ConversationAssistant>();
+
+    /// <summary>RG-IA-01 — messages d'un fil d'assistant.</summary>
+    public DbSet<Domain.Assistant.MessageAssistant> MessagesAssistant => Set<Domain.Assistant.MessageAssistant>();
+
+    /// <summary>CYC-01 / RG-TCK-07 — seuils de fermeture de l'annulation directe, par workflow.</summary>
+    public DbSet<Domain.Tickets.EtapeBloquanteAnnulation> EtapesBloquantesAnnulation => Set<Domain.Tickets.EtapeBloquanteAnnulation>();
+
+    /// <summary>RG-SIM-09 — ventilation figée du stationnement d'un conteneur simulé.</summary>
+    public DbSet<Domain.Tarification.PartStationnementSimulee> PartsStationnementSimulees => Set<Domain.Tarification.PartStationnementSimulee>();
+
+    // -------------------------------------------------------------------------------------
+    // Référentiels tarifaires normalisés — analyse Merise § 3.3, correction n° 1 (SIM-06).
+    // Étaient trois énumérations C# et une chaîne libre ; sont désormais administrables.
+    // -------------------------------------------------------------------------------------
+
+    public DbSet<Domain.Tarification.Referentiels.SensOperation> SensOperations => Set<Domain.Tarification.Referentiels.SensOperation>();
+
+    public DbSet<Domain.Tarification.Referentiels.TailleConteneur> TaillesConteneur => Set<Domain.Tarification.Referentiels.TailleConteneur>();
+
+    public DbSet<Domain.Tarification.Referentiels.TypeConteneur> TypesConteneur => Set<Domain.Tarification.Referentiels.TypeConteneur>();
+
+    public DbSet<Domain.Tarification.Referentiels.CategorieMarchandise> CategoriesMarchandise => Set<Domain.Tarification.Referentiels.CategorieMarchandise>();
+
+    // -------------------------------------------------------------------------------------
+    // Paramètres de grille — analyse Merise § 3.3, correction n° 2 (RG-SIM-11).
+    // Étaient huit colonnes dont le nom encodait une dimension (taille, sens, rang, bénéficiaire).
+    // -------------------------------------------------------------------------------------
+
+    public DbSet<Domain.Tarification.Parametres.ParametreMajoration> ParametresMajoration => Set<Domain.Tarification.Parametres.ParametreMajoration>();
+
+    public DbSet<Domain.Tarification.Parametres.SeuilPoidsMajoration> SeuilsPoidsMajoration => Set<Domain.Tarification.Parametres.SeuilPoidsMajoration>();
+
+    public DbSet<Domain.Tarification.Parametres.TrancheStationnement> TranchesStationnement => Set<Domain.Tarification.Parametres.TrancheStationnement>();
+
+    public DbSet<Domain.Tarification.Parametres.FranchiseStationnement> FranchisesStationnement => Set<Domain.Tarification.Parametres.FranchiseStationnement>();
+
+    public DbSet<Domain.Tarification.Parametres.QuotePartBeneficiaire> QuotesPartsBeneficiaire => Set<Domain.Tarification.Parametres.QuotePartBeneficiaire>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -397,8 +443,37 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .HasDatabaseName("IX_ModelesNotification_Evenement_Canal_Actif");
         });
 
+        builder.Entity<Domain.Documents.PieceExigeeEtape>(b =>
+        {
+            b.ToTable("PiecesExigeesEtape");
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Code).HasMaxLength(64).IsRequired();
+            b.Property(p => p.Libelle).HasMaxLength(256).IsRequired();
+            b.Property(p => p.Module).HasMaxLength(128);
+
+            // Un même code ne peut être exigé deux fois à la même étape : le contrôle de
+            // complétude compterait la pièce en double.
+            b.HasIndex(p => new { p.FileId, p.Code }).IsUnique().HasDatabaseName("IX_PiecesExigeesEtape_File_Code");
+        });
+
+        builder.Entity<Domain.Supervision.RegleEscalade>(b =>
+        {
+            b.ToTable("ReglesEscalade");
+            b.HasKey(r => r.Id);
+            b.Property(r => r.Module).HasMaxLength(128);
+            b.Property(r => r.TypeDemande).HasMaxLength(128);
+            b.Property(r => r.Action).HasConversion<string>().HasMaxLength(64).IsRequired();
+
+            // La surveillance interroge ce référentiel à chaque franchissement de seuil : l'index
+            // couvre exactement le filtre appliqué, et exclut les règles désactivées.
+            b.HasIndex(r => new { r.Module, r.TypeDemande, r.FileId })
+                .HasDatabaseName("IX_ReglesEscalade_Portee")
+                .HasFilter("[EstActive] = 1");
+        });
+
         builder.Entity<Domain.Notifications.RegleDiffusion>(b =>
         {
+            b.Property(r => r.Module).HasMaxLength(128);
             // Justification : NOT-02 — règles paramétrables par événement et par canal ;
             // EstObligatoire matérialise la notion nommée par COM-05 (CLAR-COM-03).
             b.HasKey(r => r.Id);
@@ -578,43 +653,223 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // RG-IA-01 / RG-IA-02 (remédiation P1-03) : fil de l'assistant virtuel. Le MPD du document
+        // ne prévoit aucune table pour l'IA ; RG-IA-02 en suppose pourtant une, puisque le fil doit
+        // rester attaché au ticket après escalade. Écart au MPD assumé et documenté.
+        builder.Entity<Domain.Assistant.ConversationAssistant>(b =>
+        {
+            b.ToTable("ConversationsAssistant");
+            b.HasKey(c => c.Id);
+            b.Property(c => c.UtilisateurId).IsRequired();
+            b.Property(c => c.MotifEscalade).HasMaxLength(500);
+            b.HasIndex(c => new { c.UtilisateurId, c.EstEscaladee });
+            b.HasIndex(c => c.TicketId);
+
+            b.HasOne<Ticket>()
+                .WithMany()
+                .HasForeignKey(c => c.TicketId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasMany(c => c.Messages)
+                .WithOne()
+                .HasForeignKey(m => m.ConversationAssistantId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Domain.Assistant.MessageAssistant>(b =>
+        {
+            b.ToTable("MessagesAssistant");
+            b.HasKey(m => m.Id);
+
+            // La clé est produite par le domaine. Sans cette précision, EF déduit l'état d'une
+            // entité neuve de la seule présence d'une clé : un message ajouté à un fil DÉJÀ
+            // persisté était marqué `Modified` au lieu d'`Added`, et l'enregistrement échouait
+            // sur « update an entity that does not exist ». C'est le cas de figure propre à cet
+            // agrégat — ailleurs, les enfants naissent avec leur parent.
+            b.Property(m => m.Id).ValueGeneratedNever();
+            b.Property(m => m.Auteur).HasConversion<string>().HasMaxLength(20).IsRequired();
+            b.Property(m => m.Contenu).IsRequired().HasMaxLength(4000);
+            b.HasIndex(m => new { m.ConversationAssistantId, m.Rang }).IsUnique();
+        });
+
+        // CYC-01 / RG-TCK-07 (remédiation P1-01) : seuil paramétrable par workflow au-delà duquel
+        // l'annulation directe se ferme. Le seuil était auparavant un booléen fourni par
+        // l'appelant, jamais calculé.
+        builder.Entity<Domain.Tickets.EtapeBloquanteAnnulation>(b =>
+        {
+            b.ToTable("EtapesBloquantesAnnulation");
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Module).IsRequired().HasMaxLength(50);
+            b.Property(e => e.TypeDemande).HasMaxLength(50);
+            b.Property(e => e.Motif).IsRequired().HasMaxLength(300);
+            b.Property(e => e.EstActif).IsRequired();
+
+            // Un même workflow ne déclare pas deux fois la même file comme bloquante.
+            b.HasIndex(e => new { e.Module, e.TypeDemande, e.FileId }).IsUnique();
+
+            b.HasOne<FileDeTraitement>()
+                .WithMany()
+                .HasForeignKey(e => e.FileId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // FEATURE 005 (research.md D4, D6, D12) : Tarification et Simulation de Proforma.
+        //
+        // ANALYSE MERISE § 3.3 — les quatre référentiels (sens, taille, type, catégorie de
+        // marchandise) sont des tables, et les huit colonnes qui encodaient une dimension dans
+        // leur nom ont été extraites en cinq tables de paramètres. Voir les entités concernées
+        // pour le détail du défaut corrigé.
+        builder.Entity<Domain.Tarification.Referentiels.SensOperation>(b =>
+        {
+            b.ToTable("SensOperations");
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Code).IsRequired().HasMaxLength(32);
+            b.Property(s => s.Libelle).IsRequired().HasMaxLength(100);
+            b.HasIndex(s => s.Code).IsUnique();
+        });
+
+        builder.Entity<Domain.Tarification.Referentiels.TailleConteneur>(b =>
+        {
+            b.ToTable("TaillesConteneur");
+            b.HasKey(t => t.Id);
+            b.Property(t => t.Code).IsRequired().HasMaxLength(8);
+            b.Property(t => t.Libelle).IsRequired().HasMaxLength(50);
+            b.HasIndex(t => t.Code).IsUnique();
+        });
+
+        builder.Entity<Domain.Tarification.Referentiels.TypeConteneur>(b =>
+        {
+            b.ToTable("TypesConteneur");
+            b.HasKey(t => t.Id);
+            b.Property(t => t.Code).IsRequired().HasMaxLength(16);
+            b.Property(t => t.Libelle).IsRequired().HasMaxLength(50);
+            b.Property(t => t.DeclencheBranchementFrigorifique).IsRequired();
+            b.HasIndex(t => t.Code).IsUnique();
+        });
+
+        builder.Entity<Domain.Tarification.Referentiels.CategorieMarchandise>(b =>
+        {
+            b.ToTable("CategoriesMarchandise");
+            b.HasKey(c => c.Id);
+            b.Property(c => c.Code).IsRequired().HasMaxLength(16);
+            b.Property(c => c.Libelle).IsRequired().HasMaxLength(150);
+
+            // Annexe A.6 — l'identité d'une catégorie est le couple (code, sens) : « C1 import »
+            // et « C1 export » sont deux catégories distinctes.
+            b.HasIndex(c => new { c.Code, c.SensOperationId }).IsUnique();
+
+            b.HasOne<Domain.Tarification.Referentiels.SensOperation>()
+                .WithMany()
+                .HasForeignKey(c => c.SensOperationId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         builder.Entity<Domain.Tarification.VersionGrilleTarifaire>(b =>
         {
             b.HasKey(v => v.Id);
             b.Property(v => v.NumeroVersion).IsRequired().HasMaxLength(32);
+            b.Property(v => v.FranchiseBranchementJours).IsRequired();
             b.HasIndex(v => v.DateEffetUtc);
-            b.OwnsOne(v => v.Parametres, p =>
-            {
-                p.Property(x => x.TauxMajorationLourd).HasPrecision(5, 2);
-                p.Property(x => x.TauxMajorationDangereux).HasPrecision(5, 2);
-                p.Property(x => x.TauxMajorationOog).HasPrecision(5, 2);
-                p.Property(x => x.SeuilPoidsLourd20Pieds).HasPrecision(8, 2);
-                p.Property(x => x.SeuilPoidsLourd40Pieds).HasPrecision(8, 2);
-                p.Property(x => x.FranchiseBranchementJours);
-                p.Property(x => x.FranchiseStationnementImportLocalJours);
-                p.Property(x => x.FranchiseStationnementImportTransitJours);
-                p.Property(x => x.TarifStationnementTranche1Jour).HasPrecision(18, 2);
-                p.Property(x => x.TarifStationnementTranche2Jour).HasPrecision(18, 2);
-                p.Property(x => x.TarifStationnementTranche3Jour).HasPrecision(18, 2);
-                p.Property(x => x.QuotePartCit).HasPrecision(5, 2);
-                p.Property(x => x.QuotePartOic).HasPrecision(5, 2);
-                p.Property(x => x.QuotePartPaa).HasPrecision(5, 2);
-            });
+
             b.HasMany(v => v.Lignes)
                 .WithOne()
                 .HasForeignKey(l => l.VersionGrilleTarifaireId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(v => v.Majorations)
+                .WithOne()
+                .HasForeignKey(m => m.VersionGrilleTarifaireId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(v => v.SeuilsPoids)
+                .WithOne()
+                .HasForeignKey(s => s.VersionGrilleTarifaireId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(v => v.Tranches)
+                .WithOne()
+                .HasForeignKey(t => t.VersionGrilleTarifaireId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(v => v.Franchises)
+                .WithOne()
+                .HasForeignKey(f => f.VersionGrilleTarifaireId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(v => v.QuotesParts)
+                .WithOne()
+                .HasForeignKey(q => q.VersionGrilleTarifaireId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TranchesOrdonnees est une vue triée de Tranches, pas une seconde relation. Sans
+            // cette exclusion, la convention EF la découvre comme navigation et fabrique une clé
+            // étrangère fantôme (VersionGrilleTarifaireId1) doublant la colonne réelle.
+            b.Ignore(v => v.TranchesOrdonnees);
         });
 
         builder.Entity<Domain.Tarification.LigneTarifaire>(b =>
         {
             b.HasKey(l => l.Id);
-            b.Property(l => l.CategorieMarchandise).IsRequired().HasMaxLength(64);
             b.Property(l => l.Acconage).HasPrecision(18, 2);
             b.Property(l => l.Relevage).HasPrecision(18, 2);
             b.Property(l => l.TarifJourBranchement).HasPrecision(18, 2);
-            b.HasIndex(l => new { l.VersionGrilleTarifaireId, l.Sens, l.Taille, l.CategorieMarchandise }).IsUnique();
+            b.HasIndex(l => new { l.VersionGrilleTarifaireId, l.SensOperationId, l.TailleConteneurId, l.CategorieMarchandiseId })
+                .IsUnique();
+
+            b.HasOne<Domain.Tarification.Referentiels.SensOperation>().WithMany()
+                .HasForeignKey(l => l.SensOperationId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Domain.Tarification.Referentiels.TailleConteneur>().WithMany()
+                .HasForeignKey(l => l.TailleConteneurId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Domain.Tarification.Referentiels.CategorieMarchandise>().WithMany()
+                .HasForeignKey(l => l.CategorieMarchandiseId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Domain.Tarification.Parametres.ParametreMajoration>(b =>
+        {
+            b.ToTable("ParametresMajoration");
+            b.HasKey(m => m.Id);
+            b.Property(m => m.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
+            b.Property(m => m.Taux).HasPrecision(5, 4);
+            b.HasIndex(m => new { m.VersionGrilleTarifaireId, m.Type }).IsUnique();
+        });
+
+        builder.Entity<Domain.Tarification.Parametres.SeuilPoidsMajoration>(b =>
+        {
+            b.ToTable("SeuilsPoidsMajoration");
+            b.HasKey(s => s.Id);
+            b.Property(s => s.SeuilPoidsTonnes).HasPrecision(8, 2);
+            b.HasIndex(s => new { s.VersionGrilleTarifaireId, s.TailleConteneurId }).IsUnique();
+
+            b.HasOne<Domain.Tarification.Referentiels.TailleConteneur>().WithMany()
+                .HasForeignKey(s => s.TailleConteneurId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Domain.Tarification.Parametres.TrancheStationnement>(b =>
+        {
+            b.ToTable("TranchesStationnement");
+            b.HasKey(t => t.Id);
+            b.Property(t => t.TarifJournalier).HasPrecision(18, 2);
+            b.HasIndex(t => new { t.VersionGrilleTarifaireId, t.BorneMinJour }).IsUnique();
+        });
+
+        builder.Entity<Domain.Tarification.Parametres.FranchiseStationnement>(b =>
+        {
+            b.ToTable("FranchisesStationnement");
+            b.HasKey(f => f.Id);
+            b.HasIndex(f => new { f.VersionGrilleTarifaireId, f.SensOperationId }).IsUnique();
+
+            b.HasOne<Domain.Tarification.Referentiels.SensOperation>().WithMany()
+                .HasForeignKey(f => f.SensOperationId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Domain.Tarification.Parametres.QuotePartBeneficiaire>(b =>
+        {
+            b.ToTable("QuotesPartsBeneficiaire");
+            b.HasKey(q => q.Id);
+            b.Property(q => q.Beneficiaire).IsRequired().HasMaxLength(16);
+            b.Property(q => q.Pourcentage).HasPrecision(5, 4);
+            b.HasIndex(q => new { q.VersionGrilleTarifaireId, q.Beneficiaire }).IsUnique();
         });
 
         builder.Entity<Domain.Tarification.SimulationProforma>(b =>
@@ -628,6 +883,14 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(s => s.MontantTotalXof).HasPrecision(18, 2);
             b.HasIndex(s => s.Reference).IsUnique();
             b.HasIndex(s => new { s.SocieteId, s.DateCreationUtc });
+
+            b.HasOne<Domain.Tarification.Referentiels.SensOperation>().WithMany()
+                .HasForeignKey(s => s.SensOperationId).OnDelete(DeleteBehavior.Restrict);
+
+            // SIM-08 — rattachement a posteriori à un ticket, facultatif.
+            b.HasOne<Ticket>().WithMany()
+                .HasForeignKey(s => s.TicketId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+
             b.HasMany(s => s.LignesConteneurs)
                 .WithOne()
                 .HasForeignKey(l => l.SimulationProformaId)
@@ -638,7 +901,6 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         {
             b.HasKey(l => l.Id);
             b.Property(l => l.NumeroConteneur).IsRequired().HasMaxLength(32);
-            b.Property(l => l.CategorieMarchandise).IsRequired().HasMaxLength(64);
             b.Property(l => l.PoidsTonnes).HasPrecision(8, 2);
             b.Property(l => l.MontantAcconage).HasPrecision(18, 2);
             b.Property(l => l.MontantRelevage).HasPrecision(18, 2);
@@ -647,10 +909,28 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(l => l.MontantMajorationDangereux).HasPrecision(18, 2);
             b.Property(l => l.MontantMajorationOog).HasPrecision(18, 2);
             b.Property(l => l.MontantStationnement).HasPrecision(18, 2);
-            b.Property(l => l.PartCit).HasPrecision(18, 2);
-            b.Property(l => l.PartOic).HasPrecision(18, 2);
-            b.Property(l => l.PartPaa).HasPrecision(18, 2);
             b.Property(l => l.TotalLigneXof).HasPrecision(18, 2);
+
+            b.HasOne<Domain.Tarification.Referentiels.TailleConteneur>().WithMany()
+                .HasForeignKey(l => l.TailleConteneurId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Domain.Tarification.Referentiels.TypeConteneur>().WithMany()
+                .HasForeignKey(l => l.TypeConteneurId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<Domain.Tarification.Referentiels.CategorieMarchandise>().WithMany()
+                .HasForeignKey(l => l.CategorieMarchandiseId).OnDelete(DeleteBehavior.Restrict);
+
+            b.HasMany(l => l.RepartitionStationnement)
+                .WithOne()
+                .HasForeignKey(p => p.LigneResultatSimulationConteneurId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Domain.Tarification.PartStationnementSimulee>(b =>
+        {
+            b.ToTable("PartsStationnementSimulees");
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Beneficiaire).IsRequired().HasMaxLength(16);
+            b.Property(p => p.Montant).HasPrecision(18, 2);
+            b.HasIndex(p => new { p.LigneResultatSimulationConteneurId, p.Beneficiaire }).IsUnique();
         });
 
         // FEATURE 010 (CON-03, research.md D2, data-model.md §2) — Rendez-vous guichet.

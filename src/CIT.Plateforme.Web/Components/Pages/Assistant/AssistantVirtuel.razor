@@ -1,0 +1,224 @@
+@page "/assistant"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Assistant
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Assistant virtuel — CIT</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>💬</span> Assistance • IA-01 à IA-06
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">Assistant virtuel</h2>
+        <div class="cit-page-subtitle text-muted">
+            Posez vos questions de premier niveau. Si l'assistant ne sait pas répondre, vous pouvez
+            transmettre l'échange à un opérateur — il lui sera remis en entier.
+        </div>
+    </div>
+</div>
+
+<div style="max-width: 900px;">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="Ouverture de l'assistant..." />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="Vous devez être connecté pour utiliser l'assistant." />
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+                <span class="me-2 fs-5">⚠️</span> @_erreur
+            </div>
+        }
+
+        <div class="cit-card mb-3">
+            @if (_conversation is null || _conversation.Messages.Count == 0)
+            {
+                <EtatVide Titre="Aucun échange pour l'instant" Icone="💬"
+                          Message="Posez votre première question : suivi d'une demande, pièces à fournir, délais, simulation tarifaire, annulation…" />
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var m in _conversation.Messages)
+                    {
+                        var estClient = m.Auteur == "Vous";
+                        <div class="d-flex @(estClient ? "justify-content-end" : "justify-content-start")">
+                            <div class="rounded-3 p-3 shadow-sm @(estClient ? "bg-primary bg-opacity-10" : "bg-light")"
+                                 style="max-width: 75%; white-space: pre-wrap;">
+                                <div class="small fw-bold text-muted mb-1">@m.Auteur</div>
+                                <div class="text-dark">@m.Contenu</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (_conversation?.EstEscaladee == true)
+        {
+            <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info-emphasis rounded-3 p-3">
+                <span class="me-2">👤</span>
+                Cet échange a été transmis à un opérateur. La suite se poursuit dans le ticket
+                @if (_conversation.TicketId is Guid t)
+                {
+                    <a href="@($"/tickets/{t}")" class="fw-semibold">concerné</a>
+                }
+                .
+            </div>
+        }
+        else
+        {
+            @if (_escaladeRecommandee)
+            {
+                <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning-emphasis rounded-3 p-3 mb-3">
+                    <div class="fw-semibold mb-2">
+                        <span class="me-2">🙋</span> L'assistant n'a pas su répondre.
+                    </div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label for="ticket-escalade" class="form-label small fw-semibold">Ticket auquel rattacher l'échange</label>
+                            <input id="ticket-escalade" class="form-control form-control-sm font-monospace"
+                                   placeholder="Identifiant du ticket" @bind="_ticketEscalade" />
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-warning btn-sm w-100 fw-semibold"
+                                    @onclick="EscaladerAsync" disabled="@_envoi">
+                                Transmettre à un opérateur
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="cit-card">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-10">
+                        <label for="question" class="form-label small fw-semibold text-dark">Votre question</label>
+                        <input id="question" class="form-control" @bind="_question" @bind:event="oninput"
+                               @onkeydown="@(async e => { if (e.Key == "Enter") await PoserAsync(); })"
+                               placeholder="Ex. Où en est ma demande d'import ?" />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100 fw-semibold" @onclick="PoserAsync"
+                                disabled="@(_envoi || string.IsNullOrWhiteSpace(_question))">
+                            Envoyer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private bool _envoi;
+    private string? _erreur;
+    private Guid _utilisateurId;
+
+    private ConversationAssistantVue? _conversation;
+    private bool _escaladeRecommandee;
+    private string _question = string.Empty;
+    private string _ticketEscalade = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+
+            using var scope = ScopeFactory.CreateScope();
+            var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
+            _conversation = await query.ExecuterAsync(_utilisateurId);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task PoserAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_question) || _envoi)
+        {
+            return;
+        }
+
+        _erreur = null;
+        _envoi = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<PoserQuestionAssistantCommand>();
+            _conversation = await commande.ExecuterAsync(_utilisateurId, _question);
+            _escaladeRecommandee = _conversation.EscaladeRecommandee;
+            _question = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _envoi = false;
+        }
+    }
+
+    private async Task EscaladerAsync()
+    {
+        _erreur = null;
+
+        if (!Guid.TryParse(_ticketEscalade, out var ticketId))
+        {
+            _erreur = "Identifiant de ticket invalide.";
+            return;
+        }
+
+        _envoi = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<EscaladerAssistantVersOperateurCommand>();
+            await commande.ExecuterAsync(
+                _utilisateurId, _conversation!.Id, ticketId,
+                _conversation.MotifEscaladeRecommandee ?? "Demande transmise par l'usager.");
+
+            var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
+            _conversation = await query.ExecuterAsync(_utilisateurId);
+            _escaladeRecommandee = false;
+        }
+        catch (AccesRefuseException)
+        {
+            _erreur = "Ce ticket ne relève pas de votre périmètre.";
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _envoi = false;
+        }
+    }
+}

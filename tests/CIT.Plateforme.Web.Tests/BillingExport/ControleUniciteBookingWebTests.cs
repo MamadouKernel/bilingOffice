@@ -55,7 +55,7 @@ public sealed class ControleUniciteBookingWebTests(PlateformeWebApplicationFacto
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "UniciteWebExportSA", TypeClient.Normal, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();

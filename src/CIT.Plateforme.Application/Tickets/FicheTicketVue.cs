@@ -33,6 +33,16 @@ public sealed record MessageItemVue(
     DateTime DateEnvoiUtc
 );
 
+/// <summary>SOC-10 — un ticket auquel celui-ci est lié, vu depuis la fiche. La liaison est
+/// symétrique : peu importe de quel côté elle a été créée, les deux fiches se voient.</summary>
+public sealed record LiaisonItemVue(
+    Guid TicketId,
+    string Numero,
+    string Module,
+    StatutTicket Statut,
+    DateTime DateLiaisonUtc
+);
+
 public sealed record FicheTicketVue(
     Guid TicketId,
     string NumeroTicket,
@@ -73,5 +83,18 @@ public sealed record FicheTicketVue(
     string? ReponseFormalisee = null,
     int? EvaluationNote = null,
     string? EvaluationCommentaire = null,
-    DateTime? EvaluationDateUtc = null
+    DateTime? EvaluationDateUtc = null,
+
+    /// <summary>IMP-10 — « le client demande la facture depuis son ticket ». Le droit est calculé
+    /// ici, comme tous les autres, et jamais déduit dans la page.</summary>
+    bool PeutDemanderFacture = false,
+
+    /// <summary>SOC-10 — « liaison entre tickets, y compris entre modules, visible par les agents
+    /// ET par le client concerné ». La liste part vide plutôt qu'absente : une fiche sans liaison
+    /// est un cas normal, pas une donnée manquante.</summary>
+    IReadOnlyList<LiaisonItemVue>? Liaisons = null,
+
+    /// <summary>SOC-10 — seul un agent habilité sur la file crée une liaison ; le client la voit
+    /// sans pouvoir la poser.</summary>
+    bool PeutLierTickets = false
 );

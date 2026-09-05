@@ -35,7 +35,7 @@ public sealed class AutorisationServeurTests
     {
         await using var dbContext = ContexteDeTest.CreerNouveauContexte();
         var utilisateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(utilisateurId, Permission.TicketTransferer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId), Permission.TicketTransferer));
         await dbContext.SaveChangesAsync();
 
         var service = new AutorisationService(dbContext);
@@ -50,7 +50,7 @@ public sealed class AutorisationServeurTests
         var utilisateurId = Guid.NewGuid();
         var fileAutorisee = Guid.NewGuid();
         var fileNonAutorisee = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(utilisateurId, Permission.TicketPrendreEnCharge, fileAutorisee));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId), Permission.TicketPrendreEnCharge, fileAutorisee));
         await dbContext.SaveChangesAsync();
 
         var service = new AutorisationService(dbContext);
@@ -67,15 +67,13 @@ public sealed class AutorisationServeurTests
         var clientIntrus = Guid.NewGuid();
         var horloge = HorlogeDeTest.Defaut();
 
-        var dossier = Domain.Tickets.Dossier.Creer("DOS-000001", clientProprietaire, horloge.MaintenantUtc);
+        var dossier = Domain.Tickets.Dossier.Creer("DOS-000001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Domain.Tickets.Ticket.Creer("BOF-IMP-000001", "BillingOffice", "Import", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);
         await dbContext.SaveChangesAsync();
 
-        var cloisonnement = new CloisonnementService(
-            new CIT.Plateforme.Infrastructure.Persistence.TicketRepository(dbContext),
-            new CIT.Plateforme.Infrastructure.Persistence.DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(new CIT.Plateforme.Infrastructure.Persistence.TicketRepository(dbContext), CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         await Assert.ThrowsAsync<AccesRefuseException>(() =>
             cloisonnement.ExigerProprieteClientAsync(clientIntrus, ticket.Id));

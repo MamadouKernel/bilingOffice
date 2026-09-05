@@ -107,7 +107,7 @@ public sealed class VerifierAccesCompteQueryTests
         var utilisateurId = CreerCompte(dbContext);
         var societe = AjouterDemande(dbContext, Guid.NewGuid());
 
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, Maintenant));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, Maintenant));
         await dbContext.SaveChangesAsync();
 
         Assert.False(await Construire(dbContext).AccesAutoriseAsync(utilisateurId));
@@ -123,7 +123,7 @@ public sealed class VerifierAccesCompteQueryTests
         var societe = AjouterDemande(dbContext, Guid.NewGuid());
         societe.Valider();
 
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, Maintenant));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, Maintenant));
         await dbContext.SaveChangesAsync();
 
         Assert.True(await Construire(dbContext).AccesAutoriseAsync(utilisateurId));

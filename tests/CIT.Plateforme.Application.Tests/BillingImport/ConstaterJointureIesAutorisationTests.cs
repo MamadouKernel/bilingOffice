@@ -50,9 +50,9 @@ public sealed class ConstaterJointureIesAutorisationTests
         var auteurId = Guid.NewGuid();
         var agentManifesteId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentManifesteId, Permission.BillingImportManifesteInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentManifesteId), Permission.BillingImportManifesteInstruire),
             HabilitationUtilisateur.Attribuer(agentManifesteId, Permission.BillingImportIesManifesteInstruire));
         await dbContext.SaveChangesAsync();
 
@@ -89,7 +89,7 @@ public sealed class ConstaterJointureIesAutorisationTests
     {
         var c = await ConstruireContexteAsync();
         var agentCdId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingImportIesControleDocumentaireInstruire));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentCdId), Permission.BillingImportIesControleDocumentaireInstruire));
         await c.DbContext.SaveChangesAsync();
         var ticketId = await CreerTicketIesAvecBranchesAcheveesAsync(c, "BL-AUTIES-A", acheverManifeste: true, acheverCd: true, agentCdId);
 
@@ -104,7 +104,7 @@ public sealed class ConstaterJointureIesAutorisationTests
     {
         var c = await ConstruireContexteAsync();
         var agentCdId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingImportIesControleDocumentaireInstruire));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentCdId), Permission.BillingImportIesControleDocumentaireInstruire));
         await c.DbContext.SaveChangesAsync();
         var ticketId = await CreerTicketIesAvecBranchesAcheveesAsync(c, "BL-AUTIES-B", acheverManifeste: true, acheverCd: true, agentCdId);
 
@@ -121,14 +121,14 @@ public sealed class ConstaterJointureIesAutorisationTests
     {
         var c = await ConstruireContexteAsync();
         var agentCdId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingImportIesControleDocumentaireInstruire));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentCdId), Permission.BillingImportIesControleDocumentaireInstruire));
         await c.DbContext.SaveChangesAsync();
         var ticketId = await CreerTicketIesAvecBranchesAcheveesAsync(c, "BL-AUTIES-C", acheverManifeste: true, acheverCd: true, agentCdId);
 
         // Habilitation IES réelle, mais bornée à une AUTRE file que la File IES du ticket — un
         // rattachement de périmètre différent (SEC-11) ne doit jamais couvrir ce ticket.
         var agentAutreFile = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentAutreFile, Permission.BillingImportIesManifesteInstruire, Guid.NewGuid()));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentAutreFile), Permission.BillingImportIesManifesteInstruire, Guid.NewGuid()));
         await c.DbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(() => c.ConstaterJointure.ExecuterAsync(agentAutreFile, ticketId));
@@ -139,7 +139,7 @@ public sealed class ConstaterJointureIesAutorisationTests
     {
         var c = await ConstruireContexteAsync();
         var agentCdId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingImportIesControleDocumentaireInstruire));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentCdId), Permission.BillingImportIesControleDocumentaireInstruire));
         await c.DbContext.SaveChangesAsync();
         var ticketId = await CreerTicketIesAvecBranchesAcheveesAsync(c, "BL-AUTIES-D", acheverManifeste: true, acheverCd: true, agentCdId);
 
@@ -163,7 +163,7 @@ public sealed class ConstaterJointureIesAutorisationTests
     {
         var c = await ConstruireContexteAsync();
         var agentCdId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingImportIesControleDocumentaireInstruire));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentCdId), Permission.BillingImportIesControleDocumentaireInstruire));
         await c.DbContext.SaveChangesAsync();
         var ticketId = await CreerTicketIesAvecBranchesAcheveesAsync(c, "BL-AUTIES-F", acheverManifeste: true, acheverCd: true, agentCdId);
 

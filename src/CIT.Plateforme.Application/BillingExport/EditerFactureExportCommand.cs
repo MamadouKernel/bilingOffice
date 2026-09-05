@@ -56,6 +56,12 @@ public sealed class EditerFactureExportCommand(
             ?? throw new InvalidOperationException($"File « {nomFileCible} » (module {SoumettreDemandeExportCommand.Module}) non paramétrée.");
 
         var maintenant = horloge.MaintenantUtc;
+        // CYC-01 / CYC-05 (remédiation P1-01) : une facture est un document officiel, le ticket devient donc
+        // engageant. `MarquerEtatEngageant` n'avait AUCUN appelant en production : le drapeau
+        // restait faux à jamais, ce qui privait d'effet la fermeture de l'annulation directe
+        // (RG-TCK-07) comme la garde sur la suggestion de clôture (RG-TCK-11).
+        ticket.MarquerEtatEngageant();
+
         ticket.Transferer(fileCible.Id, destinataireId: null, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "FactureExportEditee", nomFichier, agentId, ct).ConfigureAwait(false);

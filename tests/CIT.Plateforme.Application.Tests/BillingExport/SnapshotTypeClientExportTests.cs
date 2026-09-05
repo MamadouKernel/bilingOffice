@@ -34,7 +34,7 @@ public sealed class SnapshotTypeClientExportTests
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var suiviRepository = new SuiviBrancheIesRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var fileBO = FileDeTraitement.Creer(SoumettreDemandeExportCommand.Module, NomsFilesExport.BackOfficeExport);
         var fileFactu = FileDeTraitement.Creer(SoumettreDemandeExportCommand.Module, NomsFilesExport.Facturation);
@@ -47,8 +47,8 @@ public sealed class SnapshotTypeClientExportTests
         var agentId = Guid.NewGuid();
 
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportBackOfficeInstruire));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingExportBackOfficeInstruire));
         await dbContext.SaveChangesAsync();
 
         var soumettre = new SoumettreDemandeExportCommand(

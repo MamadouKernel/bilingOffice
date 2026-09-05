@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Domain.SuiviTemps;
 using CIT.Plateforme.Domain.Supervision;
 using CIT.Plateforme.Domain.Tickets;
@@ -23,6 +23,8 @@ public sealed class SurveillerEcheancesUseCase(
     IPeriodeAttenteClientRepository periodesAttenteClient,
     IAlerteRepository alertes,
     IParametresSlaProvider parametresProvider,
+    IRegleEscaladeRepository reglesEscalade,
+    IPerimetreSupervisionRepository perimetres,
     IJournalisationService journalisation,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
@@ -73,6 +75,7 @@ public sealed class SurveillerEcheancesUseCase(
             StatutSla.SeuilInformation => TypeAlerte.SlaSeuilInformation,
             StatutSla.SeuilAlerte => TypeAlerte.SlaSeuilAlerte,
             StatutSla.Depasse => TypeAlerte.SlaDepasse,
+            StatutSla.Escalade => TypeAlerte.SlaEscalade,
             _ => (TypeAlerte?)null,
         };
 
@@ -88,6 +91,97 @@ public sealed class SurveillerEcheancesUseCase(
             }
         }
 
+        if (statut == StatutSla.Escalade)
+        {
+            await AppliquerEscaladeAsync(ticket, maintenant, ct).ConfigureAwait(false);
+        }
+
         return statut;
+    }
+
+    /// <summary>
+    /// ALE-03 — applique les règles d'escalade administrées. <b>Tant que le référentiel est vide,
+    /// cette méthode ne fait rien</b> : le comportement reste celui d'avant, le dépassement est
+    /// signalé sans être escaladé. C'est ce qui permet de livrer le mécanisme sans avoir inventé
+    /// la politique d'escalade que le CDC ne donne pas.
+    /// </summary>
+    private async Task AppliquerEscaladeAsync(Ticket ticket, DateTime maintenant, CancellationToken ct)
+    {
+        var regles = await reglesEscalade.ListerAsync(ct).ConfigureAwait(false);
+        var applicables = regles
+            .Where(r => r.SApplique(ticket.Module, ticket.TypeDemande, ticket.FileCouranteId))
+            .OrderBy(r => r.Ordre)
+            .ToList();
+
+        if (applicables.Count == 0)
+        {
+            return;
+        }
+
+        var modifie = false;
+
+        foreach (var regle in applicables)
+        {
+            switch (regle.Action)
+            {
+                case ActionEscalade.NotifierSuperviseur:
+                    // L'événement publié est lui aussi une écriture : sans le signaler, il ne
+                    // serait jamais enregistré quand la notification est la SEULE action de la
+                    // règle — le cas le plus courant.
+                    modifie |= await NotifierSuperviseursAsync(ticket, ct).ConfigureAwait(false);
+                    break;
+
+                case ActionEscalade.RemonterPriorite when regle.PrioriteCibleId is Guid cible:
+                    ticket.DefinirPriorite(cible);
+                    modifie = true;
+                    await journalisation.ConsignerAuditAsync(
+                        ticket.OperateurAssigneId ?? Guid.Empty, "EscaladePrioriteRemontee", nameof(Ticket), ticket.Id,
+                        null, $"règle {regle.Id} → priorité {cible}", ct).ConfigureAwait(false);
+                    break;
+
+                case ActionEscalade.Reaffecter:
+                    ticket.RemettreEnDistribution(maintenant);
+                    modifie = true;
+                    await journalisation.ConsignerAuditAsync(
+                        ticket.OperateurAssigneId ?? Guid.Empty, "EscaladeReaffectation", nameof(Ticket), ticket.Id,
+                        null, $"règle {regle.Id} → ticket remis en distribution", ct).ConfigureAwait(false);
+                    break;
+            }
+        }
+
+        if (modifie)
+        {
+            await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// ALE-02 — les superviseurs destinataires sont ceux dont le PÉRIMÈTRE ADMINISTRÉ couvre la
+    /// file du ticket. Le destinataire n'est donc jamais codé : en ajouter un est un acte
+    /// d'administration, pas un développement — ce que le CDC exige.
+    /// </summary>
+    private async Task<bool> NotifierSuperviseursAsync(Ticket ticket, CancellationToken ct)
+    {
+        var tous = await perimetres.ListerAsync(ct).ConfigureAwait(false);
+        var concernes = tous
+            .Where(p => p.CouvreLaFile(ticket.FileCouranteId))
+            .Select(p => p.SuperviseurId)
+            .Distinct()
+            .ToList();
+
+        if (concernes.Count == 0)
+        {
+            // Aucun périmètre administré ne couvre cette file : rien n'est notifié, et surtout
+            // aucun destinataire de repli n'est deviné.
+            return false;
+        }
+
+        var destinataires = string.Join(",", concernes.Select(id => $"\"{id}\""));
+        await journalisation.PublierEvenementAsync(
+            TypeAlerte.SlaEscalade.ToString(),
+            $"{{\"ticketId\":\"{ticket.Id}\",\"superviseurs\":[{destinataires}]}}",
+            ct).ConfigureAwait(false);
+
+        return true;
     }
 }

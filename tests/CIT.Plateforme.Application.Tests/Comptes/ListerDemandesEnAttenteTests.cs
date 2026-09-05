@@ -47,7 +47,7 @@ public sealed class ListerDemandesEnAttenteTests
         dbContext.Societes.AddRange(societeEnAttente, societeDejaValidee);
 
         var administrateurFonctionnelId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurFonctionnelId, Permission.CompteValider));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurFonctionnelId), Permission.CompteValider));
         await dbContext.SaveChangesAsync();
 
         var demandes = await query.ExecuterAsync(administrateurFonctionnelId);

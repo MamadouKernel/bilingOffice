@@ -64,7 +64,7 @@ public sealed class FileReclamationsTests : BunitContext
     {
         var (db, agentId, fileId, ticketId) = ConstruireBase();
 
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.ComplaintInstruire, fileId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.ComplaintInstruire, fileId));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();

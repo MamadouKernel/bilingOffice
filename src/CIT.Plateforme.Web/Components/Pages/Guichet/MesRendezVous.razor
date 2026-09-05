@@ -20,7 +20,7 @@
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>📅</span> Mes Rendez-vous Guichet (CON-03)
+            <span>📅</span> Mes Rendez-vous Guichet
         </h2>
         <div class="cit-page-subtitle">
             Suivi de vos rendez-vous physiques au Billing Office de Côte d'Ivoire Terminal
@@ -61,8 +61,8 @@ else
             <div class="card-body">
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Nouvelle date :</label>
-                        <input type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                        <label for="nouvelle-date" class="form-label fw-bold">Nouvelle date :</label>
+                        <input id="nouvelle-date" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")"
                                value="@_nouvelleDateReport.ToString("yyyy-MM-dd")" @onchange="ChangerDateReportAsync" />
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
@@ -126,8 +126,8 @@ else
             <div class="card-body">
                 <p>Êtes-vous sûr de vouloir annuler votre rendez-vous du <strong>@_rdvEnAnnulation.Date.ToString("dd/MM/yyyy") à @_rdvEnAnnulation.HeureDebut.ToString(@"hh\:mm")</strong> ? Cette place sera immédiatement libérée.</p>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Motif de l'annulation :</label>
-                    <input type="text" class="form-control" placeholder="Ex: Démarche effectuée en ligne / empêchement" @bind="_motifAnnulation" />
+                    <label for="motif-de-l-annulation" class="form-label fw-bold">Motif de l'annulation :</label>
+                    <input id="motif-de-l-annulation" type="text" class="form-control" placeholder="Ex: Démarche effectuée en ligne / empêchement" @bind="_motifAnnulation" />
                 </div>
                 <div class="d-flex justify-content-end gap-2">
                     <button class="btn btn-secondary" @onclick="FermerAnnulation">Conserver le RDV</button>

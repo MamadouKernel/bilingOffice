@@ -68,7 +68,8 @@ public sealed class DashboardAgentTests : BunitContext
         var habRepo = new HabilitationRepository(db);
         var dispoRepo = new DisponibiliteRepository(db);
         var userInfoRepo = new UtilisateurInfoRepository(db);
-        var query = new ObtenirDashboardAgentQuery(fileRepo, ticketRepo, habRepo, dispoRepo, userInfoRepo);
+        var query = new ObtenirDashboardAgentQuery(fileRepo, ticketRepo, habRepo, dispoRepo,
+            new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db)));
         Services.AddSingleton(query);
 
         var horloge = new HorlogeSysteme();

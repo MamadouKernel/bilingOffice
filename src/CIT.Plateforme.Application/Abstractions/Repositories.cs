@@ -70,6 +70,12 @@ public interface ITransitionAutoriseeRepository
     Task AjouterAsync(TransitionAutorisee transition, CancellationToken ct = default);
 
     Task<TransitionAutorisee?> ObtenirAsync(Guid fileSourceId, Guid fileCibleId, CancellationToken ct = default);
+
+    /// <summary>La matrice complète — sans quoi elle n'est pas administrable : on ne peut pas
+    /// corriger ce qu'on ne peut pas afficher.</summary>
+    Task<IReadOnlyList<TransitionAutorisee>> ListerAsync(CancellationToken ct = default);
+
+    Task SupprimerAsync(TransitionAutorisee transition, CancellationToken ct = default);
 }
 
 /// <summary>Port du referentiel des motifs de transfert (SS 9.10, SS 17.3, TRF-03).</summary>
@@ -125,6 +131,14 @@ public interface ILiaisonTicketRepository
 public interface IParametreSlaRepository
 {
     Task AjouterAsync(ParametreSlaAdministrable parametre, CancellationToken ct = default);
+
+    /// <summary>SLA-05 — l'écran d'administration doit pouvoir montrer ce qui est administré.
+    /// Sans lecture, « administrable sans développement » resterait une intention.</summary>
+    Task<IReadOnlyList<ParametreSlaAdministrable>> ListerAsync(CancellationToken ct = default);
+
+    Task<ParametreSlaAdministrable?> ObtenirAsync(Guid id, CancellationToken ct = default);
+
+    Task SupprimerAsync(ParametreSlaAdministrable parametre, CancellationToken ct = default);
 }
 
 /// <summary>Port des périmètres de supervision (CLAR-05, contrat C-04).</summary>
@@ -133,6 +147,30 @@ public interface IPerimetreSupervisionRepository
     Task AjouterAsync(PerimetreSupervision perimetre, CancellationToken ct = default);
 
     Task<PerimetreSupervision?> ObtenirParSuperviseurAsync(Guid superviseurId, CancellationToken ct = default);
+
+    /// <summary>ALE-02 — les destinataires d'une escalade se DÉDUISENT des périmètres administrés
+    /// plutôt que d'être codés. Ajouter un superviseur devient une donnée, pas un développement.</summary>
+    Task<IReadOnlyList<PerimetreSupervision>> ListerAsync(CancellationToken ct = default);
+}
+
+/// <summary>Port du référentiel des pièces exigées par étape (SOC-07, § 17.3).</summary>
+public interface IPieceExigeeEtapeRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Documents.PieceExigeeEtape piece, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Documents.PieceExigeeEtape>> ListerAsync(CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Documents.PieceExigeeEtape?> ObtenirAsync(Guid id, CancellationToken ct = default);
+}
+
+/// <summary>Port du référentiel des règles d'escalade (ALE-03, § 17.3).</summary>
+public interface IRegleEscaladeRepository
+{
+    Task AjouterAsync(RegleEscalade regle, CancellationToken ct = default);
+
+    Task<IReadOnlyList<RegleEscalade>> ListerAsync(CancellationToken ct = default);
+
+    Task<RegleEscalade?> ObtenirAsync(Guid id, CancellationToken ct = default);
 }
 
 /// <summary>Port des alertes (ALE-01..03).</summary>
@@ -174,6 +212,10 @@ public interface ICompetenceOperateurRepository
     Task AttribuerAsync(CompetenceOperateur competence, CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> ListerCodesParOperateurAsync(Guid operateurId, CancellationToken ct = default);
+
+    /// <summary>Retirer une compétence attribuée par erreur : sans cela, l'administration ne
+    /// serait qu'à sens unique.</summary>
+    Task RetirerAsync(Guid operateurId, string code, CancellationToken ct = default);
 }
 
 /// <summary>REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : port des périodes d'attente
@@ -183,6 +225,22 @@ public interface ICompetenceOperateurRepository
 /// <summary>
 /// TPS-01 / TPS-05 — accès aux passages en file d'un ticket, qui portent la chronologie par étape.
 /// </summary>
+/// <summary>
+/// CYC-01 / RG-TCK-07 — seuils au-delà desquels l'annulation directe se ferme, paramétrables par
+/// workflow. Ce référentiel n'existait pas : la règle était portée par un booléen fourni par
+/// l'appelant, que le seul appelant fixait à `false` (remédiation P1-01).
+/// </summary>
+public interface IEtapeBloquanteAnnulationRepository
+{
+    Task<IReadOnlyList<EtapeBloquanteAnnulation>> ListerActifsAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<EtapeBloquanteAnnulation>> ListerToutesAsync(CancellationToken ct = default);
+
+    Task<EtapeBloquanteAnnulation?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task AjouterAsync(EtapeBloquanteAnnulation etape, CancellationToken ct = default);
+}
+
 public interface IPassageEnFileRepository
 {
     Task AjouterAsync(PassageEnFile passage, CancellationToken ct = default);
@@ -286,6 +344,10 @@ public interface IAdministrationComptesRepository
     /// <summary>SEC-11 — bascule l'indicateur d'activité. Ne supprime JAMAIS le compte : son
     /// historique doit rester attribuable nominativement.</summary>
     Task DefinirActivationAsync(Guid utilisateurId, bool actif, CancellationToken ct = default);
+
+    /// <summary>Vérifie le mot de passe d'un utilisateur, requis pour la validation d'actions sensibles
+    /// (notamment la clôture de son propre compte).</summary>
+    Task<bool> VerifierMotDePasseAsync(Guid utilisateurId, string motDePasse, CancellationToken ct = default);
 }
 
 /// <summary>Issue d'une création de compte : la politique de mot de passe et l'unicité de

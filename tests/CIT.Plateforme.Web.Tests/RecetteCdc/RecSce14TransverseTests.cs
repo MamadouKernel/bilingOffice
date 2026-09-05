@@ -24,13 +24,30 @@ public sealed class RecSce14TransverseTests(PlateformeWebApplicationFactory fact
         var creerTicket = services.GetRequiredService<CreerTicketCommand>();
         var consulterDossier = services.GetRequiredService<ConsulterDossierQuery>();
 
-        var clientId = Guid.NewGuid();
+        // REMÉDIATION P0 : la consultation d'un dossier exige désormais l'identité de l'appelant.
+        // Ce test porte sur le REGROUPEMENT (SOC-11), pas sur l'autorisation ; le propriétaire du
+        // dossier est donc un compte réel, et c'est lui qui consulte.
+        var dbContext = services.GetRequiredService<PlateformeDbContext>();
+        var proprietaire = new CIT.Plateforme.Infrastructure.Identity.ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"soc11-{Guid.NewGuid():N}@test.ci",
+            Email = $"soc11-{Guid.NewGuid():N}@test.ci",
+            SecurityStamp = Guid.NewGuid().ToString(),
+            NomAffiche = "Propriétaire dossier",
+            Nature = CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client,
+            EstActif = true,
+        };
+        dbContext.Users.Add(proprietaire);
+        await dbContext.SaveChangesAsync();
+
+        var clientId = proprietaire.Id;
         var fileId = Guid.NewGuid();
 
         var ticket1 = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));
         var ticket2 = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, ticket1.DossierId));
 
-        var vue = await consulterDossier.ExecuterAsync(ticket1.DossierId);
+        var vue = await consulterDossier.ExecuterAsync(clientId, ticket1.DossierId);
 
         Assert.Equal(2, vue.Tickets.Count);
         Assert.Contains(vue.Tickets, t => t.Id == ticket1.Id);
@@ -48,10 +65,10 @@ public sealed class RecSce14TransverseTests(PlateformeWebApplicationFactory fact
         var consulterAudit = services.GetRequiredService<ConsulterJournalAuditQuery>();
 
         var administrateurTechniqueId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurTechniqueId, Permission.AuditConsulter));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurTechniqueId), Permission.AuditConsulter));
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileId, null));

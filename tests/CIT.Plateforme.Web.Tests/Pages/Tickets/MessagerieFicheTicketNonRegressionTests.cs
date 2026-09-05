@@ -64,7 +64,7 @@ public sealed class MessagerieFicheTicketNonRegressionTests : BunitContext
 
         var userClient = new ApplicationUser { Id = clientId, UserName = $"{numero}@nr.ci", NomAffiche = "Client Non-Régression", Nature = NatureUtilisateur.Client, EstActif = true };
         db.Users.Add(userClient);
-        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, socId, DateTime.UtcNow, true, true));
+        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), socId, DateTime.UtcNow, true, true));
 
         var file = FileDeTraitement.Creer(module, "File Test");
         typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
@@ -97,9 +97,13 @@ public sealed class MessagerieFicheTicketNonRegressionTests : BunitContext
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
 
-        Services.AddSingleton(new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo));
+        Services.AddSingleton(new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db)))));
         Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));

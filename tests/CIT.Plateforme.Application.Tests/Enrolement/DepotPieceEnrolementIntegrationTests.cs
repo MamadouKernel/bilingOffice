@@ -33,10 +33,10 @@ public sealed class DepotPieceEnrolementIntegrationTests
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
         var ticketRepo = new TicketRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var transporteurId = Guid.NewGuid();
-        var dossier = Dossier.Creer("DOS-ENR-000001", transporteurId, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-ENR-000001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-ENR-000001", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);
@@ -67,11 +67,11 @@ public sealed class DepotPieceEnrolementIntegrationTests
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
         var ticketRepo = new TicketRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var transporteurProprietaire = Guid.NewGuid();
         var transporteurIntrus = Guid.NewGuid();
-        var dossier = Dossier.Creer("DOS-ENR-000002", transporteurProprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-ENR-000002", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, transporteurProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-ENR-000002", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);

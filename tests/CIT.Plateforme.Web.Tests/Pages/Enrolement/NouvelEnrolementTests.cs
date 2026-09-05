@@ -51,7 +51,7 @@ public sealed class NouvelEnrolementTests : BunitContext
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         Services.AddSingleton(new DeposerDocumentCommand(
             new DocumentRepository(db), ticketRepo, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")), new AucuneAnalyseAntivirusConfiguree(),
-            autorisation, new CloisonnementService(ticketRepo, dossierRepo), journalisation, horloge, uow));
+            autorisation, new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db)), journalisation, horloge, uow));
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public sealed class NouvelEnrolementTests : BunitContext
     {
         var db = ConstruireBase();
         var transporteurId = Guid.NewGuid();
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(transporteurId, Permission.EnrolementSoumettre));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId), Permission.EnrolementSoumettre));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();

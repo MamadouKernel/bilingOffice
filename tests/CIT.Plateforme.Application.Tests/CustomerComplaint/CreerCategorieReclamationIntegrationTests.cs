@@ -30,7 +30,7 @@ public sealed class CreerCategorieReclamationIntegrationTests
         var catRepo = new CategorieReclamationRepository(dbContext);
 
         var adminId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminId, Permission.AdministrationCategoriesReclamation));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, adminId), Permission.AdministrationCategoriesReclamation));
         await dbContext.SaveChangesAsync();
 
         var creer = new CreerCategorieReclamationCommand(catRepo, autorisation, journalisation, uow);

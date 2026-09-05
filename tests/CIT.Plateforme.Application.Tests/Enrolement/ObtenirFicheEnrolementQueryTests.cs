@@ -25,7 +25,7 @@ public sealed class ObtenirFicheEnrolementQueryTests
         var transporteurId = Guid.NewGuid();
 
         db.Users.Add(new ApplicationUser { Id = transporteurId, UserName = "transporteur@test.local", Email = "transporteur@test.local", NomAffiche = "Transporteur Test", Nature = NatureUtilisateur.Client, EstActif = true });
-        var dossier = Dossier.Creer("DOS-ENR-000001", transporteurId, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-ENR-000001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-ENR-000001", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         ticket.DefinirInformationsEnrolement("Enrôlement chauffeur", "Camion frigorifique.");
         db.Dossiers.Add(dossier);
@@ -70,12 +70,12 @@ public sealed class ObtenirFicheEnrolementQueryTests
         var transporteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
 
-        var dossier = Dossier.Creer("DOS-ENR-000003", transporteurId, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-ENR-000003", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-ENR-000003", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         ticket.PrendreEnCharge(agentId, horloge.MaintenantUtc);
         db.Dossiers.Add(dossier);
         db.Tickets.Add(ticket);
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.EnrolementInstruire, ticket.FileCouranteId));
         await db.SaveChangesAsync();
 
         var query = ConstruireQuery(db);
@@ -103,6 +103,7 @@ public sealed class ObtenirFicheEnrolementQueryTests
         var utilisateurInfoRepo = new UtilisateurInfoRepository(db);
 
         return new ObtenirFicheEnrolementQuery(
-            ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo);
+            ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
+            Support.FabriqueRequetes.ControleAcces(db));
     }
 }

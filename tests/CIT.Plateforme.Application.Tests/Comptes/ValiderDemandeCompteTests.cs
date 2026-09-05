@@ -25,7 +25,7 @@ public sealed class ValiderDemandeCompteTests
         var autorisation = new AutorisationService(dbContext);
 
         var administrateurFonctionnelId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurFonctionnelId, Permission.CompteValider));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurFonctionnelId), Permission.CompteValider));
 
         var demandeurId = Guid.NewGuid();
         var societe = SocieteCliente.Soumettre(demandeurId, "Informations déclarées", TypeClient.Normal, horloge.MaintenantUtc);

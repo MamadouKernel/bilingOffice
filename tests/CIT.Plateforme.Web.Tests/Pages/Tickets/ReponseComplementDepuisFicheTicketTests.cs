@@ -68,8 +68,8 @@ public sealed class ReponseComplementDepuisFicheTicketTests : BunitContext
         var userAgent = new ApplicationUser { Id = agentId, UserName = "agent@rec03.ci", NomAffiche = "Agent Support", Nature = NatureUtilisateur.Agent, EstActif = true };
         db.Users.AddRange(userClient, userAgent);
 
-        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, socId, DateTime.UtcNow, true, true));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.ComplaintInstruire, fileId));
+        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), socId, DateTime.UtcNow, true, true));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.ComplaintInstruire, fileId));
 
         var file = FileDeTraitement.Creer("CustomerComplaint", "Support Opérationnel");
         typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
@@ -104,9 +104,13 @@ public sealed class ReponseComplementDepuisFicheTicketTests : BunitContext
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
 
-        var ficheQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
+        var ficheQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);
         var publierMessage = new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow);

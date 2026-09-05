@@ -44,7 +44,7 @@ public sealed class RecSce09PriseEnChargeTests : IClassFixture<PlateformeWebAppl
         Assert.Equal(StatutTicket.EnAttenteDePriseEnCharge, ticket.Statut);
         Assert.Null(ticket.DatePriseEnChargeUtc);
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurId), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         // Acceptation par un opérateur : PEC-02.

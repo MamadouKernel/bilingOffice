@@ -75,8 +75,7 @@ public sealed class SecCert04SessionTests : IClassFixture<PlateformeWebApplicati
         societe.Valider();
         societe.EnregistrerAdministrateurActif();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(
-            UtilisateurSociete.Rattacher(utilisateur.Id, societe.Id, DateTime.UtcNow, estAdministrateur: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateur.Id, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, estAdministrateur: true));
         await dbContext.SaveChangesAsync();
 
         return utilisateur;

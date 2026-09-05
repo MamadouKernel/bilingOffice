@@ -42,13 +42,13 @@ public sealed class SecCert02CloisonnementTests
         var dbContext = ContexteDeTest.CreerNouveauContexte();
         return (
             dbContext,
-            new CloisonnementService(new TicketRepository(dbContext), new DossierRepository(dbContext)),
+            new CloisonnementService(new TicketRepository(dbContext), CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext)),
             new AutorisationService(dbContext));
     }
 
     private static async Task<Ticket> CreerTicketPourAsync(PlateformeDbContext dbContext, Guid clientId, Guid fileId)
     {
-        var dossier = Dossier.Creer($"DOS-{Guid.NewGuid():N}"[..12], clientId, DateTime.UtcNow);
+        var dossier = Dossier.Creer($"DOS-{Guid.NewGuid():N}"[..12], CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), DateTime.UtcNow);
         dbContext.Dossiers.Add(dossier);
 
         // Ordre du domaine : (numero, module, typeDemande, fileCibleId, dossierId, maintenantUtc).
@@ -132,8 +132,7 @@ public sealed class SecCert02CloisonnementTests
         dbContext.Files.Add(file);
 
         var agent = Guid.NewGuid();
-        dbContext.Habilitations.Add(
-            HabilitationUtilisateur.Attribuer(agent, Permission.TicketPrendreEnCharge, file.Id));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agent), Permission.TicketPrendreEnCharge, file.Id));
         await dbContext.SaveChangesAsync();
 
         var exception = await Record.ExceptionAsync(
@@ -158,8 +157,7 @@ public sealed class SecCert02CloisonnementTests
         dbContext.Files.AddRange(fileHabilitee, fileEtrangere);
 
         var agent = Guid.NewGuid();
-        dbContext.Habilitations.Add(
-            HabilitationUtilisateur.Attribuer(agent, Permission.TicketPrendreEnCharge, fileHabilitee.Id));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agent), Permission.TicketPrendreEnCharge, fileHabilitee.Id));
         await dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(
@@ -180,8 +178,7 @@ public sealed class SecCert02CloisonnementTests
         dbContext.Files.Add(file);
 
         var agent = Guid.NewGuid();
-        dbContext.Habilitations.Add(
-            HabilitationUtilisateur.Attribuer(agent, Permission.TicketPrendreEnCharge, file.Id));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agent), Permission.TicketPrendreEnCharge, file.Id));
         await dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(

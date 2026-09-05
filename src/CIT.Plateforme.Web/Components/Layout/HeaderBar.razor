@@ -3,7 +3,8 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
 @* FEATURE 009 (NOT-03) — compteur de non-lues du seul utilisateur authentifié. *@
-@inject CIT.Plateforme.Application.Notifications.CompterNonLuesQuery CompterNonLues
+@using Microsoft.Extensions.DependencyInjection
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 
 <header class="cit-header">
     <div class="d-flex align-items-center gap-3">
@@ -165,7 +166,26 @@
             return;
         }
 
-        NombreNonLues = await CompterNonLues.ExecuterAsync(Contexte.UtilisateurId);
+        // PORTÉE DÉDIÉE — le bandeau est rendu sur CHAQUE page, et `OnParametersSetAsync` se
+        // déclenche à chaque changement de paramètre, y compris pendant qu'une page charge ses
+        // propres données. Les deux se partageaient le `DbContext` scopé du circuit Blazor, d'où
+        // « A second operation was started on this context instance ».
+        //
+        // Même remède que sur les écrans d'administration : une portée par opération. Le compteur
+        // ne doit jamais faire tomber la page qui l'héberge.
+        using var scope = ScopeFactory.CreateScope();
+        var compterNonLues = scope.ServiceProvider
+            .GetRequiredService<CIT.Plateforme.Application.Notifications.CompterNonLuesQuery>();
+
+        try
+        {
+            NombreNonLues = await compterNonLues.ExecuterAsync(Contexte.UtilisateurId);
+        }
+        catch (Exception)
+        {
+            // Un compteur indisponible n'est pas une raison de casser l'en-tête : il s'efface.
+            NombreNonLues = 0;
+        }
     }
 
     private string Initiale =>

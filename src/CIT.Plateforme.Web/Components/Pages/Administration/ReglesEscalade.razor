@@ -1,0 +1,263 @@
+@page "/administration/regles-escalade"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Supervision
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Règles d'escalade — CIT</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span aria-hidden="true">🚨</span> Alertes &amp; escalades
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">Règles d'escalade SLA</h2>
+        <div class="cit-page-subtitle text-muted">
+            Actions déclenchées lorsqu'un ticket franchit le seuil d'escalade de son SLA. Sans
+            règle, un dépassement est signalé sans être escaladé.
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            <span aria-hidden="true">🔄</span> Actualiser
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des règles d'escalade..." />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
+            <span class="me-2 fs-5" aria-hidden="true">⚠️</span> @_erreur
+        </div>
+    }
+
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4" aria-hidden="true">➕</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">Ajouter une règle</h4>
+        </div>
+
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="action">Action</label>
+                <select id="action" class="form-select" @bind="_action">
+                    <option value="@ActionEscalade.NotifierSuperviseur">Notifier un superviseur</option>
+                    <option value="@ActionEscalade.RemonterPriorite">Remonter la priorité</option>
+                    <option value="@ActionEscalade.Reaffecter">Remettre en distribution</option>
+                </select>
+                <div class="form-text small">Le superviseur notifié est celui dont le périmètre couvre l'étape.</div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="module">Module</label>
+                <input id="module" class="form-control" @bind="_module" placeholder="tous" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="type">Type de demande</label>
+                <input id="type" class="form-control" @bind="_typeDemande" placeholder="tous" />
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="file">Étape</label>
+                <select id="file" class="form-select" @bind="_fileId">
+                    <option value="">Toutes</option>
+                    @foreach (var f in _files)
+                    {
+                        <option value="@f.Item1">@f.Item2</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="prio">Priorité cible</label>
+                <select id="prio" class="form-select" @bind="_prioriteCibleId" disabled="@(_action != ActionEscalade.RemonterPriorite)">
+                    <option value="">—</option>
+                    @foreach (var p in _priorites)
+                    {
+                        <option value="@p.Item1">@p.Item2</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-1">
+                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                    Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (_regles is null || _regles.Count == 0)
+    {
+        <div class="cit-card p-5 text-center text-muted border-0 shadow-sm">
+            <div class="fs-1 mb-2" aria-hidden="true">🚨</div>
+            <div class="fw-semibold">Aucune règle d'escalade</div>
+            <div class="small">Les dépassements sont signalés, aucune escalade n'est appliquée.</div>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Règles d'escalade administrées</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="small fw-bold">Action</th>
+                            <th scope="col" class="small fw-bold">Module</th>
+                            <th scope="col" class="small fw-bold">Type</th>
+                            <th scope="col" class="small fw-bold">Étape</th>
+                            <th scope="col" class="small fw-bold">Priorité cible</th>
+                            <th scope="col" class="small fw-bold">État</th>
+                            <th scope="col"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in _regles)
+                        {
+                            <tr class="@(r.EstActive ? "" : "opacity-50")">
+                                <td class="fw-semibold">@Libelle(r.Action)</td>
+                                <td>@(r.Module ?? "Tous")</td>
+                                <td>@(r.TypeDemande ?? "Tous")</td>
+                                <td>@r.NomFile</td>
+                                <td>@r.LibellePrioriteCible</td>
+                                <td>
+                                    @if (r.EstActive)
+                                    {
+                                        <span class="badge bg-success bg-opacity-25 text-success-emphasis">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark">Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => BasculerAsync(r.Id, !r.EstActive)">
+                                        @(r.EstActive ? "Désactiver" : "Activer")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<RegleEscaladeVue>? _regles;
+    private IReadOnlyList<(Guid, string)> _files = [];
+    private IReadOnlyList<(Guid, string)> _priorites = [];
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA (administration.sla) pour accéder à cette interface.";
+    private string? _erreur;
+
+    private ActionEscalade _action = ActionEscalade.NotifierSuperviseur;
+    private string _module = string.Empty;
+    private string _typeDemande = string.Empty;
+    private string _fileId = string.Empty;
+    private string _prioriteCibleId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationSla);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+        else
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            _regles = await scope.ServiceProvider.GetRequiredService<GererReglesEscaladeCommand>().ListerAsync(_appelantId);
+
+            var axes = await scope.ServiceProvider.GetRequiredService<GererParametresSlaCommand>().ListerAxesAsync(_appelantId);
+            _files = axes.Files;
+            _priorites = axes.Priorites;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async sp =>
+    {
+        await sp.GetRequiredService<GererReglesEscaladeCommand>().DefinirAsync(
+            _appelantId, _action,
+            string.IsNullOrWhiteSpace(_module) ? null : _module,
+            string.IsNullOrWhiteSpace(_typeDemande) ? null : _typeDemande,
+            Analyser(_fileId), Analyser(_prioriteCibleId),
+            (_regles?.Count ?? 0) + 1);
+
+        _module = string.Empty;
+        _typeDemande = string.Empty;
+        _fileId = string.Empty;
+        _prioriteCibleId = string.Empty;
+    });
+
+    private Task BasculerAsync(Guid regleId, bool active) => ExecuterAsync(sp =>
+        sp.GetRequiredService<GererReglesEscaladeCommand>().DefinirActivationAsync(_appelantId, regleId, active));
+
+    private static Guid? Analyser(string valeur) => Guid.TryParse(valeur, out var id) ? id : null;
+
+    private static string Libelle(ActionEscalade action) => action switch
+    {
+        ActionEscalade.NotifierSuperviseur => "Notifier un superviseur",
+        ActionEscalade.RemonterPriorite => "Remonter la priorité",
+        ActionEscalade.Reaffecter => "Remettre en distribution",
+        _ => action.ToString(),
+    };
+}

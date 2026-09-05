@@ -58,8 +58,8 @@ public sealed class FicheAvoirExonerationTests : BunitContext
             maintenantUtc: DateTime.UtcNow);
         db.Tickets.Add(ticket);
 
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.AvoirExonerationInstruire));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.AvoirExonerationDecider));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationDecider));
         db.SaveChanges();
         return (db, agentId, ticket.Id);
     }
@@ -85,7 +85,8 @@ public sealed class FicheAvoirExonerationTests : BunitContext
         var auto = new AutorisationService(db);
 
         var ficheQuery = new ObtenirFicheAvoirExonerationQuery(
-            ticketRepo, dossierRepo, socRepo, docRepo, liaisonRepo, msgRepo, histRepo, userSocRepo, auto);
+            ticketRepo, dossierRepo, socRepo, docRepo, liaisonRepo, msgRepo, histRepo, userSocRepo, auto,
+            Support.FabriqueSecurite.ControleAcces(db));
 
         var prendreEnChargeCmd = new PrendreEnChargeAvoirExoCommand(ticketRepo, journalisation, horloge, auto, uow);
         var demanderComplementCmd = new DemanderComplementAvoirExoCommand(ticketRepo, journalisation, horloge, auto, uow);

@@ -1,3 +1,5 @@
+using CIT.Plateforme.Application.Comptes;
+using CIT.Plateforme.Application.Securite;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +30,10 @@ public sealed class MainLayoutIntegrationTests : BunitContext
         // notifications non lues. Le harnais doit fournir la query correspondante — le
         // comportement du layout lui-même est inchangé.
         Services.AddSingleton<INotificationRepository>(new DepotNotificationsVide());
+        // P2-06 : les requêtes de notification consultent la garde d'identité. Le dépôt d'infos
+        // simulé décrit des comptes ACTIFS — le scénario éprouvé par cette suite est inchangé ;
+        // l'état des comptes est éprouvé par GardeIdentiteSurfacesPersonnellesTests.
+        Services.AddSingleton(new GardeIdentiteService(new Support.UtilisateurInfoToujoursActif()));
         Services.AddSingleton<CompterNonLuesQuery>();
 
         var cut = Render<MainLayout>(parameters => parameters
@@ -62,3 +68,4 @@ internal sealed class DepotNotificationsVide : INotificationRepository
     public Task<bool> ExisteDejaAsync(Guid evenementSourceId, Guid destinataireId, CancellationToken ct = default) =>
         Task.FromResult(false);
 }
+

@@ -52,4 +52,21 @@ public sealed class TransitionAutorisee
             motifsAutorises.Add(motif);
         }
     }
+
+    /// <summary>
+    /// Remplace la liste des motifs autorisés. Même raison que pour le périmètre de supervision :
+    /// <c>ObtenirAsync(source, cible)</c> lit par <c>SingleOrDefaultAsync</c>, donc redéfinir une
+    /// transition en ajoutant une seconde ligne rendrait ce couple de files illisible.
+    /// </summary>
+    public void RedefinirMotifs(IEnumerable<string> nouveauxMotifs)
+    {
+        motifsAutorises.Clear();
+        foreach (var motif in nouveauxMotifs)
+        {
+            if (!string.IsNullOrWhiteSpace(motif) && !motifsAutorises.Contains(motif))
+            {
+                motifsAutorises.Add(motif);
+            }
+        }
+    }
 }

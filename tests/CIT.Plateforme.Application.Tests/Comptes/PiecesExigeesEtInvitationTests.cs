@@ -60,7 +60,7 @@ public sealed class PiecesExigeesEtInvitationTests
     private static Guid AjouterAdministrateurCit(PlateformeDbContext dbContext)
     {
         var id = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(id, Permission.AdministrationComptes));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, id), Permission.AdministrationComptes));
         dbContext.SaveChanges();
         return id;
     }
@@ -181,7 +181,7 @@ public sealed class PiecesExigeesEtInvitationTests
     {
         var c = Construire();
         var adminId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminId, Permission.CompteTypeModifier));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, adminId), Permission.CompteTypeModifier));
         await c.DbContext.SaveChangesAsync();
 
         var societe = await c.Soumettre.ExecuterAsync(
@@ -209,8 +209,7 @@ public sealed class PiecesExigeesEtInvitationTests
         societe.Valider();
         societe.EnregistrerAdministrateurActif();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(
-            adminId, societe.Id, new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), estAdministrateur: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, adminId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc), estAdministrateur: true));
         dbContext.SaveChanges();
         return (societe.Id, adminId);
     }

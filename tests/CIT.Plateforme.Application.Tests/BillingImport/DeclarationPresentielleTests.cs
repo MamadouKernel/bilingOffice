@@ -37,7 +37,7 @@ public sealed class DeclarationPresentielleTests
         var dossierRepository = new DossierRepository(dbContext);
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         dbContext.Files.AddRange(
             FileDeTraitement.Creer(SoumettreDemandeImportCommand.Module, SoumettreDemandeImportCommand.FilePiloteManifeste),
@@ -49,8 +49,8 @@ public sealed class DeclarationPresentielleTests
         var auteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire));
         await dbContext.SaveChangesAsync();
 
         var soumettre = new SoumettreDemandeImportCommand(
@@ -73,7 +73,7 @@ public sealed class DeclarationPresentielleTests
         var ticketId = soumission.TicketsCrees[0].Id;
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
-        await c.Declarer.ExecuterAsync(c.SocieteId, ticketId);
+        await c.Declarer.ExecuterAsync(c.AuteurId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.True(ticket!.DeclarationPresentielle);
@@ -87,7 +87,7 @@ public sealed class DeclarationPresentielleTests
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-PR2"]));
         var ticketId = soumission.TicketsCrees[0].Id;
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => c.Declarer.ExecuterAsync(c.SocieteId, ticketId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => c.Declarer.ExecuterAsync(c.AuteurId, ticketId));
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.False(ticket!.DeclarationPresentielle);

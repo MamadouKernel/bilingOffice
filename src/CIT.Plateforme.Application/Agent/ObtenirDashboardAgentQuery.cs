@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Affectation;
 using CIT.Plateforme.Domain.Files;
+using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.Agent;
@@ -15,12 +17,29 @@ public sealed class ObtenirDashboardAgentQuery(
     ITicketRepository ticketRepository,
     IHabilitationRepository habilitationRepository,
     IDisponibiliteRepository disponibiliteRepository,
-    IUtilisateurInfoRepository utilisateurInfoRepository)
+    // P3 — `IUtilisateurInfoRepository` retiré : la garde d'identité renvoie déjà le compte,
+    // et le relire aurait rouvert un écart entre l'identité contrôlée et celle affichée.
+    GardeIdentiteService garde)
 {
     public async Task<DashboardAgentVue> ExecuterAsync(Guid agentId, CancellationToken ct = default)
     {
-        var userInfo = await utilisateurInfoRepository.ObtenirInfoAsync(agentId, ct).ConfigureAwait(false);
-        var nomAgent = userInfo?.NomAffiche ?? "Opérateur CIT";
+        // CONSOLIDATION SÉCURITÉ — LA GARDE EST ICI, PAS DANS LA PAGE.
+        //
+        // Cette requête déterminait seule le périmètre de files de l'agent, à partir de ses
+        // habilitations, sans jamais vérifier que le compte existait ni qu'il était actif. Sa seule
+        // protection était la garde `EstAuthentifie` de DashboardAgent.razor — une garde
+        // d'interface, donc jamais une frontière de sécurité.
+        //
+        // Le refus renvoie un tableau de bord VIDE plutôt qu'une exception : cette requête alimente
+        // un écran d'accueil, et un espace vide y est la réponse juste. Rien n'y est exposé — ni
+        // nom, ni file, ni ticket, ni compteur.
+        var userInfo = await garde.ObtenirCompteUtilisableAsync(agentId, ct).ConfigureAwait(false);
+        if (userInfo is null || userInfo.Nature != NatureUtilisateur.Agent)
+        {
+            return DashboardAgentVue.Vide(agentId);
+        }
+
+        var nomAgent = userInfo.NomAffiche ?? "Opérateur CIT";
 
         var dispo = await disponibiliteRepository.ObtenirParOperateurAsync(agentId, ct).ConfigureAwait(false);
         bool estDisponible = dispo is null || dispo.Statut == StatutDisponibilite.Disponible;

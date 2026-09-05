@@ -35,11 +35,11 @@ public sealed class DepotDocumentAutorisationTests
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
         var ticketRepo = new TicketRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, new DossierRepository(dbContext));
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var fileId = Guid.NewGuid();
         var clientProprietaire = Guid.NewGuid();
-        var dossier = Dossier.Creer("DOS-DEPOT-AUTZ-000001", clientProprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-DEPOT-AUTZ-000001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-DEPOT-AUTZ-000001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);
@@ -60,7 +60,7 @@ public sealed class DepotDocumentAutorisationTests
     {
         var (dbContext, commande, ticket, fileId, _) = ConstruireContexte();
         var agentHabilite = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentHabilite, Permission.DocumentDeposer, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentHabilite), Permission.DocumentDeposer, fileId));
         await dbContext.SaveChangesAsync();
 
         using var contenu = ContenuDeTest();

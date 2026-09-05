@@ -50,11 +50,14 @@ public sealed class ObtenirFicheDossierQueryTests
         var ticketRepo = new TicketRepository(db);
         var fileRepo = new FileDeTraitementRepository(db);
         var socRepo = new SocieteClienteRepository(db);
-        var userSocRepo = new UtilisateurSocieteRepository(db);
         var userInfoRepo = new UtilisateurInfoRepository(db);
 
         var query = new ObtenirFicheDossierQuery(
-            dossierRepo, ticketRepo, fileRepo, socRepo, userSocRepo, userInfoRepo);
+            dossierRepo, ticketRepo, fileRepo, socRepo, userInfoRepo,
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
 
         return (db, query, socId, clientUserId);
     }

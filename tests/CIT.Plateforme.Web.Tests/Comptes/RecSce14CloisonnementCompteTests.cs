@@ -31,10 +31,14 @@ public sealed class RecSce14CloisonnementCompteTests(PlateformeWebApplicationFac
         var validerOuRejeter = services.GetRequiredService<ValiderOuRejeterDemandeCompteCommand>();
 
         var administrateurFonctionnelId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurFonctionnelId, Permission.CompteValider));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurFonctionnelId), Permission.CompteValider));
         await dbContext.SaveChangesAsync();
 
-        var demandeurId = Guid.NewGuid();
+        // Le demandeur devient administrateur de sa société à la validation : il lui faut un compte
+        // réel, la consultation passant désormais par la garde centrale.
+        var demandeurId = CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(
+            dbContext, Guid.NewGuid(), CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client);
+        await dbContext.SaveChangesAsync();
         var societe = await soumettre.ExecuterAsync(new SoumettreDemandeCompteRequete(demandeurId, raisonSociale, TypeClient.Normal));
         await validerOuRejeter.ValiderAsync(societe.Id, administrateurFonctionnelId);
 
@@ -58,13 +62,29 @@ public sealed class RecSce14CloisonnementCompteTests(PlateformeWebApplicationFac
         var ticketDeA = await creerTicket.ExecuterAsync(new CreerTicketRequete(
             societeA.Id, "BillingOffice", "Import", Guid.NewGuid(), DossierExistantId: null));
 
-        // Le cloisonnement inter-société dur (CPT-04) réutilise CloisonnementService de
-        // Feature 001 TEL QUEL, en lui passant l'identifiant société (research.md D5).
-        await Assert.ThrowsAsync<AccesRefuseException>(() =>
-            cloisonnement.ExigerProprieteClientAsync(societeB.Id, ticketDeA.Id));
+        // CONSOLIDATION SÉCURITÉ — L'IDENTITÉ EST CELLE D'UNE PERSONNE, PAS D'UNE SOCIÉTÉ.
+        //
+        // Ce test passait auparavant `societeA.Id` / `societeB.Id` comme identité appelante, en
+        // s'appuyant sur le fait que CloisonnementService comparait l'appelant à Dossier.ClientId.
+        // Une société n'est pas un compte : elle ne s'authentifie pas et n'agit pas. Le contrôle
+        // délègue désormais à la garde centrale, qui résout le rattachement société de la personne.
+        //
+        // L'OBJECTIF MÉTIER EST INCHANGÉ — un client de la société A n'atteint pas une demande de
+        // la société B — mais il est désormais éprouvé sur des utilisateurs réels, ce qui est la
+        // seule forme sous laquelle il se produit en exploitation.
+        var administrateurA = dbContext.UtilisateursSociete.Single(u => u.SocieteId == societeA.Id);
+        var administrateurB = dbContext.UtilisateursSociete.Single(u => u.SocieteId == societeB.Id);
 
-        // Le propriétaire réel (société A), lui, n'est jamais refusé.
-        await cloisonnement.ExigerProprieteClientAsync(societeA.Id, ticketDeA.Id);
+        await Assert.ThrowsAsync<AccesRefuseException>(() =>
+            cloisonnement.ExigerProprieteClientAsync(administrateurB.UtilisateurId, ticketDeA.Id));
+
+        // Une société fournie comme identité n'autorise rien non plus : c'est le contournement que
+        // la consolidation ferme.
+        await Assert.ThrowsAsync<AccesRefuseException>(() =>
+            cloisonnement.ExigerProprieteClientAsync(societeA.Id, ticketDeA.Id));
+
+        // Le propriétaire réel — l'administrateur de la société A — n'est jamais refusé.
+        await cloisonnement.ExigerProprieteClientAsync(administrateurA.UtilisateurId, ticketDeA.Id);
     }
 
     [Fact]

@@ -125,11 +125,11 @@ public sealed class RecSce07CustomerComplaintE2ETests(PlateformeWebApplicationFa
         db.Set<CategorieReclamation>().Add(categorie);
 
         // Habilitations
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(clientId, Permission.ComplaintSoumettre));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(clientId, Permission.ComplaintRepondre));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentSupportId, Permission.ComplaintInstruire, fileSupport.Id));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentSupportId, Permission.TicketTransferer, fileSupport.Id));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentFacturationId, Permission.ComplaintInstruire, fileFacturation.Id));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId), Permission.ComplaintSoumettre));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId), Permission.ComplaintRepondre));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentSupportId), Permission.ComplaintInstruire, fileSupport.Id));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentSupportId), Permission.TicketTransferer, fileSupport.Id));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentFacturationId), Permission.ComplaintInstruire, fileFacturation.Id));
         await db.SaveChangesAsync();
 
         // 1. Étape 1 : Soumission par catégorie (REC-01, REC-02)
@@ -166,7 +166,7 @@ public sealed class RecSce07CustomerComplaintE2ETests(PlateformeWebApplicationFa
         Assert.Equal(TypeActionRequise.ComplementReclamation, actionRequise.TypeAction);
 
         // 5. Étape 5 : Réponse au complément par le client
-        await publierMessageCmd.PublierMessageClientAsync(societeId, ticketId, "Voici la pièce justificative.");
+        await publierMessageCmd.PublierMessageClientAsync(clientId, ticketId, "Voici la pièce justificative.");
         await attenteClientCmd.RependreApresReponseAsync(ticketId);
 
         var ticketRepris = await db.Tickets.FindAsync(ticketId);

@@ -61,9 +61,9 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
         var auteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportFacturationEditer),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportPaiementValider),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportControleDocumentaireTraiter),
@@ -88,14 +88,14 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
         await complement.DemanderComplementAsync(agentId, ticketComplement.Id, "Facture d'origine manquante");
         var ticketComplementApresDemande = await dbContext.Tickets.FindAsync(ticketComplement.Id);
         Assert.Equal(StatutTicket.EnAttenteClient, ticketComplementApresDemande!.Statut);
-        await complement.DeposerComplementAsync(societe.Id, ticketComplement.Id);
+        await complement.DeposerComplementAsync(auteurId, ticketComplement.Id);
         await valider.ExecuterAsync(agentId, ticketComplement.Id);
 
         // --- BL1 : validé et mené jusqu'à clôture (circuit Client Normal complet, IMP-06, IMP-10→14). ---
         await valider.ExecuterAsync(agentId, ticketValide.Id);
 
         var demanderFacture = services.GetRequiredService<DemanderFactureCommand>();
-        await demanderFacture.ExecuterAsync(societe.Id, ticketValide.Id);
+        await demanderFacture.ExecuterAsync(auteurId, ticketValide.Id);
 
         var editerFacture = services.GetRequiredService<EditerFactureCommand>();
         using (var facture = Contenu("facture"))
@@ -106,7 +106,7 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
         var deposerPreuve = services.GetRequiredService<DeposerPreuvePaiementCommand>();
         using (var preuve = Contenu("preuve"))
         {
-            await deposerPreuve.ExecuterAsync(societe.Id, ticketValide.Id, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
+            await deposerPreuve.ExecuterAsync(auteurId, ticketValide.Id, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
         }
 
         var validerPreuve = services.GetRequiredService<ValiderPreuvePaiementCommand>();

@@ -12,6 +12,7 @@ namespace CIT.Plateforme.Application.Enrolement;
 public sealed class DemanderRenouvellementBadgeCommand(
     IDossierRepository dossiers,
     ITicketRepository tickets,
+    IFileDeTraitementRepository files,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     IServiceNumerotation numerotation,
@@ -70,5 +71,21 @@ public sealed class DemanderRenouvellementBadgeCommand(
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 
         return ticket;
+    }
+
+    /// <summary>
+    /// La même demande, depuis un écran : le titulaire du badge connaît son dossier, pas la file
+    /// qui instruira le renouvellement. La file « Agent Gate » se résout ici comme dans
+    /// <see cref="SoumettreEnrolementCommand"/> — donnée paramétrée, jamais un identifiant en dur.
+    /// </summary>
+    public async Task<Ticket> ExecuterPourDossierAsync(Guid demandeurId, Guid dossierId, CancellationToken ct = default)
+    {
+        var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
+        var fileAgentGate = toutesLesFiles.SingleOrDefault(f =>
+            f.Module == SoumettreEnrolementCommand.Module && f.Nom == SoumettreEnrolementCommand.FileAgentGate)
+            ?? throw new InvalidOperationException(
+                $"File « {SoumettreEnrolementCommand.FileAgentGate} » (module {SoumettreEnrolementCommand.Module}) non paramétrée.");
+
+        return await ExecuterAsync(demandeurId, dossierId, fileAgentGate.Id, ct).ConfigureAwait(false);
     }
 }

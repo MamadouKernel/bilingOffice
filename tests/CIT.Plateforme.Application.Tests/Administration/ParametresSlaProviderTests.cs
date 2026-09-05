@@ -27,10 +27,10 @@ public sealed class ParametresSlaProviderTests
         var uniteDeTravail = new UniteDeTravail(dbContext);
         var autorisation = new AutorisationService(dbContext);
         var administrateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationSla));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationSla));
         await dbContext.SaveChangesAsync();
 
-        var gererSla = new GererParametresSlaCommand(new ParametreSlaRepository(dbContext), autorisation, journalisation, uniteDeTravail);
+        var gererSla = new GererParametresSlaCommand(new ParametreSlaRepository(dbContext), new FileDeTraitementRepository(dbContext), new PrioriteRepository(dbContext), autorisation, journalisation, uniteDeTravail);
         await gererSla.DefinirAsync(administrateurId, "BillingOffice", "Import", TimeSpan.FromHours(2), 0.5, 0.8);
 
         var provider = new ParametresSlaProvider(dbContext);
@@ -53,10 +53,10 @@ public sealed class ParametresSlaProviderTests
         var uniteDeTravail = new UniteDeTravail(dbContext);
         var autorisation = new AutorisationService(dbContext);
         var administrateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationSla));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationSla));
         await dbContext.SaveChangesAsync();
 
-        var gererSla = new GererParametresSlaCommand(new ParametreSlaRepository(dbContext), autorisation, journalisation, uniteDeTravail);
+        var gererSla = new GererParametresSlaCommand(new ParametreSlaRepository(dbContext), new FileDeTraitementRepository(dbContext), new PrioriteRepository(dbContext), autorisation, journalisation, uniteDeTravail);
         // Valeurs de test explicites (Lundi-Vendredi 08h-17h) — pas une valeur réelle de PC-12.
         await gererSla.DefinirAvecCalendrierAsync(
             administrateurId, "Gate", "Enrolement", TimeSpan.FromHours(2), 0.5, 0.8,

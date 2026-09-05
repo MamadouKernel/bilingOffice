@@ -206,7 +206,7 @@ public static class FixtureComptesDeTest
 
         if (!deja)
         {
-            context.Habilitations.Add(HabilitationUtilisateur.Attribuer(utilisateurId, permission, fileId));
+            context.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(context, utilisateurId), permission, fileId));
         }
     }
 }

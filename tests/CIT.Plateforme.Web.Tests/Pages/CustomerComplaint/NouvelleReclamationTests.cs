@@ -47,7 +47,7 @@ public sealed class NouvelleReclamationTests : BunitContext
         var cat = CategorieReclamation.Creer("FACT", "Erreur facturation", file.Id);
         db.Set<CategorieReclamation>().Add(cat);
 
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(clientId, Permission.ComplaintSoumettre));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId), Permission.ComplaintSoumettre));
         db.SaveChanges();
 
         return (db, clientId, societeId, cat.Id);

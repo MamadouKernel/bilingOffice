@@ -113,7 +113,7 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
         typeof(SocieteCliente).GetProperty("Id")!.SetValue(socA, societeAId);
         socA.Valider();
         db.Societes.Add(socA);
-        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientAId, societeAId, DateTime.UtcNow, false, true));
+        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientAId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societeAId, DateTime.UtcNow, false, true));
 
         var clientBId = Guid.NewGuid();
         var societeBId = Guid.NewGuid();
@@ -131,7 +131,7 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
         typeof(SocieteCliente).GetProperty("Id")!.SetValue(socB, societeBId);
         socB.Valider();
         db.Societes.Add(socB);
-        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientBId, societeBId, DateTime.UtcNow, false, true));
+        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientBId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societeBId, DateTime.UtcNow, false, true));
 
         var file = await db.Files.FirstOrDefaultAsync(f => f.Nom == "Support Opérationnel");
         if (file is null)
@@ -206,7 +206,7 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
         typeof(SocieteCliente).GetProperty("Id")!.SetValue(soc, societeId);
         soc.Valider();
         db.Societes.Add(soc);
-        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societeId, DateTime.UtcNow, false, true));
+        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societeId, DateTime.UtcNow, false, true));
 
         var agentId = Guid.NewGuid();
         var agentUser = new ApplicationUser
@@ -225,7 +225,7 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
             file = FileDeTraitement.Creer("CustomerComplaint", "Support Opérationnel");
             db.Files.Add(file);
         }
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.ComplaintInstruire, file.Id));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.ComplaintInstruire, file.Id));
 
         var dossier = Dossier.Creer("DOS-05", societeId, DateTime.UtcNow, clientId);
         var ticket = Ticket.Creer("REC-05-01", "CustomerComplaint", "Reclamation", file.Id, dossier.Id, DateTime.UtcNow);
@@ -268,8 +268,8 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
         typeof(SocieteCliente).GetProperty("Id")!.SetValue(soc, societeId);
         soc.Valider();
         db.Societes.Add(soc);
-        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societeId, DateTime.UtcNow, false, true));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(clientId, Permission.ComplaintRepondre));
+        db.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societeId, DateTime.UtcNow, false, true));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId), Permission.ComplaintRepondre));
 
         var file = await db.Files.FirstOrDefaultAsync(f => f.Nom == "Support Opérationnel");
         if (file is null)

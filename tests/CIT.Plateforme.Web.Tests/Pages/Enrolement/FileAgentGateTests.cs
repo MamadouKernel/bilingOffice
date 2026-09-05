@@ -34,7 +34,7 @@ public sealed class FileAgentGateTests : BunitContext
         var file = FileDeTraitement.Creer("Enrolement", "Agent Gate");
         db.Files.Add(file);
 
-        var dossier = Dossier.Creer("DOS-ENR-01", transporteurId, DateTime.UtcNow);
+        var dossier = Dossier.Creer("DOS-ENR-01", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), DateTime.UtcNow);
         var ticket = Ticket.Creer("ENR-2026-0001", "Enrolement", "Enrolement", file.Id, dossier.Id, DateTime.UtcNow);
         ticket.DefinirInformationsEnrolement("Enrôlement chauffeur", "Camion frigorifique.");
         db.Dossiers.Add(dossier);
@@ -61,7 +61,7 @@ public sealed class FileAgentGateTests : BunitContext
     public void AgentHabilite_AccedeALaFileEtVoitLesDossiers()
     {
         var (db, agentId, fileId, ticketId) = ConstruireBase();
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.EnrolementInstruire, fileId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.EnrolementInstruire, fileId));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();
@@ -109,7 +109,7 @@ public sealed class FileAgentGateTests : BunitContext
     public void PriseEnCharge_MetAJourLaFile()
     {
         var (db, agentId, fileId, ticketId) = ConstruireBase();
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.EnrolementInstruire, fileId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.EnrolementInstruire, fileId));
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();

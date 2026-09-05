@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Notifications;
 using CIT.Plateforme.Application.Notifications.Resolveurs;
 using CIT.Plateforme.Application.Tests.Support;
@@ -79,7 +79,7 @@ public sealed class ComCert06CanauxRelanceTests
         societe.Valider();
         societe.EnregistrerAdministrateurActif();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientAuteurId, societe.Id, horloge.MaintenantUtc, estAdministrateur: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientAuteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, horloge.MaintenantUtc, estAdministrateur: true));
 
         var dossier = Dossier.Creer("DOS-REL-001", societe.Id, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
@@ -107,7 +107,8 @@ public sealed class ComCert06CanauxRelanceTests
         };
 
         var distributeur = new DistribuerNotificationsUseCase(
-            evenementRepo, regleRepo, modeleRepo, notificationRepo, envoiRepo, prefRepo,
+            evenementRepo,
+            new CIT.Plateforme.Application.Tests.Support.LienPortailDeTest(), regleRepo, new TicketRepository(dbContext), modeleRepo, notificationRepo, envoiRepo, prefRepo,
             resolveurs, executeur, journalisation, horloge, uniteDeTravail);
 
         var nbDistribues = await distributeur.DistribuerAsync();

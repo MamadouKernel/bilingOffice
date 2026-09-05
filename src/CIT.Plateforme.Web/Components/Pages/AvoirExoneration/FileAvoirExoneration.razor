@@ -37,16 +37,16 @@ else
     <div class="cit-card mb-4 p-3 shadow-sm">
         <div class="row g-3 align-items-center">
             <div class="col-md-4">
-                <label class="form-label small fw-semibold text-muted mb-1">Type de demande</label>
-                <select class="form-select form-select-sm" @bind="_typeFiltre" @bind:after="ChargerFileAsync">
+                <label for="type-de-demande" class="form-label small fw-semibold text-muted mb-1">Type de demande</label>
+                <select id="type-de-demande" class="form-select form-select-sm" @bind="_typeFiltre" @bind:after="ChargerFileAsync">
                     <option value="">Tous les types</option>
                     <option value="Avoir">Avoir (Trop-perçu / Litige)</option>
                     <option value="Exoneration">Exonération (Magasinage / Stationnement)</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label class="form-label small fw-semibold text-muted mb-1">Statut</label>
-                <select class="form-select form-select-sm" @bind="_statutFiltre" @bind:after="ChargerFileAsync">
+                <label for="statut" class="form-label small fw-semibold text-muted mb-1">Statut</label>
+                <select id="statut" class="form-select form-select-sm" @bind="_statutFiltre" @bind:after="ChargerFileAsync">
                     <option value="">Tous les statuts</option>
                     <option value="EnAttenteDePriseEnCharge">En attente de prise en charge</option>
                     <option value="EnCours">En cours d'instruction</option>

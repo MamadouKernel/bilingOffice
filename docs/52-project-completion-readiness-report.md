@@ -1,5 +1,14 @@
 # Rapport d'achèvement et de préparation projet — post-F017
 
+> ⚠️ **CORRECTION DU 2026-09-03, mise à jour le 2026-09-04 — le score CDC cité dans ce document est périmé.**
+> L'audit indépendant `docs/88-audit-conformite-cdc.md` a confronté au code huit exigences que la
+> matrice `docs/33` déclarait `CERTIFIED` : aucune n'était entièrement satisfaite. **Sept ont été
+> corrigées et testées le 2026-09-04** (`SLA-01`, `SLA-02`, `SLA-05`, `ALE-02`, `ALE-03`, `SOC-07`,
+> `COM-03`) ; `COM-01` reste ouverte faute de fournisseur de messagerie arbitré.
+> **Le score courant est 173 / 188 (92,02 %)**, et non 174 / 188. Le reste de ce document conserve
+> sa valeur ; seul le chiffre est à lire à travers cette correction.
+
+
 > **Document** : `docs/52-project-completion-readiness-report.md`
 > **Établi le** : 2026-09-02, sur le commit `d80a126`
 > **Objet** : répondre à cinq questions — où en est le projet, ce qui est terminé, ce qui reste

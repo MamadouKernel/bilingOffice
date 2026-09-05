@@ -1,116 +1,286 @@
 @page "/tickets/{TicketId:guid}/documents"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using CIT.Plateforme.Application.Documents
-@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Tickets
 @using CIT.Plateforme.Domain.Documents
-@inject DeposerDocumentCommand DeposerDocument
-@inject IDocumentRepository DepotDocuments
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+@inject Microsoft.JSInterop.IJSRuntime Js
+
+@*
+    DÉFAUT CORRIGÉ (audit du 2026-09-04, docs/89) — cet écran était un prototype resté routable.
+    Il cumulait quatre défauts :
+
+      1. aucun [Authorize] et aucun contrôle en page : connaître un identifiant de ticket
+         suffisait pour lister ses documents ;
+      2. IDocumentRepository injecté DIRECTEMENT, ce qui court-circuitait la couche applicative
+         où vit le cloisonnement (Principe VII) ;
+      3. l'identité du déposant était SAISIE DANS UN CHAMP. Le contrôle d'habilitation de la
+         commande portait donc sur une valeur choisie par l'appelant ;
+      4. les règles de dépôt étaient un objet nommé « ReglesDemonstration ».
+
+    La lecture passe désormais par ObtenirFicheTicketQuery, qui applique le cloisonnement et lève
+    AccesRefuseException, et l'identité vient du contexte authentifié.
+*@
 
 <PageTitle>Documents du ticket — CIT</PageTitle>
 
-<div class="cit-page-header">
-    <div>
-        <h2 class="cit-page-title">
-            <span>📁</span> Documents du ticket
-        </h2>
-        <div class="cit-page-subtitle">Formats acceptés : PDF, JPG, PNG — 10 Mo maximum par fichier (Règles dynamiques par étape SOC-07, PC-08)</div>
+<div class="cit-page-header mb-4">
+    <h2 class="cit-page-title fw-bold text-dark mb-1">Documents du ticket</h2>
+    <div class="cit-page-subtitle text-muted">
+        Pièces déposées par le client et par les agents. Formats acceptés : PDF, JPG, PNG, XLSX —
+        @(TailleMaxMo) Mo maximum par fichier.
     </div>
 </div>
 
-<div class="cit-card mb-4">
-    <h6 class="fw-bold text-dark mb-3">Déposer un nouveau document</h6>
-    <div class="row g-2 align-items-center">
-        <div class="col-12 col-md-3">
-            <input class="form-control form-control-sm" placeholder="Votre identifiant" @bind="deposantId" />
-        </div>
-        <div class="col-12 col-md-3">
-            <select class="form-select form-select-sm" @bind="natureDeposant">
-                <option value="Client">Client (propriétaire du ticket)</option>
-                <option value="Agent">Agent (habilité sur la file)</option>
-            </select>
-        </div>
-        <div class="col-12 col-md-6">
-            <InputFile class="form-control form-control-sm" OnChange="DeposerAsync" />
-        </div>
-    </div>
-</div>
-
-@if (documents is not null)
+@if (_chargement)
 {
-    <div class="cit-card p-0 overflow-hidden mb-4">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Nom du fichier</th>
-                        <th>Taille</th>
-                        <th>Analyse antivirus</th>
-                        <th>Déposé le (UTC)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var document in documents)
-                    {
-                        <tr>
-                            <td class="fw-semibold text-dark">📄 @document.NomFichier</td>
-                            <td class="small text-muted font-monospace">@((document.TailleOctets / 1024.0).ToString("0.0")) Ko</td>
-                            <td><span class="badge bg-success-subtle text-success">@document.StatutAntivirus</span></td>
-                            <td class="small text-muted font-monospace">@document.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <IndicateurChargement Message="Chargement des documents..." />
 }
-
-@if (message is not null)
+else if (_refuse)
 {
-    <div class="alert @(erreur ? "alert-danger" : "alert-success") mb-4">@message</div>
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_message is not null)
+    {
+        <div class="alert @(_erreur ? "alert-danger" : "alert-success") border-0 mb-4 rounded-3 p-3" role="alert">
+            @_message
+        </div>
+    }
+
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm">
+        <h4 class="fw-bold text-dark fs-5 mb-3">Déposer un document</h4>
+        <InputFile OnChange="DeposerAsync" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.xlsx" />
+        <div class="form-text small">
+            Le dépôt est enregistré sous votre identité — @_nomAffiche — et tracé dans le journal d'audit.
+        </div>
+    </div>
+
+    @if (_documents is null || _documents.Count == 0)
+    {
+        <div class="cit-card p-5 text-center text-muted border-0 shadow-sm">
+            <div class="fs-1 mb-2" aria-hidden="true">📁</div>
+            <div class="fw-semibold">Aucun document déposé</div>
+            <div class="small">Les pièces déposées pour ce ticket apparaîtront ici.</div>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Documents déposés pour ce ticket</caption>
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="small fw-bold">Fichier</th>
+                            <th scope="col" class="small fw-bold">Déposé le</th>
+                            <th scope="col" class="small fw-bold">Analyse antivirale</th>
+                            <th scope="col" class="small fw-bold text-end"><span class="visually-hidden">Téléchargement</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doc in _documents)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@doc.NomFichier</td>
+                                <td>@doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@doc.StatutAntivirus</td>
+                                <td class="text-end">
+                                    @if (doc.StatutAntivirus == StatutAnalyseAntivirus.Sain)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                @onclick="() => TelechargerAsync(doc)"
+                                                disabled="@(_telechargementEnCours == doc.Id)">
+                                            @(_telechargementEnCours == doc.Id ? "Préparation..." : "Télécharger")
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        @* SEC-07/SEC-12 : tant que l'analyse n'a pas conclu, le fichier n'est pas
+                                           téléchargeable. Le dire ici évite un bouton qui échoue sans expliquer. *@
+                                        <span class="small text-muted">
+                                            @(doc.StatutAntivirus == StatutAnalyseAntivirus.Infecte
+                                                ? "Bloqué — fichier infecté"
+                                                : "Analyse en cours")
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 }
 
 @code {
     [Parameter]
     public Guid TicketId { get; set; }
 
-    private string deposantId = string.Empty;
-    private string natureDeposant = "Client";
-    private IReadOnlyList<Document>? documents;
-    private string? message;
-    private bool erreur;
+    private IReadOnlyList<DocumentItemVue>? _documents;
+    private Guid _appelantId;
+    private string _nomAffiche = string.Empty;
+    private bool _estClient;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = "Vous n'êtes pas autorisé à consulter les documents de ce ticket.";
+    private string? _message;
+    private bool _erreur;
+    private Guid? _telechargementEnCours;
 
-    protected override async Task OnInitializedAsync() => documents = await DepotDocuments.ListerParTicketAsync(TicketId);
+    private const long TailleMax = ValidateurFichierDocument.TailleMaxDefaut;
+    private static readonly string[] Extensions = [".pdf", ".jpg", ".jpeg", ".png", ".xlsx"];
+    private static int TailleMaxMo => (int)(TailleMax / 1024 / 1024);
 
-    private static readonly ReglesDepotDocument ReglesDemonstration = new(
-        ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
-
-    private async Task DeposerAsync(Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs e)
+    protected override async Task OnInitializedAsync()
     {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+
+        if (!contexte.EstAuthentifie)
+        {
+            _refuse = true;
+            _chargement = false;
+            return;
+        }
+
+        _appelantId = contexte.UtilisateurId;
+        _nomAffiche = contexte.NomAffiche;
+        _estClient = contexte.Nature == CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client;
+
+        await ChargerAsync();
+    }
+
+    /// <summary>
+    /// La liste passe par <c>ObtenirFicheTicketQuery</c> et NON par le repository : c'est cette
+    /// requête qui applique le cloisonnement (un client ne voit que les tickets de sa société, et
+    /// selon son droit de consultation, que ses propres demandes).
+    /// </summary>
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
         try
         {
-            await using var flux = e.File.OpenReadStream(ReglesDemonstration.TailleMaxOctets);
-            await using var memoire = new MemoryStream();
-            await flux.CopyToAsync(memoire);
+            using var scope = ScopeFactory.CreateScope();
+            var fiche = await scope.ServiceProvider
+                .GetRequiredService<ObtenirFicheTicketQuery>()
+                .ExecuterAsync(_appelantId, TicketId);
 
-            if (natureDeposant == "Agent")
-            {
-                await DeposerDocument.DeposerPourAgentAsync(
-                    Guid.Parse(deposantId), TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
-            }
-            else
-            {
-                await DeposerDocument.DeposerPourClientAsync(
-                    Guid.Parse(deposantId), TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesDemonstration);
-            }
-
-            documents = await DepotDocuments.ListerParTicketAsync(TicketId);
-            message = "Document déposé et analysé.";
-            erreur = false;
+            _documents = fiche.Documents;
+            _refuse = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
         }
         catch (Exception ex)
         {
-            message = ex.Message;
-            erreur = true;
+            _erreur = true;
+            _message = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    /// <summary>
+    /// SOC-02 — les documents se déposaient et se listaient ; ils ne se téléchargeaient pas.
+    /// <c>TelechargerDocumentQuery</c> existait, testée, et aucun écran ne l'appelait.
+    ///
+    /// SEC-12 exige un contrôle d'identité et d'habilitation à CHAQUE accès, pas seulement au
+    /// dépôt : la voie agent et la voie client ne portent pas les mêmes contrôles, et la nature de
+    /// l'utilisateur authentifié — jamais un champ de saisie — décide de celle qu'on emprunte.
+    /// </summary>
+    private async Task TelechargerAsync(DocumentItemVue doc)
+    {
+        _message = null;
+        _telechargementEnCours = doc.Id;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var telecharger = scope.ServiceProvider.GetRequiredService<TelechargerDocumentQuery>();
+
+            await using var flux = _estClient
+                ? await telecharger.TelechargerPourClientAsync(_appelantId, doc.Id)
+                : await telecharger.TelechargerPourAgentAsync(_appelantId, doc.Id);
+
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            await Js.InvokeVoidAsync(
+                "telechargerFichier", doc.NomFichier, doc.TypeContenu, Convert.ToBase64String(memoire.ToArray()));
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = true;
+            _message = ex.Message;
+        }
+        catch (DocumentNonAccessibleException ex)
+        {
+            _erreur = true;
+            _message = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = true;
+            _message = ex.Message;
+        }
+        finally
+        {
+            _telechargementEnCours = null;
+        }
+    }
+
+    private async Task DeposerAsync(Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs e)
+    {
+        _message = null;
+        try
+        {
+            await using var flux = e.File.OpenReadStream(TailleMax);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            using var scope = ScopeFactory.CreateScope();
+            var deposer = scope.ServiceProvider.GetRequiredService<DeposerDocumentCommand>();
+            var regles = new CIT.Plateforme.Domain.Documents.ReglesDepotDocument(Extensions, TailleMax);
+
+            // L'identité vient du contexte authentifié, jamais d'un champ de saisie. La nature
+            // décide de la voie : les deux commandes ne portent pas les mêmes habilitations.
+            if (_estClient)
+            {
+                await deposer.DeposerPourClientAsync(
+                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles);
+            }
+            else
+            {
+                await deposer.DeposerPourAgentAsync(
+                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles);
+            }
+
+            _message = "Document déposé et analysé.";
+            _erreur = false;
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = true;
+            _message = ex.Message;
         }
     }
 }

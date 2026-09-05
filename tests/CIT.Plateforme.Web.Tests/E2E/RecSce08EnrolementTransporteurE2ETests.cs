@@ -5,6 +5,7 @@ using Bunit;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Enrolement;
 using CIT.Plateforme.Application.Web;
+using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 using CIT.Plateforme.Infrastructure.Identity;
@@ -51,6 +52,26 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
         var sp = scope.ServiceProvider;
         var context = sp.GetRequiredService<PlateformeDbContext>();
         var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
+
+        // La file « Agent Gate » du module Enrôlement est créée ICI, explicitement.
+        //
+        // DÉFAUT CORRIGÉ (2026-09-04) : ce scénario ne la créait pas et passait pourtant. Il
+        // dépendait en réalité d'une FUITE ENTRE CLASSES : NouvelEnrolementTests et
+        // FileAgentGateTests créent cette file dans la même base LocalDB partagée, et la purge par
+        // classe s'exécute pendant que d'autres classes tournent. Le scénario réussissait ou
+        // échouait selon l'ordonnancement — il a fini par échouer.
+        //
+        // Attention au piège complémentaire : FixtureComptesDeTest crée d'office une file de
+        // module « Billing Office » quand la file nommée par une permission n'existe pas. Sans la
+        // ligne ci-dessous, c'est un « Agent Gate » du MAUVAIS module qui apparaît, et la
+        // soumission échoue avec « file non paramétrée ». La file doit donc préexister à la fixture.
+        if (!await context.Files.AnyAsync(f =>
+                f.Module == SoumettreEnrolementCommand.Module && f.Nom == SoumettreEnrolementCommand.FileAgentGate))
+        {
+            context.Files.Add(FileDeTraitement.Creer(
+                SoumettreEnrolementCommand.Module, SoumettreEnrolementCommand.FileAgentGate));
+            await context.SaveChangesAsync();
+        }
 
         // Fixtures explicites : ce scénario ne dépend plus de ce que l'amorçage applicatif crée.
         // Le transporteur est volontairement SANS société rattachée — c'est la situation qu'ENR-01

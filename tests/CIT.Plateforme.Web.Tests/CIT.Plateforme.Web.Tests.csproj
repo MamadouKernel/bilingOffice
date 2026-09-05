@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CIT.Plateforme.Web\CIT.Plateforme.Web.csproj" />
+    <ProjectReference Include="..\CIT.Plateforme.Tests.Partages\CIT.Plateforme.Tests.Partages.csproj" />
     <ProjectReference Include="..\..\src\CIT.Plateforme.Domain\CIT.Plateforme.Domain.csproj" />
     <ProjectReference Include="..\..\src\CIT.Plateforme.Application\CIT.Plateforme.Application.csproj" />
     <ProjectReference Include="..\..\src\CIT.Plateforme.Infrastructure\CIT.Plateforme.Infrastructure.csproj" />

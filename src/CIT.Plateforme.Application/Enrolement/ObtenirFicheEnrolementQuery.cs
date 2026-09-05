@@ -52,7 +52,8 @@ public sealed class ObtenirFicheEnrolementQuery(
     IDocumentRepository documentRepository,
     IMessageRepository messageRepository,
     IHabilitationRepository habilitationRepository,
-    IUtilisateurInfoRepository utilisateurInfoRepository)
+    IUtilisateurInfoRepository utilisateurInfoRepository,
+    ControleAccesRessourceService controleAcces)
 {
     public async Task<FicheEnrolementVue> ExecuterAsync(Guid appelantId, Guid ticketId, CancellationToken ct = default)
     {
@@ -67,19 +68,35 @@ public sealed class ObtenirFicheEnrolementQuery(
         var dossier = await dossierRepository.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Dossier {ticket.DossierId} introuvable.");
 
-        var appelantInfo = await utilisateurInfoRepository.ObtenirInfoAsync(appelantId, ct).ConfigureAwait(false);
-        var estClient = appelantInfo?.Nature == NatureUtilisateur.Client;
+        // ── 1. CONTRÔLE GÉNÉRIQUE — délégué (centralisation P2-01) ────────────────────────
+        //
+        // Cette requête portait sa propre implémentation du cloisonnement : quatrième copie d'une
+        // décision qui en comptait cinq. Elle traitait correctement la propriété du transporteur
+        // et l'habilitation de l'agent, mais ignorait l'état du compte — la faille P0-ter — et sa
+        // seule protection contre un compte désactivé était la garde d'interface de
+        // FicheEnrolement.razor. Une frontière de sécurité ne vit pas dans une page.
+        //
+        // Identité valide, compte actif, propriété du dossier, portée de file : plus rien de tout
+        // cela n'est réécrit ici.
+        await controleAcces.ExigerConsultationTicketAsync(appelantId, ticket, ct).ConfigureAwait(false);
 
-        // Cloisonnement (research.md D1) : le Transporteur/Chauffeur = ClientId directement,
-        // personne physique unique — aucune notion de société ni de droit de consultation délégué.
-        if (estClient && dossier.ClientId != appelantId)
-        {
-            throw new AccesRefuseException($"L'utilisateur {appelantId} n'est pas propriétaire du dossier d'enrôlement {ticket.Numero}.");
-        }
+        var appelantInfo = await utilisateurInfoRepository.ObtenirInfoAsync(appelantId, ct).ConfigureAwait(false);
+        // P3 — FAIL-CLOSED. Cette expression valait `appelantInfo?.Nature == Client` : un compte
+        // introuvable donnait `false`, donc la vue AGENT, notes internes comprises. Le chemin est
+        // aujourd'hui inatteignable — la garde d'identité refuse en amont — mais la protection
+        // reposait alors sur l'ordre des opérations plutôt que sur l'expression elle-même.
+        // En cas d'absence d'information, c'est la vue la PLUS RESTRICTIVE qui s'applique.
+        var estClient = appelantInfo is null || appelantInfo.Nature == NatureUtilisateur.Client;
 
         var habilitations = await habilitationRepository.ListerParUtilisateurAsync(appelantId, ct).ConfigureAwait(false);
         var aDroitInstruction = habilitations.Any(h => h.PermissionCode == Permission.EnrolementInstruire && (h.FileId == null || h.FileId == ticket.FileCouranteId));
 
+        // ── 2. CONTRÔLE MÉTIER SPÉCIFIQUE — conservé ──────────────────────────────────────
+        //
+        // Le contrôle central admet un agent porteur d'une habilitation QUELCONQUE couvrant la
+        // file. L'Enrôlement est plus strict : il exige `enrolement.instruire` (F008). Cette
+        // exigence est propre au module, elle n'a donc pas à remonter au contrôle central — mais
+        // elle s'ajoute à lui, elle ne le remplace pas.
         if (!estClient && !aDroitInstruction)
         {
             throw new AccesRefuseException($"L'utilisateur {appelantId} n'est pas habilité à consulter ce dossier d'enrôlement.");

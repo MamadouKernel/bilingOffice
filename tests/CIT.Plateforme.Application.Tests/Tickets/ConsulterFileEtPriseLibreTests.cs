@@ -29,7 +29,7 @@ public sealed class ConsulterFileEtPriseLibreTests
         var agentId = Guid.NewGuid();
         var fileHabilitee = Guid.NewGuid();
         var fileNonHabilitee = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileHabilitee));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileHabilitee));
         await dbContext.SaveChangesAsync();
 
         var creer = new CreerTicketCommand(ticketRepo, new DossierRepository(dbContext), numerotation, journalisation, horloge, uniteDeTravail);
@@ -56,7 +56,7 @@ public sealed class ConsulterFileEtPriseLibreTests
 
         var operateurId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurId), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         var creer = new CreerTicketCommand(ticketRepo, new DossierRepository(dbContext), numerotation, journalisation, horloge, uniteDeTravail);

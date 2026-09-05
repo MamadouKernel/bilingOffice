@@ -108,7 +108,8 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
         var dispoCmd = new GererDisponibiliteCommand(dispoRepo, autorisation, journalisation, horloge, uow);
-        var query = new ObtenirDashboardAgentQuery(fileRepo, ticketRepo, habRepo, dispoRepo, userInfoRepo);
+        var query = new ObtenirDashboardAgentQuery(fileRepo, ticketRepo, habRepo, dispoRepo,
+            new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db)));
         Services.AddSingleton(query);
         Services.AddSingleton(dispoCmd);
 
@@ -147,7 +148,7 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
 
         var file = FileDeTraitement.Creer("BillingImport", SoumettreDemandeImportCommand.FilePiloteManifeste);
         db.Files.Add(file);
@@ -236,10 +237,14 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
         var catRepo = new CategorieReclamationRepository(db);
 
-        var queryTicket = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
+        var queryTicket = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);
         var publierMessage = new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow);

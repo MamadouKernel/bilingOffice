@@ -53,7 +53,7 @@ public sealed class MotifsTransfertReferentielTests
             var portee = permission.StartsWith("administration.", StringComparison.Ordinal)
                 ? (Guid?)null
                 : fileSource;
-            dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, permission, portee));
+            dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), permission, portee));
         }
 
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileSource, fileCible, []));
@@ -202,7 +202,7 @@ public sealed class MotifsTransfertReferentielTests
         // Lister les motifs est une capacité GLOBALE : l'opérateur n'a pas encore désigné de
         // ticket, donc aucune file ne borne la question. Le transfert lui-même reste contrôlé sur
         // la file du ticket. Même distinction que ListerFilesQuery.ListerPourTransfertAsync.
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(c.AgentId, Permission.TicketTransferer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, c.AgentId), Permission.TicketTransferer));
         await dbContext.SaveChangesAsync();
 
         await c.Gerer.DefinirAsync(c.AgentId, "en_vigueur", "En vigueur", 10);

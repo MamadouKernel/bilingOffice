@@ -31,7 +31,7 @@ public sealed class Acr01ExportDashboardTests
         var utilisateurId = Guid.NewGuid();
 
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
 
         var dossier = Dossier.Creer("DOS-EXP-ACR-01", societe.Id, DateTime.UtcNow, auteurId: utilisateurId, typeClient: TypeClient.Normal);
         dbContext.Dossiers.Add(dossier);

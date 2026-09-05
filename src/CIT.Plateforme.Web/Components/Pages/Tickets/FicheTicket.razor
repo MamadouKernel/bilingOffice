@@ -1,5 +1,7 @@
 @page "/tickets/{Id:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.Affectation
 @using CIT.Plateforme.Application.Messagerie
 @using CIT.Plateforme.Application.Securite
@@ -15,6 +17,8 @@
 @inject PublierMessageCommand PublierMessage
 @inject CloturerReclamationCommand ClotureReclamation
 @inject EvaluerReclamationCommand EvaluerReclamation
+@using Microsoft.Extensions.DependencyInjection
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
 
 <div class="container-fluid py-3">
@@ -77,7 +81,7 @@
                 }
                 @if (_fiche.Statut is not StatutTicket.Cloture and not StatutTicket.Annule)
                 {
-                    <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="Planifier un rendez-vous physique au guichet (CON-03)">
+                    <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="Planifier un rendez-vous physique au guichet">
                         📅 Prendre RDV Guichet
                     </a>
                 }
@@ -133,7 +137,7 @@
                 else if (!_estClient && _fiche.PeutCloturer)
                 {
                     <div class="border-top pt-3">
-                        <label class="form-label fw-semibold small" for="reponseFormalisee">Réponse formalisée (obligatoire pour clôturer — REC-04)</label>
+                        <label class="form-label fw-semibold small" for="reponseFormalisee">Réponse formalisée (obligatoire pour clôturer)</label>
                         <textarea id="reponseFormalisee" class="form-control mb-2" rows="3" @bind="_reponseFormalisee" @bind:event="oninput"></textarea>
                         <button class="btn btn-success btn-sm" @onclick="ClotureReclamationAsync" disabled="@string.IsNullOrWhiteSpace(_reponseFormalisee)">
                             ✅ Clôturer avec réponse formalisée
@@ -156,7 +160,7 @@
                         }
                         else
                         {
-                            <label class="form-label fw-semibold small">Votre satisfaction (REC-06)</label>
+                            <label class="form-label fw-semibold small">Votre satisfaction</label>
                             <div class="d-flex gap-1 mb-2">
                                 @for (var n = 1; n <= 5; n++)
                                 {
@@ -259,6 +263,22 @@
                             </button>
                         }
 
+                        @if (_fiche.PeutDemanderFacture)
+                        {
+                            <button class="btn btn-outline-primary" @onclick="DemanderFactureAsync" disabled="@_factureDemandee">
+                                🧾 @(_factureDemandee ? "Facture demandée" : "Demander ma facture")
+                            </button>
+                        }
+
+                        @if (_fiche.PeutDeposerDocument)
+                        {
+                            @* IMP-12 / EXP-03 — c'est par ici que le client joint sa preuve de
+                               paiement. La page existait, rien n'y menait. *@
+                            <a class="btn btn-outline-secondary" href="@($"/tickets/{_fiche.TicketId}/documents")">
+                                📎 Joindre un document
+                            </a>
+                        }
+
                         @if (_fiche.PeutAnnuler)
                         {
                             <button class="btn btn-outline-danger" @onclick="AnnulerTicketAsync">
@@ -267,6 +287,46 @@
                         }
                     </div>
                 </div>
+            </div>
+
+            @* SOC-10 — « liaison entre tickets, y compris entre modules, créée par un agent
+               habilité, visible par les agents ET par le client concerné ». La commande existait,
+               testée ; aucun écran ne l'appelait, et aucune fiche ne montrait ses liaisons. *@
+            <div class="cit-card p-3 mb-3">
+                <h6 class="fw-bold text-dark mb-3">🔗 Tickets liés</h6>
+
+                @if (_fiche.Liaisons is null || _fiche.Liaisons.Count == 0)
+                {
+                    <div class="small text-muted mb-2">Aucun ticket lié à celui-ci.</div>
+                }
+                else
+                {
+                    <ul class="list-unstyled mb-2">
+                        @foreach (var liaison in _fiche.Liaisons)
+                        {
+                            <li class="d-flex align-items-center justify-content-between gap-2 py-1 border-bottom">
+                                <a href="@($"/tickets/{liaison.TicketId}")" class="text-decoration-none fw-semibold">
+                                    @liaison.Numero
+                                </a>
+                                <span class="small text-muted">@liaison.Module · @liaison.Statut</span>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (_fiche.PeutLierTickets)
+                {
+                    <div class="input-group input-group-sm mt-2">
+                        <input class="form-control" @bind="_numeroALier" placeholder="N° du ticket à lier"
+                               aria-label="Numéro du ticket à lier" />
+                        <button class="btn btn-outline-primary" @onclick="LierTicketAsync"
+                                disabled="@(string.IsNullOrWhiteSpace(_numeroALier))">Lier</button>
+                    </div>
+                    @if (_erreurLiaison is not null)
+                    {
+                        <div class="small text-danger mt-2">@_erreurLiaison</div>
+                    }
+                }
             </div>
 
             <!-- Colonne droite : Onglets Messagerie / Documents / Chronologie -->
@@ -339,6 +399,20 @@
                                             Envoyer 📤
                                         </button>
                                     </div>
+
+                                    @if (!_estClient && _estNoteInterne)
+                                    {
+                                        @* MSG-04 — mentionner un collaborateur dans une note interne. Il est
+                                           notifié ; MSG-05 : le ticket reste à son opérateur, une mention ne
+                                           réaffecte jamais. Le champ n'apparaît que sur une note interne,
+                                           puisqu'une mention n'existe que là. *@
+                                        <div class="mt-2">
+                                            <input type="email" class="form-control form-control-sm"
+                                                   placeholder="Mentionner un collaborateur (adresse professionnelle) — facultatif"
+                                                   aria-label="Adresse du collaborateur à mentionner"
+                                                   @bind="_emailCollaborateur" />
+                                        </div>
+                                    }
                                 </div>
                             }
                         }
@@ -398,9 +472,13 @@
     private FicheTicketVue? _fiche;
     private Guid _utilisateurId;
     private bool _estClient;
+    private bool _factureDemandee;
     private string _ongletActif = "messages";
+    private string _numeroALier = string.Empty;
+    private string? _erreurLiaison;
     private string _nouveauMessageContenu = string.Empty;
     private bool _estNoteInterne = false;
+    private string _emailCollaborateur = string.Empty;
 
     // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : état local pour la clôture avec
     // réponse formalisée (C7-02) et l'évaluation de satisfaction (C7-03).
@@ -489,6 +567,57 @@
         }
     }
 
+    /// <summary>
+    /// IMP-10 — « Après validation, le client demande la facture depuis son ticket ». La commande
+    /// existait, testée, et aucun écran ne l'appelait : le client ne pouvait pas la demander
+    /// (audit du 2026-09-04, docs/89).
+    /// </summary>
+    /// <summary>
+    /// SOC-10 — l'agent lie ce ticket à un autre, désigné par son numéro. La commande vérifie
+    /// l'habilitation sur la file du ticket courant ; le droit affiché ne fait que masquer une
+    /// action, il ne la remplace jamais (Principe VII).
+    /// </summary>
+    private async Task LierTicketAsync()
+    {
+        _erreurLiaison = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.Tickets.LierTicketsCommand>()
+                .ExecuterParNumeroAsync(_utilisateurId, _fiche!.TicketId, _numeroALier);
+
+            _numeroALier = string.Empty;
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            // Erreur locale au panneau : lier un ticket qui n'existe pas ne doit pas remplacer la
+            // fiche par un bandeau d'erreur pleine page.
+            _erreurLiaison = ex.Message;
+        }
+    }
+
+    private async Task DemanderFactureAsync()
+    {
+        try
+        {
+            // Portée dédiée plutôt qu'injection directe : c'est le patron retenu dans ce projet
+            // depuis les collisions de DbContext, et il évite d'imposer une nouvelle dépendance au
+            // rendu de la fiche — six tests bUnit la rendent sans avoir à connaître cette commande.
+            using var scope = ScopeFactory.CreateScope();
+            var demanderFacture = scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.BillingImport.DemanderFactureCommand>();
+            await demanderFacture.ExecuterAsync(_utilisateurId, _fiche!.TicketId);
+            _factureDemandee = true;
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
     private async Task AnnulerTicketAsync()
     {
         // Rediriger vers l'espace client ou afficher confirmation
@@ -504,15 +633,29 @@
         {
             if (_estClient)
             {
-                // REMÉDIATION FINALE UI (closure-review.md §9) : PublierMessageClientAsync vérifie
-                // la propriété via CloisonnementService, qui compare l'appelant à Dossier.ClientId —
-                // documenté comme portant la SocieteId (Dossier.cs), jamais l'UtilisateurId
-                // individuel. Passer _utilisateurId ici levait systématiquement AccesRefuseException.
-                await PublierMessage.PublierMessageClientAsync(_fiche!.SocieteId, Id, _nouveauMessageContenu);
+                // CONSOLIDATION SÉCURITÉ : l'identité transmise est celle de l'UTILISATEUR, résolue
+                // côté serveur — jamais une valeur tirée de la fiche affichée.
+                //
+                // Ce site passait auparavant `_fiche!.SocieteId`, pour contourner un refus
+                // systématique : CloisonnementService comparait l'appelant à Dossier.ClientId, qui
+                // porte la société sur les parcours Billing. Le contournement rendait le contrôle
+                // tautologique — l'appelant fournissait la valeur comparée — et faisait de la
+                // société l'AUTEUR du message, au lieu de la personne (RG-SEC-03, ENT-03).
+                //
+                // La façade délègue désormais au contrôle central, qui sait résoudre le
+                // rattachement société : l'identité réelle est acceptée, et elle seule.
+                await PublierMessage.PublierMessageClientAsync(_utilisateurId, Id, _nouveauMessageContenu);
             }
             else
             {
-                if (_estNoteInterne)
+                if (_estNoteInterne && !string.IsNullOrWhiteSpace(_emailCollaborateur))
+                {
+                    using var scope = ScopeFactory.CreateScope();
+                    await scope.ServiceProvider
+                        .GetRequiredService<CIT.Plateforme.Application.Messagerie.MentionnerCollaborateurCommand>()
+                        .MentionnerParEmailAsync(_utilisateurId, Id, _emailCollaborateur, _nouveauMessageContenu);
+                }
+                else if (_estNoteInterne)
                 {
                     await PublierMessage.PublierNoteInterneAsync(_utilisateurId, Id, _nouveauMessageContenu);
                 }
@@ -523,6 +666,7 @@
             }
 
             _nouveauMessageContenu = string.Empty;
+            _emailCollaborateur = string.Empty;
             _actionFeedback = "Message envoyé.";
             await RechargerAsync();
         }

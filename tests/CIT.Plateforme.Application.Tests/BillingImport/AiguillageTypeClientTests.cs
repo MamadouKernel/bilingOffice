@@ -34,7 +34,7 @@ public sealed class AiguillageTypeClientTests
         var societesRepository = new SocieteClienteRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
         var agentId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire));
 
         dbContext.Files.AddRange(
             FileDeTraitement.Creer(SoumettreDemandeImportCommand.Module, SoumettreDemandeImportCommand.FilePiloteManifeste),
@@ -57,7 +57,7 @@ public sealed class AiguillageTypeClientTests
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "Informations", profil, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
         return societe.Id;
     }

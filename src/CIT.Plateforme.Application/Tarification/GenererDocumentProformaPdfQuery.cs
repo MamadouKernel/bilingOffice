@@ -1,15 +1,17 @@
+using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Abstractions;
 
 namespace CIT.Plateforme.Application.Tarification;
 
 public sealed record GenererDocumentProformaPdfRequete(
     Guid AppelantId,
-    Guid SocieteId,
     Guid SimulationId);
 
 public sealed class GenererDocumentProformaPdfQueryHandler(
     ISimulationProformaRepository repository,
-    IGenerateurDocumentProformaPdf generateurPdf)
+    IReferentielsTarifairesRepository referentielsRepository,
+    IGenerateurDocumentProformaPdf generateurPdf,
+    ControleAccesRessourceService controleAcces)
 {
     public async Task<DocumentPdfProformaResultat> HandleAsync(
         GenererDocumentProformaPdfRequete requete,
@@ -20,11 +22,14 @@ public sealed class GenererDocumentProformaPdfQueryHandler(
         var simulation = await repository.ObtenirParIdAsync(requete.SimulationId, ct)
             ?? throw new InvalidOperationException("Simulation de proforma introuvable.");
 
-        if (simulation.SocieteId != requete.SocieteId)
-        {
-            throw new UnauthorizedAccessException("Accès non autorisé à cette simulation.");
-        }
+        // REMÉDIATION P2-02 — LA SOCIÉTÉ N'EST PLUS REÇUE, ELLE EST RÉSOLUE.
+        // Le contrôle comparait `simulation.SocieteId` à une valeur fournie par l'appelant :
+        // transmettre la société convoitée suffisait. La portée vient désormais du contrôle
+        // central, qui la déduit du rattachement actif de l'appelant et applique ENT-03.
+        await controleAcces.ExigerConsultationRessourceDeSocieteAsync(
+            requete.AppelantId, simulation.SocieteId, simulation.AuteurId, ct).ConfigureAwait(false);
 
-        return await generateurPdf.GenererPdfAsync(simulation, ct);
+        var referentiels = await referentielsRepository.ChargerAsync(ct);
+        return await generateurPdf.GenererPdfAsync(simulation, referentiels, ct);
     }
 }

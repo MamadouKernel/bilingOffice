@@ -20,6 +20,45 @@ public sealed class ParametreSlaAdministrable
 
     public double SeuilAlerte { get; private set; }
 
+    /// <summary>
+    /// SLA-02 — quatrième niveau exigé par le CDC : « un seuil d'information (ex. 50 %), un seuil
+    /// d'alerte (ex. 80 %), le dépassement (100 %) et <b>l'escalade au-delà</b> ».
+    ///
+    /// Le dépassement est la durée cible elle-même et n'a pas besoin d'être stocké. L'escalade,
+    /// si : elle se situe AU-DELÀ de 100 %, et sa valeur est une décision métier. <c>0</c>
+    /// signifie « aucune escalade administrée » — jamais une valeur inventée (PC-12).
+    /// </summary>
+    public double SeuilEscalade { get; private set; }
+
+    /// <summary>
+    /// SLA-01 — le CDC exige un paramétrage « par module, type de demande, <b>étape, file,
+    /// priorité</b> ». <c>null</c> signifie « ce paramétrage ne discrimine pas sur cet axe » et
+    /// s'applique donc plus largement.
+    ///
+    /// L'ÉTAPE EST MATÉRIALISÉE PAR LA FILE dans ce modèle : le MOT (§8.3 de
+    /// <c>docs/85-analyse-merise.md</c>) décrit chaque étape du parcours comme une file — Contrôle
+    /// BL, Facturation, Contrôle Documentaire. Introduire une entité « étape » distincte
+    /// inventerait une notion que ni le CDC ni le modèle ne portent.
+    /// </summary>
+    public Guid? FileId { get; private set; }
+
+    /// <summary>SLA-01 — axe « priorité ». <c>null</c> = ne discrimine pas.</summary>
+    public Guid? PrioriteId { get; private set; }
+
+    /// <summary>
+    /// Départage deux paramétrages applicables : <b>le plus spécifique l'emporte</b>.
+    ///
+    /// Les poids sont des puissances de deux, ce qui rend l'ordre TOTAL — deux paramétrages
+    /// distincts ne peuvent jamais être à égalité, et la résolution est donc déterministe. La
+    /// file prime sur la priorité parce que le CDC les énumère dans cet ordre de portée
+    /// décroissante (« étape, file, priorité »).
+    ///
+    /// `À VALIDER` — cet ordre de précédence est une convention technique déduite de
+    /// l'énumération du CDC, non une règle qu'il énonce. Si le métier veut qu'un SLA de priorité
+    /// prime sur un SLA de file, seuls ces poids changent.
+    /// </summary>
+    public int Specificite => (FileId.HasValue ? 2 : 0) + (PrioriteId.HasValue ? 1 : 0);
+
     /// <summary>Horaires ouvrés — sérialisés simplement (heures, jours, fériés) pour ce paramètre.
     /// Un calendrier « toujours ouvert » est utilisé si non renseigné explicitement (voir
     /// <see cref="CalendrierOuvre.ToujoursOuvert"/>), jamais un horaire métier inventé.</summary>
@@ -71,7 +110,33 @@ public sealed class ParametreSlaAdministrable
         UtiliserCalendrierToujoursOuvert = false;
     }
 
-    public ParametresSla VersParametresSla() => new(DureeCible, SeuilInformation, SeuilAlerte);
+    /// <summary>
+    /// SLA-01 — restreint ce paramétrage à une file et/ou une priorité. Appelé séparément de
+    /// <see cref="Definir"/> pour que les paramétrages existants, qui ne discriminent sur aucun
+    /// de ces axes, restent valides sans être réécrits.
+    /// </summary>
+    public void Cibler(Guid? fileId, Guid? prioriteId)
+    {
+        FileId = fileId;
+        PrioriteId = prioriteId;
+    }
+
+    /// <summary>SLA-02 — fixe le seuil d'escalade. Au-delà de 100 % par définition : un seuil
+    /// inférieur au dépassement n'aurait pas de sens, l'escalade suit le dépassement.</summary>
+    public void FixerSeuilEscalade(double seuilEscalade)
+    {
+        if (seuilEscalade != 0 && seuilEscalade <= 1.0)
+        {
+            throw new ArgumentException(
+                "Le seuil d'escalade se situe au-delà du dépassement (100 %) : une valeur inférieure ou " +
+                "égale à 1,0 la placerait avant, ce que le CDC exclut. Utiliser 0 pour « aucune escalade ».",
+                nameof(seuilEscalade));
+        }
+
+        SeuilEscalade = seuilEscalade;
+    }
+
+    public ParametresSla VersParametresSla() => new(DureeCible, SeuilInformation, SeuilAlerte, SeuilEscalade);
 
     /// <summary>Reconstruit le calendrier ouvré pur (Domain.SuiviTemps.CalendrierOuvre) à partir
     /// des champs administrés — aucun jour férié administré ici (PC-12 non tranché, non inventé) :

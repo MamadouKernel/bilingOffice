@@ -22,7 +22,7 @@ public sealed class StrategieAffectationParametrableTests
         var fileRepo = new FileDeTraitementRepository(dbContext);
 
         var administrateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationFiles));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationFiles));
         await dbContext.SaveChangesAsync();
 
         var commande = new GererFilesCommand(fileRepo, autorisation, journalisation, uniteDeTravail);

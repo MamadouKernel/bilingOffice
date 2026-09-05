@@ -216,15 +216,21 @@ public sealed class PrendreEnChargeAvoirExoCommand
 
     public async Task ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
     {
-        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, null, ct))
-        {
-            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise pour prendre en charge (SEC-AVE-03).");
-        }
-
         var ticket = await _ticketRepo.ObtenirParIdAsync(ticketId, ct);
         if (ticket == null)
         {
             throw new InvalidOperationException("Ticket introuvable.");
+        }
+
+        // P3 — LA PORTÉE DE FILE. `fileId: null` ne signifie pas « toute file » : le prédicat du
+        // service d'autorisation est `h.FileId == null || h.FileId == fileId`, si bien qu'un null
+        // le réduit à la seule habilitation NON BORNÉE. Un instructeur habilité sur la file du
+        // module — le cas nominal — était donc refusé. Le contrôle porte désormais la file du
+        // ticket : il admet l'instructeur borné, conserve le superviseur non borné, et continue
+        // de refuser un agent d'une autre file (SEC-03).
+        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, ct))
+        {
+            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise pour prendre en charge (SEC-AVE-03).");
         }
 
         var maintenantUtc = _horloge.MaintenantUtc;
@@ -277,11 +283,6 @@ public sealed class DemanderComplementAvoirExoCommand
 
     public async Task ExecuterAsync(Guid agentId, Guid ticketId, string motif, CancellationToken ct = default)
     {
-        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, null, ct))
-        {
-            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise.");
-        }
-
         if (string.IsNullOrWhiteSpace(motif))
         {
             throw new ArgumentException("Le motif de la demande de complément est obligatoire.", nameof(motif));
@@ -291,6 +292,17 @@ public sealed class DemanderComplementAvoirExoCommand
         if (ticket == null)
         {
             throw new InvalidOperationException("Ticket introuvable.");
+        }
+
+        // P3 — LA PORTÉE DE FILE. `fileId: null` ne signifie pas « toute file » : le prédicat du
+        // service d'autorisation est `h.FileId == null || h.FileId == fileId`, si bien qu'un null
+        // le réduit à la seule habilitation NON BORNÉE. Un instructeur habilité sur la file du
+        // module — le cas nominal — était donc refusé. Le contrôle porte désormais la file du
+        // ticket : il admet l'instructeur borné, conserve le superviseur non borné, et continue
+        // de refuser un agent d'une autre file (SEC-03).
+        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, ct))
+        {
+            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise.");
         }
 
         var maintenantUtc = _horloge.MaintenantUtc;

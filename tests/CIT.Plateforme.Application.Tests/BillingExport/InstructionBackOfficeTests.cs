@@ -26,14 +26,14 @@ public sealed class InstructionBackOfficeTests
         var dossierRepository = new DossierRepository(dbContext);
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         var fileBackOffice = FileDeTraitement.Creer(SoumettreDemandeExportCommand.Module, NomsFilesExport.BackOfficeExport);
         var fileFacturation = FileDeTraitement.Creer(SoumettreDemandeExportCommand.Module, NomsFilesExport.Facturation);
         var fileIes = FileDeTraitement.Creer(SoumettreDemandeExportCommand.Module, NomsFilesExport.FileIes);
         dbContext.Files.AddRange(fileBackOffice, fileFacturation, fileIes);
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportBackOfficeInstruire));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingExportBackOfficeInstruire));
         await dbContext.SaveChangesAsync();
 
         var valider = new ValiderTicketExportCommand(
@@ -147,7 +147,7 @@ public sealed class InstructionBackOfficeTests
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "SocieteExport", TypeClient.Normal, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
 
         var dossier = Dossier.Creer("DOS-CMP-01", societe.Id, DateTime.UtcNow, auteurId: auteurId, typeClient: TypeClient.Normal);
         dbContext.Dossiers.Add(dossier);
@@ -163,7 +163,7 @@ public sealed class InstructionBackOfficeTests
         Assert.Equal(StatutTicket.EnAttenteClient, ticketAttente.Statut);
 
         // Dépôt de complément par le client
-        await complement.DeposerComplementAsync(societe.Id, ticket.Id);
+        await complement.DeposerComplementAsync(auteurId, ticket.Id);
 
         var ticketRepris = await new TicketRepository(dbContext).ObtenirParIdAsync(ticket.Id);
         Assert.NotNull(ticketRepris);

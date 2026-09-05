@@ -31,8 +31,8 @@ public sealed class VueChargeTests
         var operateurA = Guid.NewGuid();
         var operateurB = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.SupervisionConsulter));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(operateurA, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketPrendreEnCharge, fileId));
 
         var disponibiliteRepo = new DisponibiliteRepository(dbContext);
         var gererDisponibilite = new GererDisponibiliteCommand(disponibiliteRepo, autorisation, journalisation, horloge, uniteDeTravail);

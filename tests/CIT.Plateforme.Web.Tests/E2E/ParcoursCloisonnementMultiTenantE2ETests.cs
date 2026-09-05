@@ -74,8 +74,16 @@ public sealed class ParcoursCloisonnementMultiTenantE2ETests
 
         var dashboardClientQuery = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
         var dashboardSocieteQuery = new ObtenirDashboardSocieteQuery(dossierRepo, ticketRepo, socRepo, userSocRepo, userInfoRepo);
-        var ficheDossierQuery = new ObtenirFicheDossierQuery(dossierRepo, ticketRepo, fileRepo, socRepo, userSocRepo, userInfoRepo);
-        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
+        var ficheDossierQuery = new ObtenirFicheDossierQuery(dossierRepo, ticketRepo, fileRepo, socRepo, userInfoRepo,
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
+        var ficheTicketQuery = new ObtenirFicheTicketQuery(ticketRepo, dossierRepo, fileRepo, socRepo, userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
 
         // 1. User A tente d'accéder au dashboard de Société B -> Refusé
         await Assert.ThrowsAsync<AccesRefuseException>(() => dashboardClientQuery.ExecuterAsync(userAId, socBId));

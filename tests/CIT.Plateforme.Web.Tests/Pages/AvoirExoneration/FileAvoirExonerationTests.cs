@@ -56,7 +56,7 @@ public sealed class FileAvoirExonerationTests : BunitContext
             maintenantUtc: DateTime.UtcNow);
         db.Tickets.Add(ticket);
 
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.AvoirExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationInstruire));
         db.SaveChanges();
         return (db, agentId);
     }

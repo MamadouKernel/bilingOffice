@@ -88,7 +88,7 @@ public sealed class InscrireTransporteurCommandTests
         await using var dbContext = ContexteDeTest.CreerNouveauContexte();
         var utilisateur = Guid.NewGuid();
         var societe = AjouterSociete(dbContext, Guid.NewGuid(), validee: true);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateur, societe.Id, Maintenant));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateur, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, Maintenant));
         await dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<InvalidOperationException>(

@@ -13,6 +13,7 @@ public sealed class EnrCert05RenouvellementTests
 {
     private readonly Mock<ITicketRepository> _tickets = new();
     private readonly Mock<IDossierRepository> _dossiers = new();
+    private readonly Mock<IFileDeTraitementRepository> _files = new();
     private readonly Mock<IAutorisationService> _autorisation = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
     private readonly Mock<IParametresEnrolementProvider> _parametres = new();
@@ -93,6 +94,7 @@ public sealed class EnrCert05RenouvellementTests
         var cmd = new DemanderRenouvellementBadgeCommand(
             _dossiers.Object,
             _tickets.Object,
+            _files.Object,
             _autorisation.Object,
             _journalisation.Object,
             numService.Object,

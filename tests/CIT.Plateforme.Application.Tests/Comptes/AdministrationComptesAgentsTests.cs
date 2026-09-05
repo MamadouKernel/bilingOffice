@@ -64,6 +64,9 @@ public class AdministrationComptesAgentsTests
             compte.EstActif = actif;
             await dbContext.SaveChangesAsync(ct);
         }
+
+        public Task<bool> VerifierMotDePasseAsync(Guid utilisateurId, string motDePasse, CancellationToken ct = default) =>
+            Task.FromResult(true);
     }
 
     private static ApplicationUser AjouterAgent(PlateformeDbContext dbContext, string email, bool actif = true)
@@ -85,7 +88,7 @@ public class AdministrationComptesAgentsTests
     private static Guid AjouterAdministrateur(PlateformeDbContext dbContext)
     {
         var admin = AjouterAgent(dbContext, $"admin-{Guid.NewGuid():N}@cit.test");
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(admin.Id, Permission.AdministrationComptes));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, admin.Id), Permission.AdministrationComptes));
         dbContext.SaveChanges();
         return admin.Id;
     }
@@ -244,7 +247,7 @@ public class AdministrationComptesAgentsTests
         await using var dbContext = ContexteDeTest.CreerNouveauContexte();
         var adminId = AjouterAdministrateur(dbContext);
         var cible = AjouterAgent(dbContext, "agent.actif@cit.test");
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(cible.Id, Permission.TicketCloturer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, cible.Id), Permission.TicketCloturer));
         await dbContext.SaveChangesAsync();
 
         var contexteQuery = new ObtenirContexteUtilisateurQuery(
@@ -277,7 +280,7 @@ public class AdministrationComptesAgentsTests
         await using var dbContext = ContexteDeTest.CreerNouveauContexte();
         var adminId = AjouterAdministrateur(dbContext);
         var cible = AjouterAgent(dbContext, "agent@cit.test", actif: false);
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(cible.Id, Permission.TicketCloturer));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, cible.Id), Permission.TicketCloturer));
         await dbContext.SaveChangesAsync();
 
         var (_, activation, _, _) = Commandes(dbContext);

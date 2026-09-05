@@ -36,7 +36,7 @@ public sealed class CycleCompletEnrolementIntegrationTests
         var fileRepo = new FileDeTraitementRepository(dbContext);
         var periodeRepo = new PeriodeAttenteClientRepository(dbContext);
         var messageRepo = new MessageRepository(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var stockage = new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development"));
         var antivirus = new AucuneAnalyseAntivirusConfiguree();
@@ -47,7 +47,7 @@ public sealed class CycleCompletEnrolementIntegrationTests
 
         var transporteurId = Guid.NewGuid();
         var agentGateId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentGateId, Permission.EnrolementInstruire, fileAgentGate.Id));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentGateId), Permission.EnrolementInstruire, fileAgentGate.Id));
         await dbContext.SaveChangesAsync();
 
         var soumettre = new SoumettreEnrolementCommand(ticketRepo, dossierRepo, fileRepo, numerotation, journalisation, horloge, autorisation, uow);
@@ -57,7 +57,7 @@ public sealed class CycleCompletEnrolementIntegrationTests
         var deposerDocument = new DeposerDocumentCommand(documentRepo, ticketRepo, stockage, antivirus, autorisation, cloisonnement, journalisation, horloge, uow);
 
         // Un compte transporteur/chauffeur — Nature=Client, sans société (CLAR-ENR-01).
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(transporteurId, Permission.EnrolementSoumettre));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, transporteurId), Permission.EnrolementSoumettre));
         await dbContext.SaveChangesAsync();
 
         // 1. Soumission (ENR-01).

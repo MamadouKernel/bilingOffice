@@ -72,7 +72,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         {
             if (!await dbContext.Habilitations.AnyAsync(h => h.UtilisateurId == agentId && h.PermissionCode == p && h.FileId == null))
             {
-                dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, p));
+                dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), p));
             }
         }
         await dbContext.SaveChangesAsync();
@@ -95,7 +95,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "ExportNormalSA", TypeClient.Normal, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
@@ -119,7 +119,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Client dépose preuve paiement
-        await deposerPreuve.ExecuterAsync(societe.Id, ticketId, "virement.pdf", "application/pdf", Contenu("VIREMENT"), 8, Regles);
+        await deposerPreuve.ExecuterAsync(clientId, ticketId, "virement.pdf", "application/pdf", Contenu("VIREMENT"), 8, Regles);
 
         // 4. Validation Paiement
         await validerPaiement.ValiderAsync(agentId, ticketId);
@@ -146,7 +146,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "ExportEnCompteSA", TypeClient.EnCompte, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
@@ -191,7 +191,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "ExportDepositSA", TypeClient.Deposit, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
@@ -236,7 +236,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "ExportIesSA", TypeClient.IES, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
@@ -278,7 +278,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "ExportMultiBkgSA", TypeClient.Normal, DateTime.UtcNow);
         societe.Valider();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(clientId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         await dbContext.SaveChangesAsync();
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
@@ -314,7 +314,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var state3a = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == tck3);
         Assert.Equal(StatutTicket.EnAttenteClient, state3a.Statut);
 
-        await gestionComplement.DeposerComplementAsync(societe.Id, tck3);
+        await gestionComplement.DeposerComplementAsync(clientId, tck3);
         var state3b = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == tck3);
         Assert.Equal(StatutTicket.EnCours, state3b.Statut);
     }

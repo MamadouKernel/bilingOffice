@@ -77,7 +77,23 @@ public static class DependencyInjection
         // ENR-01 — inscription a distance d'un transporteur/chauffeur : personne physique sans
         // societe, seul parcours produisant le « compte transporteur/chauffeur » du modele CDC.
         services.AddScoped<InscrireTransporteurCommand>();
+        // RG-IA-01 / RG-IA-02 (remédiation P1-03) — assistant virtuel. AUCUN FOURNISSEUR N'EST
+        // DÉSIGNÉ : PC-18 n'est pas arbitré. L'adaptateur servi est simulé et local ; le jour où un
+        // fournisseur est retenu, seule cette ligne change.
+        services.AddScoped<Application.Abstractions.IAssistantConversationnel, Assistant.AssistantSimule>();
+        services.AddScoped<Application.Abstractions.IConversationAssistantRepository, Persistence.ConversationAssistantRepository>();
+        services.AddScoped<Application.Assistant.PoserQuestionAssistantCommand>();
+        services.AddScoped<Application.Assistant.EscaladerAssistantVersOperateurCommand>();
+        services.AddScoped<Application.Assistant.ConsulterConversationAssistantQuery>();
+
         services.AddScoped<CloisonnementService>();
+        // REMÉDIATION P0-ter — la garde d'identité est la règle « compte valide et actif ».
+        // Elle précède toute décision, dans AutorisationService comme dans le contrôle d'accès
+        // aux ressources : un seul endroit la porte.
+        services.AddScoped<GardeIdentiteService>();
+        // P2-03 — RG-SEC-03 : la connexion figure parmi les actions à tracer.
+        services.AddScoped<JournalConnexionService>();
+        services.AddScoped<ControleAccesRessourceService>();
         services.AddScoped<GererFilesCommand>();
         services.AddScoped<ListerFilesQuery>();
 
@@ -96,8 +112,10 @@ public static class DependencyInjection
         services.AddScoped<Application.Formulaires.EnregistrerBrouillonCommand>();
         services.AddScoped<Application.Formulaires.ObtenirBrouillonQuery>();
         services.AddScoped<Application.Formulaires.SupprimerBrouillonCommand>();
+        services.AddScoped<Application.Tarification.ControlesCoherenceSimulation>();
         services.AddScoped<Application.Tarification.ValiderCoherenceSimulationQuery>();
         services.AddScoped<Application.Enrolement.RappelerExpirationBadgesCommand>();
+        services.AddHostedService<TraitementsDeFond.RappelExpirationBadgesService>();
         services.AddScoped<Application.Enrolement.DemanderRenouvellementBadgeCommand>();
 
         // User Story 2 — affectation, réaffectation, transfert.
@@ -107,6 +125,7 @@ public static class DependencyInjection
         // SS 9.10 / SS 17.3 - referentiel des motifs de transfert.
         services.AddScoped<Application.Abstractions.IMotifTransfertRepository, Persistence.MotifTransfertRepository>();
         services.AddScoped<Application.Administration.GererMotifsTransfertCommand>();
+        services.AddScoped<Application.Administration.GererEtapesBloquantesAnnulationCommand>();
         services.AddScoped<Application.Administration.ListerMotifsTransfertQuery>();
         services.AddScoped<TransfererTicketCommand>();
         services.AddScoped<ReaffecterTicketCommand>();
@@ -119,9 +138,11 @@ public static class DependencyInjection
         // TPS-01 / TPS-05 : chronologie par étape. Sans cet enregistrement, les horodatages du
         // passage précédent sont écrasés au premier transfert.
         services.AddScoped<Application.Abstractions.IPassageEnFileRepository, Persistence.PassageEnFileRepository>();
+        services.AddScoped<Application.Abstractions.IEtapeBloquanteAnnulationRepository, Persistence.EtapeBloquanteAnnulationRepository>();
 
         // §11.4 / §9.10 : approvisionnement additif des libellés de statut paramétrables.
         services.AddScoped<Persistence.ProvisionnementLibellesStatut>();
+        services.AddScoped<Persistence.ProvisionnementReferentielsTarifaires>();
         services.AddScoped<AttenteClientCommand>();
         services.AddScoped<RelancesAbsenceReponseUseCase>();
         services.AddHostedService<TraitementsDeFond.RelancesAbsenceReponseService>();
@@ -154,6 +175,9 @@ public static class DependencyInjection
         services.AddScoped<IAlerteRepository, AlerteRepository>();
         services.AddScoped<Application.Supervision.IParametresSlaProvider, ParametresSlaProvider>();
         services.AddScoped<Application.Administration.GererParametresSlaCommand>();
+        services.AddScoped<Application.Administration.GererReglesEscaladeCommand>();
+        services.AddScoped<Application.Administration.GererPiecesExigeesEtapeCommand>();
+        services.AddScoped<Application.Guichet.ListerAgendaGuichetQuery>();
         services.AddScoped<Application.Supervision.SurveillerEcheancesUseCase>();
         services.AddHostedService<TraitementsDeFond.SurveillanceSlaService>();
 
@@ -163,16 +187,21 @@ public static class DependencyInjection
         services.AddScoped<Application.Affectation.ICandidatsAffectationProvider, CandidatsAffectationProvider>();
         services.AddScoped<Application.Affectation.GererDisponibiliteCommand>();
         services.AddScoped<Application.Affectation.GererCompetencesOperateurCommand>();
+        services.AddScoped<Application.Affectation.ListerCompetencesOperateurQuery>();
         services.AddScoped<Application.Affectation.DistributionAutomatiqueUseCase>();
         services.AddHostedService<TraitementsDeFond.DistributionAutomatiqueService>();
 
         // User Story 10 — supervision, priorités, actions de masse.
         services.AddScoped<IPrioriteRepository, PrioriteRepository>();
         services.AddScoped<IPerimetreSupervisionRepository, PerimetreSupervisionRepository>();
+        services.AddScoped<IRegleEscaladeRepository, RegleEscaladeRepository>();
+        services.AddScoped<IPieceExigeeEtapeRepository, PieceExigeeEtapeRepository>();
         services.AddScoped<Application.Tickets.ModifierPrioriteCommand>();
         services.AddScoped<Application.Administration.GererPerimetresSupervisionCommand>();
+        services.AddScoped<Application.Administration.ListerPerimetresSupervisionQuery>();
         services.AddScoped<Application.Supervision.VueFilesQuery>();
         services.AddScoped<Application.Supervision.VueChargeQuery>();
+        services.AddScoped<Application.Supervision.ListerTicketsDeLaFileQuery>();
         services.AddScoped<Application.Supervision.ActionsSuperviseurCommand>();
         services.AddScoped<Application.Supervision.ActionDeMasseCommand>();
         services.AddScoped<Application.Supervision.ExporterIndicateursQuery>();
@@ -193,6 +222,8 @@ public static class DependencyInjection
 
         // User Story 2 — authentification et accès au compte.
         services.AddScoped<Application.Comptes.VerifierAccesCompteQuery>();
+        // P3 — la règle d'accès à la connexion, énoncée une seule fois pour toutes les voies.
+        services.AddScoped<Application.Comptes.RegleAccesConnexion>();
 
         // User Story 3 — gestion des utilisateurs rattachés à une société.
         services.AddScoped<Application.Comptes.RattacherUtilisateurCommand>();
@@ -207,6 +238,7 @@ public static class DependencyInjection
         // Profil personnel de l'utilisateur connecté
         services.AddScoped<Application.Comptes.ObtenirMonProfilQuery>();
         services.AddScoped<Application.Comptes.ModifierMonProfilCommand>();
+        services.AddScoped<Application.Comptes.CloturerMonCompteCommand>();
 
         // User Story 5 — modification tracée du type de client.
         services.AddScoped<Application.Comptes.ModifierTypeClientCommand>();
@@ -276,6 +308,7 @@ public static class DependencyInjection
         // export PDF, import CSV atomique (research.md D4-D16).
         services.AddScoped<Application.Abstractions.IVersionGrilleTarifaireRepository, VersionGrilleTarifaireRepository>();
         services.AddScoped<Application.Abstractions.ISimulationProformaRepository, SimulationProformaRepository>();
+        services.AddScoped<Application.Abstractions.IReferentielsTarifairesRepository, ReferentielsTarifairesRepository>();
         services.AddScoped<Application.Abstractions.IGenerateurDocumentProformaPdf, Documents.GenerateurDocumentProformaPdf>();
         services.AddScoped<Domain.Tarification.MoteurCalculProforma>();
         services.AddScoped<Application.Tarification.ImportateurGrilleTarifaireCsv>();
@@ -287,6 +320,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Tarification.CreerVersionGrilleTarifaireCommandHandler>();
         services.AddScoped<Application.Tarification.ConsulterVersionsGrillesTarifairesQueryHandler>();
         services.AddScoped<Application.Tarification.ImporterGrilleTarifaireCsvCommandHandler>();
+        services.AddScoped<Application.Tarification.ConsulterReferentielsTarifairesQueryHandler>();
 
         // Seeder for Development Environment
         services.AddScoped<DevelopmentSeeder>();
@@ -366,6 +400,7 @@ public static class DependencyInjection
             return parametres;
         });
 
+        services.AddScoped<Application.Abstractions.ILienPortail, Notifications.LienPortailConfigure>();
         services.AddScoped<Application.Notifications.DistribuerNotificationsUseCase>();
         services.AddScoped<Application.Notifications.ReessayerEnvoisNotificationUseCase>();
         services.AddScoped<Application.Notifications.ConsulterMesNotificationsQuery>();

@@ -23,7 +23,7 @@ public sealed class ActionsDeMasseTests
         var autorisation = new AutorisationService(dbContext);
 
         var superviseurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.ActionDeMasse));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.ActionDeMasse));
 
         var dossier = Dossier.Creer("DOS-MAS-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket1 = Ticket.Creer("TCK-MAS-000001", "BillingOffice", "Import", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);

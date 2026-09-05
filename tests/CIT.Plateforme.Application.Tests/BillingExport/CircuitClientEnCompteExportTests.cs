@@ -35,7 +35,7 @@ public sealed class CircuitClientEnCompteExportTests
         var dossierRepository = new DossierRepository(dbContext);
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         var deposerDocument = new DeposerDocumentCommand(
             new DocumentRepository(dbContext), ticketRepository, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")),
@@ -52,9 +52,9 @@ public sealed class CircuitClientEnCompteExportTests
         var agentId = Guid.NewGuid();
 
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportBackOfficeInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingExportBackOfficeInstruire),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportFacturationEditer),
             HabilitationUtilisateur.Attribuer(agentId, Permission.BillingExportControleDocumentaireTraiter),
             HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer));

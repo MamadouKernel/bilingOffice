@@ -10,7 +10,7 @@
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
-@inject IRendezVousRepository RendezVousRepo
+@inject CIT.Plateforme.Application.Guichet.ListerAgendaGuichetQuery ListerAgenda
 @inject MarquerRendezVousHonoreCommand MarquerHonoreCommand
 @inject MarquerRendezVousNonPresenteCommand MarquerNonPresenteCommand
 @inject NavigationManager Navigation
@@ -20,7 +20,7 @@
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>📅</span> Agenda des Rendez-vous Guichet (CON-03)
+            <span>📅</span> Agenda des Rendez-vous Guichet
         </h2>
         <div class="cit-page-subtitle">
             Accueil et validation de la présence physique des usagers au Billing Office
@@ -65,10 +65,10 @@ else
         <div class="card-body">
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
-                    <label class="form-label fw-bold mb-0">Sélectionner la date :</label>
+                    <label for="selectionner-la-date" class="form-label fw-bold mb-0">Sélectionner la date :</label>
                 </div>
                 <div class="col-auto">
-                    <input type="date" class="form-control" value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
+                    <input id="selectionner-la-date" type="date" class="form-control" value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-outline-primary" @onclick="() => AllerAujourdhuiAsync()">Aujourd'hui</button>
@@ -201,7 +201,9 @@ else
         _messageErreur = null;
         try
         {
-            _rendezVousJournee = await RendezVousRepo.ListerParDateAsync(_dateSelectionnee);
+            // La lecture passe par un cas d'usage qui exige l'habilitation : un repository
+            // injecté en page ne garde rien (audit du 2026-09-04, docs/89).
+            _rendezVousJournee = await ListerAgenda.ExecuterAsync(_agentId, _dateSelectionnee);
         }
         catch (Exception ex)
         {
@@ -237,7 +239,7 @@ else
             await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(
                 _agentId,
                 rdvId,
-                "Usager accueilli au guichet physique (CON-04)"
+                "Usager accueilli au guichet physique"
             ));
             _messageSucces = "Présence validée avec succès.";
             await ChargerAgendaAsync();

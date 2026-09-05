@@ -12,9 +12,27 @@ public sealed class ParametresSlaProvider(PlateformeDbContext dbContext) : IPara
 {
     public async Task<(ParametresSla Parametres, CalendrierOuvre Calendrier)?> ObtenirPourAsync(Ticket ticket, CancellationToken ct = default)
     {
-        var parametre = await dbContext.ParametresSla
-            .SingleOrDefaultAsync(p => p.Module == ticket.Module && p.TypeDemande == ticket.TypeDemande, ct)
+        // SLA-01 — le paramétrage discrimine désormais sur la file (l'étape) et la priorité, en
+        // plus du module et du type de demande. Plusieurs paramétrages peuvent donc s'appliquer à
+        // un même ticket : un SLA général pour le module, un SLA plus serré pour une file donnée.
+        //
+        // `SingleOrDefaultAsync` levait une exception dans ce cas — c'était correct tant qu'un
+        // seul paramétrage était possible, ce n'est plus le cas. Un `null` sur un axe signifie
+        // « ce paramétrage ne discrimine pas dessus », il reste donc candidat.
+        var candidats = await dbContext.ParametresSla
+            .Where(p => p.Module == ticket.Module
+                     && p.TypeDemande == ticket.TypeDemande
+                     && (p.FileId == null || p.FileId == ticket.FileCouranteId)
+                     && (p.PrioriteId == null || p.PrioriteId == ticket.PrioriteId))
+            .ToListAsync(ct)
             .ConfigureAwait(false);
+
+        // Le plus spécifique l'emporte. Le tri se fait en mémoire : `Specificite` est une
+        // propriété calculée, non une colonne — et l'ensemble candidat compte au plus quatre
+        // lignes (les combinaisons de deux axes optionnels).
+        var parametre = candidats
+            .OrderByDescending(p => p.Specificite)
+            .FirstOrDefault();
 
         if (parametre is null)
         {

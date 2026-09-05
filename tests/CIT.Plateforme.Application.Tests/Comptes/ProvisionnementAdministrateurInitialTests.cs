@@ -51,8 +51,7 @@ public sealed class ProvisionnementAdministrateurInitialTests
     {
         await using var dbContext = ContexteDeTest.CreerNouveauContexte();
         var administrateurEnPlace = Guid.NewGuid();
-        dbContext.Habilitations.Add(
-            HabilitationUtilisateur.Attribuer(administrateurEnPlace, Permission.AdministrationComptes));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurEnPlace), Permission.AdministrationComptes));
         await dbContext.SaveChangesAsync();
 
         var provisionnement = Construire(dbContext, Configuration(

@@ -63,7 +63,6 @@ public sealed class ObtenirFicheTicketQueryTests
         var dossierRepo = new DossierRepository(db);
         var fileRepo = new FileDeTraitementRepository(db);
         var socRepo = new SocieteClienteRepository(db);
-        var userSocRepo = new UtilisateurSocieteRepository(db);
         var userInfoRepo = new UtilisateurInfoRepository(db);
         var histRepo = new HistoriqueTicketRepository(db);
         var docRepo = new DocumentRepository(db);
@@ -72,8 +71,12 @@ public sealed class ObtenirFicheTicketQueryTests
         var catRepo = new CategorieReclamationRepository(db);
 
         var query = new ObtenirFicheTicketQuery(
-            ticketRepo, dossierRepo, fileRepo, socRepo, userSocRepo,
-            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo);
+            ticketRepo, dossierRepo, fileRepo, socRepo,
+            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
 
         return (db, query, socId, clientUserId, agentUserId);
     }

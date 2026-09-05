@@ -14,20 +14,24 @@ public sealed class GestionSimulationsProformaTests
         using var db = ContexteDeTest.CreerNouveauContexte();
         var simRepo = new SimulationProformaRepository(db);
         var grilleRepo = new VersionGrilleTarifaireRepository(db);
+        var referentielsRepo = new ReferentielsTarifairesRepository(db);
 
-        var grille = VersionGrilleTarifaire.Creer("v1.0", DateTime.UtcNow.AddDays(-1), Guid.NewGuid(), DateTime.UtcNow);
-        grille.AjouterLigne(SensTrafic.ImportLocal, TailleConteneur.VingtPieds, "C1", 66800m, 25000m, 35000m);
-        await grilleRepo.AjouterAsync(grille);
+        var contexte = await ReferentielsDeTest.PreparerAsync(db);
 
-        var handler = new SauvegarderSimulationProformaCommandHandler(simRepo, grilleRepo, new MoteurCalculProforma());
+        var handler = new SauvegarderSimulationProformaCommandHandler(
+            simRepo, grilleRepo, referentielsRepo, new MoteurCalculProforma(), CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(db));
+
+        // P2-02 : la société n'est plus fournie — la simulation est rattachée à celle dont
+        // l'appelant relève réellement. L'appelant doit donc être un compte rattaché.
+        var societeId = Guid.NewGuid();
         var commande = new SauvegarderSimulationProformaCommande(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
+            CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.AppelantDeSociete(db, societeId),
             new CalculerSimulationProformaRequete(
-                SensTrafic.ImportLocal,
+                contexte.SensId,
                 new DateOnly(2026, 2, 1),
                 new DateOnly(2026, 2, 5),
-                [new ConteneurSimulationRequete("C1", TailleConteneur.VingtPieds, TypeConteneur.Dry, 10m, false, false, "C1")]));
+                [new ConteneurSimulationRequete(
+                    "C1", contexte.TailleId, contexte.TypeId, 10m, false, false, contexte.CategorieId)]));
 
         var reponse = await handler.HandleAsync(commande);
 
@@ -47,25 +51,23 @@ public sealed class GestionSimulationsProformaTests
     {
         using var db = ContexteDeTest.CreerNouveauContexte();
         var simRepo = new SimulationProformaRepository(db);
-        var grilleRepo = new VersionGrilleTarifaireRepository(db);
+        var referentielsRepo = new ReferentielsTarifairesRepository(db);
 
         var societeId = Guid.NewGuid();
+        var contexte = await ReferentielsDeTest.PreparerAsync(db);
 
-        var grille = VersionGrilleTarifaire.Creer("v1.0", DateTime.UtcNow.AddDays(-1), Guid.NewGuid(), DateTime.UtcNow);
-        grille.AjouterLigne(SensTrafic.ImportLocal, TailleConteneur.VingtPieds, "C1", 66800m, 25000m, 35000m);
-        await grilleRepo.AjouterAsync(grille);
-
-        var conteneur = new ConteneurSimulation("C1", TailleConteneur.VingtPieds, TypeConteneur.Dry, 10m, false, false, "C1");
-        var dossier = new DossierSimulation(SensTrafic.ImportLocal, new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 5), [conteneur]);
-        var ligne = new LigneResultatConteneur(conteneur, 66800m, 25000m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m);
-
-        var sim1 = SimulationProforma.Creer("SIM-001", societeId, Guid.NewGuid(), DateTime.UtcNow.AddHours(-2), grille.Id, "v1.0", dossier, [ligne]);
+        var sim1 = SimulationProforma.Creer(
+            "SIM-001", societeId, Guid.NewGuid(), DateTime.UtcNow.AddHours(-2),
+            contexte.Grille.Id, "v1.0", contexte.Dossier, contexte.Lignes);
         await simRepo.AjouterAsync(sim1);
-        var sim2 = SimulationProforma.Creer("SIM-002", societeId, Guid.NewGuid(), DateTime.UtcNow, grille.Id, "v1.0", dossier, [ligne]);
+
+        var sim2 = SimulationProforma.Creer(
+            "SIM-002", societeId, Guid.NewGuid(), DateTime.UtcNow,
+            contexte.Grille.Id, "v1.0", contexte.Dossier, contexte.Lignes);
         await simRepo.AjouterAsync(sim2);
 
-        var handler = new ListerSimulationsProformaQueryHandler(simRepo);
-        var resultat = await handler.HandleAsync(new ListerSimulationsProformaRequete(Guid.NewGuid(), societeId));
+        var handler = new ListerSimulationsProformaQueryHandler(simRepo, referentielsRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(db));
+        var resultat = await handler.HandleAsync(new ListerSimulationsProformaRequete(CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.AppelantDeSociete(db, societeId)));
 
         Assert.Equal(2, resultat.Count);
         Assert.Equal("SIM-002", resultat[0].Reference); // Plus récente en premier

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Outillage de test PARTAGÉ par les quatre projets de test.
+
+    POURQUOI CE PROJET EXISTE. `ComptesDeTest` était recopié à l'identique dans trois projets de
+    test — 53 lignes chacun. Un helper de sécurité dupliqué finit par diverger, et c'est
+    exactement le motif que les remédiations P0, P0-bis, P0-ter et la consolidation ont passé leur
+    temps à défaire dans le code de production. Il n'y a pas de raison de le tolérer dans les tests,
+    d'autant que celui-ci décide ce qu'est « un compte utilisable » pour toutes les fixtures.
+
+    Ce projet ne contient QUE de l'échafaudage : aucune assertion, aucun test.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CIT.Plateforme.Domain\CIT.Plateforme.Domain.csproj" />
+    <ProjectReference Include="..\..\src\CIT.Plateforme.Application\CIT.Plateforme.Application.csproj" />
+    <ProjectReference Include="..\..\src\CIT.Plateforme.Infrastructure\CIT.Plateforme.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

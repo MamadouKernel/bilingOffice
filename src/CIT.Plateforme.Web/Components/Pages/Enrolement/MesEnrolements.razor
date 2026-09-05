@@ -6,8 +6,11 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
 @inject ListerMesEnrolementsQuery ListerMesEnrolements
+@inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
 
 <PageTitle>Mes enrôlements — CIT</PageTitle>
 
@@ -22,6 +25,15 @@
         <a href="/enrolement/soumettre" class="btn btn-primary btn-sm shadow-sm fw-bold">➕ Nouvel enrôlement</a>
     </div>
 </div>
+
+@if (_messageRenouvellement is not null)
+{
+    @* Message local : _erreur remplace toute la page, et un renouvellement qui échoue ne doit
+       pas faire disparaître la liste des enrôlements que le titulaire consultait. *@
+    <div class="alert @(_renouvellementEchoue ? "alert-danger" : "alert-info") border-0 mb-3 rounded-3" role="status">
+        @_messageRenouvellement
+    </div>
+}
 
 @if (_chargement)
 {
@@ -57,6 +69,18 @@ else
                             <td class="fw-semibold text-dark">@(t.Objet ?? "—")</td>
                             <td><StatutBadge Statut="@t.Statut" /></td>
                             <td class="text-end">
+                                @if (t.Statut == StatutTicket.Cloture)
+                                {
+                                    @* ENR-05 — « demander le renouvellement d'un badge existant ». La commande
+                                       était écrite et testée, et aucun écran ne l'appelait : le titulaire d'un
+                                       badge délivré n'avait aucun moyen de le renouveler. Un renouvellement se
+                                       demande sur un enrôlement abouti, jamais sur un dossier encore en cours. *@
+                                    <button type="button" class="btn btn-outline-secondary btn-sm me-1"
+                                            @onclick="() => DemanderRenouvellementAsync(t.DossierId)"
+                                            disabled="@(_renouvellementEnCours == t.DossierId)">
+                                        @(_renouvellementEnCours == t.DossierId ? "Envoi..." : "Renouveler")
+                                    </button>
+                                }
                                 <a href="/enrolement/@t.Id" class="btn btn-outline-primary btn-sm">Détails ➔</a>
                             </td>
                         </tr>
@@ -71,6 +95,10 @@ else
     private bool _chargement = true;
     private string? _erreur;
     private IReadOnlyList<Ticket> _enrolements = [];
+    private Guid _utilisateurId;
+    private Guid? _renouvellementEnCours;
+    private string? _messageRenouvellement;
+    private bool _renouvellementEchoue;
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,6 +111,7 @@ else
                 return;
             }
 
+            _utilisateurId = contexte.UtilisateurId;
             _enrolements = await ListerMesEnrolements.ExecuterAsync(contexte.UtilisateurId);
         }
         catch (Exception ex)
@@ -92,6 +121,32 @@ else
         finally
         {
             _chargement = false;
+        }
+    }
+
+    private async Task DemanderRenouvellementAsync(Guid dossierId)
+    {
+        _messageRenouvellement = null;
+        _renouvellementEchoue = false;
+        _renouvellementEnCours = dossierId;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var ticket = await scope.ServiceProvider
+                .GetRequiredService<DemanderRenouvellementBadgeCommand>()
+                .ExecuterPourDossierAsync(_utilisateurId, dossierId);
+
+            _messageRenouvellement = $"Demande de renouvellement enregistrée sous le n° {ticket.Numero}.";
+            _enrolements = await ListerMesEnrolements.ExecuterAsync(_utilisateurId);
+        }
+        catch (Exception ex)
+        {
+            _renouvellementEchoue = true;
+            _messageRenouvellement = ex.Message;
+        }
+        finally
+        {
+            _renouvellementEnCours = null;
         }
     }
 }

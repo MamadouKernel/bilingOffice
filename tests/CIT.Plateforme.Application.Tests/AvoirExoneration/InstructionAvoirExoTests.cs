@@ -48,7 +48,10 @@ public sealed class InstructionAvoirExoTests
         var ticket = Ticket.CreerDemandeAvoirExo("AVO-001", "Avoir", Guid.NewGuid(), Guid.NewGuid(), "Obj", "Desc", 100m, _maintenantUtc);
         _ticketRepo.Setup(t => t.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(ticket);
-        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, null, It.IsAny<CancellationToken>()))
+        // P3 : le contrôle porte désormais la FILE du ticket, et non plus `null` — qui ne
+        // reconnaissait que les habilitations non bornées. Le montage décrit donc un agent
+        // habilité sur la file de CE ticket : l'assertion est plus précise, pas plus permissive.
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -69,7 +72,10 @@ public sealed class InstructionAvoirExoTests
 
         _ticketRepo.Setup(t => t.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(ticket);
-        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, null, It.IsAny<CancellationToken>()))
+        // P3 : le contrôle porte désormais la FILE du ticket, et non plus `null` — qui ne
+        // reconnaissait que les habilitations non bornées. Le montage décrit donc un agent
+        // habilité sur la file de CE ticket : l'assertion est plus précise, pas plus permissive.
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act

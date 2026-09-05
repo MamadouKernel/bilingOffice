@@ -58,7 +58,7 @@ public sealed class PriCert01PrioriteTests
 
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
 
         var niveauNormale = NiveauPriorite.Definir("Normale", 1);
         var niveauUrgente = NiveauPriorite.Definir("Urgente", 2);

@@ -27,7 +27,7 @@ public sealed class AttenteClientTests
 
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
         var dossier = Dossier.Creer("DOS-ATT-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-ATT-000001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         ticket.PrendreEnCharge(agentId, horloge.MaintenantUtc);

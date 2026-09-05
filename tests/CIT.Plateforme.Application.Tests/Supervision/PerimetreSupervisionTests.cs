@@ -25,8 +25,8 @@ public sealed class PerimetreSupervisionTests
 
         var superviseurId = Guid.NewGuid();
         var administrateurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.SupervisionConsulter));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(administrateurId, Permission.AdministrationPerimetresSupervision));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationPerimetresSupervision));
 
         var fileDansLePerimetre = FileDeTraitement.Creer("BillingOffice", "Contrôle BL");
         var fileHorsPerimetre = FileDeTraitement.Creer("CustomerComplaint", "Support Opérationnel");
@@ -51,7 +51,7 @@ public sealed class PerimetreSupervisionTests
         var dbContext = ContexteDeTest.CreerNouveauContexte();
         var autorisation = new AutorisationService(dbContext);
         var superviseurId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(superviseurId, Permission.SupervisionConsulter));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
         dbContext.Files.Add(FileDeTraitement.Creer("BillingOffice", "Contrôle BL"));
         await dbContext.SaveChangesAsync();
 

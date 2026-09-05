@@ -37,8 +37,8 @@ public sealed class ConcurrenceIesExportFinalisationSqlTests
         suivis.Single(s => s.Branche == BrancheIes.BackOffice).Achever(agentBoId, DateTime.UtcNow);
         suivis.Single(s => s.Branche == BrancheIes.ControleDocumentaire).Achever(agentCdId, DateTime.UtcNow);
 
-        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentBoId, Permission.BillingExportIesBackOfficeInstruire));
-        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingExportIesControleDocumentaireInstruire));
+        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(setup, agentBoId), Permission.BillingExportIesBackOfficeInstruire));
+        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(setup, agentCdId), Permission.BillingExportIesControleDocumentaireInstruire));
         await setup.SaveChangesAsync();
 
         await using var contexteA = BaseDeTestSql.CreerContexte();

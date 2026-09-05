@@ -38,7 +38,7 @@ public sealed class DeposerDocumentAntivirusOrchestrationTests
         var docsRepo = new DocumentRepository(db);
         var ticketsRepo = new TicketRepository(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketsRepo, new DossierRepository(db));
+        var cloisonnement = new CloisonnementService(ticketsRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(db));
 
         var mockStockage = new Mock<IStockageDocuments>();
         mockStockage.Setup(s => s.EnregistrerAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -49,11 +49,11 @@ public sealed class DeposerDocumentAntivirusOrchestrationTests
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
         var clientProprietaire = Guid.NewGuid();
-        var dossier = Dossier.Creer("DOS-TEST-0001", clientProprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-TEST-0001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-TEST-0001", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         db.Dossiers.Add(dossier);
         db.Tickets.Add(ticket);
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer, fileId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.DocumentDeposer, fileId));
         await db.SaveChangesAsync();
 
         var cmd = new DeposerDocumentCommand(
@@ -83,7 +83,7 @@ public sealed class DeposerDocumentAntivirusOrchestrationTests
         var docsRepo = new DocumentRepository(db);
         var ticketsRepo = new TicketRepository(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketsRepo, new DossierRepository(db));
+        var cloisonnement = new CloisonnementService(ticketsRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(db));
 
         var mockStockage = new Mock<IStockageDocuments>();
         mockStockage.Setup(s => s.EnregistrerAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -94,11 +94,11 @@ public sealed class DeposerDocumentAntivirusOrchestrationTests
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
         var clientProprietaire = Guid.NewGuid();
-        var dossier = Dossier.Creer("DOS-TEST-0002", clientProprietaire, horloge.MaintenantUtc);
+        var dossier = Dossier.Creer("DOS-TEST-0002", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-TEST-0002", "BillingOffice", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
         db.Dossiers.Add(dossier);
         db.Tickets.Add(ticket);
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer, fileId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.DocumentDeposer, fileId));
         await db.SaveChangesAsync();
 
         var cmd = new DeposerDocumentCommand(

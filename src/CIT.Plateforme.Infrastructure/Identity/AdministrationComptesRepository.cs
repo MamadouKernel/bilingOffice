@@ -68,5 +68,26 @@ public sealed class AdministrationComptesRepository(UserManager<ApplicationUser>
 
         compte.EstActif = actif;
         await userManager.UpdateAsync(compte).ConfigureAwait(false);
+
+        // REMÉDIATION P0-ter — INVALIDER LES SESSIONS EN COURS.
+        //
+        // La frontière de sécurité est côté serveur : AutorisationService refuse déjà un compte
+        // désactivé, cookie valide ou non. Mais tant que le cookie reste accepté, l'intéressé
+        // conserve une session qui ne fait plus rien — une interface vide plutôt qu'un refus
+        // lisible, et une trace d'activité trompeuse dans les journaux.
+        //
+        // Faire tourner le tampon de sécurité est le mécanisme prévu par Identity pour cela : le
+        // cookie porte l'ancien tampon, la validation à chaque requête (SecurityStampValidatorOptions
+        // .ValidationInterval = Zero, Program.cs) le compare au tampon stocké et déconnecte.
+        // On le fait dans les DEUX sens : réactiver un compte doit aussi couper les sessions
+        // ouvertes avant la désactivation, dont on ne sait pas ce qu'elles portent.
+        await userManager.UpdateSecurityStampAsync(compte).ConfigureAwait(false);
+    }
+
+    public async Task<bool> VerifierMotDePasseAsync(Guid utilisateurId, string motDePasse, CancellationToken ct = default)
+    {
+        var compte = await userManager.FindByIdAsync(utilisateurId.ToString()).ConfigureAwait(false);
+        if (compte is null) return false;
+        return await userManager.CheckPasswordAsync(compte, motDePasse).ConfigureAwait(false);
     }
 }

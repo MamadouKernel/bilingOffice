@@ -22,7 +22,7 @@
             <span>🏛️</span> Guichet Billing Office — Continuité de Service
         </h2>
         <div class="cit-page-subtitle">
-            Recherche rapide multicritère (CON-02) & Reprise de dossier sans ressaisie (CON-01)
+            Recherche rapide multicritère & Reprise de dossier sans ressaisie
         </div>
     </div>
     <div class="d-flex gap-2">
@@ -66,13 +66,13 @@ else
             <h5 class="card-title text-primary mb-3">🔍 Recherche Multicritère Rapide</h5>
             <div class="row g-3">
                 <div class="col-md-7">
-                    <label class="form-label fw-bold">Numéro de Ticket, BL, Booking ou Dossier</label>
-                    <input type="text" class="form-control form-control-lg" placeholder="Ex: COSU1234567, CIT-IMP-2026-..., DOS-..."
+                    <label for="numero-de-ticket-bl" class="form-label fw-bold">Numéro de Ticket, BL, Booking ou Dossier</label>
+                    <input id="numero-de-ticket-bl" type="text" class="form-control form-control-lg" placeholder="Ex: COSU1234567, CIT-IMP-2026-..., DOS-..."
                            @bind="_termeRecherche" @bind:event="oninput" @onkeyup="GererToucheRecherche" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label fw-bold">Module</label>
-                    <select class="form-select form-select-lg" @bind="_moduleFiltre">
+                    <label for="module" class="form-label fw-bold">Module</label>
+                    <select id="module" class="form-select form-select-lg" @bind="_moduleFiltre">
                         <option value="">Tous les modules</option>
                         <option value="BillingImport">Billing Import</option>
                         <option value="BillingExport">Billing Export</option>
@@ -143,7 +143,7 @@ else
 
                 <hr />
 
-                <h6>📑 Pièces et Documents Déposés (CON-01 — Zéro Ressaisie)</h6>
+                <h6>📑 Pièces et Documents Déposés (Zéro Ressaisie)</h6>
                 @if (_dossierConsulte.Documents.Count == 0)
                 {
                     <p class="text-muted fst-italic">Aucun document joint à ce dossier.</p>
@@ -167,18 +167,18 @@ else
                 @* Régularisation mode dégradé (ERR-04 / C10-11) *@
                 <div class="card bg-light mt-3 border-warning">
                     <div class="card-body">
-                        <h6 class="card-title text-warning-emphasis">⚠️ Régularisation d'une Opération Physique (Mode Dégradé ERR-04)</h6>
+                        <h6 class="card-title text-warning-emphasis">⚠️ Régularisation d'une Opération Physique (Mode Dégradé)</h6>
                         <p class="card-text small text-muted">
                             Si cette opération a été traitée physiquement au guichet pendant une panne informatique, saisissez la régularisation :
                         </p>
                         <div class="row g-2">
                             <div class="col-md-4">
-                                <label class="form-label small">Date et heure de l'opération physique</label>
-                                <input type="datetime-local" class="form-control form-control-sm" @bind="_dateOperationDegrade" />
+                                <label for="date-et-heure-de" class="form-label small">Date et heure de l'opération physique</label>
+                                <input id="date-et-heure-de" type="datetime-local" class="form-control form-control-sm" @bind="_dateOperationDegrade" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small">Description de l'opération physique effectuée</label>
-                                <input type="text" class="form-control form-control-sm" placeholder="Ex: Encaissement chèque au guichet n°3" @bind="_descriptionDegrade" />
+                                <label for="description-de-l-operation" class="form-label small">Description de l'opération physique effectuée</label>
+                                <input id="description-de-l-operation" type="text" class="form-control form-control-sm" placeholder="Ex: Encaissement chèque au guichet n°3" @bind="_descriptionDegrade" />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button class="btn btn-warning btn-sm w-100" @onclick="RegulariserModeDegradeAsync" disabled="@_enRegularisation">

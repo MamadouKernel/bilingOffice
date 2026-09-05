@@ -33,7 +33,7 @@ public sealed class AuditDistinctionAnnulationRejetTests
         var dossierRepository = new DossierRepository(dbContext);
         var fileRepository = new FileDeTraitementRepository(dbContext);
         var autorisation = new AutorisationService(dbContext);
-        var cloisonnement = new CloisonnementService(ticketRepository, dossierRepository);
+        var cloisonnement = new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext));
 
         dbContext.Files.Add(FileDeTraitement.Creer(SoumettreDemandeImportCommand.Module, SoumettreDemandeImportCommand.FilePiloteManifeste));
         var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "Informations", TypeClient.Normal, DateTime.UtcNow);
@@ -41,14 +41,14 @@ public sealed class AuditDistinctionAnnulationRejetTests
         var auteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire));
         await dbContext.SaveChangesAsync();
 
         var soumettre = new SoumettreDemandeImportCommand(
             ticketRepository, dossierRepository, new SocieteClienteRepository(dbContext),
             new UtilisateurSocieteRepository(dbContext), fileRepository, numerotation, journalisation, horloge, uniteDeTravail);
-        var annulerClient = new AnnulerTicketCommand(ticketRepository, autorisation, journalisation, cloisonnement, horloge, uniteDeTravail);
+        var annulerClient = new AnnulerTicketCommand(ticketRepository, autorisation, journalisation, cloisonnement, new EtapeBloquanteAnnulationRepository(dbContext), new PassageEnFileRepository(dbContext), horloge, uniteDeTravail);
         var rejeterManifeste = new RejeterTicketImportCommand(ticketRepository, autorisation, journalisation, horloge, uniteDeTravail);
 
         var soumission = await soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societe.Id, auteurId, ["BL-ANNUL-CLIENT", "BL-REJET-MANIFESTE"]));
@@ -57,7 +57,7 @@ public sealed class AuditDistinctionAnnulationRejetTests
         // Annulation client ordinaire (F001, réutilisée telle quelle — pas d'étape bloquante
         // atteinte). Le cloisonnement porte sur la société (Dossier.ClientId), pas sur l'auteur
         // individuel — même convention que DemanderFactureCommand/DeposerPreuvePaiementCommand.
-        await annulerClient.AnnulerLibrementAsync(societe.Id, ticketAnnuleParClient.Id, "Je n'ai plus besoin de ce dossier", etapeBloquanteAtteinte: false);
+        await annulerClient.AnnulerLibrementAsync(auteurId, ticketAnnuleParClient.Id, "Je n'ai plus besoin de ce dossier");
 
         // Rejet Pilote Manifeste (Feature 003).
         await rejeterManifeste.ExecuterAsync(agentId, ticketRejeteParManifeste.Id, "BL illisible");

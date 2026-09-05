@@ -40,7 +40,7 @@ public sealed class ConsulterFileBillingImportQueryTests
     {
         var c = await ConstruireContexteAsync();
         var agentId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportFacturationEditer, c.FileFacturationId));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentId), Permission.BillingImportFacturationEditer, c.FileFacturationId));
         await c.DbContext.SaveChangesAsync();
 
         var resultat = await c.Consulter.ExecuterAsync(agentId, NomsFiles.Facturation, [Permission.BillingImportFacturationEditer]);
@@ -65,7 +65,7 @@ public sealed class ConsulterFileBillingImportQueryTests
         var agentAutreFile = Guid.NewGuid();
         // Habilité sur « Pilote Manifeste », pas sur « Facturation » — ne doit jamais donner accès
         // à la file Facturation (absence de fuite inter-file).
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentAutreFile, Permission.BillingImportManifesteInstruire, c.FileManifesteId));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentAutreFile), Permission.BillingImportManifesteInstruire, c.FileManifesteId));
         await c.DbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(() =>
@@ -78,7 +78,7 @@ public sealed class ConsulterFileBillingImportQueryTests
         var c = await ConstruireContexteAsync();
         var agent = Guid.NewGuid();
         // Détient une permission Billing IMPORT réelle, mais pas celle exigée pour CETTE file.
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agent, Permission.BillingImportPaiementValider, c.FileFacturationId));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agent), Permission.BillingImportPaiementValider, c.FileFacturationId));
         await c.DbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(() =>
@@ -90,7 +90,7 @@ public sealed class ConsulterFileBillingImportQueryTests
     {
         var c = await ConstruireContexteAsync();
         var agentId = Guid.NewGuid();
-        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportFacturationEditer, c.FileFacturationId));
+        c.DbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(c.DbContext, agentId), Permission.BillingImportFacturationEditer, c.FileFacturationId));
         var dossier = Dossier.Creer("DOS-CONSULT", Guid.NewGuid(), DateTime.UtcNow);
         c.DbContext.Dossiers.Add(dossier);
         var ticketFacturation = Ticket.Creer("TCK-FACT-001", "BillingImport", "Import", c.FileFacturationId, dossier.Id, DateTime.UtcNow, "BL-CONSULT-1");

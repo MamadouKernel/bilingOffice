@@ -9,7 +9,7 @@
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
-@inject ITicketRepository TicketRepo
+@inject CIT.Plateforme.Application.Tickets.ObtenirFicheTicketQuery FicheTicket
 @inject ListerCreneauxDisponiblesQuery ListerCreneauxQuery
 @inject ReserverRendezVousCommand ReserverCommand
 @inject NavigationManager Navigation
@@ -19,7 +19,7 @@
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>📅</span> Prise de Rendez-vous Guichet (CON-03)
+            <span>📅</span> Prise de Rendez-vous Guichet
         </h2>
         <div class="cit-page-subtitle">
             Planifiez votre passage physique au Billing Office de Côte d'Ivoire Terminal
@@ -67,7 +67,7 @@ else
                 <div class="card-body">
                     <div class="mb-2">
                         <span class="text-muted small">Numéro :</span>
-                        <div class="fw-bold">@_ticket.Numero</div>
+                        <div class="fw-bold">@_ticket.NumeroTicket</div>
                     </div>
                     <div class="mb-2">
                         <span class="text-muted small">Module :</span>
@@ -103,8 +103,8 @@ else
                 <div class="card-body">
                     <div class="row g-3 mb-4 align-items-center">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Date du rendez-vous :</label>
-                            <input type="date" class="form-control form-control-lg" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                            <label for="date-du-rendez-vous" class="form-label fw-bold">Date du rendez-vous :</label>
+                            <input id="date-du-rendez-vous" type="date" class="form-control form-control-lg" min="@DateTime.Today.ToString("yyyy-MM-dd")"
                                    value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
@@ -149,8 +149,8 @@ else
 
                     <h5 class="mb-3 text-primary">2. Motif et confirmation</h5>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Motif du déplacement physique :</label>
-                        <select class="form-select" @bind="_motifSelectionne">
+                        <label for="motif-du-deplacement-physique" class="form-label fw-bold">Motif du déplacement physique :</label>
+                        <select id="motif-du-deplacement-physique" class="form-select" @bind="_motifSelectionne">
                             <option value="Paiement Caisse">Paiement Caisse (Espèces / Chèque certifié)</option>
                             <option value="Dépôt Pièces Physiques">Dépôt ou présentation de documents originaux</option>
                             <option value="Assistance Guichet">Assistance et conseil au guichet</option>
@@ -185,7 +185,7 @@ else
 
     private bool _chargementInitial = true;
     private Guid _utilisateurId;
-    private Ticket? _ticket;
+    private CIT.Plateforme.Application.Tickets.FicheTicketVue? _ticket;
 
     private DateOnly _dateSelectionnee = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
     private bool _chargementCreneaux = false;
@@ -203,10 +203,18 @@ else
             var contexte = await ContexteService.ObtenirContexteAsync();
             _utilisateurId = contexte.UtilisateurId;
 
-            _ticket = await TicketRepo.ObtenirParIdAsync(TicketId);
-            if (_ticket is not null)
+            // CLOISONNEMENT (audit du 2026-09-04) : la lecture passait par ITicketRepository,
+            // qui ne contrôle rien. Un client authentifié pouvait donc afficher le numéro, le
+            // module et le BL de N'IMPORTE QUEL ticket en devinant son identifiant.
+            // ObtenirFicheTicketQuery applique le cloisonnement et refuse l'accès (SEC-03).
+            try
             {
+                _ticket = await FicheTicket.ExecuterAsync(_utilisateurId, TicketId);
                 await ChargerCreneauxAsync();
+            }
+            catch (CIT.Plateforme.Application.Securite.AccesRefuseException)
+            {
+                _ticket = null;
             }
         }
         finally

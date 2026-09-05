@@ -14,6 +14,7 @@ namespace CIT.Plateforme.Application.Messagerie;
 public sealed class MentionnerCollaborateurCommand(
     IMessageRepository messages,
     ITicketRepository tickets,
+    IUtilisateurInfoRepository utilisateurs,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     IHorloge horloge,
@@ -41,5 +42,32 @@ public sealed class MentionnerCollaborateurCommand(
 
         System.Diagnostics.Debug.Assert(ticket.OperateurAssigneId == operateurAvantMention, "MSG-05 : une mention ne réaffecte jamais le ticket.");
         return message;
+    }
+
+    /// <summary>
+    /// MSG-04 depuis une fiche : l'agent désigne son collaborateur par son adresse
+    /// professionnelle, la seule qu'il connaisse — personne ne retient un GUID. La résolution
+    /// vit ici plutôt que dans la page, pour ne pas exposer une recherche d'annuaire à la
+    /// couche Web.
+    /// </summary>
+    public async Task<Message> MentionnerParEmailAsync(
+        Guid agentId, Guid ticketId, string emailCollaborateur, string contenu, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(emailCollaborateur))
+        {
+            throw new ArgumentException("L'adresse du collaborateur à mentionner est obligatoire.", nameof(emailCollaborateur));
+        }
+
+        var collaborateur = await utilisateurs.ObtenirParEmailAsync(emailCollaborateur.Trim(), ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Aucun compte ne porte l'adresse « {emailCollaborateur.Trim()} ».");
+
+        if (collaborateur.Nature == NatureUtilisateur.Client)
+        {
+            // MSG-02 : la note interne n'est jamais visible d'un client. Y mentionner un compte
+            // client lui adresserait une notification sur un contenu qu'il ne peut pas lire.
+            throw new InvalidOperationException("Une note interne ne peut mentionner qu'un collaborateur interne.");
+        }
+
+        return await MentionnerAsync(agentId, ticketId, collaborateur.Id, contenu, ct).ConfigureAwait(false);
     }
 }

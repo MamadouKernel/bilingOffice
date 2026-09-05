@@ -1,5 +1,7 @@
 @page "/billing-export/back-office"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.BillingExport
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Securite
@@ -122,8 +124,8 @@ else
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">Ce motif sera consigné dans l'historique et le ticket sera annulé.</p>
-                    <label class="form-label fw-semibold">Motif du rejet (obligatoire)</label>
-                    <textarea class="form-control" rows="3" @bind="_texteAction" placeholder="Indiquer la raison du rejet..."></textarea>
+                    <label for="motif-du-rejet-obligatoire" class="form-label fw-semibold">Motif du rejet (obligatoire)</label>
+                    <textarea id="motif-du-rejet-obligatoire" class="form-control" rows="3" @bind="_texteAction" placeholder="Indiquer la raison du rejet..."></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" @onclick="FermerModal">Annuler</button>
@@ -147,8 +149,8 @@ else
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small">Le ticket passera en attente client et le SLA interne sera suspendu.</p>
-                    <label class="form-label fw-semibold">Éléments attendus</label>
-                    <textarea class="form-control" rows="3" @bind="_texteAction" placeholder="Préciser les informations ou pièces demandées..."></textarea>
+                    <label for="elements-attendus" class="form-label fw-semibold">Éléments attendus</label>
+                    <textarea id="elements-attendus" class="form-control" rows="3" @bind="_texteAction" placeholder="Préciser les informations ou pièces demandées..."></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" @onclick="FermerModal">Annuler</button>

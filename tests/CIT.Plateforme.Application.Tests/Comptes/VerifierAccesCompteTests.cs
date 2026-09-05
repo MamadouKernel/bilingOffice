@@ -68,7 +68,7 @@ public sealed class VerifierAccesCompteTests
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.Active);
         var utilisateurId = CreerCompte(dbContext);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
         Assert.True(await verifier.AccesAutoriseAsync(utilisateurId));
@@ -80,7 +80,7 @@ public sealed class VerifierAccesCompteTests
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.EnAttenteValidation);
         var utilisateurId = CreerCompte(dbContext);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
         Assert.False(await verifier.AccesAutoriseAsync(utilisateurId));
@@ -92,7 +92,7 @@ public sealed class VerifierAccesCompteTests
         var (dbContext, verifier) = ConstruireContexte();
         var societe = CreerSociete(dbContext, EtatSociete.Refusee);
         var utilisateurId = CreerCompte(dbContext);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(utilisateurId, societe.Id, DateTime.UtcNow));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, utilisateurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow));
         await dbContext.SaveChangesAsync();
 
         Assert.False(await verifier.AccesAutoriseAsync(utilisateurId));

@@ -47,13 +47,17 @@ public sealed class AveSpecTests : IClassFixture<PlateformeWebApplicationFactory
         soc.Valider();
         db.Societes.Add(soc);
 
-        var rattach = UtilisateurSociete.Rattacher(clientId, societeId, MaintenantUtc, false, true);
+        // Le compte client doit exister : la fiche délègue désormais au contrôle central, qui
+        // refuse toute identité inconnue (centralisation P2-01 / garde P0-ter).
+        var rattach = UtilisateurSociete.Rattacher(
+            CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client),
+            societeId, MaintenantUtc, false, true);
         db.UtilisateursSociete.Add(rattach);
 
         // Habilitations agent
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.AvoirExonerationInstruire));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentDecideurId, Permission.AvoirExonerationInstruire));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentDecideurId, Permission.AvoirExonerationDecider));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.AvoirExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.AvoirExonerationDecider));
 
         if (!await db.Files.AnyAsync(f => f.Module == "AvoirExoneration"))
         {

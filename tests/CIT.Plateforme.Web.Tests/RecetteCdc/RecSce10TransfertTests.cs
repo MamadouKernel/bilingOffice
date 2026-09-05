@@ -33,7 +33,7 @@ public sealed class RecSce10TransfertTests(PlateformeWebApplicationFactory facto
         var fileNonAutorisee = Guid.NewGuid();
 
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileControleBl, fileFacturation, ["Contrôle BL validé"]));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketTransferer, fileControleBl));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileControleBl));
         await dbContext.SaveChangesAsync();
 
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileControleBl, null));
@@ -58,7 +58,7 @@ public sealed class RecSce10TransfertTests(PlateformeWebApplicationFactory facto
         Assert.NotEmpty(evenements);
 
         // Transfert vers une destination NON autorisée par la matrice : refusé (TRF-06).
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketTransferer, fileFacturation));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileFacturation));
         await dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<TransitionNonAutoriseeException>(() =>

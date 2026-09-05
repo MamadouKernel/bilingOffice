@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CIT.Plateforme.Tests.Partages\CIT.Plateforme.Tests.Partages.csproj" />
     <ProjectReference Include="..\..\src\CIT.Plateforme.Domain\CIT.Plateforme.Domain.csproj" />
   </ItemGroup>
 

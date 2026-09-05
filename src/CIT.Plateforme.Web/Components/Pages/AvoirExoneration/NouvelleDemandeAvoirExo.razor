@@ -16,7 +16,7 @@
         <h2 class="cit-page-title">
             <span>🏷️</span> Demande d'Avoir ou d'Exonération
         </h2>
-        <div class="cit-page-subtitle">Soumettez votre demande avec les justificatifs obligatoires (AVE-01, AVE-04)</div>
+        <div class="cit-page-subtitle">Soumettez votre demande avec les justificatifs obligatoires</div>
     </div>
     <div class="mt-3 mt-md-0">
         <a href="/avoir-exoneration/mes-demandes" class="btn btn-outline-secondary btn-sm shadow-sm">← Mes demandes</a>
@@ -73,9 +73,9 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-semibold text-dark" for="ticketParent">Liaison ticket / dossier existant (optionnel - AVE-04)</label>
+                <label class="form-label fw-semibold text-dark" for="ticketParent">Liaison ticket / dossier existant (optionnel)</label>
                 <input id="ticketParent" class="form-control" placeholder="Identifiant UUID du ticket parent (ex: dossier Billing / Facture)" @bind="_ticketParentIdString" />
-                <div class="form-text small">Permet de rattacher cette contestation à une opération Billing existante (AVE-04).</div>
+                <div class="form-text small">Permet de rattacher cette contestation à une opération Billing existante.</div>
             </div>
 
             <div class="mb-3">
@@ -84,7 +84,7 @@
             </div>
 
             <div class="mb-4">
-                <label class="form-label fw-semibold text-dark" for="fichiers">Pièces justificatives * (Obligatoire - AVE-01)</label>
+                <label class="form-label fw-semibold text-dark" for="fichiers">Pièces justificatives * (Obligatoire)</label>
                 <InputFile id="fichiers" class="form-control" OnChange="OnFilesSelected" multiple />
                 <div class="form-text small">Factures initiales, bordereaux de livraison, attestations douanières, etc. Au moins 1 document requis.</div>
 

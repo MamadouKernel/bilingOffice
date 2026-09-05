@@ -49,8 +49,8 @@ public sealed class InstructionManifesteTests
         var auteurId = Guid.NewGuid();
         var agentId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.BillingImportManifesteInstruire));
         await dbContext.SaveChangesAsync();
 
         var soumettre = new SoumettreDemandeImportCommand(
@@ -61,7 +61,7 @@ public sealed class InstructionManifesteTests
             autorisation, journalisation, horloge, uniteDeTravail);
         var rejeter = new RejeterTicketImportCommand(ticketRepository, autorisation, journalisation, horloge, uniteDeTravail);
         var complement = new GestionComplementManifesteCommand(
-            ticketRepository, new CloisonnementService(ticketRepository, dossierRepository), autorisation, journalisation, horloge, uniteDeTravail);
+            ticketRepository, new CloisonnementService(ticketRepository, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext)), autorisation, journalisation, horloge, uniteDeTravail);
 
         return new Contexte(dbContext, soumettre, valider, rejeter, complement, agentId, societe.Id, auteurId);
     }
@@ -125,7 +125,7 @@ public sealed class InstructionManifesteTests
         var ticketId = soumission.TicketsCrees[0].Id;
         await c.Complement.DemanderComplementAsync(c.AgentId, ticketId, "Facture manquante");
 
-        await c.Complement.DeposerComplementAsync(c.SocieteId, ticketId);
+        await c.Complement.DeposerComplementAsync(c.AuteurId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.Equal(StatutTicket.EnCours, ticket!.Statut);

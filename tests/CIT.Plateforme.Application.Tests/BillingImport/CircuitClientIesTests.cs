@@ -53,11 +53,11 @@ public sealed class CircuitClientIesTests
         var agentManifesteId = Guid.NewGuid();
         var agentControleDocumentaireId = Guid.NewGuid();
         dbContext.Societes.Add(societe);
-        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(auteurId, societe.Id, DateTime.UtcNow, droitSoumission: true));
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
         dbContext.Habilitations.AddRange(
-            HabilitationUtilisateur.Attribuer(agentManifesteId, Permission.BillingImportManifesteInstruire),
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentManifesteId), Permission.BillingImportManifesteInstruire),
             HabilitationUtilisateur.Attribuer(agentManifesteId, Permission.BillingImportIesManifesteInstruire),
-            HabilitationUtilisateur.Attribuer(agentControleDocumentaireId, Permission.BillingImportIesControleDocumentaireInstruire));
+            HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentControleDocumentaireId), Permission.BillingImportIesControleDocumentaireInstruire));
         await dbContext.SaveChangesAsync();
 
         var soumettre = new SoumettreDemandeImportCommand(

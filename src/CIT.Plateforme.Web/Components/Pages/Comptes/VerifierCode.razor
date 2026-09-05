@@ -2,8 +2,13 @@
 @using CIT.Plateforme.Infrastructure.Identity
 @using CIT.Plateforme.Web.Resources
 @using Microsoft.AspNetCore.Identity
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Domain.Securite
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager Navigation
+@inject RegleAccesConnexion RegleAcces
+@inject CIT.Plateforme.Application.Securite.JournalConnexionService JournalConnexion
+@inject IHttpContextAccessor AccesContexteHttp
 
 <PageTitle>@Loc["Auth.TwoFactorTitle"] — @Loc["Common.AppTitle"]</PageTitle>
 
@@ -13,11 +18,11 @@
             <div class="row g-0">
                 
                 <!-- Left Side: 3D Illustration -->
-                <div class="col-md-6 d-none d-md-block" style="background-color: #eaf4fc;">
+                <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
                         <img src="images/login-illustration.jpg" alt="Sécurité CIT" class="img-fluid" style="max-height: 480px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: #1e3a8a;">Double Authentification (2FA)</h3>
+                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">Double Authentification (2FA)</h3>
                             <p class="text-muted mb-0">Protégez l'accès à vos dossiers et opérations maritimes avec la validation par code temporaire à usage unique.</p>
                         </div>
                     </div>
@@ -102,17 +107,67 @@
             return;
         }
 
+        // CONSOLIDATION SÉCURITÉ — LA VOIE 2FA EST UNE VRAIE VOIE D'OUVERTURE DE SESSION.
+        //
+        // Elle n'appliquait aucun contrôle d'activité : Connexion.razor vérifiait le compte avant
+        // de rediriger ici, mais rien ne le revérifiait au moment de finaliser. Une désactivation
+        // survenant ENTRE la saisie du mot de passe et celle du code laissait donc une session
+        // s'ouvrir. Le contrôle est refait ici, immédiatement avant la finalisation, et non
+        // hérité de l'étape précédente.
+        if (!utilisateurEnAttente.EstActif)
+        {
+            await JournalConnexion.SecondFacteurRefuseAsync(
+                utilisateurEnAttente.Id, CIT.Plateforme.Application.Securite.MotifRefusConnexion.CompteDesactive, Origine());
+            await SignInManager.SignOutAsync();
+            erreur = messageRefusGenerique;
+            return;
+        }
+
         var resultat = await SignInManager.TwoFactorAuthenticatorSignInAsync(
             Modele.Code, isPersistent: false, rememberClient: false);
 
         if (!resultat.Succeeded)
         {
+            await JournalConnexion.SecondFacteurRefuseAsync(
+                utilisateurEnAttente.Id, CIT.Plateforme.Application.Securite.MotifRefusConnexion.SecondFacteurInvalide, Origine());
             erreur = messageRefusGenerique;
             return;
         }
 
+        // Second contrôle APRÈS la finalisation : la désactivation peut survenir pendant la
+        // validation elle-même. Sans lui, la fenêtre serait seulement déplacée, non fermée.
+        if (!await EstAccesAutoriseAsync(utilisateurEnAttente))
+        {
+            await JournalConnexion.SecondFacteurRefuseAsync(
+                utilisateurEnAttente.Id,
+                utilisateurEnAttente.EstActif
+                    ? CIT.Plateforme.Application.Securite.MotifRefusConnexion.AccesSocieteRefuse
+                    : CIT.Plateforme.Application.Securite.MotifRefusConnexion.CompteDesactive,
+                Origine());
+            await SignInManager.SignOutAsync();
+            erreur = messageRefusGenerique;
+            return;
+        }
+
+        await JournalConnexion.SecondFacteurReussiAsync(utilisateurEnAttente.Id, Origine());
+        await JournalConnexion.ConnexionReussieAsync(utilisateurEnAttente.Id, Origine());
+
         Navigation.NavigateTo("/", forceLoad: true);
     }
+
+    // Mêmes deux règles que Connexion.razor, dans le même ordre — l'activation d'abord, pour tous
+    // les comptes ; le rattachement société ensuite, pour les seuls comptes Client (CPT-03).
+    // Elles sont énoncées ici aussi : une voie d'ouverture de session qui hériterait du contrôle
+    // d'une autre page n'en porterait aucun.
+    // P3 — LA RÈGLE VIT DÉSORMAIS DANS `RegleAccesConnexion`, ET NON PLUS ICI.
+    // Elle était recopiée à l'identique dans les deux voies d'ouverture de session. Deux copies
+    // d'une règle de sécurité finissent par diverger — c'est ce qui a produit le P0-ter, où cette
+    // page portait un contrôle d'activité que l'autre n'avait jamais eu.
+    private Task<bool> EstAccesAutoriseAsync(ApplicationUser utilisateur) =>
+        RegleAcces.AccesAutoriseAsync(utilisateur.Id, utilisateur.Nature, utilisateur.EstActif);
+
+    // Origine réseau, quand le contexte HTTP est disponible. Le code saisi n'est JAMAIS consigné.
+    private string? Origine() => AccesContexteHttp.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
     private sealed class ModeleCode
     {

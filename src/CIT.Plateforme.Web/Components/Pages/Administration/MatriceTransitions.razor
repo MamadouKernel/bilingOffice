@@ -1,0 +1,278 @@
+@page "/administration/matrice-transitions"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Matrice des transitions — CIT</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🔀</span> Gestion des Files &amp; Réorientations
+        </div>
+        <h2 class="cit-page-title fw-bold text-dark mb-1">Matrice des transitions autorisées</h2>
+        <div class="cit-page-subtitle text-muted">
+            Quelles files peuvent transférer vers quelles autres, et sous quels motifs (§ 17.3, TRF-06, CLAR-04).
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
+            🔄 Actualiser
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement de la matrice des transitions..." />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 bg-danger bg-opacity-10 mb-4 rounded-3 p-3 shadow-sm" role="alert">
+            <span class="me-2">⚠️</span> @_erreur
+        </div>
+    }
+
+    @if (_vue is not null && _vue.Files.Count < 2)
+    {
+        @* Sans au moins deux files administrées, une transition n'a pas d'objet. Le dire ici
+           évite deux listes déroulantes vides que rien n'explique. *@
+        <div class="cit-card p-4 mb-4 border-0 shadow-sm">
+            <div class="fw-semibold text-dark mb-1">Au moins deux files sont nécessaires</div>
+            <div class="text-muted small">
+                Une transition relie deux files de traitement. Administrez d'abord les files avant
+                de définir la matrice.
+            </div>
+        </div>
+    }
+    else if (_vue is not null)
+    {
+        <div class="cit-card p-4 mb-4 border-0 shadow-sm">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="fs-4">➕</span>
+                <h4 class="fw-bold text-dark mb-0 fs-5">Définir ou corriger une transition</h4>
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold text-dark" for="source">File source</label>
+                    <select id="source" class="form-select" @bind="_source">
+                        <option value="">— choisir —</option>
+                        @foreach (var f in _vue.Files)
+                        {
+                            <option value="@f.Id">@f.Nom (@f.Module)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold text-dark" for="cible">File cible</label>
+                    <select id="cible" class="form-select" @bind="_cible">
+                        <option value="">— choisir —</option>
+                        @foreach (var f in _vue.Files)
+                        {
+                            <option value="@f.Id">@f.Nom (@f.Module)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-dark" for="motifs">Motifs autorisés</label>
+                    <input id="motifs" class="form-control" @bind="_motifs"
+                           placeholder="codes séparés par des virgules" />
+                </div>
+                <div class="col-12 col-md-1 d-grid">
+                    <button class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" @onclick="DefinirAsync">
+                        Définir
+                    </button>
+                </div>
+            </div>
+            <div class="form-text small">
+                Laisser les motifs vides autorise <strong>tous</strong> les motifs pour cette transition.
+                Définir un couple de files déjà présent en <strong>remplace</strong> les motifs — la
+                matrice ne se dédouble jamais.
+            </div>
+        </div>
+
+        @if (_vue.Transitions.Count == 0)
+        {
+            <div class="cit-card p-5 text-center my-4 border-0 shadow-sm">
+                <div class="fs-1 mb-3">🔀</div>
+                <h4 class="fw-bold text-dark mb-2">Aucune transition définie</h4>
+                <p class="text-muted mb-0">
+                    Tant que la matrice est vide, aucun transfert inter-files n'est autorisé.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="cit-card border-0 shadow-sm overflow-hidden">
+                <div class="p-3 bg-light border-bottom">
+                    <span class="fw-bold text-dark small">Transitions autorisées (@_vue.Transitions.Count)</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <caption class="visually-hidden">Matrice des transitions autorisées entre files</caption>
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-4">File source</th>
+                                <th scope="col">File cible</th>
+                                <th scope="col">Motifs autorisés</th>
+                                <th scope="col" class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in _vue.Transitions)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-dark">@t.FileSourceNom</td>
+                                    <td class="fw-semibold text-dark">@t.FileCibleNom</td>
+                                    <td>
+                                        @if (t.MotifsAutorises.Count == 0)
+                                        {
+                                            <span class="badge bg-secondary-subtle text-dark">Tous motifs</span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var motif in t.MotifsAutorises)
+                                            {
+                                                <span class="badge bg-primary bg-opacity-10 text-primary font-monospace me-1">@motif</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                @onclick="() => SupprimerAsync(t.FileSourceId, t.FileCibleId)">
+                                            Supprimer
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    private MatriceTransitionsVue? _vue;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des files (administration.files) pour accéder à cette interface.";
+    private string? _erreur;
+
+    private string _source = string.Empty;
+    private string _cible = string.Empty;
+    private string _motifs = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationFiles);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+        else
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            _vue = await scope.ServiceProvider
+                .GetRequiredService<GererMatriceTransitionsCommand>()
+                .ListerAsync(_appelantId);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task DefinirAsync()
+    {
+        _erreur = null;
+
+        if (!Guid.TryParse(_source, out var source) || !Guid.TryParse(_cible, out var cible))
+        {
+            _erreur = "Choisissez la file source et la file cible.";
+            return;
+        }
+
+        var motifs = _motifs
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider
+                .GetRequiredService<GererMatriceTransitionsCommand>()
+                .DefinirTransitionAsync(_appelantId, source, cible, motifs);
+
+            _source = string.Empty;
+            _cible = string.Empty;
+            _motifs = string.Empty;
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+
+    private async Task SupprimerAsync(Guid source, Guid cible)
+    {
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider
+                .GetRequiredService<GererMatriceTransitionsCommand>()
+                .SupprimerTransitionAsync(_appelantId, source, cible);
+
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = ex.Message;
+        }
+    }
+}

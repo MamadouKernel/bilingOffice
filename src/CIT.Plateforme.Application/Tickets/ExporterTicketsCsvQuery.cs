@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Application.Exports;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Files;
@@ -90,33 +91,10 @@ public sealed class ExporterTicketsCsvQuery(
               .AppendLine();
         }
 
-        var preamble = Encoding.UTF8.GetPreamble();
-        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-        var resultat = new byte[preamble.Length + bytes.Length];
-        Buffer.BlockCopy(preamble, 0, resultat, 0, preamble.Length);
-        Buffer.BlockCopy(bytes, 0, resultat, preamble.Length, bytes.Length);
-
-        return resultat;
+        return FormatCsv.EnOctetsAvecBom(sb.ToString());
     }
 
-    private static string EchapperChamp(string? valeur)
-    {
-        if (string.IsNullOrEmpty(valeur))
-        {
-            return string.Empty;
-        }
-
-        // Neutralisation des formules tableur (sécurité injection CSV)
-        if (valeur.StartsWith('=') || valeur.StartsWith('+') || valeur.StartsWith('-') || valeur.StartsWith('@'))
-        {
-            valeur = "'" + valeur;
-        }
-
-        if (valeur.Contains(';') || valeur.Contains('"') || valeur.Contains('\n') || valeur.Contains('\r'))
-        {
-            return "\"" + valeur.Replace("\"", "\"\"") + "\"";
-        }
-
-        return valeur;
-    }
+    /// <summary>Délégué à <see cref="FormatCsv"/> : l'échappement et la neutralisation des
+    /// formules tableur sont communs à tous les exports SOC-14.</summary>
+    private static string EchapperChamp(string? valeur) => FormatCsv.Echapper(valeur);
 }

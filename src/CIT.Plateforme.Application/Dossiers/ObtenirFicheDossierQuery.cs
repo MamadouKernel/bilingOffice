@@ -17,34 +17,24 @@ public sealed class ObtenirFicheDossierQuery(
     ITicketRepository ticketRepository,
     IFileDeTraitementRepository fileRepository,
     ISocieteClienteRepository societeRepository,
-    IUtilisateurSocieteRepository utilisateurSocieteRepository,
-    IUtilisateurInfoRepository utilisateurInfoRepository)
+    IUtilisateurInfoRepository utilisateurInfoRepository,
+    ControleAccesRessourceService controleAcces)
 {
     public async Task<FicheDossierVue> ExecuterAsync(Guid appelantId, Guid dossierId, CancellationToken ct = default)
     {
         var dossier = await dossierRepository.ObtenirParIdAsync(dossierId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Dossier {dossierId} introuvable.");
 
-        var societe = await societeRepository.ObtenirParIdAsync(dossier.ClientId, ct).ConfigureAwait(false)
-            ?? throw new InvalidOperationException($"Société {dossier.ClientId} introuvable.");
+        // ORDRE (remédiation P0-bis) : l'autorisation précède toute autre lecture ; un refus ne
+        // doit rien apprendre. Un dossier personnel (Enrôlement) n'a pas de société : son absence
+        // est normale.
+        await controleAcces.ExigerConsultationDossierAsync(appelantId, dossier, ct).ConfigureAwait(false);
 
-        var appelantInfo = await utilisateurInfoRepository.ObtenirInfoAsync(appelantId, ct).ConfigureAwait(false);
-        bool estClient = appelantInfo?.Nature == NatureUtilisateur.Client;
+        var societe = await societeRepository.ObtenirParIdAsync(dossier.ClientId, ct).ConfigureAwait(false);
 
-        // 1. Contrôle de cloisonnement (Principe VII)
-        if (estClient)
-        {
-            var userSoc = await utilisateurSocieteRepository.ObtenirParUtilisateurAsync(appelantId, ct).ConfigureAwait(false);
-            if (userSoc is null || !userSoc.EstActif || userSoc.SocieteId != dossier.ClientId)
-            {
-                throw new AccesRefuseException($"L'utilisateur client {appelantId} n'est pas autorisé à consulter le dossier {dossier.Numero}.");
-            }
-
-            if (userSoc.DroitConsultation == DroitConsultation.PropresDemandesUniquement && !userSoc.EstAdministrateur && dossier.AuteurId != appelantId)
-            {
-                throw new AccesRefuseException($"L'utilisateur {appelantId} ne peut consulter que ses propres dossiers.");
-            }
-        }
+        // REMÉDIATION P0-bis : même défaut que sur la fiche ticket — la garde ne couvrait que la
+        // branche client, laissant tout agent, habilité ou non, lire n'importe quel dossier.
+        // Elle est appliquée plus haut, avant toute lecture.
 
         // 2. Auteur info
         string auteurNom = "Auteur";
@@ -91,7 +81,7 @@ public sealed class ObtenirFicheDossierQuery(
 
         var statutGlobal = DeterminerStatutGlobal(tickets.ToList());
 
-        var nomSociete = societe.InformationsDeclarees;
+        var nomSociete = societe?.InformationsDeclarees ?? string.Empty;
         if (nomSociete.Contains("RaisonSociale"))
         {
             nomSociete = ExtraireNom(nomSociete);
@@ -100,9 +90,9 @@ public sealed class ObtenirFicheDossierQuery(
         return new FicheDossierVue(
             DossierId: dossier.Id,
             NumeroDossier: dossier.Numero,
-            SocieteId: societe.Id,
+            SocieteId: societe?.Id ?? Guid.Empty,
             SocieteNom: nomSociete,
-            SocieteProfil: societe.Profil,
+            SocieteProfil: societe?.Profil ?? TypeClient.Normal,
             AuteurId: dossier.AuteurId,
             AuteurNom: auteurNom,
             DateCreationUtc: dossier.DateCreationUtc,

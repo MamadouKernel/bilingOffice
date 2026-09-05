@@ -8,7 +8,9 @@
 @using CIT.Plateforme.Web.Services
 @inject IContexteUtilisateurWeb ContexteService
 @inject CalculerSimulationProformaQueryHandler Calculer
+@inject ValiderCoherenceSimulationQuery ValiderCoherence
 @inject SauvegarderSimulationProformaCommandHandler Sauvegarder
+@inject ConsulterReferentielsTarifairesQueryHandler Referentiels
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["Simulation.Title"] — @Loc["Common.AppTitle"]</PageTitle>
@@ -48,25 +50,26 @@
             <h6 class="fw-bold text-dark mb-3">Paramètres du Dossier</h6>
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold text-dark">Sens du trafic</label>
-                    <select class="form-select form-select-sm" @bind="_sens">
-                        @foreach (var s in Enum.GetValues<SensTrafic>())
+                    <label for="sens-du-trafic" class="form-label small fw-semibold text-dark">Sens du trafic</label>
+                    <select id="sens-du-trafic" class="form-select form-select-sm"
+                            @bind="_sensOperationId" @bind:after="RafraichirCategories">
+                        @foreach (var s in _referentiels.Sens)
                         {
-                            <option value="@s">@s</option>
+                            <option value="@s.Id">@s.Libelle</option>
                         }
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold text-dark">Date d'arrivée</label>
-                    <input type="date" class="form-control form-control-sm" @bind="_dateArrivee" />
+                    <label for="date-d-arrivee" class="form-label small fw-semibold text-dark">Date d'arrivée</label>
+                    <input id="date-d-arrivee" type="date" class="form-control form-control-sm" @bind="_dateArrivee" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold text-dark">Date d'enlèvement prévisionnel</label>
-                    <input type="date" class="form-control form-control-sm" @bind="_dateEnlevement" />
+                    <label for="date-d-enlevement-previsionnel" class="form-label small fw-semibold text-dark">Date d'enlèvement prévisionnel</label>
+                    <input id="date-d-enlevement-previsionnel" type="date" class="form-control form-control-sm" @bind="_dateEnlevement" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-semibold text-dark">N° navire (optionnel)</label>
-                    <input class="form-control form-control-sm" placeholder="Ex. CMA CGM BIANCA" @bind="_nomNavire" />
+                    <label for="n-navire-optionnel" class="form-label small fw-semibold text-dark">N° navire (optionnel)</label>
+                    <input id="n-navire-optionnel" class="form-control form-control-sm" placeholder="Ex. CMA CGM BIANCA" @bind="_nomNavire" />
                 </div>
             </div>
         </div>
@@ -84,34 +87,42 @@
                 <div class="border rounded-3 p-3 mb-2 bg-light">
                     <div class="row g-2 align-items-end">
                         <div class="col-md-2">
-                            <label class="form-label small fw-semibold text-dark">N° conteneur</label>
-                            <input class="form-control form-control-sm font-monospace" @bind="c.NumeroConteneur" />
+                            <label for="n-conteneur" class="form-label small fw-semibold text-dark">N° conteneur</label>
+                            <input id="n-conteneur" class="form-control form-control-sm font-monospace" @bind="c.NumeroConteneur" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small fw-semibold text-dark">Taille</label>
-                            <select class="form-select form-select-sm" @bind="c.Taille">
-                                @foreach (var t in Enum.GetValues<TailleConteneur>())
+                            <label for="taille" class="form-label small fw-semibold text-dark">Taille</label>
+                            <select id="taille" class="form-select form-select-sm" @bind="c.TailleConteneurId">
+                                @foreach (var t in _referentiels.Tailles)
                                 {
-                                    <option value="@t">@t</option>
+                                    <option value="@t.Id">@t.Libelle</option>
                                 }
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small fw-semibold text-dark">Type</label>
-                            <select class="form-select form-select-sm" @bind="c.Type">
-                                @foreach (var t in Enum.GetValues<TypeConteneur>())
+                            <label for="type" class="form-label small fw-semibold text-dark">Type</label>
+                            <select id="type" class="form-select form-select-sm" @bind="c.TypeConteneurId">
+                                @foreach (var t in _referentiels.Types)
                                 {
-                                    <option value="@t">@t</option>
+                                    <option value="@t.Id">@t.Libelle</option>
                                 }
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small fw-semibold text-dark">Poids (t)</label>
-                            <input type="number" step="0.01" class="form-control form-control-sm" @bind="c.PoidsTonnes" />
+                            <label for="poids-t" class="form-label small fw-semibold text-dark">Poids (t)</label>
+                            <input id="poids-t" type="number" step="0.01" class="form-control form-control-sm" @bind="c.PoidsTonnes" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small fw-semibold text-dark">Catégorie</label>
-                            <input class="form-control form-control-sm" @bind="c.CategorieMarchandise" />
+                            @* La catégorie était un champ texte libre : une faute de frappe donnait
+                               « tarif non trouvé » au lieu d'un tarif. Elle se choisit désormais
+                               dans le référentiel, restreint au sens du dossier (Annexe A.6). *@
+                            <label for="categorie" class="form-label small fw-semibold text-dark">Catégorie</label>
+                            <select id="categorie" class="form-select form-select-sm" @bind="c.CategorieMarchandiseId">
+                                @foreach (var cat in _categoriesDuSens)
+                                {
+                                    <option value="@cat.Id">@cat.Code — @cat.Libelle</option>
+                                }
+                            </select>
                         </div>
                         <div class="col-md-1 form-check mb-2 ps-4">
                             <input type="checkbox" class="form-check-input" id="dang-@index" @bind="c.EstDangereux" />
@@ -139,6 +150,35 @@
                 @(_calculEnCours ? "Calcul en cours..." : "🧮 Calculer la proforma")
             </button>
         </div>
+
+        @* SIM-11 — « contrôles de cohérence à la saisie, avec messages d'aide contextuels ».
+           Les contrôles existaient et aucun écran ne les appelait : on calculait un proforma sur
+           des dates inversées sans rien dire. Les incohérences BLOQUENT ; les messages d'aide
+           informent sans jamais empêcher. *@
+        @if (_alertesCoherence.Count > 0)
+        {
+            <div class="alert alert-warning mb-4" role="alert">
+                <div class="fw-semibold mb-1">Incohérences à corriger avant le calcul</div>
+                <ul class="mb-0 small">
+                    @foreach (var alerte in _alertesCoherence)
+                    {
+                        <li>@alerte</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (_aidesCoherence.Count > 0)
+        {
+            <div class="alert alert-info mb-4" role="status">
+                <ul class="mb-0 small">
+                    @foreach (var aide in _aidesCoherence)
+                    {
+                        <li>@aide</li>
+                    }
+                </ul>
+            </div>
+        }
 
         @if (_erreur is not null)
         {
@@ -212,7 +252,12 @@
     private Guid _societeId;
     private Guid _auteurId;
 
-    private SensTrafic _sens = SensTrafic.ImportLocal;
+    // Les référentiels sont chargés une fois et servent à la fois les listes de saisie et les
+    // contrôles de cohérence (analyse Merise § 3.3 — ils étaient auparavant des énumérations C#).
+    private ReferentielsSimulationVue _referentiels = new([], [], [], []);
+    private IReadOnlyList<ReferenceTarifaireVue> _categoriesDuSens = [];
+
+    private Guid _sensOperationId;
     private DateTime _dateArrivee = DateTime.Today;
     private DateTime _dateEnlevement = DateTime.Today;
     private string? _nomNavire;
@@ -222,6 +267,8 @@
     private bool _sauvegardeEnCours;
     private string? _erreur;
     private ResultatSimulationProformaVue? _resultat;
+    private IReadOnlyList<string> _alertesCoherence = [];
+    private IReadOnlyList<string> _aidesCoherence = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -238,6 +285,19 @@
 
             _societeId = contexte.SocieteId.Value;
             _auteurId = contexte.UtilisateurId;
+
+            _referentiels = await Referentiels.HandleAsync();
+
+            if (_referentiels.Sens.Count == 0)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = "Les référentiels tarifaires ne sont pas encore approvisionnés. "
+                    + "Contactez l'administrateur fonctionnel avant de simuler une proforma.";
+                return;
+            }
+
+            _sensOperationId = _referentiels.Sens[0].Id;
+            RafraichirCategories();
             AjouterConteneur();
         }
         finally
@@ -246,25 +306,71 @@
         }
     }
 
+    /// <summary>
+    /// Annexe A.6 — une catégorie n'existe que pour un sens. Changer de sens invalide donc les
+    /// catégories déjà choisies : elles sont réalignées plutôt que laissées à une valeur qui ne
+    /// s'applique plus, ce que le contrôle de cohérence signalerait ensuite comme une erreur.
+    /// </summary>
+    private void RafraichirCategories()
+    {
+        _categoriesDuSens = _referentiels.CategoriesDuSens(_sensOperationId);
+        var defaut = _categoriesDuSens.Count > 0 ? _categoriesDuSens[0].Id : Guid.Empty;
+
+        foreach (var c in _conteneurs.Where(c => _categoriesDuSens.All(cat => cat.Id != c.CategorieMarchandiseId)))
+        {
+            c.CategorieMarchandiseId = defaut;
+        }
+    }
+
     private void AjouterConteneur() => _conteneurs.Add(new ConteneurSaisie
     {
         NumeroConteneur = $"CONT{_conteneurs.Count + 1:00}",
+        TailleConteneurId = _referentiels.Tailles.Count > 0 ? _referentiels.Tailles[0].Id : Guid.Empty,
+        TypeConteneurId = _referentiels.Types.Count > 0 ? _referentiels.Types[0].Id : Guid.Empty,
+        CategorieMarchandiseId = _categoriesDuSens.Count > 0 ? _categoriesDuSens[0].Id : Guid.Empty,
     });
 
     private void SupprimerConteneur(int index) => _conteneurs.RemoveAt(index);
 
     private CalculerSimulationProformaRequete ConstruireRequete() => new(
-        _sens,
+        _sensOperationId,
         DateOnly.FromDateTime(_dateArrivee),
         DateOnly.FromDateTime(_dateEnlevement),
         _conteneurs.Select(c => new ConteneurSimulationRequete(
-            c.NumeroConteneur, c.Taille, c.Type, c.PoidsTonnes, c.EstDangereux, c.EstHorsGabarit, c.CategorieMarchandise)).ToList(),
+            c.NumeroConteneur, c.TailleConteneurId, c.TypeConteneurId, c.PoidsTonnes,
+            c.EstDangereux, c.EstHorsGabarit, c.CategorieMarchandiseId)).ToList(),
         _nomNavire);
+
+    /// <summary>
+    /// SIM-11 — les contrôles de cohérence passent AVANT le calcul. Le branchement frigorifique
+    /// n'est pas saisi sur cet écran : le contrôle correspondant ne peut donc pas se déclencher
+    /// ici, et c'est la saisie qu'il faudrait compléter, pas le contrôle qu'il faut retirer.
+    /// </summary>
+    private async Task<bool> VerifierCoherenceAsync()
+    {
+        var validation = await ValiderCoherence.ExecuterAsync(
+            _sensOperationId,
+            DateOnly.FromDateTime(_dateArrivee),
+            DateOnly.FromDateTime(_dateEnlevement),
+            _conteneurs.Select(c => new ConteneurValidationRequete(
+                c.TailleConteneurId, c.TypeConteneurId, c.CategorieMarchandiseId,
+                AvecBranchementFrigorifique: false, c.PoidsTonnes)).ToList());
+
+        _alertesCoherence = validation.Alertes;
+        _aidesCoherence = validation.MessagesAide;
+        return validation.EstValide;
+    }
 
     private async Task CalculerAsync()
     {
         _erreur = null;
         _resultat = null;
+
+        if (!await VerifierCoherenceAsync())
+        {
+            return;
+        }
+
         _calculEnCours = true;
         try
         {
@@ -286,11 +392,19 @@
 
     private async Task SauvegarderAsync()
     {
-        _sauvegardeEnCours = true;
         _erreur = null;
+
+        // Enregistrer une simulation incohérente reviendrait à archiver un devis faux.
+        if (!await VerifierCoherenceAsync())
+        {
+            return;
+        }
+
+        _sauvegardeEnCours = true;
         try
         {
-            var enregistree = await Sauvegarder.HandleAsync(new SauvegarderSimulationProformaCommande(_auteurId, _societeId, ConstruireRequete()));
+            // P2-02 : la société n'est plus transmise — elle est résolue côté serveur.
+            var enregistree = await Sauvegarder.HandleAsync(new SauvegarderSimulationProformaCommande(_auteurId, ConstruireRequete()));
             Navigation.NavigateTo($"/simulation/{enregistree.Id}");
         }
         catch (Exception ex)
@@ -306,11 +420,11 @@
     private sealed class ConteneurSaisie
     {
         public string NumeroConteneur { get; set; } = string.Empty;
-        public TailleConteneur Taille { get; set; } = TailleConteneur.VingtPieds;
-        public TypeConteneur Type { get; set; } = TypeConteneur.Dry;
+        public Guid TailleConteneurId { get; set; }
+        public Guid TypeConteneurId { get; set; }
         public decimal PoidsTonnes { get; set; }
         public bool EstDangereux { get; set; }
         public bool EstHorsGabarit { get; set; }
-        public string CategorieMarchandise { get; set; } = string.Empty;
+        public Guid CategorieMarchandiseId { get; set; }
     }
 }

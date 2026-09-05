@@ -46,8 +46,8 @@ public sealed class ConcurrenceIesFinalisationSqlTests
         // exige désormais une habilitation de branche IES — les deux agents simulant l'appel
         // concurrent doivent en détenir une pour que ce test continue de vérifier la concurrence
         // (et non plus l'autorisation, déjà couverte par ConstaterJointureIesAutorisationTests).
-        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentManifesteId, Permission.BillingImportIesManifesteInstruire));
-        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentCdId, Permission.BillingImportIesControleDocumentaireInstruire));
+        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(setup, agentManifesteId), Permission.BillingImportIesManifesteInstruire));
+        setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(setup, agentCdId), Permission.BillingImportIesControleDocumentaireInstruire));
         await setup.SaveChangesAsync();
 
         // Deux DbContexts totalement indépendants, chacun charge son propre exemplaire du ticket

@@ -44,7 +44,7 @@ public sealed class RecCert03OrientationSupportTests
         var rattachement = UtilisateurSociete.Rattacher(clientAuteurId, societe.Id, horloge.MaintenantUtc, estAdministrateur: true);
         dbContext.UtilisateursSociete.Add(rattachement);
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(clientAuteurId, Permission.ComplaintSoumettre, null));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, clientAuteurId), Permission.ComplaintSoumettre, null));
 
         var fileSupport = FileDeTraitement.Creer("CustomerComplaint", "Support Opérationnel");
         dbContext.Files.Add(fileSupport);
@@ -71,7 +71,7 @@ public sealed class RecCert03OrientationSupportTests
 
         // 3. Instruction par un agent Support
         var agentSupportId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentSupportId, Permission.ComplaintInstruire, fileSupport.Id));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentSupportId), Permission.ComplaintInstruire, fileSupport.Id));
         await dbContext.SaveChangesAsync();
 
         var queryFile = new ConsulterFileReclamationsQuery(ticketRepo, fileRepo, autorisation);

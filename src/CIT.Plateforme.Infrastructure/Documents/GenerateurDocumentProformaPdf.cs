@@ -1,6 +1,7 @@
 using System.Text;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Domain.Tarification;
+using CIT.Plateforme.Domain.Tarification.Referentiels;
 
 namespace CIT.Plateforme.Infrastructure.Documents;
 
@@ -10,9 +11,13 @@ namespace CIT.Plateforme.Infrastructure.Documents;
 /// </summary>
 public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaPdf
 {
-    public Task<DocumentPdfProformaResultat> GenererPdfAsync(SimulationProforma simulation, CancellationToken ct = default)
+    public Task<DocumentPdfProformaResultat> GenererPdfAsync(
+        SimulationProforma simulation, ReferentielsTarifaires referentiels, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(simulation);
+        ArgumentNullException.ThrowIfNull(referentiels);
+
+        var sens = referentiels.Sens(simulation.SensOperationId);
 
         var sb = new StringBuilder();
         sb.AppendLine("%PDF-1.4");
@@ -21,7 +26,7 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
         sb.AppendLine($"RÉFÉRENCE SIMULATION : {simulation.Reference}");
         sb.AppendLine($"DATE DE CRÉATION    : {simulation.DateCreationUtc:dd/MM/yyyy HH:mm:ss} UTC");
         sb.AppendLine($"VERSION DE GRILLE   : {simulation.VersionGrilleLibelle}");
-        sb.AppendLine($"SENS DU TRAFIC      : {simulation.Sens}");
+        sb.AppendLine($"SENS DU TRAFIC      : {sens.Libelle}");
         sb.AppendLine($"DURÉE DE SÉJOUR     : {simulation.DureeSejourJours} jours (du {simulation.DateArrivee:dd/MM/yyyy} au {simulation.DateEnlevementPrevisionnel:dd/MM/yyyy})");
         if (!string.IsNullOrWhiteSpace(simulation.NomNavire))
             sb.AppendLine($"NAVIRE / VOYAGE     : {simulation.NomNavire} / {simulation.NumeroVoyage}");
@@ -34,14 +39,27 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
         var idx = 1;
         foreach (var c in simulation.LignesConteneurs)
         {
-            sb.AppendLine($"Conteneur #{idx} : {c.NumeroConteneur} ({c.Taille}\", {c.Type}, {c.PoidsTonnes:N2}t, Cat: {c.CategorieMarchandise}, OOG: {(c.EstHorsGabarit ? "Oui" : "Non")}, Dang: {(c.EstDangereux ? "Oui" : "Non")})");
+            var taille = referentiels.Taille(c.TailleConteneurId);
+            var type = referentiels.Type(c.TypeConteneurId);
+            var categorie = referentiels.Categorie(c.CategorieMarchandiseId);
+
+            sb.AppendLine($"Conteneur #{idx} : {c.NumeroConteneur} ({taille.Libelle}, {type.Libelle}, {c.PoidsTonnes:N2}t, Cat: {categorie.Code}, OOG: {(c.EstHorsGabarit ? "Oui" : "Non")}, Dang: {(c.EstDangereux ? "Oui" : "Non")})");
             sb.AppendLine($"  - Acconage de base          : {c.MontantAcconage:N0} XOF");
             sb.AppendLine($"  - Relevage                  : {c.MontantRelevage:N0} XOF");
             sb.AppendLine($"  - Branchement Frigorifique  : {c.MontantBranchement:N0} XOF");
             sb.AppendLine($"  - Majoration Lourd          : {c.MontantMajorationLourd:N0} XOF");
             sb.AppendLine($"  - Majoration Dangereux      : {c.MontantMajorationDangereux:N0} XOF");
             sb.AppendLine($"  - Majoration Hors Gabarit   : {c.MontantMajorationOog:N0} XOF");
-            sb.AppendLine($"  - Stationnement             : {c.MontantStationnement:N0} XOF (CIT: {c.PartCit:N0}, OIC: {c.PartOic:N0}, PAA: {c.PartPaa:N0})");
+
+            // RG-SIM-09 — la ventilation est énumérée telle qu'elle a été figée : les
+            // bénéficiaires étant paramétrables, le document ne peut plus les nommer d'avance.
+            var ventilation = c.RepartitionStationnement.Count == 0
+                ? string.Empty
+                : " (" + string.Join(", ", c.RepartitionStationnement
+                    .OrderBy(p => p.Beneficiaire, StringComparer.Ordinal)
+                    .Select(p => $"{p.Beneficiaire}: {p.Montant:N0}")) + ")";
+            sb.AppendLine($"  - Stationnement             : {c.MontantStationnement:N0} XOF{ventilation}");
+
             sb.AppendLine($"  => SOUS-TOTAL CONTENEUR     : {c.TotalLigneXof:N0} XOF");
             sb.AppendLine("--------------------------------------------------------------------------------");
             idx++;

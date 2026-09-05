@@ -39,7 +39,7 @@ public sealed class NonRetroactiviteTypeClientSqlTests
         // Étape 1 & 2 : Société créée en TypeClient = NORMAL, puis création du premier dossier avec snapshot
         await using (var setup = BaseDeTestSql.CreerContexte())
         {
-            setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(adminCitId, Permission.CompteTypeModifier));
+            setup.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(setup, adminCitId), Permission.CompteTypeModifier));
 
             var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "Société Test Non-Rétroactivité", TypeClient.Normal, maintenant);
             societe.Valider();

@@ -1,21 +1,30 @@
 @page "/tickets/{TicketId:guid}/temps"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Domain.SuiviTemps
 @using Microsoft.Extensions.DependencyInjection
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Services
 @inject IServiceScopeFactory ScopeFactory
+@inject IContexteUtilisateurWeb ContexteService
 
 <PageTitle>Indicateurs temps et SLA — CIT</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>⏱️</span> Temps et SLA (TPS-01, SLA-02)
+            <span>⏱️</span> Temps et SLA
         </h2>
         <div class="cit-page-subtitle">Décomposition des temps de parcours pour le ticket <span class="font-monospace text-primary">@TicketId</span></div>
     </div>
 </div>
 
-@if (mesure is not null)
+@if (_accesRefuse)
+{
+    <PermissionDenied Message="Ce ticket ne relève pas de votre périmètre." />
+}
+else if (mesure is not null)
 {
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-6 col-lg-4">
@@ -46,7 +55,7 @@
                 <div>
                     <div class="cit-stat-label">Attente client (neutralisée)</div>
                     <div class="cit-stat-value text-warning font-monospace">@mesure.TempsAttenteClient.ToString(@"hh\:mm\:ss")</div>
-                    <div class="small text-muted">Non imputée au SLA (TPS-04)</div>
+                    <div class="small text-muted">Non imputée au SLA</div>
                 </div>
             </div>
         </div>
@@ -80,12 +89,27 @@
     public Guid TicketId { get; set; }
 
     private MesureTemps? mesure;
+    private bool _accesRefuse;
 
     protected override async Task OnInitializedAsync()
     {
         using var scope = ScopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext>();
         var ticket = await db.Tickets.FindAsync(TicketId);
+
+        // VARIANTE DU P0 CORRIGÉE ICI : cette page lisait le ticket désigné par la route et
+        // affichait ses temps SANS aucun contrôle d'accès — n'importe quel utilisateur
+        // authentifié pouvait consulter les délais d'un ticket tiers en changeant l'identifiant.
+        // La décision est déléguée au contrôle central, comme sur toute autre ressource.
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        var controleAcces = scope.ServiceProvider.GetRequiredService<ControleAccesRessourceService>();
+
+        if (ticket is not null && !await controleAcces.PeutConsulterLeTicketAsync(contexte.UtilisateurId, ticket))
+        {
+            _accesRefuse = true;
+            return;
+        }
+
         if (ticket is not null)
         {
             // TPS-03 : le temps total court depuis la CRÉATION, non depuis l'arrivée dans la file

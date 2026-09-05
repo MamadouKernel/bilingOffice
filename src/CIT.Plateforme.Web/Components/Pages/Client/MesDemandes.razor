@@ -6,8 +6,11 @@
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirDashboardClientQuery DashboardQuery
+@inject IServiceScopeFactory ScopeFactory
+@inject Microsoft.JSInterop.IJSRuntime Js
 
 <PageTitle>Mes Demandes — CIT</PageTitle>
 
@@ -18,12 +21,25 @@
         </h2>
         <div class="cit-page-subtitle">Consultez l'historique complet de vos opérations d'importation et export portuaire</div>
     </div>
-    <div class="mt-3 mt-md-0">
+    <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
+        @* SOC-14 — export tabulaire de la liste. La requête applique le cloisonnement CPT-04 :
+           elle n'exporte que les tickets de la société à laquelle le compte est rattaché. *@
+        <button type="button" class="btn btn-outline-secondary shadow-sm"
+                @onclick="ExporterAsync" disabled="@_exportEnCours">
+            @(_exportEnCours ? "Export..." : "Exporter CSV")
+        </button>
         <a href="/billing-import/soumettre" class="btn btn-primary shadow-sm">
             <span>➕</span> Nouvelle demande
         </a>
     </div>
 </div>
+
+@if (_erreurExport is not null)
+{
+    <div class="alert alert-warning border-0 mb-3 rounded-3" role="alert">
+        L'export n'a pas abouti : @_erreurExport
+    </div>
+}
 
 @if (_chargement)
 {
@@ -129,6 +145,10 @@ else if (_dashboard is not null)
     private string? _erreur;
     private DashboardClientVue? _dashboard;
     private string _recherche = string.Empty;
+    private Guid _utilisateurId;
+    private Guid? _societeId;
+    private bool _exportEnCours;
+    private string? _erreurExport;
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,6 +161,8 @@ else if (_dashboard is not null)
                 return;
             }
 
+            _utilisateurId = contexte.UtilisateurId;
+            _societeId = contexte.SocieteId;
             _dashboard = await DashboardQuery.ExecuterAsync(contexte.UtilisateurId, contexte.SocieteId.Value);
         }
         catch (Exception ex)
@@ -150,6 +172,45 @@ else if (_dashboard is not null)
         finally
         {
             _chargement = false;
+        }
+    }
+
+    /// <summary>
+    /// SOC-14 — « export des indicateurs et listes de tickets aux formats usuels ». La commande
+    /// existait, testée, et aucun écran ne l'appelait : le client voyait ses demandes sans jamais
+    /// pouvoir en sortir la liste.
+    /// </summary>
+    private async Task ExporterAsync()
+    {
+        if (_societeId is not Guid societeId)
+        {
+            return;
+        }
+
+        _erreurExport = null;
+        _exportEnCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var csv = await scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.Tickets.ExporterTicketsCsvQuery>()
+                .ExecuterPourClientAsync(_utilisateurId, societeId);
+
+            await Js.InvokeVoidAsync(
+                "telechargerFichier",
+                $"mes-demandes-{DateTime.UtcNow:yyyyMMdd-HHmm}.csv",
+                "text/csv",
+                Convert.ToBase64String(csv));
+        }
+        catch (Exception ex)
+        {
+            // Pas _erreur : celle-ci remplace toute la page. Un export qui échoue ne doit pas
+            // faire disparaître la liste que le client était en train de consulter.
+            _erreurExport = ex.Message;
+        }
+        finally
+        {
+            _exportEnCours = false;
         }
     }
 

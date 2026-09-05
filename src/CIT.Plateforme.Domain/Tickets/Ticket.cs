@@ -1,4 +1,4 @@
-namespace CIT.Plateforme.Domain.Tickets;
+﻿namespace CIT.Plateforme.Domain.Tickets;
 
 /// <summary>
 /// Unité de travail centrale du socle (principe P1 du CDC). Porte un numéro unique jamais
@@ -248,6 +248,24 @@ public sealed class Ticket
             Statut = StatutTicket.EnAttenteDePriseEnCharge;
             DatePriseEnChargeUtc = null;
         }
+    }
+
+    /// <summary>
+    /// ALE-03 — action « réaffectation » d'une escalade : le ticket quitte l'opérateur qui le
+    /// retient et retourne à la distribution. Aucun destinataire n'est désigné ici — en choisir un
+    /// supposerait une règle d'affectation que l'escalade n'a pas à trancher (CLAR-03).
+    /// </summary>
+    public void RemettreEnDistribution(DateTime maintenantUtc)
+    {
+        if (Statut is StatutTicket.Cloture or StatutTicket.Annule)
+        {
+            throw new InvalidOperationException($"Le ticket {Numero} est {Statut} et ne peut plus être remis en distribution.");
+        }
+
+        OperateurAssigneId = null;
+        Statut = StatutTicket.EnAttenteDePriseEnCharge;
+        DatePriseEnChargeUtc = null;
+        DateDerniereActiviteUtc = maintenantUtc;
     }
 
     /// <summary>TRF-04 : réaffectation à un autre opérateur habilité de la même file, sous

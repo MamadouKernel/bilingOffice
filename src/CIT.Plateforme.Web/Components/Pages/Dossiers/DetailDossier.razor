@@ -1,19 +1,28 @@
 @page "/dossiers/{DossierId:guid}"
 @rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Services
 @inject ConsulterDossierQuery ConsulterDossier
+@inject IContexteUtilisateurWeb ContexteService
 
 <PageTitle>Détail du dossier — CIT</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h2 class="cit-page-title">
-            <span>📁</span> Dossier Opérationnel (SOC-11)
+            <span>📁</span> Dossier Opérationnel
         </h2>
-        <div class="cit-page-subtitle">Suivi d'ensemble du dossier et de ses tickets dérivés (CLAR-01)</div>
+        <div class="cit-page-subtitle">Suivi d'ensemble du dossier et de ses tickets dérivés</div>
     </div>
 </div>
 
-@if (vue is not null)
+@if (_accesRefuse)
+{
+    <PermissionDenied Message="Ce dossier ne relève pas de votre périmètre." />
+}
+else if (vue is not null)
 {
     <div class="cit-card mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -54,6 +63,21 @@
     public Guid DossierId { get; set; }
 
     private DossierVue? vue;
+    private bool _accesRefuse;
 
-    protected override async Task OnInitializedAsync() => vue = await ConsulterDossier.ExecuterAsync(DossierId);
+    // L'identité vient du contexte serveur, jamais de la route : celle-ci ne porte que le dossier
+    // demandé. Le refus est rendu comme tel plutôt que propagé en exception non gérée.
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+
+        try
+        {
+            vue = await ConsulterDossier.ExecuterAsync(contexte.UtilisateurId, DossierId);
+        }
+        catch (AccesRefuseException)
+        {
+            _accesRefuse = true;
+        }
+    }
 }

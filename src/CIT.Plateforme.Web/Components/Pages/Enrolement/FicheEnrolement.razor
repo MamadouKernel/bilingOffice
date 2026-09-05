@@ -93,9 +93,9 @@ else if (_fiche is not null)
             @if (_afficherFormulaireComplement)
             {
                 <div class="mt-3">
-                    <label class="form-label small fw-semibold">Motif du complément demandé</label>
+                    <label for="motif-du-complement-demande" class="form-label small fw-semibold">Motif du complément demandé</label>
                     <div class="input-group">
-                        <input class="form-control" @bind="_motifComplement" @bind:event="oninput" placeholder="Ex. : permis de conduire manquant" />
+                        <input id="motif-du-complement-demande" class="form-control" @bind="_motifComplement" @bind:event="oninput" placeholder="Ex. : permis de conduire manquant" />
                         <button class="btn btn-warning fw-bold" @onclick="DemanderComplementAsync" disabled="@string.IsNullOrWhiteSpace(_motifComplement)">Envoyer</button>
                     </div>
                 </div>

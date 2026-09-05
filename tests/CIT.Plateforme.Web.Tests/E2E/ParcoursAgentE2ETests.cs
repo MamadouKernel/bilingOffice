@@ -89,9 +89,10 @@ public sealed class ParcoursAgentE2ETests : BunitContext
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
         var autorisation = new AutorisationService(db);
-        var cloisonnement = new CloisonnementService(ticketRepo, dossierRepo);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
 
-        var queryDashboard = new ObtenirDashboardAgentQuery(fileRepo, ticketRepo, habRepo, dispoRepo, userInfoRepo);
+        var queryDashboard = new ObtenirDashboardAgentQuery(fileRepo, ticketRepo, habRepo, dispoRepo,
+            new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db)));
         var dispoCommand = new GererDisponibiliteCommand(dispoRepo, autorisation, journalisation, horloge, uow);
         var validerCmd = new ValiderTicketImportCommand(ticketRepo, dossierRepo, fileRepo, suiviRepo, autorisation, journalisation, horloge, uow);
         var rejeterCmd = new RejeterTicketImportCommand(ticketRepo, autorisation, journalisation, horloge, uow);

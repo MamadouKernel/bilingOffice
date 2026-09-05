@@ -33,7 +33,7 @@ public sealed class TicketSocleTests
         var actions = new ActionsWorkflowStandardCommand(new TicketRepository(dbContext), autorisation, journalisation, uniteDeTravail);
         var statutQuery = new ConsulterStatutQuery(
             new TicketRepository(dbContext),
-            new CloisonnementService(new TicketRepository(dbContext), new DossierRepository(dbContext)));
+            new CloisonnementService(new TicketRepository(dbContext), CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext)));
 
         return (dbContext, creer, pec, actions, statutQuery, horloge);
     }
@@ -74,7 +74,7 @@ public sealed class TicketSocleTests
         var fileId = Guid.NewGuid();
 
         var ticket = await creer.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         await pec.ExecuterAsync(agentId, ticket.Id);
@@ -96,7 +96,10 @@ public sealed class TicketSocleTests
     public async Task SOC_08_le_client_consulte_le_statut_de_son_ticket_en_temps_reel()
     {
         var (dbContext, creer, pec, _, statutQuery, _) = ConstruireContexte();
-        var clientId = Guid.NewGuid();
+        // Le client consulte son propre ticket : il lui faut un compte réel et actif, la
+        // consultation passant désormais par la garde centrale (consolidation sécurité).
+        var clientId = CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(
+            dbContext, Guid.NewGuid(), CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client);
         var agentId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
 
@@ -105,7 +108,7 @@ public sealed class TicketSocleTests
         var vueAvant = await statutQuery.ExecuterAsync(clientId, ticket.Id);
         Assert.Equal(StatutTicket.EnAttenteDePriseEnCharge, vueAvant.Statut);
 
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
         await pec.ExecuterAsync(agentId, ticket.Id);
 

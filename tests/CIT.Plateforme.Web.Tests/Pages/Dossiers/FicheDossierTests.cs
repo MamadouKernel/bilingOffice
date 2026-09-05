@@ -49,6 +49,20 @@ public sealed class FicheDossierTests : BunitContext
         soc.Valider();
         db.Societes.Add(soc);
 
+        // Le compte Identity de l'appelant. Il manquait a cette fixture, qui authentifiait un
+        // identifiant sans compte correspondant. Le controle d'acces central (remediation P0-bis)
+        // lit `EstActif` et `Nature` sur la table Identity et refuse un appelant introuvable —
+        // comme en production, ou un cookie survivant a la suppression d'un compte ne doit plus
+        // rien ouvrir. Le scenario eprouve par ce test est inchange.
+        db.Users.Add(new ApplicationUser
+        {
+            Id = userId,
+            UserName = "client-import-export-ci",
+            NomAffiche = "client-import-export-ci",
+            Nature = NatureUtilisateur.Client,
+            EstActif = true,
+        });
+
         var userSoc = UtilisateurSociete.Rattacher(userId, socId, DateTime.UtcNow, false, true);
         db.UtilisateursSociete.Add(userSoc);
 
@@ -66,11 +80,14 @@ public sealed class FicheDossierTests : BunitContext
         var ticketRepo = new TicketRepository(db);
         var fileRepo = new FileDeTraitementRepository(db);
         var socRepo = new SocieteClienteRepository(db);
-        var userSocRepo = new UtilisateurSocieteRepository(db);
         var userInfoRepo = new UtilisateurInfoRepository(db);
 
         var query = new ObtenirFicheDossierQuery(
-            dossierRepo, ticketRepo, fileRepo, socRepo, userSocRepo, userInfoRepo);
+            dossierRepo, ticketRepo, fileRepo, socRepo, userInfoRepo,
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
         Services.AddSingleton(query);
 
         var cut = Render<FicheDossier>(parameters => parameters.Add(p => p.Id, dossier.Id));

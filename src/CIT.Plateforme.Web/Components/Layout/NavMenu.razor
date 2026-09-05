@@ -1,4 +1,4 @@
-@using CIT.Plateforme.Application.Web
+﻿@using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Services
 @inject IContexteUtilisateurWeb ContexteService
@@ -156,6 +156,24 @@
                         </NavLink>
                         <NavLink class="cit-nav-subitem" href="/administration/motifs-transfert">
                             <span>🔀</span> Motifs de transfert
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/administration/parametres-sla">
+                            <span>⏱️</span> Paramètres SLA
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/administration/regles-escalade">
+                            <span>🚨</span> Règles d'escalade
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/administration/pieces-exigees-etape">
+                            <span>📎</span> Pièces exigées par étape
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/administration/matrice-transitions">
+                            <span>🔁</span> Matrice des transitions
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/administration/perimetres-supervision">
+                            <span>🗺️</span> Périmètres de supervision
+                        </NavLink>
+                        <NavLink class="cit-nav-subitem" href="/administration/competences-operateur">
+                            <span>🎯</span> Compétences des opérateurs
                         </NavLink>
                         break;
                 }

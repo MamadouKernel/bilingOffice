@@ -4,12 +4,15 @@
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirMonProfilQuery ObtenirMonProfil
 @inject ModifierMonProfilCommand ModifierMonProfil
+@inject CloturerMonCompteCommand CloturerMonCompte
+@inject NavigationManager Navigation
 
 <PageTitle>Mon profil — CIT</PageTitle>
 
@@ -135,6 +138,23 @@ else if (_profil is not null)
             </div>
         </div>
 
+        @if (_contexte?.Nature == NatureUtilisateur.Client)
+        {
+            <!-- Zone de danger : Clôture du compte -->
+            <div class="cit-card border-danger-subtle mb-4">
+                <h6 class="fw-bold text-danger mb-1">Clôture du compte</h6>
+                <div class="small text-muted mb-3">
+                    La clôture de votre compte désactivera immédiatement votre accès à la plateforme CIT.
+                    L'historique des opérations antérieures (tickets, documents officiels, factures) reste archivé conformément aux obligations légales.
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-danger btn-sm fw-semibold" @onclick="AfficherModaleCloture">
+                        ⚠️ Clôturer mon compte
+                    </button>
+                </div>
+            </div>
+        }
+
         <div class="d-flex justify-content-end gap-2 mb-5">
             <button class="btn btn-outline-secondary" @onclick="AnnulerAsync" disabled="@_enregistrement">Annuler</button>
             <button class="btn btn-primary px-4 fw-bold" @onclick="EnregistrerAsync" disabled="@(!PeutEnregistrer || _enregistrement)">
@@ -142,6 +162,50 @@ else if (_profil is not null)
             </button>
         </div>
     </div>
+
+    @if (_afficherModaleCloture)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title fw-bold text-danger">⚠️ Confirmer la clôture de votre compte</h5>
+                        <button type="button" class="btn-close" @onclick="FermerModaleCloture" disabled="@_clotureEnCours"></button>
+                    </div>
+                    <div class="modal-body py-3">
+                        <p class="small text-muted mb-3">
+                            Cette action est irréversible. Votre compte sera immédiatement désactivé et vos sessions actives seront révoquées.
+                        </p>
+
+                        @if (_erreurCloture is not null)
+                        {
+                            <div class="alert alert-danger py-2 small mb-3">@_erreurCloture</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="motDePasseCloture">Mot de passe de confirmation <span class="text-danger">*</span></label>
+                            <input id="motDePasseCloture" type="password" class="form-control"
+                                   @bind="_motDePasseCloture" placeholder="Entrez votre mot de passe pour confirmer" />
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label small fw-semibold" for="motifCloture">Motif de clôture (facultatif)</label>
+                            <input id="motifCloture" type="text" class="form-control" maxlength="256"
+                                   @bind="_motifCloture" placeholder="Précisez la raison de votre départ si vous le souhaitez" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary" @onclick="FermerModaleCloture" disabled="@_clotureEnCours">
+                            Annuler
+                        </button>
+                        <button type="button" class="btn btn-danger fw-bold" @onclick="ConfirmerClotureAsync" disabled="@(string.IsNullOrWhiteSpace(_motDePasseCloture) || _clotureEnCours)">
+                            @(_clotureEnCours ? "Clôture en cours..." : "Confirmer la clôture")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -151,6 +215,12 @@ else if (_profil is not null)
     private string _messageNonAutorise = string.Empty;
     private string? _erreur;
     private string? _succes;
+
+    private bool _afficherModaleCloture;
+    private bool _clotureEnCours;
+    private string _motDePasseCloture = string.Empty;
+    private string _motifCloture = string.Empty;
+    private string? _erreurCloture;
 
     private ContexteUtilisateurVue? _contexte;
     private MonProfilVue? _profil;
@@ -227,6 +297,46 @@ else if (_profil is not null)
         _succes = null;
         _erreur = null;
         await ChargerAsync();
+    }
+
+    private void AfficherModaleCloture()
+    {
+        _motDePasseCloture = string.Empty;
+        _motifCloture = string.Empty;
+        _erreurCloture = null;
+        _afficherModaleCloture = true;
+    }
+
+    private void FermerModaleCloture()
+    {
+        if (_clotureEnCours) return;
+        _afficherModaleCloture = false;
+        _erreurCloture = null;
+    }
+
+    private async Task ConfirmerClotureAsync()
+    {
+        if (_contexte is null || string.IsNullOrWhiteSpace(_motDePasseCloture)) return;
+
+        _clotureEnCours = true;
+        _erreurCloture = null;
+        try
+        {
+            await CloturerMonCompte.ExecuterAsync(
+                _contexte.UtilisateurId,
+                new CloturerMonCompteRequete(_motDePasseCloture, _motifCloture));
+
+            _afficherModaleCloture = false;
+            Navigation.NavigateTo("/comptes/compte-cloture", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            _erreurCloture = ex.Message;
+        }
+        finally
+        {
+            _clotureEnCours = false;
+        }
     }
 
     private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
