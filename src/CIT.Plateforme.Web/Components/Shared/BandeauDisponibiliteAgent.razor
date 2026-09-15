@@ -1,8 +1,11 @@
 @using CIT.Plateforme.Application.Affectation
 @using CIT.Plateforme.Domain.Affectation
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @inject IContexteUtilisateurWeb ContexteService
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 
 <div class="cit-card mb-4 p-3 border-start border-4 @(_estDisponible ? "border-success" : "border-danger")">
@@ -13,10 +16,10 @@
             </div>
             <div>
                 <div class="fw-bold fs-6 text-dark">
-                    Statut Opérateur : <span class="@(_estDisponible ? "text-success" : "text-danger")">@(_estDisponible ? "Disponible pour affectation" : "Indisponible / En pause")</span>
+                    @Loc["Dispo.StatusLabel"] <span class="@(_estDisponible ? "text-success" : "text-danger")">@(_estDisponible ? Loc["Dispo.Available"].Value : Loc["Dispo.Unavailable"].Value)</span>
                 </div>
                 <div class="small text-muted">
-                    @(_estDisponible ? "Vous êtes éligible à la distribution automatique de tickets." : "Aucun nouveau ticket ne vous sera attribué automatiquement.")
+                    @(_estDisponible ? Loc["Dispo.AvailableHint"].Value : Loc["Dispo.UnavailableHint"].Value)
                 </div>
             </div>
         </div>
@@ -28,7 +31,7 @@
             else
             {
                 <button type="button" class="btn @(_estDisponible ? "btn-outline-danger" : "btn-success") btn-sm px-4 fw-bold shadow-sm" @onclick="BasculerDisponibiliteAsync">
-                    @(_estDisponible ? "Passer en indisponible" : "Se déclarer disponible")
+                    @(_estDisponible ? Loc["Dispo.SetUnavailable"].Value : Loc["Dispo.SetAvailable"].Value)
                 </button>
             }
         </div>
