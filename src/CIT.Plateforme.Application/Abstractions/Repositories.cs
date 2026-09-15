@@ -195,6 +195,14 @@ public interface IPrioriteRepository
     Task AjouterModificationAsync(ModificationPriorite modification, CancellationToken ct = default);
 }
 
+/// <summary>Port du référentiel des libellés de statut ticket (§11.4 / §9.10).</summary>
+public interface ILibelleStatutRepository
+{
+    Task<IReadOnlyList<LibelleStatutTicket>> ListerAsync(CancellationToken ct = default);
+
+    Task<LibelleStatutTicket?> ObtenirParCodeAsync(string code, CancellationToken ct = default);
+}
+
 /// <summary>Port de la disponibilité opérateur (DIS-01..03).</summary>
 public interface IDisponibiliteRepository
 {

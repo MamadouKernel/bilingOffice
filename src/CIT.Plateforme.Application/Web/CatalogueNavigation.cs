@@ -226,6 +226,8 @@ public static class CatalogueNavigation
             new("Motifs de transfert", "🔀", "/administration/motifs-transfert", [Permission.AdministrationFiles]),
             new("Paramètres SLA", "⏱️", "/administration/parametres-sla", [Permission.AdministrationSla]),
             new("Règles d'escalade", "🚨", "/administration/regles-escalade", [Permission.AdministrationSla]),
+            new("Niveaux de priorité", "🎚️", "/administration/priorites", [Permission.AdministrationFiles]),
+            new("Libellés de statut", "🏷️", "/administration/libelles-statut", [Permission.AdministrationFiles]),
             new("Pièces exigées par étape", "📎", "/administration/pieces-exigees-etape", [Permission.AdministrationFiles]),
             new("Matrice des transitions", "🔁", "/administration/matrice-transitions", [Permission.AdministrationFiles]),
             new("Périmètres de supervision", "🗺️", "/administration/perimetres-supervision", [Permission.AdministrationPerimetresSupervision]),

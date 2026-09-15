@@ -132,6 +132,10 @@ public static class DependencyInjection
         services.AddScoped<Application.Administration.GererMotifsTransfertCommand>();
         services.AddScoped<Application.Administration.GererEtapesBloquantesAnnulationCommand>();
         services.AddScoped<Application.Administration.ListerMotifsTransfertQuery>();
+        services.AddScoped<Application.Administration.GererNiveauxPrioriteCommand>();
+        services.AddScoped<Application.Administration.ListerNiveauxPrioriteQuery>();
+        services.AddScoped<Application.Administration.GererLibellesStatutCommand>();
+        services.AddScoped<Application.Administration.ListerLibellesStatutQuery>();
         services.AddScoped<TransfererTicketCommand>();
         services.AddScoped<ReaffecterTicketCommand>();
         services.AddScoped<AffecterManuellementCommand>();
@@ -198,6 +202,7 @@ public static class DependencyInjection
 
         // User Story 10 — supervision, priorités, actions de masse.
         services.AddScoped<IPrioriteRepository, PrioriteRepository>();
+        services.AddScoped<ILibelleStatutRepository, LibellesStatutRepository>();
         services.AddScoped<IPerimetreSupervisionRepository, PerimetreSupervisionRepository>();
         services.AddScoped<IRegleEscaladeRepository, RegleEscaladeRepository>();
         services.AddScoped<IPieceExigeeEtapeRepository, PieceExigeeEtapeRepository>();

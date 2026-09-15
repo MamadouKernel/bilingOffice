@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Documents
 @using CIT.Plateforme.Application.Guichet
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
@@ -15,6 +16,8 @@
 @inject RechercherGuichetQuery RechercheQuery
 @inject ConsulterDossierGuichetQuery ConsulterDossierQuery
 @inject RegulariserModeDegradeCommand RegulariserCommand
+@inject TelechargerDocumentQuery TelechargerDocument
+@inject Microsoft.JSInterop.IJSRuntime Js
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["GuiRech.PageTitle"]</PageTitle>
@@ -161,7 +164,14 @@ else
                                     <strong>@doc.NomFichier</strong>
                                     <span class="text-muted small ms-2">@Loc["GuiRech.DocDepose", doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")]</span>
                                 </div>
-                                <span class="badge bg-secondary">@doc.TypeContenu</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-secondary">@doc.TypeContenu</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            @onclick="() => TelechargerAsync(doc)"
+                                            disabled="@(_telechargementEnCours == doc.Id)">
+                                        @(_telechargementEnCours == doc.Id ? Loc["GuiRech.DocPreparing"].Value : Loc["GuiRech.DocDownload"].Value)
+                                    </button>
+                                </div>
                             </li>
                         }
                     </ul>
@@ -282,6 +292,7 @@ else
     private DateTime _dateOperationDegrade = DateTime.UtcNow;
     private string _descriptionDegrade = string.Empty;
     private bool _enRegularisation = false;
+    private Guid? _telechargementEnCours;
 
     private string? _messageErreur;
     private string? _messageSucces;
@@ -347,6 +358,38 @@ else
     private void FermerDossier()
     {
         _dossierConsulte = null;
+    }
+
+    /// <summary>
+    /// SEC-12 — le téléchargement passe par <c>TelechargerDocumentQuery</c>, qui revérifie
+    /// l'habilitation et le périmètre à CHAQUE accès. L'agent guichet est toujours une voie
+    /// « agent » : l'identité vient du contexte authentifié, jamais d'un champ.
+    /// </summary>
+    private async Task TelechargerAsync(DocumentGuichetDto doc)
+    {
+        _messageErreur = null;
+        _telechargementEnCours = doc.Id;
+        try
+        {
+            await using var flux = await TelechargerDocument.TelechargerPourAgentAsync(_agentId, doc.Id);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+
+            await Js.InvokeVoidAsync(
+                "telechargerFichier", doc.NomFichier, doc.TypeContenu, Convert.ToBase64String(memoire.ToArray()));
+        }
+        catch (DocumentNonAccessibleException)
+        {
+            _messageErreur = Loc["GuiRech.DocInaccessible"].Value;
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _telechargementEnCours = null;
+        }
     }
 
     private async Task RegulariserModeDegradeAsync()
