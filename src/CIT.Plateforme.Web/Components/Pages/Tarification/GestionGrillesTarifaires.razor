@@ -1,4 +1,4 @@
-@page "/admin/tarification"
+﻿@page "/admin/tarification"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -13,13 +13,11 @@
 
 <PageTitle>Administration tarifaire — CIT</PageTitle>
 
-<PageTitle>Administration tarifaire — CIT</PageTitle>
-
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>⚙️</span> Administration des grilles tarifaires
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Versionnement et import CSV atomique — aucune valeur tarifaire codée en dur</div>
     </div>
 </div>
@@ -61,13 +59,13 @@
             {
                 @if (_resultatImport.Succes)
                 {
-                    <div class="alert alert-success mt-2 mb-0">
+                    <div class="alert alert-success mt-2 mb-0" role="status">
                         ✅ Version <strong>@_numeroVersion</strong> créée avec @_resultatImport.NombreLignesImportees ligne(s) tarifaire(s).
                     </div>
                 }
                 else
                 {
-                    <div class="alert alert-danger mt-2 mb-0">
+                    <div class="alert alert-danger mt-2 mb-0" role="alert">
                         <strong class="d-block mb-1">Import refusé — aucune donnée persistée :</strong>
                         <ul class="mb-0 small ps-3">
                             @foreach (var erreur in _resultatImport.Erreurs)
@@ -81,7 +79,7 @@
 
             @if (_erreur is not null)
             {
-                <div class="alert alert-danger mt-2 mb-0">@_erreur</div>
+                <div class="alert alert-danger mt-2 mb-0" role="alert">@_erreur</div>
             }
         </div>
 
@@ -221,7 +219,7 @@
         }
         catch (Exception ex)
         {
-            _erreur = $"Erreur lors de l'import : {ex.Message}";
+            _erreur = $"Erreur lors de l'import : {MessagesUtilisateur.Pour(ex)}";
         }
     }
 }

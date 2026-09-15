@@ -1,4 +1,4 @@
-@page "/tickets/{TicketId:guid}/temps"
+﻿@page "/tickets/{TicketId:guid}/temps"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -13,9 +13,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>⏱️</span> Temps et SLA
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Décomposition des temps de parcours pour le ticket <span class="font-monospace text-primary">@TicketId</span></div>
     </div>
 </div>

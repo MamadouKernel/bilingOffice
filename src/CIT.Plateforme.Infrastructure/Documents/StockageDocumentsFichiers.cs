@@ -1,4 +1,4 @@
-using CIT.Plateforme.Domain.Documents;
+﻿using CIT.Plateforme.Domain.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -59,7 +59,15 @@ public sealed class StockageDocumentsFichiers(IConfiguration configuration, IHos
         var cle = $"{Guid.NewGuid():N}-{Path.GetFileName(nomFichier)}";
         var chemin = CheminDansLaRacine(cle);
 
-        contenu.Position = 0;
+        // REMEDIATION RECETTE UAT (D-11a) : le repositionnement n'est tente que si la source sait
+        // rembobiner. Un flux a passe unique (InputFile Blazor) levait ici NotSupportedException
+        // AVANT toute ecriture — aucun fichier n'etait cree, et l'appelant recevait une erreur
+        // technique opaque. Un tel flux se lit une fois : c'est exactement ce dont on a besoin ici.
+        if (contenu.CanSeek)
+        {
+            contenu.Position = 0;
+        }
+
         await using var fichier = File.Create(chemin);
         await contenu.CopyToAsync(fichier, ct).ConfigureAwait(false);
 

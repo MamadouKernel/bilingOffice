@@ -61,7 +61,7 @@ public sealed class ConstaterJointureIesAutorisationTests
             new UtilisateurSocieteRepository(dbContext), fileRepository, numerotation, journalisation, horloge, uniteDeTravail);
         var valider = new ValiderTicketImportCommand(
             ticketRepository, dossierRepository, fileRepository, suivisRepository, autorisation, journalisation, horloge, uniteDeTravail);
-        var instruire = new InstruireBrancheIesCommand(ticketRepository, suivisRepository, autorisation, journalisation, horloge, uniteDeTravail);
+        var instruire = new InstruireBrancheIesCommand(ticketRepository, suivisRepository, autorisation, Support.FabriqueRequetes.PorteeChampsIes(dbContext), journalisation, horloge, uniteDeTravail);
         var constaterJointure = new ConstaterJointureIesEtFinaliserCommand(
             ticketRepository, suivisRepository, autorisation, journalisation, horloge, uniteDeTravail);
 

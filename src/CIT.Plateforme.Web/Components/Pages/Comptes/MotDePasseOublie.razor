@@ -1,13 +1,16 @@
-@page "/comptes/mot-de-passe-oublie"
+﻿@page "/comptes/mot-de-passe-oublie"
 @using CIT.Plateforme.Infrastructure.Identity
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using System.Text
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject UserManager<ApplicationUser> UserManager
 @inject IWebHostEnvironment Environnement
 @inject ILogger<MotDePasseOublie> Journal
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Mot de passe oublié</PageTitle>
+<PageTitle>@Loc["Account.ForgotPageTitle"]</PageTitle>
 
 <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
@@ -17,10 +20,10 @@
                 <!-- Left Side: 3D Illustration -->
                 <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
-                        <img src="images/login-illustration.jpg" alt="Terminal Maritime 3D" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
+                        <img src="images/login-illustration.jpg" alt="@Loc["Auth.MaritimeIllustrationAlt"]" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">Bienvenue sur l'Espace Digital</h3>
-                            <p class="text-muted mb-0">Gérez vos expéditions, conteneurs et facturations maritimes en toute simplicité grâce à la plateforme.</p>
+                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">@Loc["Auth.WelcomeDigital"]</h3>
+                            <p class="text-muted mb-0">@Loc["Auth.WelcomeTagline"]</p>
                         </div>
                     </div>
                 </div>
@@ -30,23 +33,23 @@
                     <div class="p-5 p-lg-5 w-100">
                         <div class="mb-5 text-center text-md-start">
                             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
-                            <h2 class="fw-bold" style="color: var(--ink);">Mot de passe oublié</h2>
-                            <p class="text-muted">Renseignez votre e-mail pour recevoir un lien de réinitialisation.</p>
+                            <h1 class="fw-bold h2 mb-0" style="color: var(--ink);">@Loc["Account.ForgotTitle"]</h1>
+                            <p class="text-muted">@Loc["Account.ForgotSubtitle"]</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="DemanderAsync" FormName="mot-de-passe-oublie">
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">E-mail Professionnel</label>
-                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
+                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">@Loc["Account.EmailProfessional"]</label>
+                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="@Loc["Common.EmailPlaceholder"]" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3" style="border-radius: 0.75rem;">
-                                Recevoir le lien <span class="ms-2">✉</span>
+                                @Loc["Account.ForgotSubmit"] <span class="ms-2">✉</span>
                             </button>
                         </EditForm>
                         
                         <div class="mt-4 text-center text-md-start">
-                            <a href="/comptes/connexion" class="text-decoration-none fw-bold" style="color: var(--marine-600);">← Retour à la connexion</a>
+                            <a href="/comptes/connexion" class="text-decoration-none fw-bold" style="color: var(--marine-600);">@Loc["Common.BackToLogin"]</a>
                         </div>
 
                         @if (demandeEnregistree)
@@ -55,8 +58,7 @@
                                toute différence observable renseignerait un anonyme sur les
                                adresses réellement enregistrées. *@
                             <div class="alert alert-info border-0 bg-info bg-opacity-10 mt-4 rounded-3 p-3">
-                                Si un compte correspond à cette adresse, la marche à suivre pour
-                                réinitialiser le mot de passe lui sera communiquée.
+                                @Loc["Account.ForgotConfirmation"]
                             </div>
                         }
 
@@ -65,7 +67,7 @@
                             @* Affiché UNIQUEMENT en environnement de développement (voir @code).
                                Ce bloc n'est jamais rendu en Staging ni en Production. *@
                             <div class="alert alert-warning border-0 mt-4 rounded-3 p-3 text-break">
-                                <strong class="d-block mb-1">Environnement de développement uniquement</strong>
+                                <strong class="d-block mb-1">@Loc["Account.DevOnly"]</strong>
                                 <code>@lienDeveloppement</code>
                             </div>
                         }

@@ -1,4 +1,4 @@
-@page "/administration/motifs-transfert"
+﻿@page "/administration/motifs-transfert"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
@@ -17,9 +17,9 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>🔀</span> Gestion des Files & Réorientations
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
             Motifs de Transfert Inter-Files
-        </h2>
+        </h1>
         <div class="cit-page-subtitle text-muted">
             Référentiel des justifications proposées aux opérateurs lors du transfert ou de la réorientation d'un dossier.
         </div>
@@ -43,7 +43,7 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
             <span class="me-2 fs-5">⚠️</span> @_erreur
         </div>
     }
@@ -149,7 +149,7 @@ else
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des files (administration.files) pour accéder à cette interface.";
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des files pour accéder à cette interface.";
     private string? _erreur;
 
     private string _code = string.Empty;
@@ -184,7 +184,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -208,7 +208,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

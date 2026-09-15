@@ -1,4 +1,4 @@
-@page "/reclamations/administration-categories"
+﻿@page "/reclamations/administration-categories"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -12,16 +12,15 @@
 @inject ListerToutesCategoriesReclamationQuery ListerToutesCategories
 @inject ModifierCategoriesReclamationCommand ModifierCategorie
 @inject CreerCategorieReclamationCommand CreerCategorie
-
-<PageTitle>Administration des catégories de réclamation — CIT</PageTitle>
+@inject ListerFilesCibleReclamationQuery ListerFilesCible
 
 <PageTitle>Administration des catégories de réclamation — CIT</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>⚙️</span> Catégories de réclamation
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Paramétrage sans développement des catégories — activation, désactivation, libellé, file cible</div>
     </div>
 </div>
@@ -38,12 +37,12 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-3">@_erreur</div>
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(_actionSuccess))
     {
-        <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        <div class="alert alert-success py-2 small mb-3" role="status">@_actionSuccess</div>
     }
 
     <div class="cit-card mb-4">
@@ -59,20 +58,61 @@ else
                     <label class="form-label small fw-semibold text-dark" for="nouveauCode">Code unique</label>
                     <input id="nouveauCode" class="form-control form-control-sm font-monospace" placeholder="Ex : URGENT" @bind="_nouveauCode" @bind:event="oninput" maxlength="50" />
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
                     <label class="form-label small fw-semibold text-dark" for="nouveauLibelle">Libellé affiché</label>
                     <input id="nouveauLibelle" class="form-control form-control-sm" placeholder="Ex : Demande urgente" @bind="_nouveauLibelle" @bind:event="oninput" maxlength="100" />
                 </div>
-                <div class="col-12 col-md-3 d-flex gap-2">
-                    <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(string.IsNullOrWhiteSpace(_nouveauCode) || string.IsNullOrWhiteSpace(_nouveauLibelle))">
+                @* REMÉDIATION RECETTE UAT (D-14) : sans file cible, la catégorie est créée mais
+                   refuse toute réclamation. Le choix se fait ici, par le nom de la file, dans la
+                   liste que le serveur établit — l'écran ne compose aucun identifiant. *@
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-semibold text-dark" for="nouvelleFile">File de traitement cible</label>
+                    <select id="nouvelleFile" class="form-select form-select-sm" @bind="_nouvelleFileCible">
+                        <option value="">— Choisir une file —</option>
+                        @foreach (var file in _filesCible)
+                        {
+                            <option value="@file.Id">@file.Nom</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(!CreationComplete)">
                         Créer
                     </button>
                     <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerCreation">Annuler</button>
                 </div>
+                @if (_filesCible.Count == 0)
+                {
+                    <div class="col-12">
+                        <div class="alert alert-warning py-2 small mb-0 mt-2">
+                            Aucune file de traitement n'est déclarée pour les réclamations. Une catégorie
+                            créée sans file cible ne pourra recevoir aucune réclamation.
+                        </div>
+                    </div>
+                }
+                else if (!CreationComplete)
+                {
+                    <div class="col-12">
+                        <div class="form-text mt-2">
+                            Code, libellé <strong>et file cible</strong> sont requis : une catégorie sans
+                            file cible refuse toute réclamation.
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>
 
+    @* REMÉDIATION D-20 : état vide explicite, cohérent avec les files métier — l'en-tête de
+       tableau seul laissait croire à un écran cassé. *@
+    @if (_categories.Count == 0)
+    {
+        <EtatVide Titre="Aucune catégorie de réclamation"
+                  Description="Créez une première catégorie pour permettre aux clients de soumettre des réclamations."
+                  Icone="📢" />
+    }
+    else
+    {
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -80,6 +120,7 @@ else
                     <tr>
                         <th>Code</th>
                         <th>Libellé</th>
+                        <th>File cible</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -97,6 +138,29 @@ else
                                 else
                                 {
                                     @cat.Libelle
+                                }
+                            </td>
+                            <td>
+                                @if (_categorieEnEdition == cat.Id)
+                                {
+                                    <select class="form-select form-select-sm" @bind="_fileCibleEnEdition">
+                                        <option value="">— Aucune —</option>
+                                        @foreach (var file in _filesCible)
+                                        {
+                                            <option value="@file.Id">@file.Nom</option>
+                                        }
+                                    </select>
+                                }
+                                else if (cat.FileCibleDefautId.HasValue && _nomsFiles.TryGetValue(cat.FileCibleDefautId.Value, out var nomFile))
+                                {
+                                    <span class="text-dark">@nomFile</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis"
+                                          title="Une catégorie sans file cible refuse toute réclamation.">
+                                        ⚠️ Aucune file — inutilisable
+                                    </span>
                                 }
                             </td>
                             <td>
@@ -133,6 +197,7 @@ else
             </table>
         </div>
     </div>
+    }
 }
 
 @code {
@@ -152,6 +217,18 @@ else
     private string _nouveauCode = string.Empty;
     private string _nouveauLibelle = string.Empty;
 
+    // REMÉDIATION RECETTE UAT (D-14) : files éligibles et file retenue. Les identifiants ne sont
+    // jamais saisis — ils viennent de la liste que le serveur a fournie et qu'il revérifie.
+    private IReadOnlyList<FileCibleReclamationVue> _filesCible = [];
+    private Dictionary<Guid, string> _nomsFiles = [];
+    private string _nouvelleFileCible = string.Empty;
+    private string _fileCibleEnEdition = string.Empty;
+
+    private bool CreationComplete =>
+        !string.IsNullOrWhiteSpace(_nouveauCode)
+        && !string.IsNullOrWhiteSpace(_nouveauLibelle)
+        && Guid.TryParse(_nouvelleFileCible, out _);
+
     protected override async Task OnInitializedAsync()
     {
         _chargement = true;
@@ -170,7 +247,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -184,10 +261,14 @@ else
         try
         {
             _categories = await ListerToutesCategories.ExecuterAsync(_appelantId);
+            _filesCible = await ListerFilesCible.ExecuterAsync(_appelantId);
+            _nomsFiles = _filesCible.ToDictionary(f => f.Id, f => f.Nom);
         }
         catch (AccesRefuseException ex)
         {
             _categories = [];
+            _filesCible = [];
+            _nomsFiles = [];
             _nonAutorise = true;
             _messageNonAutorise = ex.Message;
         }
@@ -197,33 +278,39 @@ else
     {
         _categorieEnEdition = cat.Id;
         _libelleEnEdition = cat.Libelle;
+        _fileCibleEnEdition = cat.FileCibleDefautId?.ToString() ?? string.Empty;
     }
 
     private async Task EnregistrerLibelleAsync(CategorieAdminVue cat)
     {
-        await AppliquerAsync(cat, _libelleEnEdition, cat.EstActif, "Libellé mis à jour.");
+        await AppliquerAsync(cat, _libelleEnEdition, FileCibleChoisie(_fileCibleEnEdition), cat.EstActif, "Catégorie mise à jour.");
         _categorieEnEdition = null;
     }
 
     private Task BasculerActifAsync(CategorieAdminVue cat, bool actif) =>
-        AppliquerAsync(cat, cat.Libelle, actif, actif ? "Catégorie activée." : "Catégorie désactivée.");
+        AppliquerAsync(cat, cat.Libelle, cat.FileCibleDefautId, actif, actif ? "Catégorie activée." : "Catégorie désactivée.");
+
+    /// <summary>Traduit la valeur du select en identifiant, sans jamais en fabriquer un.</summary>
+    private static Guid? FileCibleChoisie(string valeur) =>
+        Guid.TryParse(valeur, out var id) ? id : null;
 
     private async Task CreerCategorieAsync()
     {
-        if (string.IsNullOrWhiteSpace(_nouveauCode) || string.IsNullOrWhiteSpace(_nouveauLibelle)) return;
+        if (!CreationComplete) return;
 
         _erreur = null;
         _actionSuccess = null;
         try
         {
-            await CreerCategorie.ExecuterAsync(new CreerCategorieReclamationRequete(_appelantId, _nouveauCode, _nouveauLibelle, null));
+            await CreerCategorie.ExecuterAsync(new CreerCategorieReclamationRequete(
+                _appelantId, _nouveauCode, _nouveauLibelle, FileCibleChoisie(_nouvelleFileCible)));
             _actionSuccess = $"Catégorie « {_nouveauLibelle} » créée.";
             AnnulerCreation();
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -232,21 +319,22 @@ else
         _formulaireCreationOuvert = false;
         _nouveauCode = string.Empty;
         _nouveauLibelle = string.Empty;
+        _nouvelleFileCible = string.Empty;
     }
 
-    private async Task AppliquerAsync(CategorieAdminVue cat, string libelle, bool actif, string messageSucces)
+    private async Task AppliquerAsync(CategorieAdminVue cat, string libelle, Guid? fileCibleId, bool actif, string messageSucces)
     {
         _erreur = null;
         _actionSuccess = null;
         try
         {
-            await ModifierCategorie.ExecuterAsync(new ModifierCategoriesReclamationRequete(_appelantId, cat.Id, libelle, cat.FileCibleDefautId, actif));
+            await ModifierCategorie.ExecuterAsync(new ModifierCategoriesReclamationRequete(_appelantId, cat.Id, libelle, fileCibleId, actif));
             _actionSuccess = messageSucces;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

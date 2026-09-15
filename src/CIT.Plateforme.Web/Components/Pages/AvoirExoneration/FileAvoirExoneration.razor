@@ -1,4 +1,4 @@
-@page "/avoir-exoneration/file"
+﻿@page "/avoir-exoneration/file"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.AvoirExoneration
@@ -16,9 +16,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>⚖️</span> File Avoirs & Exonérations
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Instruction et décision formelle des contestations financières et demandes de dispense</div>
     </div>
 </div>
@@ -29,7 +29,7 @@
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger">@_erreur</div>
+    <div class="alert alert-danger" role="alert">@_erreur</div>
 }
 else
 {
@@ -163,7 +163,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = $"Erreur lors du chargement de la file : {ex.Message}";
+            _erreur = $"Erreur lors du chargement de la file : {MessagesUtilisateur.Pour(ex)}";
         }
         finally
         {
@@ -183,7 +183,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

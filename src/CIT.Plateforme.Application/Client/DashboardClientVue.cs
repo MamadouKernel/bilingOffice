@@ -66,5 +66,10 @@ public sealed record DashboardClientVue(
     IReadOnlyList<DossierResumeVue> DemandesRecentes,
     int TotalDemandesActives,
     int TotalEnAttenteCit,
-    int TotalActionsRequises
+    int TotalActionsRequises,
+    // AM-02 — droit de soumission INDIVIDUEL du collaborateur, résolu côté serveur à partir du
+    // rattachement (EstActif && DroitSoumission). Reflète EXACTEMENT la règle que les commandes
+    // SoumettreDemandeImport/Export appliquent pour refuser : l'IHM ne fait que masquer le
+    // raccourci qui mènerait à un 403, la frontière de sécurité reste la commande serveur.
+    bool PeutSoumettre
 );

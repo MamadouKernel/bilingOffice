@@ -1,19 +1,24 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Securite;
-using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.BillingExport;
 
 /// <summary>
 /// Consultation autorisée des suivis de branches IES Export pour un ticket.
+///
+/// REMÉDIATION AUDIT FINAL (RG-SEC-01) : symétrique de
+/// <see cref="CIT.Plateforme.Application.BillingImport.ConsulterSuivisBranchesIesQuery"/> — les
+/// droits au niveau champ sont résolus côté serveur et rendus avec les données, de sorte que
+/// l'écran puisse n'offrir que les actions du rôle de l'appelant (EXP-04, IMP-40).
 /// </summary>
 public sealed class ConsulterSuivisBranchesIesExportQuery(
     ITicketRepository tickets,
     ISuiviBrancheIesRepository suivisBranchesIes,
-    IAutorisationService autorisation)
+    IAutorisationService autorisation,
+    PorteeChampsIesService porteeChamps)
 {
-    public async Task<IReadOnlyList<SuiviBrancheIes>> ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
+    public async Task<VueBranchesIes> ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
     {
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
@@ -29,6 +34,11 @@ public sealed class ConsulterSuivisBranchesIesExportQuery(
                 $"L'utilisateur {agentId} ne détient aucune des permissions de branche IES requises pour consulter le ticket {ticketId}.");
         }
 
-        return await suivisBranchesIes.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var droits = await porteeChamps
+            .ResoudreAsync(agentId, ticket.FileCouranteId, ModuleIes.Export, ct)
+            .ConfigureAwait(false);
+
+        var suivis = await suivisBranchesIes.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        return new VueBranchesIes(suivis, droits);
     }
 }

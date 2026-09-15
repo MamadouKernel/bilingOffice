@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,6 +92,11 @@ public sealed class NouvelleDemandeAvoirExoTests : BunitContext
             stockage, userSocRepo, numerotation, journalisation, horloge, auto, uow);
 
         Services.AddSingleton(soumettreCmd);
+
+        // REMÉDIATION D-18 : la page charge désormais les demandes du client pour alimenter le
+        // sélecteur de liaison — le harnais doit fournir la requête correspondante.
+        Services.AddSingleton(new CIT.Plateforme.Application.Client.ObtenirDashboardClientQuery(
+            dossierRepo, ticketRepo, new SocieteClienteRepository(db), userSocRepo));
 
         var fakeContexte = new FakeContexteUtilisateurWeb();
         fakeContexte.Contexte = fakeContexte.Contexte with

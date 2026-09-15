@@ -1,4 +1,4 @@
-@page "/notifications/preferences"
+﻿@page "/notifications/preferences"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Notifications
@@ -25,7 +25,7 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title"><span>⚙️</span> Mes préférences de notification</h2>
+        <h1 class="cit-page-title"><span>⚙️</span> Mes préférences de notification</h1>
         <div class="cit-page-subtitle">Choisissez les canaux sur lesquels vous souhaitez être informé</div>
     </div>
 </div>
@@ -90,7 +90,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -111,7 +111,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

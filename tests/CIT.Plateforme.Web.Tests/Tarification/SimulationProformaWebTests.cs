@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace CIT.Plateforme.Web.Tests.Tarification;
@@ -72,5 +72,54 @@ public sealed class SimulationProformaWebTests
 
         Assert.Contains("AccesRefuseException", contenu);
         Assert.Contains("PermissionDenied", contenu);
+    }
+    // =====================================================================================
+    // REMÉDIATION UI-R01 — LA SIMULATION EST PUBLIQUE (décision métier : SIM-01).
+    //
+    // Le CTA « Simuler une Proforma » de l'accueil menait un visiteur anonyme à « Accès Refusé » :
+    // la page était bien dans l'allowlist publique, mais son propre OnInitializedAsync refusait
+    // l'anonyme. Ces gardes verrouillent la décision : la page s'ouvre à tous, et seul
+    // l'ENREGISTREMENT (l'historique personnel) reste réservé à un compte rattaché à une société.
+    // =====================================================================================
+
+    private static string SourceSimulation() =>
+        File.ReadAllText(Path.Combine(CheminSource(), "SimulationProformaPage.razor"));
+
+    [Fact]
+    public void La_page_de_simulation_ne_refuse_plus_l_anonyme()
+    {
+        var contenu = SourceSimulation();
+
+        // Le message de refus qui bloquait l'anonyme a disparu.
+        Assert.DoesNotContain("pour simuler une proforma", contenu, StringComparison.OrdinalIgnoreCase);
+
+        // Et la garde ne renvoie plus tôt sur la seule absence d'authentification ou de société.
+        Assert.DoesNotContain("!contexte.EstAuthentifie || !contexte.SocieteId.HasValue", contenu);
+    }
+
+    [Fact]
+    public void L_enregistrement_reste_reserve_a_un_compte_rattache()
+    {
+        var contenu = SourceSimulation();
+
+        // Le droit d'enregistrer est explicitement calculé, et il exige les deux conditions.
+        Assert.Contains("_peutEnregistrer", contenu);
+        Assert.Contains("EstAuthentifie && contexte.SocieteId.HasValue", contenu);
+
+        // Le bouton d'enregistrement est conditionné à ce droit ; l'anonyme reçoit une invitation
+        // à se connecter, jamais un bouton qui échouerait.
+        Assert.Matches(new System.Text.RegularExpressions.Regex(
+            @"@if \(_peutEnregistrer\)", System.Text.RegularExpressions.RegexOptions.Singleline), contenu);
+        Assert.Contains("/comptes/connexion?returnUrl=/simulation/proforma", contenu);
+    }
+
+    [Fact]
+    public void Le_CTA_de_l_accueil_pointe_directement_vers_la_simulation()
+    {
+        // Le bouton de la vitrine navigue vers la page, pas vers la connexion ni un écran de refus.
+        var accueil = File.ReadAllText(Path.Combine(
+            CheminSource(), "..", "Home.razor"));
+
+        Assert.Contains("/simulation/proforma", accueil);
     }
 }

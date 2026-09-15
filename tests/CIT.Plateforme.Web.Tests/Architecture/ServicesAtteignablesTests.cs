@@ -71,6 +71,8 @@ public sealed class ServicesAtteignablesTests
     private static HashSet<string> ServicesAtteignables(
         string racine, IReadOnlyDictionary<string, string> corps)
     {
+        var heritages = HeritagesApplicatifs(racine);
+
         var pointsDEntree = SansCommentaires(string.Join(
             "\n",
             Fichiers(Path.Combine(racine, "src", "CIT.Plateforme.Web"), ".cs", ".razor")
@@ -78,7 +80,7 @@ public sealed class ServicesAtteignablesTests
                 .Select(File.ReadAllText)));
 
         var atteignables = new HashSet<string>(
-            corps.Keys.Where(s => Reference(pointsDEntree, s)),
+            corps.Keys.Where(s => ReferenceOuHeritage(pointsDEntree, s, heritages)),
             StringComparer.Ordinal);
 
         var aExplorer = new Queue<string>(atteignables);
@@ -87,7 +89,7 @@ public sealed class ServicesAtteignablesTests
             var source = corps[aExplorer.Dequeue()];
             foreach (var candidat in corps.Keys)
             {
-                if (!atteignables.Contains(candidat) && Reference(source, candidat))
+                if (!atteignables.Contains(candidat) && ReferenceOuHeritage(source, candidat, heritages))
                 {
                     atteignables.Add(candidat);
                     aExplorer.Enqueue(candidat);
@@ -96,6 +98,30 @@ public sealed class ServicesAtteignablesTests
         }
 
         return atteignables;
+    }
+
+    /// <summary>
+    /// Types dont hérite chaque classe applicative — interfaces comprises. Lus depuis la liste
+    /// de base de la déclaration : <c>public sealed class X : IY, IZ</c>.
+    /// </summary>
+    private static Dictionary<string, string[]> HeritagesApplicatifs(string racine)
+    {
+        var heritages = new Dictionary<string, string[]>(StringComparer.Ordinal);
+        var projets = new[] { "CIT.Plateforme.Application", "CIT.Plateforme.Infrastructure" };
+        foreach (var fichier in projets.SelectMany(projet => Fichiers(Path.Combine(racine, "src", projet), ".cs")))
+        {
+            var texte = SansCommentaires(File.ReadAllText(fichier));
+            foreach (Match declaration in Regex.Matches(texte, @"public sealed class (\w+)\s*(?:\([^)]*\))?\s*:\s*([^{;]+)"))
+            {
+                heritages[declaration.Groups[1].Value] = declaration.Groups[2].Value
+                    .Split(',')
+                    .Select(x => x.Trim().Split('<')[0].Split('.').Last().Trim())
+                    .Where(x => x.Length > 0)
+                    .ToArray();
+            }
+        }
+
+        return heritages;
     }
 
     /// <summary>
@@ -118,7 +144,11 @@ public sealed class ServicesAtteignablesTests
     /// n'est retenue que si elle est elle-même atteinte depuis un écran.
     /// </summary>
     private static Dictionary<string, string> ClassesDeRelais(string racine) =>
-        ClassesApplicatives(racine, @"public sealed class (\w+)\b");
+        ClassesApplicatives(
+            racine,
+            @"public sealed class (\w+)\b",
+            "CIT.Plateforme.Application",
+            "CIT.Plateforme.Infrastructure");
 
     /// <summary>
     /// Chaque classe et SON PROPRE corps — de sa déclaration à la suivante, commentaires retirés.
@@ -130,10 +160,12 @@ public sealed class ServicesAtteignablesTests
     /// <c>ActionsWorkflowStandardCommand</c>, parce qu'un commentaire les <b>cite</b> — précisément
     /// pour expliquer qu'on ne les utilise pas.
     /// </summary>
-    private static Dictionary<string, string> ClassesApplicatives(string racine, string motif)
+    private static Dictionary<string, string> ClassesApplicatives(
+        string racine, string motif, params string[] projets)
     {
         var corps = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var fichier in Fichiers(Path.Combine(racine, "src", "CIT.Plateforme.Application"), ".cs"))
+        var aParcourir = projets.Length > 0 ? projets : ["CIT.Plateforme.Application"];
+        foreach (var fichier in aParcourir.SelectMany(projet => Fichiers(Path.Combine(racine, "src", projet), ".cs")))
         {
             var texte = SansCommentaires(File.ReadAllText(fichier));
             var declarations = Regex.Matches(texte, motif);
@@ -152,6 +184,21 @@ public sealed class ServicesAtteignablesTests
     /// <summary>Le nom cité en entier, jamais comme fragment d'un nom plus long.</summary>
     private static bool Reference(string source, string service) =>
         Regex.IsMatch(source, $@"\b{Regex.Escape(service)}\b");
+
+    /// <summary>
+    /// CORRECTION AUDIT FINAL (RG-SEC-01). Un service injecté <b>par son interface</b> n'était pas
+    /// vu : l'appelant écrit <c>IX</c>, ou <c>IEnumerable&lt;IAutreNom&gt;</c>, jamais le nom de la
+    /// classe concrète. Une classe est donc atteinte si son propre nom <b>ou l'un des types dont
+    /// elle hérite</b> est cité.
+    ///
+    /// C'est générique et vérifiable : rien n'est écrit pour un service particulier. Cela ne fait
+    /// qu'élargir l'atteignabilité — et n'aurait pas sauvé <c>AutorisationChampService</c>, dont
+    /// l'interface n'était citée nulle part non plus.
+    /// </summary>
+    private static bool ReferenceOuHeritage(
+        string source, string service, IReadOnlyDictionary<string, string[]> heritages) =>
+        Reference(source, service)
+        || (heritages.TryGetValue(service, out var bases) && bases.Any(b => Reference(source, b)));
 
     private static string SansCommentaires(string source) =>
         Regex.Replace(Regex.Replace(source, @"/\*.*?\*/", " ", RegexOptions.Singleline), @"//[^\n]*", " ");
@@ -200,6 +247,103 @@ public sealed class ServicesAtteignablesTests
             + "fonction que personne ne peut déclencher n'est pas livrée, quels que soient ses "
             + "tests :" + Environment.NewLine
             + string.Join(Environment.NewLine, orphelins.Select(o => "  - " + o)));
+    }
+
+    /// <summary>
+    /// Services applicatifs ENREGISTRÉS DANS LE CONTENEUR dont l'absence de consommateur est
+    /// assumée. La liste ne doit que rétrécir.
+    /// </summary>
+    private static readonly Dictionary<string, string> ServicesEnregistresSansConsommateurAssume =
+        new(StringComparer.Ordinal)
+        {
+            // CONSTATS DE L'EXTENSION DE LA GARDE (remédiation post-audit final, §4).
+            //
+            // Ces quatre services sont enregistrés dans le conteneur et ne sont atteints par aucun
+            // écran, aucun traitement de fond, aucun service lui-même atteignable. Ils sont donc
+            // dans l'état exact où se trouvait `AutorisationChampService` avant sa correction.
+            //
+            // Ils ne sont PAS traités ici : la remédiation en cours est bornée à RG-SEC-01,
+            // RG-EXP-03, RG-SLA-01 et RG-TCK-06. Les inscrire les rend visibles et engage une
+            // décision, au lieu de les laisser passer en silence. La liste ne doit que RÉTRÉCIR.
+            ["GestionnaireRetentionService"] =
+                "rétention/purge (SEC-06) : enregistré, testé, aucun déclencheur — ni écran, ni service hébergé",
+            ["MoteurRetentionService"] =
+                "moteur de la rétention, atteint seulement par GestionnaireRetentionService, lui-même orphelin",
+            ["DerogationWorkflowService"] =
+                "WKF-02/03 : la dérogation est servie en production par TransfererTicketCommand et ReaffecterTicketCommand",
+            ["CreerVersionGrilleTarifaireCommandHandler"] =
+                "SIM-11 : la commande du même fichier est câblée, ce gestionnaire ne l'est pas",
+        };
+
+    /// <summary>
+    /// [RG-SEC-01] Un service enregistré dans le conteneur, mais qu'aucun chemin production
+    /// n'atteint, est une règle sans effet.
+    ///
+    /// DÉFAUT CORRIGÉ (audit final) : <c>AutorisationChampService</c> portait la matrice de droits
+    /// au niveau champ exigée par le CDC, était enregistré en DI, couvert par deux suites — et
+    /// n'avait aucun appelant. Le test précédent ne pouvait pas le voir : son corpus d'exigence
+    /// s'arrête aux <c>Command</c>, <c>Query</c> et <c>UseCase</c>.
+    ///
+    /// La garde porte ici sur un critère générique et vérifiable — <b>être enregistré dans le
+    /// conteneur</b> — et non sur une liste de noms. Aucune exception n'est écrite pour le service
+    /// qui a révélé le défaut : s'il redevenait orphelin, ce test tomberait de nouveau.
+    /// </summary>
+    [Fact]
+    public void Aucun_service_applicatif_enregistre_n_est_hors_d_atteinte()
+    {
+        var racine = RacineDepot().FullName;
+        var relais = ClassesDeRelais(racine);
+        var enregistres = ServicesApplicatifsEnregistres(racine, relais);
+
+        Assert.True(
+            enregistres.Count > 10,
+            $"Détection des enregistrements DI douteuse : {enregistres.Count} trouvés.");
+
+        var atteignables = ServicesAtteignables(racine, relais);
+
+        var orphelins = enregistres
+            .Where(s => !atteignables.Contains(s))
+            .Where(s => !DeclenchesEnFond.Contains(s))
+            .Where(s => !DetteConnue.ContainsKey(s))
+            .Where(s => !ServicesEnregistresSansConsommateurAssume.ContainsKey(s))
+            .OrderBy(s => s, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(
+            orphelins.Count == 0,
+            "Ces services applicatifs sont enregistrés dans le conteneur mais ne sont atteints par "
+            + "aucun écran, traitement de fond, ni service lui-même atteignable. Un service que "
+            + "personne n'appelle n'applique aucune règle, quels que soient ses tests :"
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, orphelins.Select(o => "  - " + o)));
+    }
+
+    /// <summary>
+    /// Les classes applicatives citées dans les enregistrements du conteneur. On lit
+    /// <c>DependencyInjection.cs</c> plutôt que la réflexion : l'enregistrement est une décision
+    /// écrite, et c'est elle qui engage à fournir la fonction.
+    /// </summary>
+    private static HashSet<string> ServicesApplicatifsEnregistres(
+        string racine, IReadOnlyDictionary<string, string> classesApplicatives)
+    {
+        var fichierDi = Path.Combine(racine, "src", "CIT.Plateforme.Infrastructure", "DependencyInjection.cs");
+        if (!File.Exists(fichierDi))
+        {
+            return [];
+        }
+
+        var texte = SansCommentaires(File.ReadAllText(fichierDi));
+
+        // Les arguments de type de tout Add*<...>() — AddScoped<X>(), AddScoped<IX, X>(),
+        // AddSingleton<IX, X>(), avec ou sans préfixe de namespace.
+        var cites = Regex.Matches(texte, @"Add(?:Scoped|Singleton|Transient)<([^>]+)>")
+            .SelectMany(m => m.Groups[1].Value.Split(','))
+            .Select(t => t.Trim().Split('.').Last())
+            .ToHashSet(StringComparer.Ordinal);
+
+        // Seules les classes APPLICATIVES concrètes sont exigées : une interface n'a pas de corps à
+        // atteindre, et une classe d'infrastructure est un adaptateur, pas une fonction du CDC.
+        return classesApplicatives.Keys.Where(cites.Contains).ToHashSet(StringComparer.Ordinal);
     }
 
     [Fact]

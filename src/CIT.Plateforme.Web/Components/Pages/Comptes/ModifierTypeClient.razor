@@ -1,4 +1,4 @@
-@page "/comptes/modifier-type"
+﻿@page "/comptes/modifier-type"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -18,9 +18,9 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>🏷️</span> Administration CIT
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
             Modifier le Type de Client
-        </h2>
+        </h1>
         <div class="cit-page-subtitle text-muted">
             Modification administrative tracée du profil de facturation (Normal, En Compte, Deposit, IES).
         </div>
@@ -95,14 +95,14 @@ else
 
         @if (_erreur is not null)
         {
-            <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center">
+            <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center" role="alert">
                 <span class="me-2 fs-5">⚠️</span> @_erreur
             </div>
         }
 
         @if (_succes)
         {
-            <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 d-flex align-items-center gap-2 mb-4 rounded-3 p-3">
+            <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 d-flex align-items-center gap-2 mb-4 rounded-3 p-3" role="status">
                 <span class="fs-4">✅</span>
                 <div class="fw-semibold">Type de client modifié avec succès et tracé dans le journal d'audit.</div>
             </div>
@@ -176,7 +176,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -209,7 +209,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

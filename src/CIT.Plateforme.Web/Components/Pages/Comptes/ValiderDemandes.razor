@@ -1,4 +1,4 @@
-@page "/comptes/valider"
+﻿@page "/comptes/valider"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -19,9 +19,9 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>🛡️</span> Administration CIT
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
             Validation des Demandes de Compte
-        </h2>
+        </h1>
         <div class="cit-page-subtitle text-muted">
             Revue administrative des dossiers, examen des pièces justificatives et habilitation des profils d'entreprise.
         </div>
@@ -45,7 +45,7 @@ else
 {
     @if (erreur is not null)
     {
-        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
             <span class="me-2 fs-5">⚠️</span> @erreur
         </div>
     }
@@ -217,7 +217,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -249,7 +249,7 @@ else
         }
         catch (Exception ex) when (ex is AccesRefuseException or ArgumentException)
         {
-            erreur = ex.Message;
+            erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

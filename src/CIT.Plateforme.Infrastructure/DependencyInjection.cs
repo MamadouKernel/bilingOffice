@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Administration;
 using CIT.Plateforme.Application.Affectation;
@@ -56,6 +56,8 @@ public static class DependencyInjection
         services.AddScoped<CreerCompteAgentCommand>();
         services.AddScoped<DefinirActivationCompteCommand>();
         services.AddScoped<GererHabilitationAgentCommand>();
+        // UX-P0 (UI-01) : habilitations en masse sous une seule unité de travail.
+        services.AddScoped<DefinirHabilitationsEnMasseCommand>();
         services.AddScoped<ListerComptesAgentsQuery>();
 
         // CPT-01 — justificatifs PARAMETRABLES exiges a l'ouverture d'un compte, et controle de
@@ -94,6 +96,9 @@ public static class DependencyInjection
         // P2-03 — RG-SEC-03 : la connexion figure parmi les actions à tracer.
         services.AddScoped<JournalConnexionService>();
         services.AddScoped<ControleAccesRessourceService>();
+        // RG-SEC-01 — câblage du contrôle au niveau champ IES : résout le rôle depuis les
+        // habilitations, puis délègue la décision à IAutorisationChampService.
+        services.AddScoped<PorteeChampsIesService>();
         services.AddScoped<GererFilesCommand>();
         services.AddScoped<ListerFilesQuery>();
 
@@ -295,6 +300,8 @@ public static class DependencyInjection
         services.AddScoped<Application.BillingExport.ValiderTicketExportCommand>();
         services.AddScoped<Application.BillingExport.RejeterTicketExportCommand>();
         services.AddScoped<Application.BillingExport.GestionComplementExportCommand>();
+        // RG-EXP-03 — le Draft IN précède l'édition de la facture export.
+        services.AddScoped<Application.BillingExport.EmettreDraftInExportCommand>();
         services.AddScoped<Application.BillingExport.EditerFactureExportCommand>();
         services.AddScoped<Application.BillingExport.ValiderPreuvePaiementExportCommand>();
         services.AddScoped<Application.BillingExport.DeposerPreuvePaiementExportCommand>();
@@ -324,6 +331,8 @@ public static class DependencyInjection
 
         // Seeder for Development Environment
         services.AddScoped<DevelopmentSeeder>();
+        // Jeu de RECETTE UAT — identités strictement fictives, activé par configuration locale seule.
+        services.AddScoped<SeedRecetteUat>();
 
         // Amorcage du premier administrateur : s'execute dans TOUS les environnements, a la
         // difference du jeu de donnees de developpement. Inerte des qu'un administrateur existe.
@@ -335,6 +344,11 @@ public static class DependencyInjection
         services.AddScoped<Application.CustomerComplaint.ListerCategoriesReclamationQuery>();
         services.AddScoped<Application.CustomerComplaint.ListerToutesCategoriesReclamationQuery>();
         services.AddScoped<Application.CustomerComplaint.CreerCategorieReclamationCommand>();
+        // REMEDIATION RECETTE UAT (D-14) : garde et enumeration des files cibles de reclamation.
+        services.AddScoped<Application.CustomerComplaint.GardeFileCibleReclamation>();
+        services.AddScoped<Application.CustomerComplaint.ListerFilesCibleReclamationQuery>();
+        // REMEDIATION RECETTE UAT (D-05/D-15) : construction du menu lateral sur les droits reels.
+        services.AddScoped<Application.Web.ConstruireNavigationQuery>();
         // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : ces trois contrats existaient
         // en code et en tests mais n'étaient jamais résolvables via le conteneur DI — donc jamais
         services.AddScoped<Application.CustomerComplaint.ConsulterFileReclamationsQuery>();

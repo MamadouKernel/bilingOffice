@@ -1,8 +1,15 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
 @inject IContexteUtilisateurWeb ContexteService
+@inject IStringLocalizer<SharedResources> Loc
 @implements IDisposable
+
+@* REMÉDIATION UI-09 : lien d'évitement. Au clavier, il permet de sauter directement au contenu
+   sans traverser toute la navigation. Invisible tant qu'il n'a pas le focus (voir .cit-skip-link). *@
+<a href="#cit-contenu-principal" class="cit-skip-link">@Loc["Layout.SkipToContent"]</a>
 
 <div class="cit-app-container d-flex min-vh-100">
     @if (_contexte?.EstAuthentifie == true)
@@ -25,7 +32,7 @@
             <HeaderBar Contexte="@_contexte" />
         }
         
-        <main class="cit-main-content @(_contexte?.EstAuthentifie != true ? "d-flex align-items-center justify-content-center" : "")">
+        <main id="cit-contenu-principal" tabindex="-1" class="cit-main-content @(_contexte?.EstAuthentifie != true ? "d-flex align-items-center justify-content-center" : "")">
             <div class="container-fluid p-0">
                 @Body
             </div>
@@ -34,8 +41,8 @@
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
-    Une erreur inattendue est survenue.
-    <a href="." class="reload">Recharger</a>
+    @Loc["Layout.UnexpectedError"]
+    <a href="." class="reload">@Loc["Layout.Reload"]</a>
     <span class="dismiss">🗙</span>
 </div>
 

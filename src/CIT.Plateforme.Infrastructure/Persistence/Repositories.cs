@@ -173,8 +173,34 @@ public sealed class LiaisonTicketRepository(PlateformeDbContext dbContext) : ILi
             .ConfigureAwait(false);
 }
 
-public sealed class JournalAuditLecture(PlateformeDbContext dbContext) : Application.Securite.IJournalAuditLecture
+public sealed class JournalAuditLecture(
+    PlateformeDbContext dbContext,
+    Application.Abstractions.IUtilisateurInfoRepository utilisateurs)
+    : Application.Securite.IJournalAuditLecture
 {
+    /// <summary>UX-P1 (UI-04) — pagination réalisée EN BASE, jamais après chargement complet.</summary>
+    public async Task<(IReadOnlyList<Application.Securite.EntreeJournalAuditVue> Entrees, int Total)> ListerPageAsync(
+        Guid? entiteId, int page, int taillePage, CancellationToken ct = default)
+    {
+        var requete = dbContext.JournalAudit.AsQueryable();
+        if (entiteId is Guid id)
+        {
+            requete = requete.Where(a => a.EntiteId == id);
+        }
+
+        var total = await requete.CountAsync(ct).ConfigureAwait(false);
+
+        var entrees = await requete
+            .OrderByDescending(a => a.HorodatageUtc)
+            .Skip((page - 1) * taillePage)
+            .Take(taillePage)
+            .Select(a => new Application.Securite.EntreeJournalAuditVue(a.AuteurId, a.Action, a.EntiteType, a.EntiteId, a.HorodatageUtc))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        return (await ResoudreAuteursAsync(entrees, ct).ConfigureAwait(false), total);
+    }
+
     public async Task<IReadOnlyList<Application.Securite.EntreeJournalAuditVue>> ListerAsync(Guid? entiteId, CancellationToken ct = default)
     {
         var requete = dbContext.JournalAudit.AsQueryable();
@@ -183,11 +209,45 @@ public sealed class JournalAuditLecture(PlateformeDbContext dbContext) : Applica
             requete = requete.Where(a => a.EntiteId == id);
         }
 
-        return await requete
+        var entrees = await requete
             .OrderByDescending(a => a.HorodatageUtc)
             .Select(a => new Application.Securite.EntreeJournalAuditVue(a.AuteurId, a.Action, a.EntiteType, a.EntiteId, a.HorodatageUtc))
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+        return await ResoudreAuteursAsync(entrees, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// REMÉDIATION D-03 — résout l'identité des auteurs en UNE requête groupée, jamais une par
+    /// ligne. Un auteur nul reste le socle ; un auteur dont le compte n'existe plus garde son
+    /// identifiant et sera présenté comme « compte supprimé » — l'imputabilité ne s'efface pas.
+    /// </summary>
+    private async Task<IReadOnlyList<Application.Securite.EntreeJournalAuditVue>> ResoudreAuteursAsync(
+        IReadOnlyList<Application.Securite.EntreeJournalAuditVue> entrees, CancellationToken ct)
+    {
+        var identifiants = entrees
+            .Where(e => e.AuteurId is not null)
+            .Select(e => e.AuteurId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (identifiants.Count == 0)
+        {
+            return entrees;
+        }
+
+        var infos = await utilisateurs.ObtenirInfosAsync(identifiants, ct).ConfigureAwait(false);
+
+        return [.. entrees.Select(e =>
+            e.AuteurId is Guid id && infos.TryGetValue(id, out var info)
+                ? e with
+                {
+                    AuteurNomAffiche = string.IsNullOrWhiteSpace(info.NomAffiche) ? info.UserName : info.NomAffiche,
+                    AuteurEmail = info.Email,
+                    AuteurNature = info.Nature,
+                }
+                : e)];
     }
 }
 

@@ -1,4 +1,4 @@
-@* Route distincte de la fiche ticket : /tickets/{id} appartient à FicheTicket.razor. Les deux
+﻿@* Route distincte de la fiche ticket : /tickets/{id} appartient à FicheTicket.razor. Les deux
    pages déclaraient auparavant la même route, ce qui faisait échouer TOUTE ouverture de ticket
    avec une AmbiguousMatchException. *@
 @page "/tickets/{TicketId:guid}/administration"
@@ -26,9 +26,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>⚙️</span> Actions opérationnelles sur le ticket
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Transfert, réaffectation et cycle de vie (US2)</div>
     </div>
     <div class="mt-3 mt-md-0">
@@ -134,8 +134,8 @@ else
                         <input id="motif-cycle" class="form-control form-control-sm" @bind="motifCycleDeVie" />
                     </div>
                     <div class="col-12 d-flex justify-content-end gap-2 pt-2 flex-wrap">
-                        <button class="btn btn-outline-danger btn-sm" @onclick="AnnulerAsync">Annuler</button>
-                        <button class="btn btn-success btn-sm" @onclick="ClorerAsync">Clôturer</button>
+                        <button class="btn btn-outline-danger btn-sm" @onclick="DemanderAnnulation">Annuler</button>
+                        <button class="btn btn-success btn-sm" @onclick="DemanderCloture">Clôturer</button>
                         <button class="btn btn-outline-primary btn-sm" @onclick="RouvrirAsync">Rouvrir</button>
                     </div>
                 </div>
@@ -156,6 +156,21 @@ else
     </div>
 }
 
+@* AM-03 (Stratégie B) — seules les transitions IRRÉVERSIBLES ou ENGAGEANTES sont confirmées :
+   l'annulation (destructive) et la clôture (archivage automatique, irréversible). Les actions
+   réversibles du cycle de vie (mise en attente, reprise, réouverture, réaffectation) ne le sont
+   pas — une confirmation sur chaque bouton banaliserait le geste. La modale n'est jamais une
+   frontière de sécurité : chaque commande revérifie identité, habilitation et état côté serveur. *@
+<ModaleConfirmation EstOuvert="_confirmationOuverte"
+                    Titre="@_confirmationTitre"
+                    Message="@_confirmationMessage"
+                    BoutonConfirmerLibelle="@_confirmationLibelle"
+                    BoutonAnnulerLibelle="Retour"
+                    BoutonConfirmerClass="@_confirmationClass"
+                    Desactive="_confirmationEnCours"
+                    OnConfirmer="ConfirmerActionAsync"
+                    OnAnnuler="AnnulerConfirmation" />
+
 @code {
     [Parameter]
     public Guid TicketId { get; set; }
@@ -175,6 +190,16 @@ else
     private string motifCycleDeVie = string.Empty;
     private string? message;
     private bool erreur;
+
+    // AM-03 — état de la modale de confirmation partagée. Une seule instance sert toutes les
+    // actions engageantes : l'action à exécuter est mémorisée dans _actionConfirmee.
+    private bool _confirmationOuverte;
+    private bool _confirmationEnCours;
+    private string _confirmationTitre = string.Empty;
+    private string _confirmationMessage = string.Empty;
+    private string _confirmationLibelle = "Confirmer";
+    private string _confirmationClass = "btn-danger";
+    private Func<Task>? _actionConfirmee;
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
@@ -242,6 +267,66 @@ else
         async () => await Cloturer.ExecuterAsync(_initiateurId, TicketId),
         "Ticket clôturé et archivé automatiquement.");
 
+    // AM-03 — les deux actions irréversibles ouvrent d'abord la modale ; l'exécution réelle
+    // (AnnulerAsync / ClorerAsync) reste inchangée et n'est déclenchée qu'après confirmation.
+    private void DemanderAnnulation() => DemanderConfirmation(
+        "Annuler ce ticket",
+        "L'annulation clôt le ticket sans le traiter. Cette action est irréversible. Confirmez-vous ?",
+        "Oui, annuler le ticket",
+        "btn-danger",
+        AnnulerAsync);
+
+    private void DemanderCloture() => DemanderConfirmation(
+        "Clôturer ce ticket",
+        "La clôture archive le ticket automatiquement. Confirmez-vous la clôture ?",
+        "Oui, clôturer",
+        "btn-success",
+        ClorerAsync);
+
+    private void DemanderConfirmation(string titre, string message, string libelleConfirmer, string cssConfirmer, Func<Task> action)
+    {
+        _confirmationTitre = titre;
+        _confirmationMessage = message;
+        _confirmationLibelle = libelleConfirmer;
+        _confirmationClass = cssConfirmer;
+        _actionConfirmee = action;
+        _confirmationOuverte = true;
+    }
+
+    private void AnnulerConfirmation()
+    {
+        // Neutralisé pendant le traitement : on ne referme pas une action déjà partie.
+        if (_confirmationEnCours)
+        {
+            return;
+        }
+
+        _confirmationOuverte = false;
+        _actionConfirmee = null;
+    }
+
+    private async Task ConfirmerActionAsync()
+    {
+        // Protection anti double-validation : la modale désactive déjà ses boutons via
+        // _confirmationEnCours, cette garde couvre en plus les rendus concurrents.
+        if (_actionConfirmee is null || _confirmationEnCours)
+        {
+            return;
+        }
+
+        _confirmationEnCours = true;
+        try
+        {
+            await _actionConfirmee();
+        }
+        finally
+        {
+            _confirmationEnCours = false;
+            _confirmationOuverte = false;
+            _actionConfirmee = null;
+        }
+    }
+
     private async Task RouvrirAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Reouvrir.RouvrirAsync(_initiateurId, TicketId, motifCycleDeVie),
         "Ticket rouvert.");
@@ -268,7 +353,7 @@ else
         }
         catch (Exception ex)
         {
-            message = ex.Message;
+            message = MessagesUtilisateur.Pour(ex);
             erreur = true;
         }
     }

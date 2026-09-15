@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
@@ -18,6 +18,7 @@ public sealed record CreerCategorieReclamationRequete(Guid AppelantId, string Co
 /// </summary>
 public sealed class CreerCategorieReclamationCommand(
     ICategorieReclamationRepository categorieRepository,
+    GardeFileCibleReclamation gardeFileCible,
     IAutorisationService autorisationService,
     IJournalisationService journalisationService,
     IUniteDeTravail uniteDeTravail)
@@ -31,6 +32,10 @@ public sealed class CreerCategorieReclamationCommand(
         {
             throw new InvalidOperationException($"Une catégorie avec le code '{requete.Code}' existe déjà.");
         }
+
+        // REMÉDIATION RECETTE UAT (D-14) : la file cible est contrôlée ici, à la configuration —
+        // pas devant le client au moment où il soumet sa réclamation.
+        await gardeFileCible.ExigerEligibleAsync(requete.FileCibleDefautId, ct).ConfigureAwait(false);
 
         // CategorieReclamation.Creer valide déjà la non-vacuité du code et du libellé (invariant
         // existant, réutilisé — REC-REM aucun nouvel invariant inventé).

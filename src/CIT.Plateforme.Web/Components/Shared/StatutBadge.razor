@@ -1,4 +1,5 @@
 @using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Resources
 
 <span class="cit-badge @BadgeClass">
     @Libelle
@@ -21,13 +22,10 @@
         _ => "cit-badge-annule"
     };
 
-    private string Libelle => EstRejetManifeste ? "Rejeté" : Statut switch
-    {
-        StatutTicket.EnAttenteDePriseEnCharge => "En attente",
-        StatutTicket.EnCours => "En cours",
-        StatutTicket.EnAttenteClient => "En attente client",
-        StatutTicket.Cloture => "Clôturé",
-        StatutTicket.Annule => "Annulé",
-        _ => Statut.ToString()
-    };
+    // NFR-07 — libellé localisé (FR/EN) via la source de traduction partagée. La valeur interne
+    // de l'énum n'est jamais affichée brute ; le libellé suit la culture active. Le défaut fr-FR
+    // rend exactement les mêmes chaînes qu'auparavant (aucune régression en français).
+    private string Libelle => EstRejetManifeste
+        ? SharedResourcesLocalizer.Get("Statut.Ticket.RejetManifeste")
+        : SharedResourcesLocalizer.Get($"Statut.Ticket.{Statut}");
 }

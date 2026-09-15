@@ -1,4 +1,4 @@
-@page "/guichet/agenda"
+﻿@page "/guichet/agenda"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -19,9 +19,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>📅</span> Agenda des Rendez-vous Guichet
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">
             Accueil et validation de la présence physique des usagers au Billing Office
         </div>
@@ -207,7 +207,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -246,7 +246,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -266,7 +266,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

@@ -1,24 +1,27 @@
-@page "/comptes/double-authentification"
+﻿@page "/comptes/double-authentification"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using System.Text
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Infrastructure.Identity
+@using CIT.Plateforme.Web.Resources
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IGenerateurQrCode GenerateurQrCode
 
-<PageTitle>Authentification renforcée (2FA) — CIT</PageTitle>
+<PageTitle>@Loc["TwoFa.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>🛡️</span> Authentification renforcée (2FA TOTP)
-        </h2>
-        <div class="cit-page-subtitle">Protégez votre compte avec Google Authenticator ou Microsoft Authenticator</div>
+        <h1 class="cit-page-title">
+            <span>🛡️</span> @Loc["TwoFa.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["TwoFa.Subtitle"]</div>
     </div>
 </div>
 
@@ -26,96 +29,96 @@
     <div class="cit-card mb-4 shadow-sm">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
             <div>
-                <h6 class="fw-bold text-dark mb-1">Statut de la double authentification</h6>
-                <div class="small text-muted">Standard TOTP (RFC 6238) — Code temporaire à 6 chiffres renouvelé toutes les 30 secondes</div>
+                <h6 class="fw-bold text-dark mb-1">@Loc["TwoFa.StatusTitle"]</h6>
+                <div class="small text-muted">@Loc["TwoFa.StatusHelp"]</div>
             </div>
             @if (deuxFacteursActifs)
             {
-                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">✓ Actif</span>
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">@Loc["TwoFa.Active"]</span>
             }
             else
             {
-                <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">Inactif</span>
+                <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">@Loc["TwoFa.Inactive"]</span>
             }
         </div>
 
         @if (messageSucces is not null)
         {
-            <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="status">
                 <span>✅</span> <div>@messageSucces</div>
             </div>
         }
 
         @if (erreur is not null)
         {
-            <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+            <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" role="alert">
                 <span>⚠️</span> <div>@erreur</div>
             </div>
         }
 
         @if (deuxFacteursActifs)
         {
-            <div class="alert alert-success bg-opacity-10 border-success d-flex align-items-start gap-3 mb-4 p-3 rounded-3">
+            <div class="alert alert-success bg-opacity-10 border-success d-flex align-items-start gap-3 mb-4 p-3 rounded-3" role="status">
                 <span class="fs-4">🛡️</span>
                 <div>
-                    <strong class="d-block text-success mb-1">Votre compte est hautement sécurisé</strong>
+                    <strong class="d-block text-success mb-1">@Loc["TwoFa.SecuredTitle"]</strong>
                     <div class="small text-muted">
-                        Un code à 6 chiffres généré par votre application d'authentification (Google Authenticator ou Microsoft Authenticator) vous sera demandé lors de chaque connexion.
+                        @Loc["TwoFa.SecuredDesc"]
                     </div>
                 </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center pt-2">
                 <button class="btn btn-outline-secondary btn-sm" @onclick="AfficherReconfigurationAsync">
-                    🔄 Réinitialiser l'application
+                    @Loc["TwoFa.ResetApp"]
                 </button>
                 <button class="btn btn-outline-danger btn-sm" @onclick="DesactiverAsync">
-                    Désactiver le 2FA
+                    @Loc["TwoFa.Disable"]
                 </button>
             </div>
         }
         else if (enConfiguration)
         {
             <div class="p-3 bg-light rounded-3 mb-4">
-                <h6 class="fw-bold text-dark mb-3">Configuration de votre application mobile</h6>
-                
+                <h6 class="fw-bold text-dark mb-3">@Loc["TwoFa.ConfigTitle"]</h6>
+
                 <ol class="small text-muted ps-3 mb-4 d-flex flex-column gap-2">
-                    <li>Ouvrez <strong>Google Authenticator</strong> ou <strong>Microsoft Authenticator</strong> sur votre smartphone.</li>
-                    <li>Ajoutez un nouveau compte en scannant le QR code ci-dessous ou en saisissant la clé de configuration manuelle.</li>
-                    <li>Entrez le code à 6 chiffres affiché sur votre téléphone pour finaliser l'activation.</li>
+                    <li>@((MarkupString)Loc["TwoFa.Step1"].Value)</li>
+                    <li>@Loc["TwoFa.Step2"]</li>
+                    <li>@Loc["TwoFa.Step3"]</li>
                 </ol>
 
                 <div class="row g-4 align-items-center mb-4">
                     <!-- QR Code -->
                     <div class="col-12 col-sm-auto text-center">
                         <div class="p-2 bg-white border rounded-3 d-inline-block shadow-xs">
-                            <img src="@qrCodeDataUri" alt="QR Code 2FA" style="width: 160px; height: 160px;" class="img-fluid" />
+                            <img src="@qrCodeDataUri" alt="@Loc["TwoFa.QrAlt"]" style="width: 160px; height: 160px;" class="img-fluid" />
                         </div>
-                        <div class="small text-muted mt-1" style="font-size: 0.75rem;">Scanner le QR Code</div>
+                        <div class="small text-muted mt-1" style="font-size: 0.75rem;">@Loc["TwoFa.ScanQr"]</div>
                     </div>
 
                     <!-- Clé Manuelle -->
                     <div class="col-12 col-sm">
-                        <label class="form-label small fw-bold text-dark mb-1">Clé de configuration manuelle</label>
+                        <label class="form-label small fw-bold text-dark mb-1">@Loc["TwoFa.ManualKeyLabel"]</label>
                         <div class="p-3 bg-white border rounded-3 font-monospace fw-bold text-primary tracking-wider mb-2 select-all" style="font-size: 1rem; word-break: break-all;">
                             @cleFormatee
                         </div>
                         <div class="small text-muted" style="font-size: 0.8rem;">
-                            Type de clé : <strong>TOTP (Basé sur l'heure)</strong> • Période : <strong>30s</strong> • Chiffres : <strong>6</strong>
+                            @((MarkupString)Loc["TwoFa.KeyMeta"].Value)
                         </div>
                     </div>
                 </div>
 
                 <!-- Validation du Code -->
                 <div class="border-top pt-3">
-                    <label class="form-label small fw-bold text-dark" for="codeConfirmation">Saisissez le code à 6 chiffres pour valider</label>
+                    <label class="form-label small fw-bold text-dark" for="codeConfirmation">@Loc["TwoFa.EnterCodeLabel"]</label>
                     <div class="d-flex gap-2">
                         <input id="codeConfirmation" type="text" maxlength="6" class="form-control font-monospace text-center fs-5 fw-bold" style="max-width: 180px; letter-spacing: 0.2em;" placeholder="123456" @bind="codeConfirmation" @bind:event="oninput" />
                         <button class="btn btn-primary fw-bold px-4" @onclick="ConfirmerActivationAsync" disabled="@(codeConfirmation?.Length != 6)">
-                            Confirmer & Activer ➔
+                            @Loc["TwoFa.ConfirmActivate"]
                         </button>
                         <button class="btn btn-outline-secondary" @onclick="AnnulerConfiguration">
-                            Annuler
+                            @Loc["Common.Cancel"]
                         </button>
                     </div>
                 </div>
@@ -126,19 +129,19 @@
             <div class="row g-4 align-items-center py-2">
                 <div class="col-12 col-md-8">
                     <p class="text-muted small mb-2">
-                        La double authentification ajoute une couche de sécurité supplémentaire. Même si quelqu'un découvre votre mot de passe, il ne pourra pas accéder à votre compte sans le code généré par votre smartphone.
+                        @Loc["TwoFa.IntroDesc"]
                     </p>
                     <div class="d-flex align-items-center gap-3 text-muted small mt-3">
-                        <span class="d-flex align-items-center gap-1">📱 Google Authenticator</span>
+                        <span class="d-flex align-items-center gap-1">@Loc["TwoFa.AppGoogle"]</span>
                         <span>•</span>
-                        <span class="d-flex align-items-center gap-1">🛡️ Microsoft Authenticator</span>
+                        <span class="d-flex align-items-center gap-1">@Loc["TwoFa.AppMicrosoft"]</span>
                         <span>•</span>
-                        <span class="d-flex align-items-center gap-1">🔑 Clé TOTP Standard</span>
+                        <span class="d-flex align-items-center gap-1">@Loc["TwoFa.KeyTotpStd"]</span>
                     </div>
                 </div>
                 <div class="col-12 col-md-4 text-md-end">
                     <button class="btn btn-primary fw-bold px-4 py-2 shadow-sm rounded-pill w-100 w-md-auto" @onclick="DemarrerConfigurationAsync">
-                        🔐 Configurer le 2FA
+                        @Loc["TwoFa.ConfigureBtn"]
                     </button>
                 </div>
             </div>
@@ -217,14 +220,14 @@
 
         if (!estValide)
         {
-            erreur = "Code de vérification invalide. Assurez-vous que l'heure de votre smartphone est synchronisée et réessayez.";
+            erreur = Loc["TwoFa.MsgInvalidCode"].Value;
             return;
         }
 
         await UserManager.SetTwoFactorEnabledAsync(utilisateurCourant, true);
         deuxFacteursActifs = true;
         enConfiguration = false;
-        messageSucces = "La double authentification a été activée avec succès ! Vos futures connexions nécessiteront votre application TOTP.";
+        messageSucces = Loc["TwoFa.MsgEnabled"].Value;
     }
 
     private async Task DesactiverAsync()
@@ -236,7 +239,7 @@
         await UserManager.SetTwoFactorEnabledAsync(utilisateurCourant, false);
         deuxFacteursActifs = false;
         enConfiguration = false;
-        messageSucces = "Le second facteur d'authentification a été désactivé.";
+        messageSucces = Loc["TwoFa.MsgDisabled"].Value;
     }
 
     private static string FormaterCle(string cle)

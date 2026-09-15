@@ -1,4 +1,4 @@
-@page "/administration/parametres-sla"
+﻿@page "/administration/parametres-sla"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
@@ -18,7 +18,7 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span aria-hidden="true">⏱️</span> Temps &amp; engagements de service
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">Paramètres SLA</h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">Paramètres SLA</h1>
         <div class="cit-page-subtitle text-muted">
             Durées cibles et seuils, affinables par étape et par priorité. Le paramétrage le plus
             précis l'emporte ; en l'absence de paramétrage, aucune surveillance n'a lieu.
@@ -156,7 +156,7 @@ else
                                 <td class="text-end"><span class="badge bg-secondary bg-opacity-25 text-dark">@p.Specificite</span></td>
                                 <td class="text-end">
                                     <button class="btn btn-sm btn-outline-danger"
-                                            @onclick="() => SupprimerAsync(p.Id)">Retirer</button>
+                                            @onclick="() => DemanderConfirmationSuppression(p.Id)">Retirer</button>
                                 </td>
                             </tr>
                         }
@@ -167,14 +167,27 @@ else
     }
 }
 
+<ModaleConfirmation EstOuvert="@(_confirmation is not null)"
+                    Titre="@(_confirmation?.Titre ?? string.Empty)"
+                    Message="@(_confirmation?.Message ?? string.Empty)"
+                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? "Confirmer")"
+                    BoutonConfirmerClass="@(_confirmation?.ClasseConfirmer ?? "btn-danger")"
+                    Desactive="@_confirmationEnCours"
+                    OnConfirmer="@(async () => { if (_confirmation is not null) await _confirmation.Action(); })"
+                    OnAnnuler="AnnulerConfirmation" />
+
 @code {
     private IReadOnlyList<ParametreSlaAdministrable>? _parametres;
     private AxesSlaDisponibles? _axes;
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA (administration.sla) pour accéder à cette interface.";
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA pour accéder à cette interface.";
     private string? _erreur;
+
+    // AM-03 — le retrait d'un paramètre SLA est une suppression de configuration : confirmation requise.
+    private ConfirmationEnAttente? _confirmation;
+    private bool _confirmationEnCours;
 
     private string _module = string.Empty;
     private string _typeDemande = string.Empty;
@@ -214,7 +227,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -238,7 +251,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -256,6 +269,32 @@ else
         _prioriteId = string.Empty;
         _seuilEscalade = 0;
     });
+
+    private void DemanderConfirmationSuppression(Guid parametreId)
+    {
+        _confirmation = new ConfirmationEnAttente(
+            "Retirer le paramètre SLA",
+            "Ce paramètre de délai sera définitivement retiré de la configuration. Cette action est irréversible.",
+            "Retirer",
+            "btn-danger",
+            () => ExecuterSuppressionAsync(parametreId));
+    }
+
+    private void AnnulerConfirmation() => _confirmation = null;
+
+    private async Task ExecuterSuppressionAsync(Guid parametreId)
+    {
+        _confirmationEnCours = true;
+        try
+        {
+            await SupprimerAsync(parametreId);
+        }
+        finally
+        {
+            _confirmationEnCours = false;
+            _confirmation = null;
+        }
+    }
 
     private Task SupprimerAsync(Guid parametreId) => ExecuterAsync(sp =>
         sp.GetRequiredService<GererParametresSlaCommand>().SupprimerAsync(_appelantId, parametreId));

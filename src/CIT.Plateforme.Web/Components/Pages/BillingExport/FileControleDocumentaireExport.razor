@@ -1,4 +1,4 @@
-@page "/billing-export/controle-documentaire"
+﻿@page "/billing-export/controle-documentaire"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -19,9 +19,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>📑</span> File Contrôle Documentaire EXPORT
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Délivrance du Bordereau d'Enlèvement Export (BEE) et clôture finale</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
@@ -149,7 +149,7 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -184,7 +184,7 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = $"Échec de la finalisation : {ex.Message}";
+            _message = $"Échec de la finalisation : {MessagesUtilisateur.Pour(ex)}";
         }
     }
 }

@@ -206,6 +206,8 @@ public sealed class ObtenirFicheTicketQuery(
             DateCreationUtc: ticket.DateCreationUtc,
             DatePriseEnChargeUtc: ticket.DatePriseEnChargeUtc,
             DateClotureUtc: ticket.DateClotureUtc,
+            EstArchive: ticket.EstArchive,
+            DateArchivageUtc: ticket.DateArchivageUtc,
             EstEnEtatEngageant: ticket.EstEnEtatEngageant,
             DeclarationPresentielle: ticket.DeclarationPresentielle,
             PeutPrendreEnCharge: peutPrendreEnCharge,

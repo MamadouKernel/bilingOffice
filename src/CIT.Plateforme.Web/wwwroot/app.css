@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    PLATEFORME DIGITALE CIT — SYSTÈME DE DESIGN
    --------------------------------------------------------------------------
    Direction : console d'exploitation portuaire. La palette est dérivée du
@@ -34,6 +34,7 @@
     --azure-700: #14547f;
     --azure-600: #196b9f;
     --azure-500: #2183bd;
+    --azure-400: #3899d1; /* Bleu d'action éclairci — texte de lien lisible en thème sombre (AA). */
     --azure-100: #dbeefa;
     --azure-50: #eff8fd;
 
@@ -81,6 +82,20 @@
     --ink-inverse: #ffffff;
     --line: #d3dce4;
     --line-soft: #e2e8ee;
+    /* WCAG 1.4.11 — frontière visuelle des champs de saisie (input/select/textarea,
+       cases à cocher, boutons radio). Distincte de --line : un filet de carte est
+       décoratif et exempté, la bordure d'un champ est la SEULE indication de sa zone
+       de saisie (fond du champ == fond de la carte), donc soumise au seuil 3:1.
+       Mesuré (voir ContrasteChampsWcagTests) contre le pire fond du thème clair :
+         #73879c / #ffffff        = 3,70:1
+         #73879c / --surface-2    = 3,48:1
+         #73879c / --surface-sunken = 3,11:1  (état désactivé, exempté mais conforme) */
+    --field-border: #73879c;
+    /* Survol — renforcement lisible, mesuré 4,50:1 sur #ffffff. */
+    --field-border-hover: #64798e;
+    /* Focus — bleu d'action, mesuré 4,16:1 (clair) et 4,23:1 (sombre) : conforme dans
+       les deux thèmes, donc défini une seule fois et hérité par le thème sombre. */
+    --field-border-focus: var(--azure-500);
     --accent: var(--signal-500);
     --accent-ink: var(--signal-600);
     --action: var(--azure-700);
@@ -122,6 +137,45 @@
     --stop-rgb: 179, 32, 32;
     --info-rgb: 20, 98, 143;
     --steel-rgb: 100, 121, 142;
+
+    /* ------------------------------------------------------------------
+       ECHELLE DE SUPERPOSITION (REMEDIATION RECETTE UAT, D-01).
+
+       Les valeurs existaient, dispersees dans la feuille, et personne ne
+       pouvait dire de tete laquelle passait devant laquelle. C'est ainsi
+       que la modale de confirmation, posee a 1045, s'est retrouvee SOUS la
+       modale Bootstrap, qui vaut 1050 : le dialogue etait bien rendu, avec
+       le bon texte, mais invisible ET inatteignable au clic.
+
+       L'ordre est desormais enonce ici, une fois, du fond vers la surface.
+       Ajouter une couche = ajouter une ligne ici, pas surencherir ailleurs.
+
+         25   en-tete collant
+         30   rail de navigation
+       1030   Bootstrap : elements fixes
+       1040   Bootstrap : voile de modale
+       1045   voile du menu mobile        <- doit rester SOUS la modale
+       1046   declencheur du menu mobile     (il sert de bouton de fermeture)
+       1050   Bootstrap : .modal
+       1060   voile de fermeture du menu utilisateur
+       1061   menu utilisateur deroulant
+       1080   notifications (toasts)
+       1085   CONFIRMATION                <- au-dessus de tout ce qui precede
+       1090   banniere d'erreur Blazor    <- reste au sommet, volontairement
+
+       Pourquoi la confirmation passe au-dessus des toasts : un dialogue qui
+       demande une decision ne peut pas etre partiellement recouvert par une
+       notification. Ce n'est pas une surenchere, c'est l'ordre attendu.
+       ------------------------------------------------------------------ */
+    --z-entete: 25;
+    --z-rail: 30;
+    --z-voile-navigation: 1045;
+    --z-menu-mobile: 1046;
+    --z-voile-menu-utilisateur: 1060;
+    --z-menu-utilisateur: 1061;
+    --z-toast: 1080;
+    --z-confirmation: 1085;
+    --z-erreur-blazor: 1090;
 }
 
 /* --------------------------------------------------------------------------
@@ -141,6 +195,17 @@
     --ink-inverse: #08161f;
     --line: #22343f;
     --line-soft: #1a2933;
+    /* WCAG 1.4.11 — thème sombre. Les champs prenaient --line (#22343f) sur un fond de
+       champ --surface (#0e1a24) : 1,37:1, très en dessous du seuil 3:1. Ardoise éclaircie,
+       mesurée contre le pire fond du thème sombre :
+         #6b7d8c / --surface        = 4,14:1
+         #6b7d8c / --surface-2      = 3,81:1
+         #6b7d8c / --surface-sunken = 4,37:1  (état désactivé, exempté mais conforme)
+       Ne s'applique qu'aux champs : les cartes et filets gardent --line, qui reste
+       décoratif et hors du champ d'application de 1.4.11. */
+    --field-border: #6b7d8c;
+    /* Survol — mesuré 6,03:1 sur --surface. */
+    --field-border-hover: #8899aa;
     --action: var(--azure-500);
     --action-hover: var(--azure-600);
 
@@ -154,6 +219,11 @@
     --azure-100: #10314a;
     --azure-50: #0c2436;
     --signal-100: #33240a;
+
+    /* REMEDIATION UI-R02 : --accent-ink vaut --signal-600 en clair, un ambre soutenu qui se lit
+       sur un fond creme. En sombre, --signal-100 devient un brun profond et le meme ambre
+       retombe a 4,4:1 — sous le seuil. L'encre d'accent bascule donc, comme le fond. */
+    --accent-ink: var(--signal-400);
     --ok-100: #0a2c1c;
     --ok-border: #1a5637;
     --warn-100: #331f06;
@@ -314,7 +384,7 @@ table, .cit-stat-value, .cit-badge, .font-monospace, time {
     height: 100vh;
     overflow-y: auto;
     overscroll-behavior: contain;
-    z-index: 30;
+    z-index: var(--z-rail);
 }
 
 .cit-mobile-sidebar {
@@ -332,11 +402,31 @@ table, .cit-stat-value, .cit-badge, .font-monospace, time {
     inset: 0;
     background: rgba(8, 22, 31, .58);
     backdrop-filter: blur(2px);
-    z-index: 1045;
+    z-index: var(--z-voile-navigation);
     animation: veil-in .18s ease-out;
 }
 
 @keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* REMEDIATION RECETTE UAT (D-01) — COUCHE DEDIEE A LA CONFIRMATION.
+
+   .cit-modal-backdrop sert DEUX usages qui n'ont pas les memes contraintes :
+   le tiroir de navigation mobile, qui doit rester sous la modale Bootstrap et
+   dont le contenu est ancre a gauche sur toute la hauteur ; et la modale de
+   confirmation, qui doit passer devant tout et etre centree. Les separer par
+   une classe evite de casser l'un en reparant l'autre.
+
+   Le centrage vertical est corrige au passage : le voile etait bien en
+   position:fixed inset:0, mais son enfant se contentait de margin:auto dans un
+   contexte de bloc — le dialogue restait donc colle en haut de l'ecran. */
+.cit-modal-backdrop.cit-voile-confirmation {
+    z-index: var(--z-confirmation);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+}
 
 .cit-modal-dialog {
     background: var(--surface);
@@ -362,7 +452,7 @@ table, .cit-stat-value, .cit-badge, .font-monospace, time {
     border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
-    z-index: 25;
+    z-index: var(--z-entete);
 }
 
 .cit-main-content {
@@ -762,7 +852,7 @@ details:not([open]) > .cit-accordion-body { display: none; }
     content: "";
     position: fixed;
     inset: 0;
-    z-index: 1060;
+    z-index: var(--z-voile-menu-utilisateur);
 }
 
 .cit-user-avatar {
@@ -803,7 +893,7 @@ details:not([open]) > .cit-accordion-body { display: none; }
     position: absolute;
     top: calc(100% + .5rem);
     right: 0;
-    z-index: 1061;
+    z-index: var(--z-menu-utilisateur);
     min-width: 256px;
     background: var(--surface);
     border: 1px solid var(--line);
@@ -873,7 +963,7 @@ details:not([open]) > .cit-accordion-body { display: none; }
     position: fixed;
     bottom: 1.25rem;
     right: 1.25rem;
-    z-index: 1080;
+    z-index: var(--z-toast);
     display: flex;
     flex-direction: column;
     gap: .5rem;
@@ -910,7 +1000,17 @@ details:not([open]) > .cit-accordion-body { display: none; }
     transition: background-color .13s ease, border-color .13s ease, color .13s ease, box-shadow .13s ease;
 }
 
-.btn:focus-visible { box-shadow: var(--ring); }
+/* REMÉDIATION UI/UX — accessibilité (WCAG 2.4.7 « Focus Visible »).
+   Bootstrap force `.btn:focus-visible { outline: 0 }`, et notre halo de focus passait par
+   box-shadow — mais `.shadow-sm` porte `box-shadow ... !important` et l'écrasait : un bouton
+   ombré, au focus clavier, n'affichait AUCUN repère (ni contour, ni halo). L'`outline` ci-dessous
+   ne peut être écrasé par une box-shadow : le repère reste visible quelle que soit l'ombre portée.
+   Le halo est conservé pour les boutons sans ombre. */
+.btn:focus-visible {
+    outline: 2px solid var(--action);
+    outline-offset: 2px;
+    box-shadow: var(--ring);
+}
 .btn-sm { font-size: .8125rem; padding: .3125rem .6875rem; border-radius: var(--r-sm); }
 .btn-lg { font-size: .95rem; padding: .625rem 1.25rem; }
 
@@ -1008,7 +1108,8 @@ details:not([open]) > .cit-accordion-body { display: none; }
     font-size: .875rem;
     color: var(--ink);
     background-color: var(--surface);
-    border: 1px solid var(--line);
+    /* WCAG 1.4.11 : --field-border, pas --line. Voir le bloc des jetons. */
+    border: 1px solid var(--field-border);
     border-radius: var(--r-sm);
     padding: .4375rem .6875rem;
     transition: border-color .13s ease, box-shadow .13s ease;
@@ -1016,24 +1117,35 @@ details:not([open]) > .cit-accordion-body { display: none; }
 
 .form-control::placeholder { color: var(--ink-3); opacity: .75; }
 
+/* Survol — la frontière se renforce sans jamais repasser sous 3:1.
+   Les champs inertes (désactivé, lecture seule) ne réagissent pas au survol. */
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) { border-color: var(--field-border-hover); }
+
 .form-control:focus,
 .form-select:focus {
-    border-color: var(--azure-500);
+    border-color: var(--field-border-focus);
     box-shadow: var(--ring);
     background-color: var(--surface);
     color: var(--ink);
 }
 
 .form-control-sm, .form-select-sm { font-size: .8125rem; padding: .3125rem .5625rem; }
+/* Désactivé : 1.4.11 exempte explicitement les composants inactifs. La bordure garde
+   quand même --field-border, qui reste mesuré ≥ 3:1 sur --surface-sunken dans les deux
+   thèmes — l'exemption n'est donc pas utilisée comme échappatoire.
+   Lecture seule : le champ reste actif et focusable, donc NON exempté ; il conserve le
+   fond --surface et la bordure au repos, tous deux conformes. */
 .form-control:disabled, .form-select:disabled { background-color: var(--surface-sunken); color: var(--ink-3); }
 textarea.form-control { min-height: 5rem; line-height: 1.55; }
 
 .input-group > .form-control:focus,
 .input-group > .form-select:focus { z-index: 3; }
 
-.form-check-input { border-color: var(--steel-300); }
+/* WCAG 1.4.11 : --steel-300 (littéral hors rôle) tombait à 1,85:1 sur blanc. */
+.form-check-input { border-color: var(--field-border); }
 .form-check-input:checked { background-color: var(--action); border-color: var(--action); }
-.form-check-input:focus { box-shadow: var(--ring); border-color: var(--azure-500); }
+.form-check-input:focus { box-shadow: var(--ring); border-color: var(--field-border-focus); }
 .form-check-label { font-size: .875rem; color: var(--ink-2); }
 
 .form-text { color: var(--ink-3); font-size: .8125rem; }
@@ -1209,7 +1321,7 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
     padding: .75rem 1.25rem;
     position: fixed;
     width: 100%;
-    z-index: 1090;
+    z-index: var(--z-erreur-blazor);
     font-size: .875rem;
     font-weight: 600;
 }
@@ -1291,7 +1403,7 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
    refermer un <details> sans JavaScript. */
 .cit-mobile-menu[open] > summary {
     position: relative;
-    z-index: 1046;
+    z-index: var(--z-menu-mobile);
 }
 
 /* Le glyphe bascule ☰ → ✕ selon l'état, sans script. */
@@ -1456,3 +1568,308 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
     font-weight: 600;
 }
 
+/* REMÉDIATION UI/UX (constatée en recette navigateur, thème sombre) — pastilles/panneaux « subtle ».
+   Le bloc ci-dessus fige des FONDS CLAIRS (#eff6ff, #ecfdf5…) avec !important, sans variante sombre :
+   il écrase même les tokens .bg-*-subtle définis plus haut. En thème sombre, le fond restait clair
+   tandis que .text-primary bascule vers l'azur clair — d'où « Onboarding Entreprise » mesuré à
+   2,9:1. On rétablit ici un fond SOMBRE teinté + une encre d'accent CLAIRE, lisible (AA), pour
+   chaque variante. Double garde (préférence système ET bascule explicite), comme le reste du thème. */
+:root[data-theme="dark"] .bg-primary.bg-opacity-10,
+:root[data-theme="dark"] .bg-primary-subtle,
+:root[data-theme="dark"] .cit-badge-primary {
+    background-color: rgba(var(--action-rgb), 0.16) !important;
+    color: var(--azure-400) !important;
+    border-color: rgba(var(--action-rgb), 0.42) !important;
+}
+:root[data-theme="dark"] .bg-success.bg-opacity-10,
+:root[data-theme="dark"] .bg-success-subtle,
+:root[data-theme="dark"] .cit-badge-success {
+    background-color: rgba(var(--ok-rgb), 0.16) !important;
+    color: #34d399 !important;
+    border-color: rgba(var(--ok-rgb), 0.42) !important;
+}
+:root[data-theme="dark"] .bg-warning.bg-opacity-10,
+:root[data-theme="dark"] .bg-warning-subtle,
+:root[data-theme="dark"] .cit-badge-warning {
+    background-color: rgba(var(--signal-rgb), 0.16) !important;
+    color: var(--signal-400) !important;
+    border-color: rgba(var(--signal-rgb), 0.42) !important;
+}
+:root[data-theme="dark"] .bg-danger.bg-opacity-10,
+:root[data-theme="dark"] .bg-danger-subtle,
+:root[data-theme="dark"] .cit-badge-danger {
+    background-color: rgba(var(--stop-rgb), 0.16) !important;
+    color: #f87171 !important;
+    border-color: rgba(var(--stop-rgb), 0.42) !important;
+}
+:root[data-theme="dark"] .bg-info.bg-opacity-10,
+:root[data-theme="dark"] .bg-info-subtle,
+:root[data-theme="dark"] .cit-badge-info {
+    background-color: rgba(var(--info-rgb), 0.16) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(var(--info-rgb), 0.42) !important;
+}
+:root[data-theme="dark"] .bg-dark.bg-opacity-10,
+:root[data-theme="dark"] .bg-dark-subtle,
+:root[data-theme="dark"] .cit-badge-dark {
+    background-color: rgba(var(--steel-rgb), 0.18) !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(var(--steel-rgb), 0.42) !important;
+}
+
+/* REMÉDIATION UI-09 — LIEN D'ÉVITEMENT.
+   Masqué hors focus (décalé hors écran, jamais display:none pour rester focusable),
+   il apparaît en haut à gauche dès qu'il reçoit le focus au clavier. */
+.cit-skip-link {
+    position: fixed;
+    top: -60px;
+    left: 1rem;
+    z-index: 1100;
+    padding: .5rem .9rem;
+    background: var(--action);
+    color: #ffffff;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+    font-weight: 700;
+    text-decoration: none;
+    transition: top .15s ease-out;
+}
+.cit-skip-link:focus { top: 0; outline: 2px solid var(--ink-inverse); outline-offset: 2px; }
+
+/* REMÉDIATION UI-R03 — CIBLES TACTILES.
+   Les très petits boutons (btn-sm, btn-close, boutons icône) descendaient sous 44 px,
+   difficiles à viser au doigt. On garantit une hauteur/largeur minimale de confort tactile
+   SANS toucher au style visuel, uniquement sur pointeur grossier (doigt). */
+@media (pointer: coarse) {
+    .btn, .btn-sm, .btn-close, .cit-notification-btn, .cit-user-trigger, .page-link {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    .btn-sm { display: inline-flex; align-items: center; justify-content: center; }
+}
+
+/* ==========================================================================
+   REMÉDIATION MODE SOMBRE (clôture UI/UX) — lisibilité des utilitaires Bootstrap.
+   Le système de tokens gère les surfaces ; restaient deux motifs Bootstrap qui
+   ne basculaient pas correctement en sombre. ========================================================================== */
+
+/* Un badge à fond de couleur VIVE (bg-info, bg-primary…) garde un fond CLAIR dans les
+   deux thèmes : son texte .text-dark doit rester sombre — l'override global
+   « .text-dark { color: var(--ink) } » l'éclaircissait, produisant clair-sur-clair.
+   NB : on ne vise QUE les fonds vifs. .badge.bg-light est SOMBRE en thème sombre ; son
+   texte doit au contraire suivre --ink (clair) — on le laisse donc à l'override global. */
+.badge.bg-primary.text-dark,
+.badge.bg-secondary.text-dark,
+.badge.bg-success.text-dark,
+.badge.bg-danger.text-dark,
+.badge.bg-warning.text-dark,
+.badge.bg-info.text-dark { color: #0d1a24 !important; }
+
+/* Même défaut sur les BOUTONS à fond clair (constaté en recette navigateur, thème sombre).
+   « btn-warning » (ambre) et « btn-light » portent souvent .text-dark dans le markup ; l'override
+   global .text-dark{color:var(--ink)} éclaircissait leur texte en sombre → clair-sur-ambre mesuré
+   à 1,84:1. Leur fond est clair dans les DEUX thèmes : le texte doit donc rester sombre partout. */
+.btn-warning.text-dark,
+.btn-light.text-dark { color: #2a1c05 !important; }
+
+/* Symétrique : en thème SOMBRE, les fonds de statut (success, info…) sont éclaircis pour servir
+   d'accents — un badge « bg-success text-white » y devient blanc-sur-vert-clair (2:1). En sombre,
+   ces badges à fond vif reçoivent donc une encre SOMBRE, lisible sur leur fond clair. */
+:root[data-theme="dark"] .badge.bg-primary.text-white,
+:root[data-theme="dark"] .badge.bg-success.text-white,
+:root[data-theme="dark"] .badge.bg-info.text-white,
+:root[data-theme="dark"] .badge.bg-warning.text-white,
+:root[data-theme="dark"] .badge.bg-primary.text-white,
+:root[data-theme="dark"] .badge.bg-success.text-white,
+:root[data-theme="dark"] .badge.bg-info.text-white,
+:root[data-theme="dark"] .badge.bg-warning.text-white { color: #0d1a24 !important; }
+
+/* En thème sombre, le bleu d'action (fond de bouton) est trop foncé comme TEXTE sur
+   fond sombre (4,2:1). Le texte de lien et .text-primary du contenu est éclairci pour
+   franchir le seuil AA (5,6:1) — sans toucher aux FONDS de boutons. */
+:root[data-theme="dark"] .text-primary,
+:root[data-theme="dark"] .btn-link,
+:root[data-theme="dark"] .cit-main-content a:not(.btn):not(.badge):not(.list-group-item) {
+    color: var(--azure-400) !important;
+}
+:root[data-theme="dark"] .text-primary,
+:root[data-theme="dark"] .btn-link,
+:root[data-theme="dark"] .cit-main-content a:not(.btn):not(.badge):not(.list-group-item) {
+    color: var(--azure-400) !important;
+}
+
+/* ==========================================================================
+   Cartes comptes agents — extraites du bloc <style> local de ComptesAgents.razor
+   (REMEDIATION cohérence : un <style> Razor non scopé fuit globalement ; les classes
+   partagées .cit-stat-card / .cit-stat-icon y étaient redéfinies en double, avec un
+   fallback #edf1f5 non adaptatif au thème sombre. Elles reposent désormais sur la
+   définition canonique unique ci-dessus. Seules les classes propres à cette page
+   sont conservées ici, toutes tokenisées.)
+   ========================================================================== */
+.cit-avatar {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10293e 0%, #196b9f 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 3px 8px rgba(16, 41, 62, 0.18);
+}
+.cit-superadmin-badge {
+    background: var(--signal-100);
+    color: var(--accent-ink);
+    border: 1px solid var(--signal-400);
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(240, 160, 32, 0.12);
+}
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--ok-600);
+    display: inline-block;
+    margin-right: 6px;
+    box-shadow: 0 0 0 0 rgba(15, 122, 69, 0.7);
+    animation: pulseAnimation 2s infinite;
+}
+@keyframes pulseAnimation {
+    0% { box-shadow: 0 0 0 0 rgba(15, 122, 69, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(15, 122, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(15, 122, 69, 0); }
+}
+.cit-perm-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 0.65rem;
+    padding: 0.65rem 0.85rem;
+    background: var(--surface);
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+}
+.cit-perm-card:hover {
+    border-color: var(--action);
+    background: var(--surface-2);
+}
+.cit-perm-card.active {
+    border-color: var(--action);
+    background: var(--info-100);
+}
+.cit-category-box {
+    border: 1px solid var(--line-soft);
+    border-radius: 0.85rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    background: var(--surface);
+}
+.cit-category-header {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line-soft);
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   Fil d'Ariane (composant FilAriane.razor) — orientation sur les pages de détail.
+   ========================================================================== */
+.cit-fil-ariane-nav { margin-bottom: .75rem; }
+.cit-fil-ariane {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .35rem .5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: .85rem;
+}
+.cit-fil-ariane-item { display: inline-flex; align-items: center; gap: .5rem; }
+.cit-fil-ariane-item + .cit-fil-ariane-item::before {
+    content: "/";
+    color: var(--ink-3);
+    opacity: .7;
+}
+.cit-fil-ariane a { color: var(--action); text-decoration: none; }
+.cit-fil-ariane a:hover { text-decoration: underline; }
+.cit-fil-ariane .cit-fil-ariane-courant { color: var(--ink-3); font-weight: 600; }
+
+/* Zone de retour de soumission (import) — reçoit le focus par programme (D-19).
+   Pas d'outline : la zone n'est pas atteignable au clavier par Tab, seulement ciblée
+   après une soumission pour l'annoncer et la faire défiler à l'écran. */
+.cit-zone-retour:focus { outline: none; }
+.cit-zone-retour:focus-visible { outline: none; }
+
+/* ==========================================================================
+   Motifs de l'accueil (hero + bandeau support) — extraits des styles inline dupliqués
+   de Home.razor. Le dégradé de marque, le bouton « verre » et les pastilles « verre »
+   étaient recopiés 2 à 3 fois en style= : une seule source ici (cohérence / maintenance).
+   Le dégradé est sombre par construction : le texte blanc reste lisible dans les deux thèmes.
+   ========================================================================== */
+.cit-hero-gradient { background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #173f82 100%); }
+.cit-btn-glass {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+}
+.cit-btn-glass:hover, .cit-btn-glass:focus {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+}
+.cit-pill-glass {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-weight: 600;
+}
+
+/* REMÉDIATION responsive (constatée en recette AUTHENTIFIÉE, build publié) — barre d'en-tête au
+   mobile. À 320/390 px, l'en-tête authentifié débordait la PAGE (+188 px à 320) : logo large
+   (163 px de rendu) + sélecteur de langue + thème + cloche + menu compte ne tenaient pas. Sous
+   576 px on borne le logo et on masque le sélecteur de langue — non essentiel, et présent dès 576 px
+   où la place existe. Aucun effet au-dessus de 576 px. */
+@media (max-width: 575.98px) {
+    .cit-brand-logo { max-width: 84px; height: auto; }
+    .cit-header .cit-language-switcher { display: none; }
+    .cit-header { padding: 0 .4rem; gap: .4rem; }
+    .cit-header .gap-3 { gap: .45rem !important; }
+    .cit-header .gap-2 { gap: .25rem !important; }
+    .cit-header .btn-outline-secondary.rounded-pill { padding-left: .55rem; padding-right: .55rem; }
+}
+
+/* REMÉDIATION contraste — thème sombre, constaté en recette AUTHENTIFIÉE (build publié).
+   Trois éléments récurrents des pages authentifiées gardaient une teinte trop foncée en sombre :
+   - .btn-outline-primary : texte --action (33,131,189) sur surface sombre = 4,23:1 (sous 4,5) ;
+   - .cit-user-avatar : initiale --action sur pastille bleu-nuit = 3,23:1 ;
+   - .btn-light (filtres « Actifs/Inactifs ») : fond CLAIR figé + texte discret = 2,96:1.
+   On les ré-encre / re-teinte pour le sombre uniquement. Le clair est inchangé. */
+:root[data-theme="dark"] .btn-outline-primary {
+    color: var(--azure-400);
+    border-color: var(--azure-400);
+}
+:root[data-theme="dark"] .cit-user-avatar {
+    color: #e8eef4;
+}
+:root[data-theme="dark"] .btn-light {
+    background-color: var(--surface-2);
+    border-color: var(--line);
+    color: var(--ink);
+}
+:root[data-theme="dark"] .btn-light:hover {
+    background-color: var(--surface-sunken);
+    color: var(--ink);
+}
+:root[data-theme="dark"] .btn-light.text-muted {
+    color: var(--ink-2) !important;
+}
+
+/* REMÉDIATION accessibilité (WCAG 2.2 AA — 2.4.11 « Focus Not Obscured (Minimum) »).
+   L'en-tête est STICKY (var(--header-h) = 62px). Sans réserve de défilement, un élément atteint au
+   clavier (Tab) ou par ancre pouvait se caler SOUS l'en-tête et être masqué. On réserve la hauteur
+   de l'en-tête en haut de la zone de défilement : les cibles de focus/ancre s'arrêtent en dessous.
+   Bénéficie aussi au lien d'évitement et au fil d'Ariane. */
+html { scroll-padding-top: var(--header-h); }

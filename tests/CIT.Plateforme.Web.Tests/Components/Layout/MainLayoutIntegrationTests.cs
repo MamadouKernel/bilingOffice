@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Comptes;
+﻿using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Securite;
 using System;
 using System.Threading;
@@ -25,6 +25,10 @@ public sealed class MainLayoutIntegrationTests : BunitContext
     {
         var fakeContexte = new FakeContexteUtilisateurWeb();
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        // REMÉDIATION RECETTE UAT (D-05/D-15) : le menu latéral s'établit sur les habilitations.
+        // Ce test éprouve l'assemblage du layout, pas le filtrage : on lui donne tous les droits.
+        NavigationDeTest.Enregistrer(
+            Services, fakeContexte.Contexte.UtilisateurId, NavigationDeTest.ToutesLesPermissions());
 
         // FEATURE 009 (NOT-03) : HeaderBar affiche désormais l'indicateur permanent de
         // notifications non lues. Le harnais doit fournir la query correspondante — le

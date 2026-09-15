@@ -1,4 +1,4 @@
-@page "/administration/competences-operateur"
+﻿@page "/administration/competences-operateur"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Affectation
@@ -17,7 +17,7 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>🎯</span> Affectation
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">Compétences des opérateurs</h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">Compétences des opérateurs</h1>
         <div class="cit-page-subtitle text-muted">
             Les compétences sur lesquelles s'appuie la stratégie de distribution automatique par
             compétence (AFF-06).
@@ -184,7 +184,7 @@ else if (_vue is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -219,7 +219,7 @@ else if (_vue is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -243,7 +243,7 @@ else if (_vue is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

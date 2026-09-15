@@ -1,4 +1,4 @@
-@page "/administration/comptes-agents"
+﻿@page "/administration/comptes-agents"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -12,22 +12,28 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Comptes agents — CIT</PageTitle>
+<PageTitle>Comptes agents & Habilitations — CIT</PageTitle>
 
+<!-- En-tête de page -->
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>🛡️</span> Administration des Rôles & Comptes Internes
+            <span>🛡️</span> Administration des Rôles &amp; Habilitations
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">
-            Gestion des Comptes Agents
-        </h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
+            Gestion des Comptes Collaborateurs
+        </h1>
         <div class="cit-page-subtitle text-muted">
-            Création des collaborateurs internes CIT, attribution des permissions d'exploitation et gestion des accès.
+            Gestion du cycle de vie des agents internes CIT, répartition granulaire des droits d'exploitation et contrôle d'accès.
         </div>
     </div>
-    <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2"
+                @onclick="() => _afficherFormulaireCreation = !_afficherFormulaireCreation">
+            <span>@(_afficherFormulaireCreation ? "✕ Masquer" : "➕ Nouveau collaborateur")</span>
+        </button>
+        <button class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2"
+                @onclick="ChargerAsync" disabled="@_chargement">
             <span>🔄</span> Actualiser
         </button>
     </div>
@@ -35,7 +41,7 @@
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des comptes agents et vérification des habilitations..." />
+    <IndicateurChargement Message="Chargement des comptes collaborateurs et vérification des habilitations..." />
 }
 else if (_refuse)
 {
@@ -45,129 +51,248 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
             <span class="me-2 fs-5">⚠️</span> @_erreur
         </div>
     }
     @if (_succes is not null)
     {
-        <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+        <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="status">
             <span class="me-2 fs-5">✅</span> @_succes
         </div>
     }
 
-    <!-- 1. Formulaire de Création d'Agent -->
-    <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <span class="fs-4">➕</span>
-            <h4 class="fw-bold text-dark mb-0 fs-5">Créer un nouveau compte agent CIT</h4>
-        </div>
-        
-        <div class="row g-3 align-items-end">
+    <!-- 1. Synthèse KPI & Métriques -->
+    @if (_comptes is not null)
+    {
+        <div class="row g-3 mb-4">
             <div class="col-12 col-md-4">
-                <label class="form-label small fw-bold text-dark" for="email">Adresse e-mail professionnelle</label>
-                <input id="email" type="email" class="form-control" placeholder="agent@cotedivoireterminal.com" @bind="_email" />
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-primary bg-opacity-10 text-primary">👥</div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Collaborateurs Internes</div>
+                        <div class="fs-4 fw-bold text-dark">@_comptes.Count</div>
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="nom">Nom complet affiché</label>
-                <input id="nom" type="text" class="form-control" placeholder="Prénom NOM" @bind="_nomAffiche" />
+            <div class="col-12 col-md-4">
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-success bg-opacity-10 text-success">🟢</div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Comptes Opérationnels</div>
+                        <div class="fs-4 fw-bold text-dark">@_comptes.Count(c => c.EstActif) <span class="text-muted fs-6 fw-normal">/ @_comptes.Count</span></div>
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="mdp">Mot de passe initial</label>
-                <ChampMotDePasse>
-                    <input id="mdp" type="password" class="form-control" placeholder="Minimum 10 caractères" @bind="_motDePasse" />
-                </ChampMotDePasse>
-            </div>
-            <div class="col-12 col-md-2">
-                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2" @onclick="CreerAsync">
-                    <span>✨</span> Créer
-                </button>
+            <div class="col-12 col-md-4">
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-warning bg-opacity-10 text-warning">⭐</div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Super-Administrateurs</div>
+                        <div class="fs-4 fw-bold text-dark">@_comptes.Count(c => c.Permissions.Count >= _permissionsDisponibles.Count)</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="form-text text-muted mt-2 small">
-            🔒 Le mot de passe initial doit être communiqué de manière sécurisée à l'agent.
+    }
+
+    <!-- 2. Formulaire Dépliable de Création d'Agent -->
+    @if (_afficherFormulaireCreation)
+    {
+        <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface); border-left: 4px solid var(--azure-600) !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-4">➕</span>
+                    <h4 class="fw-bold text-dark mb-0 fs-5">Créer un nouveau compte collaborateur CIT</h4>
+                </div>
+                <button type="button" class="btn-close" @onclick="() => _afficherFormulaireCreation = false"></button>
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-bold text-dark" for="email">Adresse e-mail professionnelle</label>
+                    <input id="email" type="email" class="form-control" placeholder="agent@cotedivoireterminal.com" @bind="_email" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-dark" for="nom">Nom et prénoms affichés</label>
+                    <input id="nom" type="text" class="form-control" placeholder="Mamadou KONATE" @bind="_nomAffiche" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-dark" for="mdp">Mot de passe temporaire</label>
+                    <ChampMotDePasse>
+                        <input id="mdp" type="password" class="form-control" placeholder="Minimum 10 caractères" @bind="_motDePasse" />
+                    </ChampMotDePasse>
+                </div>
+                <div class="col-12 col-md-2">
+                    <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                            @onclick="CreerAsync" disabled="@(string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche) || string.IsNullOrWhiteSpace(_motDePasse))">
+                        <span>✨</span> Créer
+                    </button>
+                </div>
+            </div>
+            <div class="form-text text-muted mt-2 small">
+                🔒 Le compte sera créé à l'état actif. Vous pourrez ensuite lui attribuer ses habilitations métier.
+            </div>
+        </div>
+    }
+
+    <!-- 3. Barre de Recherche et Filtres -->
+    <div class="cit-card p-3 mb-4 border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-radius: 1rem; background-color: var(--surface);">
+        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
+            <span class="text-muted" aria-hidden="true">🔍</span>
+            <input type="text" class="form-control form-control-sm border-0 bg-light"
+                   aria-label="Rechercher un compte par nom ou e-mail"
+                   placeholder="Rechercher par nom, e-mail..."
+                   @bind="_recherche" @bind:event="oninput" />
+            @if (!string.IsNullOrWhiteSpace(_recherche))
+            {
+                <button class="btn btn-sm btn-link text-muted p-0 text-decoration-none" @onclick="() => _recherche = string.Empty">✕</button>
+            }
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted fw-semibold me-1">Statut :</span>
+            <button class="btn btn-sm rounded-pill px-3 @(_filtreStatut == "Tous" ? "btn-dark fw-bold" : "btn-light text-muted")"
+                    @onclick='() => _filtreStatut = "Tous"'>
+                Tous (@(_comptes?.Count ?? 0))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 @(_filtreStatut == "Actifs" ? "btn-success fw-bold" : "btn-light text-muted")"
+                    @onclick='() => _filtreStatut = "Actifs"'>
+                Actifs (@(_comptes?.Count(c => c.EstActif) ?? 0))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 @(_filtreStatut == "Inactifs" ? "btn-danger fw-bold" : "btn-light text-muted")"
+                    @onclick='() => _filtreStatut = "Inactifs"'>
+                Désactivés (@(_comptes?.Count(c => !c.EstActif) ?? 0))
+            </button>
         </div>
     </div>
 
-    <!-- 2. Liste des Comptes Agents Existants -->
+    <!-- 4. Table Élégante des Collaborateurs -->
     @if (_comptes is null || _comptes.Count == 0)
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
             <div class="fs-1 mb-3">👥</div>
             <h4 class="fw-bold text-dark mb-2">Aucun compte agent enregistré</h4>
-            <p class="text-muted mb-0">Utilisez le formulaire ci-dessus pour créer le premier collaborateur interne.</p>
+            <p class="text-muted mb-0">Utilisez le bouton ci-dessus pour créer le premier collaborateur interne.</p>
+        </div>
+    }
+    else if (!ComptesFiltres.Any())
+    {
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+            <div class="fs-2 mb-2">🔎</div>
+            <h5 class="fw-bold text-dark mb-1">Aucun collaborateur ne correspond à vos filtres</h5>
+            <p class="text-muted small mb-0">Modifiez votre recherche ou réinitialisez les filtres.</p>
         </div>
     }
     else
     {
-        <div class="cit-card border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem; background-color: var(--surface);">
-            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
-                <span class="fw-bold text-dark small">Collaborateurs Internes (@_comptes.Count)</span>
-                <span class="badge bg-secondary-subtle text-dark">Supervision CIT</span>
-            </div>
+        <div class="cit-card border-0 shadow-sm overflow-hidden mb-5" style="border-radius: 1.25rem; background-color: var(--surface);">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                    <thead class="bg-light text-muted small border-bottom">
                         <tr>
-                            <th class="ps-4">Collaborateur</th>
-                            <th>État</th>
-                            <th>Rôles & Permissions Accordés</th>
-                            <th class="text-end pe-4">Actions d'Administration</th>
+                            <th class="ps-4 py-3" style="min-width: 280px;">Collaborateur</th>
+                            <th class="py-3" style="min-width: 120px;">État</th>
+                            <th class="py-3" style="min-width: 380px;">Profil &amp; Habilitations Accordées</th>
+                            <th class="text-end pe-4 py-3" style="min-width: 220px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var compte in _comptes)
+                        @foreach (var compte in ComptesFiltres)
                         {
                             <tr>
-                                <td class="ps-4">
-                                    <div class="fw-bold text-dark">@compte.NomAffiche</div>
-                                    <div class="small text-muted font-monospace">@compte.Email</div>
+                                <!-- Identité du collaborateur -->
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="cit-avatar">
+                                            @ObtenirInitiales(compte.NomAffiche)
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark fs-6">@compte.NomAffiche</div>
+                                            <div class="small text-muted font-monospace">@compte.Email</div>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td>
-                                    <span class="badge @(compte.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
-                                        @(compte.EstActif ? "Actif" : "Désactivé")
-                                    </span>
-                                </td>
-                                <td>
-                                    @if (compte.Permissions.Count == 0)
+
+                                <!-- État du compte -->
+                                <td class="py-3">
+                                    @if (compte.EstActif)
                                     {
-                                        <span class="small text-muted fst-italic">Aucune permission attribuée</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill d-inline-flex align-items-center">
+                                            <span class="pulse-dot"></span> Actif
+                                        </span>
                                     }
                                     else
                                     {
-                                        <div class="d-flex flex-wrap gap-1" style="max-width: 500px;">
-                                            @foreach (var permission in compte.Permissions)
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill">
+                                            Inactif
+                                        </span>
+                                    }
+                                </td>
+
+                                <!-- Habilitations & Permissions (Présentation Compacte & Élégante) -->
+                                <td class="py-3">
+                                    @if (compte.Permissions.Count >= _permissionsDisponibles.Count)
+                                    {
+                                        <div class="d-flex flex-column gap-1">
+                                            <div class="d-inline-flex align-items-center gap-2">
+                                                <span class="badge cit-superadmin-badge py-2 px-3 rounded-pill">
+                                                    ⭐ Super-Administrateur · Accès Intégral (@compte.Permissions.Count)
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                <span class="badge bg-light text-muted border small px-2 py-1">📦 Import (8)</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">📤 Export (8)</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">🎫 Tickets (12)</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">📊 Supervision</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">🛡️ Sécurité</span>
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (compte.Permissions.Count == 0)
+                                    {
+                                        <div class="text-muted small fst-italic">
+                                            <span>🔒</span> Aucune habilitation accordée — compte inopérant
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                                            @foreach (var cat in ObtenirCategoriesAgent(compte.Permissions))
                                             {
-                                                <span class="badge bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill small">
-                                                    @permission
-                                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.55rem;"
-                                                            title="Retirer cette permission"
-                                                            @onclick="() => RetirerAsync(compte.Id, permission)"></button>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 py-1 rounded-pill small">
+                                                    @cat.Icone @cat.Nom (@cat.Nombre)
                                                 </span>
                                             }
+                                            <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill small fw-semibold">
+                                                Total : @compte.Permissions.Count
+                                            </span>
                                         </div>
                                     }
                                 </td>
-                                <td class="text-end pe-4">
+
+                                <!-- Actions d'Administration -->
+                                <td class="text-end pe-4 py-3">
                                     <div class="d-inline-flex gap-2 align-items-center">
-                                        <select class="form-select form-select-sm" style="width: 14rem;"
-                                                @onchange="e => AttribuerAsync(compte.Id, e.Value?.ToString())">
-                                            <option value="">+ Attribuer une permission…</option>
-                                            @foreach (var permission in _permissionsDisponibles)
-                                            {
-                                                <option value="@permission">@permission</option>
-                                            }
-                                        </select>
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm d-inline-flex align-items-center gap-1"
+                                                @onclick="() => OuvrirModalPermissions(compte)">
+                                            <span>🔑</span> Gérer les accès (@compte.Permissions.Count)
+                                        </button>
+
                                         @if (compte.EstActif)
                                         {
                                             <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                                    @onclick="() => BasculerActivationAsync(compte.Id, false)">
+                                                    title="Désactiver ce compte (maintient l'historique et l'auditabilité)"
+                                                    disabled="@_enCours"
+                                                    @onclick="() => DemanderConfirmationDesactivation(compte)">
                                                 Désactiver
                                             </button>
                                         }
                                         else
                                         {
                                             <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                                    title="Réactiver ce compte"
+                                                    disabled="@_enCours"
                                                     @onclick="() => BasculerActivationAsync(compte.Id, true)">
                                                 Réactiver
                                             </button>
@@ -183,18 +308,188 @@ else
     }
 }
 
+<!-- 5. Modale Interactive de Gestion des Permissions / Habilitations (RBAC) -->
+@if (_agentEnEdition is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(8, 22, 31, 0.65); backdrop-filter: blur(4px); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem;">
+                <!-- Header de la modale -->
+                <div class="modal-header border-bottom px-4 py-3 bg-light" style="border-radius: 1.25rem 1.25rem 0 0;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="cit-avatar">
+                            @ObtenirInitiales(_agentEnEdition.NomAffiche)
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0">Habilitations de @_agentEnEdition.NomAffiche</h5>
+                            <div class="small text-muted font-monospace">@_agentEnEdition.Email</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="FermerModalPermissions"></button>
+                </div>
+
+                <!-- Corps de la modale -->
+                <div class="modal-body p-4" style="max-height: 70vh;">
+                    <!-- Barre d'outils du modal : résumé et actions de masse -->
+                    <div class="p-3 bg-light rounded-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 border">
+                        <div>
+                            <span class="small fw-bold text-dark">Habilitations actives :</span>
+                            <span class="badge @(_agentEnEdition.Permissions.Count >= _permissionsDisponibles.Count ? "cit-superadmin-badge" : "bg-primary text-white") ms-1 px-3 py-1 rounded-pill">
+                                @_agentEnEdition.Permissions.Count / @_permissionsDisponibles.Count accordées
+                            </span>
+                        </div>
+                        @* UX-P0 (UI-01) : ces deux actions mutent une soixantaine de permissions.
+                           Elles ouvrent désormais une confirmation nommant le compte et le volume,
+                           et sont verrouillées pendant le traitement. *@
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3"
+                                    disabled="@_enCours"
+                                    @onclick="() => DemanderConfirmationAccorderTout(_agentEnEdition)">
+                                <span aria-hidden="true">⭐</span> Tout accorder (SuperAdmin)
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger fw-semibold rounded-pill px-3"
+                                    disabled="@_enCours"
+                                    @onclick="() => DemanderConfirmationRetirerTout(_agentEnEdition)">
+                                <span aria-hidden="true">🗑️</span> Tout révoquer
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filtre de recherche dans les permissions -->
+                    <div class="mb-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">🔍</span>
+                            <input type="text" class="form-control border-start-0"
+                                   placeholder="Filtrer une permission par libellé ou code technique..."
+                                   @bind="_filtreModalPermission" @bind:event="oninput" />
+                            @if (!string.IsNullOrWhiteSpace(_filtreModalPermission))
+                            {
+                                <button class="btn btn-outline-secondary" @onclick="() => _filtreModalPermission = string.Empty">✕</button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Sections groupées par catégorie -->
+                    @foreach (var groupe in CategoriesFiltrees)
+                    {
+                        var permsDuGroupe = groupe.Permissions;
+                        var nbActives = permsDuGroupe.Count(p => _agentEnEdition.Permissions.Contains(p.Code));
+                        var toutActif = nbActives == permsDuGroupe.Count;
+
+                        <div class="cit-category-box">
+                            <div class="cit-category-header d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span>@groupe.Icone</span>
+                                    <span class="text-dark">@groupe.Nom</span>
+                                    <span class="badge @(nbActives > 0 ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-light text-muted") rounded-pill px-2 py-0 small">
+                                        @nbActives / @permsDuGroupe.Count
+                                    </span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-link text-decoration-none p-0 small fw-bold"
+                                            @onclick="() => BasculerGroupeAsync(_agentEnEdition.Id, groupe, !toutActif)">
+                                        @(toutActif ? "Tout décocher" : "Tout cocher")
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <div class="row g-2">
+                                    @foreach (var perm in permsDuGroupe)
+                                    {
+                                        var estAccordee = _agentEnEdition.Permissions.Contains(perm.Code);
+                                        <div class="col-12 col-md-6">
+                                            <div class="cit-perm-card @(estAccordee ? "active" : "") d-flex align-items-start gap-2"
+                                                 @onclick="() => BasculerPermissionAsync(_agentEnEdition.Id, perm.Code, !estAccordee)">
+                                                <input type="checkbox" class="form-check-input mt-1 flex-shrink-0"
+                                                       checked="@estAccordee"
+                                                       @onchange="() => BasculerPermissionAsync(_agentEnEdition.Id, perm.Code, !estAccordee)" />
+                                                <div class="flex-grow-1 overflow-hidden">
+                                                    <div class="small fw-bold text-dark text-truncate">@perm.Libelle</div>
+                                                    <div class="font-monospace text-muted" style="font-size: 0.72rem;">@perm.Code</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Footer de la modale -->
+                <div class="modal-footer border-top px-4 py-3 bg-light" style="border-radius: 0 0 1.25rem 1.25rem;">
+                    <div class="small text-muted me-auto">
+                        ℹ️ Les modifications d'habilitation prennent effet immédiatement et sont auditées.
+                    </div>
+                    <button type="button" class="btn btn-primary px-4 fw-semibold rounded-pill" @onclick="FermerModalPermissions">
+                        Terminer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@* ── UX-P0 (UI-01) : confirmation obligatoire avant toute mutation de masse ───────────── *@
+<ModaleConfirmation EstOuvert="@(_confirmation is not null)"
+                    Titre="@(_confirmation?.Titre ?? string.Empty)"
+                    Message="@(_confirmation?.Message ?? string.Empty)"
+                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? "Confirmer")"
+                    BoutonConfirmerClass="@(_confirmation?.ClasseConfirmer ?? "btn-danger")"
+                    BoutonAnnulerLibelle="Annuler"
+                    Desactive="@_enCours"
+                    OnConfirmer="@(async () => { if (_confirmation is not null) await _confirmation.Action(); })"
+                    OnAnnuler="AnnulerConfirmation" />
+
+@* ── UX-P1 (UI-03) : retour d'action explicite, annoncé aux lecteurs d'écran ──────────── *@
+<ToastNotification EstVisible="@_toastVisible"
+                   Titre="@_toastTitre"
+                   Message="@_toastMessage"
+                   TypeToast="@_toastType"
+                   OnFermer="@(() => _toastVisible = false)" />
+
 @code {
     private IReadOnlyList<CompteAgentVue>? _comptes;
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des comptes (administration.comptes) pour accéder à cette interface.";
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des comptes pour accéder à cette interface.";
     private string? _erreur;
     private string? _succes;
 
+    private bool _afficherFormulaireCreation;
     private string _email = string.Empty;
     private string _nomAffiche = string.Empty;
     private string _motDePasse = string.Empty;
+
+    private string _recherche = string.Empty;
+    private string _filtreStatut = "Tous";
+
+    // Gestion du modal d'habilitations
+    private CompteAgentVue? _agentEnEdition;
+    private string _filtreModalPermission = string.Empty;
+
+    // ── UX-P0 (UI-01) et UX-P1 (UI-02, UI-03) ────────────────────────────────────────────
+    // Verrou d'action en cours : protège du double-clic et rend l'attente visible.
+    private bool _enCours;
+
+    // Confirmation en attente. `null` = aucune modale ouverte.
+    private ConfirmationEnAttente? _confirmation;
+
+    // Retour d'action, servi par ToastNotification.
+    private bool _toastVisible;
+    private string _toastTitre = string.Empty;
+    private string _toastMessage = string.Empty;
+    private string _toastType = "success";
+
+    /// <summary>Action destructive en attente de confirmation explicite.</summary>
+    private sealed record ConfirmationEnAttente(
+        string Titre,
+        string Message,
+        string LibelleConfirmer,
+        string ClasseConfirmer,
+        Func<Task> Action);
 
     private static readonly IReadOnlyList<string> _permissionsDisponibles =
         Permission.Tous.OrderBy(p => p, StringComparer.Ordinal).ToList();
@@ -216,6 +511,12 @@ else
             var listerComptes = scope.ServiceProvider.GetRequiredService<ListerComptesAgentsQuery>();
             _comptes = await listerComptes.ExecuterAsync(_appelantId);
             _refuse = false;
+
+            // Rafraîchir l'agent en édition si la modale est ouverte
+            if (_agentEnEdition is not null)
+            {
+                _agentEnEdition = _comptes.FirstOrDefault(c => c.Id == _agentEnEdition.Id);
+            }
         }
         catch (AccesRefuseException ex)
         {
@@ -224,12 +525,36 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
             _chargement = false;
         }
+    }
+
+    private IEnumerable<CompteAgentVue> ComptesFiltres =>
+        (_comptes ?? Array.Empty<CompteAgentVue>())
+            .Where(c => _filtreStatut switch
+            {
+                "Actifs" => c.EstActif,
+                "Inactifs" => !c.EstActif,
+                _ => true
+            })
+            .Where(c => string.IsNullOrWhiteSpace(_recherche)
+                || c.NomAffiche.Contains(_recherche, StringComparison.OrdinalIgnoreCase)
+                || c.Email.Contains(_recherche, StringComparison.OrdinalIgnoreCase));
+
+    private void OuvrirModalPermissions(CompteAgentVue compte)
+    {
+        _agentEnEdition = compte;
+        _filtreModalPermission = string.Empty;
+    }
+
+    private void FermerModalPermissions()
+    {
+        _agentEnEdition = null;
+        _filtreModalPermission = string.Empty;
     }
 
     private async Task ExecuterAsync(Func<IServiceProvider, Task> action, string messageSucces)
@@ -250,7 +575,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -266,7 +591,32 @@ else
         _email = string.Empty;
         _nomAffiche = string.Empty;
         _motDePasse = string.Empty;
+        _afficherFormulaireCreation = false;
     }, "Compte agent créé avec succès.");
+
+    /// <summary>
+    /// UX-P1 (UI-03) — la désactivation ferme l'accès d'un agent : elle se confirme. La
+    /// RÉACTIVATION, elle, n'est pas destructive et reste directe.
+    /// </summary>
+    private void DemanderConfirmationDesactivation(CompteAgentVue cible)
+    {
+        var soiMeme = cible.Id == _appelantId
+            ? " Vous ne pouvez pas désactiver votre propre compte : l'opération sera refusée."
+            : string.Empty;
+
+        _confirmation = new ConfirmationEnAttente(
+            "Désactiver ce compte",
+            $"{cible.NomAffiche} ({cible.Email}) ne pourra plus se connecter, et ses sessions "
+            + "ouvertes seront invalidées. Ses habilitations et tout son historique sont conservés — "
+            + "le compte pourra être réactivé." + soiMeme,
+            "Désactiver le compte",
+            "btn-danger",
+            async () =>
+            {
+                _confirmation = null;
+                await BasculerActivationAsync(cible.Id, false);
+            });
+    }
 
     private Task BasculerActivationAsync(Guid cibleId, bool actif) => ExecuterAsync(
         sp =>
@@ -276,22 +626,293 @@ else
         },
         actif ? "Compte réactivé avec succès." : "Compte désactivé — son historique et ses actions passées sont conservés.");
 
-    private Task AttribuerAsync(Guid cibleId, string? permissionCode) =>
-        string.IsNullOrWhiteSpace(permissionCode)
-            ? Task.CompletedTask
-            : ExecuterAsync(
-                sp =>
-                {
-                    var gererHabilitation = sp.GetRequiredService<GererHabilitationAgentCommand>();
-                    return gererHabilitation.AttribuerAsync(_appelantId, cibleId, permissionCode);
-                },
-                "Rôle / Permission attribué avec succès.");
-
-    private Task RetirerAsync(Guid cibleId, string permissionCode) => ExecuterAsync(
-        sp =>
+    private async Task BasculerPermissionAsync(Guid cibleId, string permissionCode, bool accorder)
+    {
+        if (_enCours)
         {
-            var gererHabilitation = sp.GetRequiredService<GererHabilitationAgentCommand>();
-            return gererHabilitation.RetirerAsync(_appelantId, cibleId, permissionCode);
-        },
-        "Rôle / Permission retiré avec succès.");
+            return;
+        }
+
+        _enCours = true;
+        try
+        {
+        using var scope = ScopeFactory.CreateScope();
+        var gererHabilitation = scope.ServiceProvider.GetRequiredService<GererHabilitationAgentCommand>();
+        if (accorder)
+        {
+            await gererHabilitation.AttribuerAsync(_appelantId, cibleId, permissionCode);
+        }
+        else
+        {
+            await gererHabilitation.RetirerAsync(_appelantId, cibleId, permissionCode);
+        }
+        await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            AfficherToast("danger", "Modification refusée", MessagesUtilisateur.Pour(ex));
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+
+    // ── UX-P0 (UI-01) : confirmation, atomicité, verrou, retour ──────────────────────────
+
+    private void DemanderConfirmationAccorderTout(CompteAgentVue cible)
+    {
+        var manquantes = _permissionsDisponibles.Except(cible.Permissions).Count();
+        if (manquantes == 0)
+        {
+            AfficherToast("info", "Aucun changement", $"{cible.NomAffiche} détient déjà toutes les permissions.");
+            return;
+        }
+
+        _confirmation = new ConfirmationEnAttente(
+            "Accorder toutes les permissions",
+            $"{cible.NomAffiche} ({cible.Email}) recevra {manquantes} permission(s) supplémentaire(s), "
+            + $"soit l'intégralité des {_permissionsDisponibles.Count} permissions de la plateforme — "
+            + "administration des comptes, tarification et journal d'audit compris. "
+            + "Chaque attribution est tracée dans le journal d'audit.",
+            "Accorder les permissions",
+            "btn-warning",
+            () => ExecuterAccorderToutAsync(cible.Id));
+    }
+
+    private void DemanderConfirmationRetirerTout(CompteAgentVue cible)
+    {
+        if (cible.Permissions.Count == 0)
+        {
+            AfficherToast("info", "Aucun changement", $"{cible.NomAffiche} ne détient aucune permission.");
+            return;
+        }
+
+        var avertissementAutoRetrait = cible.Id == _appelantId
+            ? " Vous vous appliquez cette action à vous-même : la permission d'administration des comptes vous sera CONSERVÉE, afin de ne pas vous fermer l'accès."
+            : string.Empty;
+
+        _confirmation = new ConfirmationEnAttente(
+            "Révoquer toutes les permissions",
+            $"{cible.NomAffiche} ({cible.Email}) perdra ses {cible.Permissions.Count} permission(s) et "
+            + "ne pourra plus accéder aux écrans correspondants." + avertissementAutoRetrait,
+            "Révoquer les permissions",
+            "btn-danger",
+            () => ExecuterRetirerToutAsync(cible.Id));
+    }
+
+    private async Task ExecuterAccorderToutAsync(Guid cibleId) =>
+        await ExecuterEnMasseAsync(
+            (commande, ct) => commande.AccorderToutesAsync(_appelantId, cibleId, ct),
+            resultat => $"{resultat.PermissionsAppliquees} permission(s) accordée(s).");
+
+    private async Task ExecuterRetirerToutAsync(Guid cibleId) =>
+        await ExecuterEnMasseAsync(
+            (commande, ct) => commande.RetirerToutesAsync(_appelantId, cibleId, ct),
+            resultat => resultat.PermissionsConservees.Count == 0
+                ? $"{resultat.PermissionsAppliquees} permission(s) révoquée(s)."
+                : $"{resultat.PermissionsAppliquees} permission(s) révoquée(s). "
+                  + $"Conservée(s) pour ne pas vous fermer l'accès : {string.Join(", ", resultat.PermissionsConservees)}.");
+
+    /// <summary>
+    /// Exécute une opération de masse : verrou d'action, appel de la commande applicative — qui
+    /// valide l'ensemble en UNE unité de travail — puis retour explicite.
+    /// </summary>
+    private async Task ExecuterEnMasseAsync(
+        Func<DefinirHabilitationsEnMasseCommand, CancellationToken, Task<ResultatHabilitationsEnMasse>> operation,
+        Func<ResultatHabilitationsEnMasse, string> message)
+    {
+        if (_enCours)
+        {
+            return;
+        }
+
+        _enCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<DefinirHabilitationsEnMasseCommand>();
+            var resultat = await operation(commande, CancellationToken.None);
+
+            _confirmation = null;
+            AfficherToast("success", "Opération effectuée", message(resultat));
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _confirmation = null;
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _confirmation = null;
+            AfficherToast("danger", "Opération refusée", MessagesUtilisateur.Pour(ex));
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+
+    private void AnnulerConfirmation()
+    {
+        if (_enCours)
+        {
+            return;
+        }
+
+        _confirmation = null;
+    }
+
+    private void AfficherToast(string type, string titre, string message)
+    {
+        _toastType = type;
+        _toastTitre = titre;
+        _toastMessage = message;
+        _toastVisible = true;
+    }
+
+
+    private async Task BasculerGroupeAsync(Guid cibleId, GroupePermissions groupe, bool accorder)
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var gererHabilitation = scope.ServiceProvider.GetRequiredService<GererHabilitationAgentCommand>();
+        foreach (var perm in groupe.Permissions)
+        {
+            var possedeDeja = _agentEnEdition?.Permissions.Contains(perm.Code) == true;
+            if (accorder && !possedeDeja)
+            {
+                await gererHabilitation.AttribuerAsync(_appelantId, cibleId, perm.Code);
+            }
+            else if (!accorder && possedeDeja)
+            {
+                await gererHabilitation.RetirerAsync(_appelantId, cibleId, perm.Code);
+            }
+        }
+        await ChargerAsync();
+    }
+
+    private static string ObtenirInitiales(string nom)
+    {
+        if (string.IsNullOrWhiteSpace(nom)) return "AG";
+        var parts = nom.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
+        return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+    }
+
+    // Référentiel des Métadonnées & Catégories de Permissions
+    private sealed record ElementPermission(string Code, string Libelle);
+    private sealed record GroupePermissions(string Nom, string Icone, IReadOnlyList<ElementPermission> Permissions);
+    private sealed record ResumeCategorie(string Nom, string Icone, int Nombre);
+
+    private static readonly IReadOnlyList<GroupePermissions> TousLesGroupes =
+    [
+        new GroupePermissions("Billing Import", "📦", [
+            new ElementPermission(Permission.BillingImportSoumettre, "Soumission de dossier Import"),
+            new ElementPermission(Permission.BillingImportManifesteInstruire, "Instruction du Manifeste Import"),
+            new ElementPermission(Permission.BillingImportFacturationEditer, "Édition de la Facturation Import"),
+            new ElementPermission(Permission.BillingImportPaiementValider, "Validation des Paiements Import"),
+            new ElementPermission(Permission.BillingImportComptabiliteConfirmerLettrage, "Confirmation du Lettrage Comptable"),
+            new ElementPermission(Permission.BillingImportControleDocumentaireTraiter, "Contrôle Documentaire (BS/BADT)"),
+            new ElementPermission(Permission.BillingImportIesManifesteInstruire, "Instruction Manifeste (Client IES)"),
+            new ElementPermission(Permission.BillingImportIesControleDocumentaireInstruire, "Contrôle Documentaire (Client IES)"),
+        ]),
+        new GroupePermissions("Billing Export", "📤", [
+            new ElementPermission(Permission.BillingExportSoumettre, "Soumission de dossier Export"),
+            new ElementPermission(Permission.BillingExportBackOfficeInstruire, "Instruction Back-Office Export"),
+            new ElementPermission(Permission.BillingExportFacturationEditer, "Édition de la Facturation Export"),
+            new ElementPermission(Permission.BillingExportPaiementValider, "Validation des Paiements Export"),
+            new ElementPermission(Permission.BillingExportComptabiliteConfirmerLettrage, "Confirmation du Lettrage Comptable Export"),
+            new ElementPermission(Permission.BillingExportControleDocumentaireTraiter, "Contrôle Documentaire (BEE)"),
+            new ElementPermission(Permission.BillingExportIesBackOfficeInstruire, "Instruction Back-Office (Client IES)"),
+            new ElementPermission(Permission.BillingExportIesControleDocumentaireInstruire, "Contrôle Documentaire (Client IES)"),
+        ]),
+        new GroupePermissions("Socle & Traitement Tickets", "🎫", [
+            new ElementPermission(Permission.TicketCreer, "Créer un nouveau ticket"),
+            new ElementPermission(Permission.TicketPrendreEnCharge, "Prendre en charge un ticket en file"),
+            new ElementPermission(Permission.TicketAffecterManuellement, "Affectation manuelle à un opérateur"),
+            new ElementPermission(Permission.TicketReaffecter, "Réaffecter à un autre opérateur"),
+            new ElementPermission(Permission.TicketTransferer, "Transférer vers une autre file"),
+            new ElementPermission(Permission.TicketAnnuler, "Annuler un ticket"),
+            new ElementPermission(Permission.TicketCloturer, "Clôturer un ticket"),
+            new ElementPermission(Permission.TicketClotureAbsenceReponse, "Clôture pour absence de réponse"),
+            new ElementPermission(Permission.TicketRouvrir, "Rouvrir un ticket clôturé"),
+            new ElementPermission(Permission.MessageNoteInterne, "Rédiger des notes internes protégées"),
+            new ElementPermission(Permission.DocumentDeposer, "Déposer des pièces jointes et documents"),
+            new ElementPermission(Permission.DocumentTelecharger, "Télécharger les documents des dossiers"),
+        ]),
+        new GroupePermissions("Tarification & Avoirs", "💰", [
+            new ElementPermission(Permission.TarificationAdministrer, "Administration des grilles et barèmes"),
+            new ElementPermission(Permission.AvoirExonerationInstruire, "Instruction des demandes d'Avoir/Exonération"),
+            new ElementPermission(Permission.AvoirExonerationDecider, "Décision finale Avoir/Exonération (accord/rejet)"),
+        ]),
+        new GroupePermissions("Réclamations (Customer Complaint)", "📢", [
+            new ElementPermission(Permission.ComplaintSoumettre, "Dépôt d'une réclamation"),
+            new ElementPermission(Permission.ComplaintInstruire, "Instruction et examen d'une réclamation"),
+            new ElementPermission(Permission.ComplaintRepondre, "Réponse formalisée et clôture réclamation"),
+            new ElementPermission(Permission.AdministrationCategoriesReclamation, "Paramétrage des catégories de réclamation"),
+        ]),
+        new GroupePermissions("Enrôlement & Guichet", "🚚", [
+            new ElementPermission(Permission.EnrolementSoumettre, "Soumission dossier transporteur/chauffeur"),
+            new ElementPermission(Permission.EnrolementInstruire, "Instruction Gate, badges et convocations"),
+            new ElementPermission(Permission.GuichetRecherche, "Recherche rapide au guichet physique"),
+            new ElementPermission(Permission.RendezVousGerer, "Gestion des créneaux de rendez-vous"),
+        ]),
+        new GroupePermissions("Supervision & Exploitation", "📊", [
+            new ElementPermission(Permission.SupervisionConsulter, "Consultation du tableau de bord de supervision"),
+            new ElementPermission(Permission.SupervisionAgir, "Actions de déblocage et interventions"),
+            new ElementPermission(Permission.ActionDeMasse, "Exécution d'actions de masse en file"),
+            new ElementPermission(Permission.PrioriteModifier, "Modification de la priorité d'un ticket"),
+            new ElementPermission(Permission.DisponibiliteGerer, "Gestion de la disponibilité des opérateurs"),
+            new ElementPermission(Permission.CompetenceGerer, "Administration des compétences opérateur"),
+        ]),
+        new GroupePermissions("Administration & Sécurité", "🛡️", [
+            new ElementPermission(Permission.AdministrationComptes, "Administration des comptes et rôles agents"),
+            new ElementPermission(Permission.CompteValider, "Validation et ouverture des comptes sociétés"),
+            new ElementPermission(Permission.CompteTypeModifier, "Modification du type de client entreprise"),
+            new ElementPermission(Permission.CompteGererCollaborateurs, "Gestion des collaborateurs d'entreprise"),
+            new ElementPermission(Permission.AdministrationFiles, "Configuration des files de traitement"),
+            new ElementPermission(Permission.AdministrationSla, "Paramétrage des objectifs et règles SLA"),
+            new ElementPermission(Permission.AdministrationPerimetresSupervision, "Définition des périmètres de supervision"),
+            new ElementPermission(Permission.AdministrationNotifications, "Modèles et diffusion des notifications"),
+            new ElementPermission(Permission.AuditConsulter, "Consultation du journal d'audit général"),
+        ])
+    ];
+
+    private IEnumerable<GroupePermissions> CategoriesFiltrees
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_filtreModalPermission))
+                return TousLesGroupes;
+
+            var q = _filtreModalPermission.Trim();
+            return TousLesGroupes
+                .Select(g => new GroupePermissions(
+                    g.Nom,
+                    g.Icone,
+                    g.Permissions.Where(p => p.Libelle.Contains(q, StringComparison.OrdinalIgnoreCase)
+                                          || p.Code.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList()))
+                .Where(g => g.Permissions.Count > 0);
+        }
+    }
+
+    private static IEnumerable<ResumeCategorie> ObtenirCategoriesAgent(IReadOnlyList<string> permissionsAgent)
+    {
+        var set = new HashSet<string>(permissionsAgent, StringComparer.Ordinal);
+        foreach (var groupe in TousLesGroupes)
+        {
+            var nb = groupe.Permissions.Count(p => set.Contains(p.Code));
+            if (nb > 0)
+            {
+                yield return new ResumeCategorie(groupe.Nom, groupe.Icone, nb);
+            }
+        }
+    }
 }

@@ -1,4 +1,4 @@
-@page "/billing-import/manifeste"
+﻿@page "/billing-import/manifeste"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -18,9 +18,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>📜</span> File Pilote Manifeste
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Contrôle initial de conformité des connaissements (BL) et recevabilité manifeste</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
@@ -41,12 +41,12 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-3">@_erreur</div>
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(_actionSuccess))
     {
-        <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        <div class="alert alert-success py-2 small mb-3" role="status">@_actionSuccess</div>
     }
 
     @if (_tickets.Count == 0)
@@ -169,7 +169,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -197,7 +197,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -213,7 +213,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

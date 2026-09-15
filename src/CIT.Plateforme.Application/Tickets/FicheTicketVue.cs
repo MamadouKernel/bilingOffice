@@ -61,6 +61,10 @@ public sealed record FicheTicketVue(
     DateTime DateCreationUtc,
     DateTime? DatePriseEnChargeUtc,
     DateTime? DateClotureUtc,
+    // RG-TCK-06 : l'archivage est une PROPRIETE OBSERVABLE du ticket, pas une affirmation de
+    // commentaire. La fiche la restitue, de sorte qu'elle soit verifiable par le chemin reel.
+    bool EstArchive,
+    DateTime? DateArchivageUtc,
     bool EstEnEtatEngageant,
     bool DeclarationPresentielle,
     bool PeutPrendreEnCharge,

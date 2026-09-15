@@ -1,33 +1,36 @@
-@page "/comptes/profil"
+﻿@page "/comptes/profil"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterProfilSocieteQuery ConsulterProfil
 
-<PageTitle>Profil de la société — CIT</PageTitle>
+<PageTitle>@Loc["ProfilSoc.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>🏢</span> Profil de la société
-        </h2>
-        <div class="cit-page-subtitle">Informations de votre entreprise et statut de rattachement cloisonné</div>
+        <h1 class="cit-page-title">
+            <span>🏢</span> @Loc["ProfilSoc.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["ProfilSoc.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
         <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+            @Loc["ProfilSoc.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement du profil de votre société..." />
+    <IndicateurChargement Message="@Loc["ProfilSoc.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -35,15 +38,15 @@ else if (_nonAutorise)
 }
 else if (_sansSociete)
 {
-    <EtatVide Titre="Aucune société rattachée"
-              Description="Votre compte n'est rattaché à aucune société cliente. Cette page concerne les comptes entreprise."
+    <EtatVide Titre="@Loc["ProfilSoc.NoCompanyTitle"]"
+              Description="@Loc["ProfilSoc.NoCompanyDesc"]"
               Icone="🏢" />
 }
 else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-4">@_erreur</div>
+        <div class="alert alert-danger mb-4" role="alert">@_erreur</div>
     }
 
     @if (_resultat is not null)
@@ -53,25 +56,25 @@ else
                 <div>
                     <h5 class="fw-bold text-dark mb-1">
                         @(string.IsNullOrWhiteSpace(_resultat.Societe.InformationsDeclarees)
-                            ? "Société sans informations déclarées"
+                            ? Loc["ProfilSoc.NoInfoDeclared"].Value
                             : _resultat.Societe.InformationsDeclarees)
                     </h5>
                     <div class="text-muted small">
-                        Type de client : <span class="fw-semibold">@_resultat.Societe.Profil</span>
-                        · Créée le @_resultat.Societe.DateCreationUtc.ToString("dd/MM/yyyy")
+                        @Loc["ProfilSoc.ClientType"] <span class="fw-semibold">@_resultat.Societe.Profil</span>
+                        · @Loc["ProfilSoc.CreatedOn"] @_resultat.Societe.DateCreationUtc.ToString("dd/MM/yyyy")
                     </div>
                 </div>
                 <span class="badge bg-primary-subtle text-primary fs-6">@_resultat.Societe.Etat</span>
             </div>
 
-            <h6 class="fw-bold text-dark mt-4 mb-2">Utilisateurs et collaborateurs rattachés</h6>
+            <h6 class="fw-bold text-dark mt-4 mb-2">@Loc["ProfilSoc.UsersSection"]</h6>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Collaborateur</th>
-                            <th>Rôle</th>
-                            <th>Statut</th>
+                            <th>@Loc["ProfilSoc.ColCollaborator"]</th>
+                            <th>@Loc["Societe.ColRole"]</th>
+                            <th>@Loc["Societe.ColStatus"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,16 +85,16 @@ else
                                 <td>
                                     @if (utilisateur.EstAdministrateur)
                                     {
-                                        <span class="badge bg-primary">Administrateur</span>
+                                        <span class="badge bg-primary">@Loc["Societe.RoleAdmin"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-light text-dark border">Collaborateur</span>
+                                        <span class="badge bg-light text-dark border">@Loc["Societe.RoleCollaborator"]</span>
                                     }
                                 </td>
                                 <td>
                                     <span class="badge @(utilisateur.EstActif ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
-                                        @(utilisateur.EstActif ? "Actif" : "Inactif")
+                                        @(utilisateur.EstActif ? Loc["Societe.StatusActive"].Value : Loc["Profil.StateInactive"].Value)
                                     </span>
                                 </td>
                             </tr>
@@ -118,7 +121,7 @@ else
     private string NomLisible(Guid utilisateurId) =>
         _resultat?.NomsUtilisateurs?.GetValueOrDefault(utilisateurId) is { Length: > 0 } nom
             ? nom
-            : "Collaborateur non identifié";
+            : Loc["ProfilSoc.UnknownCollaborator"].Value;
 
     private async Task ChargerAsync()
     {
@@ -130,7 +133,7 @@ else
             if (contexte is null || !contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour consulter le profil de votre société.";
+                _messageNonAutorise = Loc["ProfilSoc.MsgLoginRequired"].Value;
                 return;
             }
 
@@ -153,7 +156,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

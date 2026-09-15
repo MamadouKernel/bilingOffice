@@ -1,35 +1,38 @@
-@page "/simulation/{Id:guid}"
+﻿@page "/simulation/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.Tarification
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterSimulationProformaQueryHandler Consulter
 @inject GenererDocumentProformaPdfQueryHandler GenererPdf
 @inject IJSRuntime Js
 
-<PageTitle>Détail simulation — CIT</PageTitle>
+<PageTitle>@Loc["SimDet.PageTitle"]</PageTitle>
 
-<PageTitle>Détail simulation — CIT</PageTitle>
+<FilAriane Elements="@(new List<FilAriane.ElementAriane> { new(Loc["FicheAvoirExo.BcHome"].Value, "/"), new(Loc["SimHist.Title"].Value, "/simulation/historique"), new(Loc["SimDet.BcDetail"].Value) })" />
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>📄</span> Détail de la simulation
-        </h2>
-        <div class="cit-page-subtitle">Instantané figé au moment de l'enregistrement — jamais recalculé rétroactivement</div>
+        <h1 class="cit-page-title">
+            <span>📄</span> @Loc["SimDet.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["SimDet.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
-        <a href="/simulation/historique" class="btn btn-outline-secondary btn-sm shadow-sm">← Retour à l'historique</a>
+        <a href="/simulation/historique" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["SimDet.BackToHistory"]</a>
     </div>
 </div>
 
 <div style="max-width: 1100px;">
     @if (_chargement)
     {
-        <IndicateurChargement Message="Chargement de la simulation..." />
+        <IndicateurChargement Message="@Loc["SimDet.Loading"]" />
     }
     else if (_nonAutorise)
     {
@@ -37,49 +40,49 @@
     }
     else if (_detail is null)
     {
-        <EtatVide Titre="Simulation introuvable" Message="Cette simulation n'existe pas ou a été supprimée." Icone="❓" />
+        <EtatVide Titre="@Loc["SimDet.NotFoundTitle"]" Message="@Loc["SimDet.NotFoundMsg"]" Icone="❓" />
     }
     else
     {
         @if (_detail.EstGrilleObsolete)
         {
             <div class="alert alert-warning border-warning">
-                ⚠️ La grille tarifaire a été révisée depuis cette simulation (version active actuelle :
-                <strong>@_detail.VersionActiveActuelleLibelle</strong>). Ce détail reste celui calculé avec
-                <strong>@_detail.VersionGrilleLibelle</strong> et n'est pas recalculé automatiquement.
+                @Loc["SimDet.ObsoletePre"]
+                <strong>@_detail.VersionActiveActuelleLibelle</strong>@Loc["SimDet.ObsoleteMid"]
+                <strong>@_detail.VersionGrilleLibelle</strong> @Loc["SimDet.ObsoletePost"]
             </div>
         }
 
         <div class="cit-card mb-4">
             <div class="row g-3 small mb-3 p-3 bg-light rounded-3 border">
-                <div class="col-md-3"><span class="text-muted">Référence :</span> <strong class="font-monospace text-primary">@_detail.Reference</strong></div>
-                <div class="col-md-3"><span class="text-muted">Date :</span> <strong class="font-monospace">@_detail.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</strong></div>
-                <div class="col-md-3"><span class="text-muted">Sens :</span> <strong>@_detail.Sens</strong></div>
-                <div class="col-md-3"><span class="text-muted">Séjour :</span> <strong>@_detail.DureeSejourJours j</strong></div>
+                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.RefLabel"]</span> <strong class="font-monospace text-primary">@_detail.Reference</strong></div>
+                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.DateLabel"]</span> <strong class="font-monospace">@_detail.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.SensLabel"]</span> <strong>@_detail.Sens</strong></div>
+                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.StayLabel"]</span> <strong>@_detail.DureeSejourJours @Loc["SimHist.DaySuffix"]</strong></div>
                 @if (!string.IsNullOrWhiteSpace(_detail.NomNavire))
                 {
-                    <div class="col-md-3"><span class="text-muted">Navire :</span> <strong>@_detail.NomNavire</strong></div>
+                    <div class="col-md-3"><span class="text-muted">@Loc["SimDet.ShipLabel"]</span> <strong>@_detail.NomNavire</strong></div>
                 }
                 @if (!string.IsNullOrWhiteSpace(_detail.NumeroBlOuBooking))
                 {
-                    <div class="col-md-3"><span class="text-muted">BL / Booking :</span> <strong class="font-monospace text-dark">@_detail.NumeroBlOuBooking</strong></div>
+                    <div class="col-md-3"><span class="text-muted">@Loc["SimDet.BlBookingLabel"]</span> <strong class="font-monospace text-dark">@_detail.NumeroBlOuBooking</strong></div>
                 }
-                <div class="col-md-3"><span class="text-muted">Grille appliquée :</span> <span class="badge bg-secondary-subtle text-secondary">@_detail.VersionGrilleLibelle</span></div>
+                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.GridApplied"]</span> <span class="badge bg-secondary-subtle text-secondary">@_detail.VersionGrilleLibelle</span></div>
             </div>
 
             <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Conteneur</th>
-                            <th class="text-end">Acconage</th>
-                            <th class="text-end">Relevage</th>
-                            <th class="text-end">Branch. Frigo</th>
-                            <th class="text-end">Maj. Lourd</th>
-                            <th class="text-end">Maj. Dangereux</th>
-                            <th class="text-end">Maj. OOG</th>
-                            <th class="text-end">Stationnement</th>
-                            <th class="text-end fw-bold">Total ligne</th>
+                            <th>@Loc["Sim.ColContainer"]</th>
+                            <th class="text-end">@Loc["Sim.ColAcconage"]</th>
+                            <th class="text-end">@Loc["Sim.ColRelevage"]</th>
+                            <th class="text-end">@Loc["Sim.ColBranchement"]</th>
+                            <th class="text-end">@Loc["Sim.ColMajLourd"]</th>
+                            <th class="text-end">@Loc["Sim.ColMajDanger"]</th>
+                            <th class="text-end">@Loc["Sim.ColMajOog"]</th>
+                            <th class="text-end">@Loc["Sim.ColStationnement"]</th>
+                            <th class="text-end fw-bold">@Loc["Sim.ColTotalLine"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,7 +103,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="table-light border-top">
-                            <td colspan="8" class="text-end fw-bold">Total général</td>
+                            <td colspan="8" class="text-end fw-bold">@Loc["SimDet.GrandTotal"]</td>
                             <td class="text-end fw-bold fs-5 text-primary font-monospace">@_detail.MontantTotalXof.ToString("N0") XOF</td>
                         </tr>
                     </tfoot>
@@ -111,13 +114,13 @@
 
             <div class="d-flex justify-content-end mt-3">
                 <button type="button" class="btn btn-outline-primary px-4 fw-bold shadow-sm" disabled="@_telechargementEnCours" @onclick="TelechargerPdfAsync">
-                    @(_telechargementEnCours ? "Génération..." : "📄 Télécharger le PDF")
+                    @(_telechargementEnCours ? Loc["SimDet.Generating"].Value : Loc["SimDet.DownloadPdf"].Value)
                 </button>
             </div>
 
             @if (_erreur is not null)
             {
-                <div class="alert alert-danger mt-3 mb-0">@_erreur</div>
+                <div class="alert alert-danger mt-3 mb-0" role="alert">@_erreur</div>
             }
         </div>
     }
@@ -145,7 +148,7 @@
             if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Vous devez être connecté et rattaché à une entreprise pour consulter cette simulation.";
+                _messageNonAutorise = Loc["SimDet.LoginRequired"].Value;
                 return;
             }
 
@@ -160,7 +163,7 @@
             catch (UnauthorizedAccessException)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Cette simulation appartient à une autre entreprise.";
+                _messageNonAutorise = Loc["SimDet.OtherCompany"].Value;
             }
         }
         finally
@@ -181,7 +184,7 @@
         }
         catch (Exception ex)
         {
-            _erreur = $"Erreur lors de la génération du PDF : {ex.Message}";
+            _erreur = $"{Loc["SimDet.PdfErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
         finally
         {

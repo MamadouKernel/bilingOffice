@@ -1,20 +1,63 @@
+﻿@*
+    Modale de confirmation partagée.
+
+    REMÉDIATION UI/UX (UX-P0 / UX-P1). Ce composant existait depuis l'origine et n'avait AUCUN
+    appelant : aucune action destructive de l'application n'était confirmée. Il est désormais câblé.
+
+    Trois ajouts ont été nécessaires avant de pouvoir l'utiliser sans dégrader l'accessibilité :
+      - sémantique de dialogue (role, aria-modal, aria-labelledby, aria-describedby) ;
+      - fermeture au clavier par Échap ;
+      - focus initial sur le bouton d'annulation — le geste sûr, jamais le geste destructeur.
+
+    Le clic sur l'arrière-plan annule. Pendant le traitement (`Desactive`), l'annulation par
+    arrière-plan et par Échap est neutralisée : on ne ferme pas une modale dont l'action est partie.
+
+    i18n (LOT 1) : les libellés que le composant possède lui-même (titre, message, boutons Annuler /
+    Confirmer / Traitement par défaut) suivent la culture active via la source de traduction
+    partagée. Un appelant peut toujours passer un libellé explicite, qui l'emporte alors.
+*@
+@using CIT.Plateforme.Web.Resources
+
 @if (EstOuvert)
 {
-    <div class="cit-modal-backdrop" @onclick="Annuler">
-        <div class="cit-modal-dialog" @onclick:stopPropagation>
+    <div class="cit-modal-backdrop cit-voile-confirmation"
+         @onclick="AnnulerDepuisArrierePlan"
+         @onkeydown="SurToucheAsync"
+         tabindex="-1">
+        <div class="cit-modal-dialog"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="@_idTitre"
+             aria-describedby="@_idMessage"
+             @onclick:stopPropagation>
             <div class="p-4 border-bottom">
-                <h5 class="modal-title fw-bold m-0 text-dark">@Titre</h5>
+                <h5 class="modal-title fw-bold m-0 text-dark" id="@_idTitre">@(Titre ?? SharedResourcesLocalizer.Get("Common.Confirmation"))</h5>
             </div>
             <div class="p-4">
-                <p class="text-secondary m-0 mb-3">@Message</p>
+                <p class="text-secondary m-0 mb-3" id="@_idMessage">@(Message ?? SharedResourcesLocalizer.Get("Common.ConfirmActionQuestion"))</p>
                 @ChildContent
             </div>
             <div class="p-3 bg-light border-top d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-outline-secondary" @onclick="Annuler">
-                    @BoutonAnnulerLibelle
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        @ref="_boutonAnnuler"
+                        disabled="@Desactive"
+                        @onclick="Annuler">
+                    @(BoutonAnnulerLibelle ?? SharedResourcesLocalizer.Get("Common.Cancel"))
                 </button>
-                <button type="button" class="btn @BoutonConfirmerClass" @onclick="Confirmer" disabled="@Desactive">
-                    @BoutonConfirmerLibelle
+                <button type="button"
+                        class="btn @BoutonConfirmerClass"
+                        disabled="@Desactive"
+                        @onclick="Confirmer">
+                    @if (Desactive)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                        <span>@(BoutonTraitementLibelle ?? SharedResourcesLocalizer.Get("Common.Processing"))</span>
+                    }
+                    else
+                    {
+                        @(BoutonConfirmerLibelle ?? SharedResourcesLocalizer.Get("Common.Confirm"))
+                    }
                 </button>
             </div>
         </div>
@@ -22,24 +65,47 @@
 }
 
 @code {
+    private readonly string _idTitre = $"modale-titre-{Guid.NewGuid():N}";
+    private readonly string _idMessage = $"modale-message-{Guid.NewGuid():N}";
+
+    private ElementReference _boutonAnnuler;
+    private bool _focusAPlacer;
+    private bool _restaurerFocus;
+    private bool _etaitOuvert;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
     [Parameter]
     public bool EstOuvert { get; set; }
 
+    /// <summary>Titre du dialogue. Null → titre par défaut localisé.</summary>
     [Parameter]
-    public string Titre { get; set; } = "Confirmation";
+    public string? Titre { get; set; }
 
+    /// <summary>Message du dialogue. Null → question de confirmation par défaut localisée.</summary>
     [Parameter]
-    public string Message { get; set; } = "Êtes-vous sûr de vouloir effectuer cette action ?";
+    public string? Message { get; set; }
 
+    /// <summary>Libellé de confirmation. Null → « Confirmer » localisé.</summary>
     [Parameter]
-    public string BoutonConfirmerLibelle { get; set; } = "Confirmer";
+    public string? BoutonConfirmerLibelle { get; set; }
 
+    /// <summary>Libellé d'annulation. Null → « Annuler » localisé.</summary>
     [Parameter]
-    public string BoutonAnnulerLibelle { get; set; } = "Annuler";
+    public string? BoutonAnnulerLibelle { get; set; }
+
+    /// <summary>Libellé affiché à la place de la confirmation pendant le traitement. Null → localisé.</summary>
+    [Parameter]
+    public string? BoutonTraitementLibelle { get; set; }
 
     [Parameter]
     public string BoutonConfirmerClass { get; set; } = "btn-danger";
 
+    /// <summary>
+    /// Vrai pendant l'exécution de l'action confirmée. Désactive les deux boutons — ce qui protège
+    /// du double-clic — et neutralise les fermetures accidentelles.
+    /// </summary>
     [Parameter]
     public bool Desactive { get; set; }
 
@@ -52,6 +118,105 @@
     [Parameter]
     public EventCallback OnAnnuler { get; set; }
 
-    private async Task Confirmer() => await OnConfirmer.InvokeAsync();
-    private async Task Annuler() => await OnAnnuler.InvokeAsync();
+    private async Task Confirmer()
+    {
+        if (Desactive)
+        {
+            return;
+        }
+
+        await OnConfirmer.InvokeAsync();
+    }
+
+    private async Task Annuler()
+    {
+        if (Desactive)
+        {
+            return;
+        }
+
+        await OnAnnuler.InvokeAsync();
+    }
+
+    /// <summary>
+    /// REMEDIATION RECETTE UAT (D-01) : l'attribut `autofocus` etait inoperant. Le navigateur ne
+    /// l'honore qu'au moment ou il analyse le document ; un noeud insere ensuite par Blazor ne
+    /// recoit donc jamais le focus. Consequence en chaine : le focus restait sur le bouton qui
+    /// avait ouvert la modale, hors du dialogue — et la fermeture par Echap, cablee sur
+    /// l'arriere-plan, ne pouvait pas se declencher puisque l'evenement clavier ne remontait pas
+    /// jusqu'a lui. Placer le focus reellement repare les deux.
+    ///
+    /// Le focus va sur ANNULER, jamais sur la confirmation : le geste sur, jamais le geste
+    /// destructeur — une pression sur Entree ne doit rien detruire.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        if (EstOuvert && !_etaitOuvert)
+        {
+            _focusAPlacer = true;
+        }
+        else if (!EstOuvert && _etaitOuvert)
+        {
+            // Fermeture : rendre le focus au déclencheur (WCAG 2.4.3).
+            _restaurerFocus = true;
+        }
+
+        _etaitOuvert = EstOuvert;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool premierRendu)
+    {
+        if (_restaurerFocus && !EstOuvert)
+        {
+            _restaurerFocus = false;
+
+            try
+            {
+                await JS.InvokeVoidAsync("citFocus.restaurer");
+            }
+            catch (Exception)
+            {
+                // Interop indisponible (rendu statique / circuit interrompu) : sans conséquence.
+            }
+        }
+
+        if (!_focusAPlacer || !EstOuvert)
+        {
+            return;
+        }
+
+        _focusAPlacer = false;
+
+        // Mémoriser le déclencheur AVANT de déplacer le focus sur Annuler, pour pouvoir le
+        // restaurer à la fermeture. Isolé dans son propre try : une interop indisponible ne doit
+        // pas empêcher le placement du focus initial ci-dessous.
+        try
+        {
+            await JS.InvokeVoidAsync("citFocus.memoriser");
+        }
+        catch (Exception)
+        {
+            // Interop indisponible : sans conséquence, le focus initial reste placé.
+        }
+
+        try
+        {
+            await _boutonAnnuler.FocusAsync();
+        }
+        catch (Exception)
+        {
+            // Rendu statique, circuit interrompu ou noeud deja retire : l'absence de focus ne doit
+            // jamais faire echouer l'affichage de la modale.
+        }
+    }
+
+    private async Task AnnulerDepuisArrierePlan() => await Annuler();
+
+    private async Task SurToucheAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            await Annuler();
+        }
+    }
 }

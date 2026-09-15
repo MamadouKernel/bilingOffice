@@ -1,4 +1,4 @@
-@page "/administration/regles-escalade"
+﻿@page "/administration/regles-escalade"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
@@ -18,7 +18,7 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span aria-hidden="true">🚨</span> Alertes &amp; escalades
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">Règles d'escalade SLA</h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">Règles d'escalade SLA</h1>
         <div class="cit-page-subtitle text-muted">
             Actions déclenchées lorsqu'un ticket franchit le seuil d'escalade de son SLA. Sans
             règle, un dépassement est signalé sans être escaladé.
@@ -165,7 +165,7 @@ else
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA (administration.sla) pour accéder à cette interface.";
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA pour accéder à cette interface.";
     private string? _erreur;
 
     private ActionEscalade _action = ActionEscalade.NotifierSuperviseur;
@@ -205,7 +205,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -229,7 +229,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

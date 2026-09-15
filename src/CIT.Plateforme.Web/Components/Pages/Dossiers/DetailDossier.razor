@@ -1,33 +1,42 @@
-@page "/dossiers/{DossierId:guid}"
+﻿@* REMÉDIATION routage (constaté en recette authentifiée, build publié) : cette page ET
+   FicheDossier.razor revendiquaient toutes deux « /dossiers/{guid} » — le routeur levait une
+   AmbiguousMatchException et TOUTE consultation de dossier renvoyait 500 (les deux pages étaient
+   donc inatteignables). FicheDossier est la page canonique (contrôle d'accès central
+   ObtenirFicheDossierQuery + ExigerConsultationDossierAsync, parcours client et tests de
+   cloisonnement). Cette vue opérationnelle reçoit une route distincte. *@
+@page "/dossiers/{DossierId:guid}/operationnel"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject ConsulterDossierQuery ConsulterDossier
 @inject IContexteUtilisateurWeb ContexteService
 
-<PageTitle>Détail du dossier — CIT</PageTitle>
+<PageTitle>@Loc["DetDos.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>📁</span> Dossier Opérationnel
-        </h2>
-        <div class="cit-page-subtitle">Suivi d'ensemble du dossier et de ses tickets dérivés</div>
+        <h1 class="cit-page-title">
+            <span>📁</span> @Loc["DetDos.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["DetDos.Subtitle"]</div>
     </div>
 </div>
 
 @if (_accesRefuse)
 {
-    <PermissionDenied Message="Ce dossier ne relève pas de votre périmètre." />
+    <PermissionDenied Message="@Loc["DetDos.AccessDenied"]" />
 }
 else if (vue is not null)
 {
     <div class="cit-card mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <span class="text-muted small">Numéro de dossier :</span>
+                <span class="text-muted small">@Loc["DetDos.FileNumber"]</span>
                 <div class="fs-4 fw-bold font-monospace text-primary">@vue.Numero</div>
             </div>
             <div>
@@ -35,13 +44,13 @@ else if (vue is not null)
             </div>
         </div>
 
-        <h6 class="fw-bold text-dark mt-4 mb-2">Tickets rattachés au dossier</h6>
+        <h6 class="fw-bold text-dark mt-4 mb-2">@Loc["DetDos.LinkedTickets"]</h6>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>N° Ticket</th>
-                        <th>Statut actuel</th>
+                        <th>@Loc["AvoirExoList.ColTicket"]</th>
+                        <th>@Loc["DetDos.ColCurrentStatus"]</th>
                     </tr>
                 </thead>
                 <tbody>

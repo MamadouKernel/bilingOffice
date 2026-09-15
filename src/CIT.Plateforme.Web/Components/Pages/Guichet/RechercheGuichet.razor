@@ -1,4 +1,4 @@
-@page "/guichet/recherche"
+﻿@page "/guichet/recherche"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -18,9 +18,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>🏛️</span> Guichet Billing Office — Continuité de Service
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">
             Recherche rapide multicritère & Reprise de dossier sans ressaisie
         </div>
@@ -320,7 +320,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -337,7 +337,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -371,7 +371,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

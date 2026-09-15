@@ -2,6 +2,7 @@ using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Dossiers;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tickets;
+using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Moq;
 
@@ -19,6 +20,17 @@ public static class FabriqueRequetes
     /// <summary>La garde d'identité seule — pour les surfaces bornées par l'appelant lui-même.</summary>
     public static GardeIdentiteService Garde(PlateformeDbContext db) =>
         new(new UtilisateurInfoRepository(db));
+
+    /// <summary>
+    /// RG-SEC-01 — la portée des champs IES, composée comme en production : garde d'identité,
+    /// service d'autorisation réel, matrice de droits réelle. Aucun test ne doit instancier
+    /// <c>AutorisationChampService</c> à la main pour éprouver le comportement produit : c'est
+    /// exactement ce qui avait laissé la règle sans câblage.
+    /// </summary>
+    public static PorteeChampsIesService PorteeChampsIes(PlateformeDbContext db) => new(
+        Garde(db),
+        new AutorisationService(db),
+        new AutorisationChampService());
 
     /// <summary>Le contrôle d'accès central, tel que le conteneur le compose en production.</summary>
     public static ControleAccesRessourceService ControleAcces(PlateformeDbContext db) => new(

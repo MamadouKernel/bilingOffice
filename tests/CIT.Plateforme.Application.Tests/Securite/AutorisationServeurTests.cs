@@ -27,7 +27,14 @@ public sealed class AutorisationServeurTests
         var exception = await Assert.ThrowsAsync<AccesRefuseException>(() =>
             service.ExigerAsync(utilisateurId, Permission.TicketTransferer));
 
-        Assert.Contains(Permission.TicketTransferer, exception.Message);
+        // REMÉDIATION D-06 : le message VISIBLE ne divulgue plus l'identifiant du compte ni le code
+        // de permission ; ces éléments restent disponibles pour le diagnostic dans le détail
+        // technique, jamais affiché à l'utilisateur. (Assertion adaptée à la correction D-06.)
+        Assert.DoesNotContain(Permission.TicketTransferer, exception.Message);
+        Assert.DoesNotContain(utilisateurId.ToString(), exception.Message);
+        Assert.NotNull(exception.DetailTechnique);
+        Assert.Contains(Permission.TicketTransferer, exception.DetailTechnique!);
+        Assert.Contains(utilisateurId.ToString(), exception.DetailTechnique!);
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using CIT.Plateforme.Domain.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -75,8 +75,13 @@ public sealed class ScannerAntivirusDefender : IAnalyseAntivirus
 
         try
         {
-            // Écriture du flux dans un fichier temporaire isolé
-            contenu.Position = 0;
+            // Écriture du flux dans un fichier temporaire isolé.
+            // REMEDIATION RECETTE UAT (D-11a) : repositionnement conditionnel, voir FluxRejouable.
+            if (contenu.CanSeek)
+            {
+                contenu.Position = 0;
+            }
+
             await using (var fs = File.Create(tempFilePath))
             {
                 await contenu.CopyToAsync(fs, ct).ConfigureAwait(false);

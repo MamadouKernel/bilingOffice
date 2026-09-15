@@ -1,4 +1,4 @@
-@page "/administration/pieces-exigees-etape"
+﻿@page "/administration/pieces-exigees-etape"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
@@ -17,7 +17,7 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span aria-hidden="true">📎</span> Documents &amp; justificatifs
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">Pièces exigées par étape</h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">Pièces exigées par étape</h1>
         <div class="cit-page-subtitle text-muted">
             Documents attendus à chaque étape du parcours, distincts des pièces d'ouverture de
             compte. Une pièce sans module est attendue partout.
@@ -155,7 +155,7 @@ else
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des files (administration.files) pour accéder à cette interface.";
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des files pour accéder à cette interface.";
     private string? _erreur;
 
     private string _code = string.Empty;
@@ -193,7 +193,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -217,7 +217,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

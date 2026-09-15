@@ -1,4 +1,4 @@
-@page "/administration/matrice-transitions"
+﻿@page "/administration/matrice-transitions"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
@@ -17,7 +17,7 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>🔀</span> Gestion des Files &amp; Réorientations
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">Matrice des transitions autorisées</h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">Matrice des transitions autorisées</h1>
         <div class="cit-page-subtitle text-muted">
             Quelles files peuvent transférer vers quelles autres, et sous quels motifs (§ 17.3, TRF-06, CLAR-04).
         </div>
@@ -153,7 +153,7 @@ else
                                     </td>
                                     <td class="text-end pe-4">
                                         <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                                @onclick="() => SupprimerAsync(t.FileSourceId, t.FileCibleId)">
+                                                @onclick="() => DemanderConfirmationSuppression(t.FileSourceId, t.FileCibleId)">
                                             Supprimer
                                         </button>
                                     </td>
@@ -167,13 +167,26 @@ else
     }
 }
 
+<ModaleConfirmation EstOuvert="@(_confirmation is not null)"
+                    Titre="@(_confirmation?.Titre ?? string.Empty)"
+                    Message="@(_confirmation?.Message ?? string.Empty)"
+                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? "Confirmer")"
+                    BoutonConfirmerClass="@(_confirmation?.ClasseConfirmer ?? "btn-danger")"
+                    Desactive="@_enCours"
+                    OnConfirmer="@(async () => { if (_confirmation is not null) await _confirmation.Action(); })"
+                    OnAnnuler="AnnulerConfirmation" />
+
 @code {
     private MatriceTransitionsVue? _vue;
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des files (administration.files) pour accéder à cette interface.";
+    private string _messageRefus = "Vous devez disposer de la permission d'administration des files pour accéder à cette interface.";
     private string? _erreur;
+
+    // AM-03 — la suppression d'une transition est irréversible : elle passe par une confirmation.
+    private ConfirmationEnAttente? _confirmation;
+    private bool _enCours;
 
     private string _source = string.Empty;
     private string _cible = string.Empty;
@@ -213,7 +226,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -254,7 +267,33 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private void DemanderConfirmationSuppression(Guid source, Guid cible)
+    {
+        _confirmation = new ConfirmationEnAttente(
+            "Supprimer la transition",
+            "Cette réorientation entre files sera définitivement retirée de la matrice. Cette action est irréversible.",
+            "Supprimer",
+            "btn-danger",
+            () => ExecuterSuppressionAsync(source, cible));
+    }
+
+    private void AnnulerConfirmation() => _confirmation = null;
+
+    private async Task ExecuterSuppressionAsync(Guid source, Guid cible)
+    {
+        _enCours = true;
+        try
+        {
+            await SupprimerAsync(source, cible);
+        }
+        finally
+        {
+            _enCours = false;
+            _confirmation = null;
         }
     }
 
@@ -272,7 +311,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

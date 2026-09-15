@@ -15,6 +15,28 @@ public interface IAutorisationService
     Task ExigerAsync(Guid utilisateurId, string permissionCode, Guid? fileId = null, CancellationToken ct = default);
 }
 
-/// <summary>Levée par <see cref="IAutorisationService.ExigerAsync"/> — jamais contournable côté
-/// client, jamais silencieuse (règle métier critique « autorisations »).</summary>
-public sealed class AccesRefuseException(string message) : Exception(message);
+/// <summary>
+/// Levée par <see cref="IAutorisationService.ExigerAsync"/> — jamais contournable côté client,
+/// jamais silencieuse (règle métier critique « autorisations »).
+///
+/// REMÉDIATION UI/UX (D-06) : le <see cref="Exception.Message"/> est ce que l'utilisateur VOIT. Il
+/// ne doit donc plus porter l'identifiant technique du compte ni le code de permission — la recette
+/// affichait « L'utilisateur 702bfafc-… ne dispose pas de la permission 'supervision.consulter' ».
+/// Ces éléments restent utiles au diagnostic : ils sont conservés dans <see cref="DetailTechnique"/>,
+/// destiné aux journaux, jamais à l'écran.
+/// </summary>
+public sealed class AccesRefuseException : Exception
+{
+    public AccesRefuseException(string message) : base(message)
+    {
+    }
+
+    public AccesRefuseException(string message, string? detailTechnique) : base(message)
+    {
+        DetailTechnique = detailTechnique;
+    }
+
+    /// <summary>Détail réservé aux journaux — identifiant du compte, code de permission, file.
+    /// N'est jamais affiché à l'utilisateur.</summary>
+    public string? DetailTechnique { get; }
+}

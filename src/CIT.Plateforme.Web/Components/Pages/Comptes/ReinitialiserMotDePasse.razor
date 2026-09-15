@@ -1,18 +1,21 @@
-@page "/comptes/reinitialiser-mot-de-passe"
+﻿@page "/comptes/reinitialiser-mot-de-passe"
 @using CIT.Plateforme.Infrastructure.Identity
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using System.Text
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Réinitialiser le mot de passe — CIT</PageTitle>
+<PageTitle>@Loc["Account.ResetPageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>🔑</span> Réinitialiser le mot de passe
-        </h2>
-        <div class="cit-page-subtitle">Définissez un nouveau mot de passe robuste pour sécuriser l'accès à votre espace</div>
+        <h1 class="cit-page-title">
+            <span>🔑</span> @Loc["Account.ResetTitle"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["Account.ResetSubtitle"]</div>
     </div>
 </div>
 
@@ -22,30 +25,30 @@
             <input type="hidden" @bind-value="Modele.UtilisateurId" />
             <input type="hidden" @bind-value="Modele.Jeton" />
             <div class="mb-4">
-                <label class="form-label small fw-semibold text-dark" for="nouveau-mot-de-passe">Nouveau mot de passe</label>
+                <label class="form-label small fw-semibold text-dark" for="nouveau-mot-de-passe">@Loc["Account.NewPassword"]</label>
                 <ChampMotDePasse>
-                    <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" placeholder="Minimum 8 caractères, majuscule, chiffre..." />
+                    <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" placeholder="@Loc["Account.NewPasswordPlaceholder"]" />
                 </ChampMotDePasse>
             </div>
             <div class="d-flex justify-content-between align-items-center">
-                <a href="/comptes/connexion" class="text-decoration-none small text-muted">← Annuler et se connecter</a>
-                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Valider le nouveau mot de passe</button>
+                <a href="/comptes/connexion" class="text-decoration-none small text-muted">@Loc["Account.ResetCancel"]</a>
+                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">@Loc["Account.ResetSubmit"]</button>
             </div>
         </EditForm>
     </div>
 
     @if (erreur is not null)
     {
-        <div class="alert alert-danger mb-4">@erreur</div>
+        <div class="alert alert-danger mb-4" role="alert">@erreur</div>
     }
 
     @if (succes)
     {
-        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="status">
             <span class="fs-4">✅</span>
             <div>
-                <strong>Mot de passe redéfini avec succès.</strong>
-                <div class="mt-1"><a href="/comptes/connexion" class="fw-bold text-success text-decoration-underline">Accéder à la connexion ➔</a></div>
+                <strong>@Loc["Account.ResetSuccess"]</strong>
+                <div class="mt-1"><a href="/comptes/connexion" class="fw-bold text-success text-decoration-underline">@Loc["Account.GoToLogin"] ➔</a></div>
             </div>
         </div>
     }
@@ -79,7 +82,7 @@
         var utilisateur = await UserManager.FindByIdAsync(Modele.UtilisateurId);
         if (utilisateur is null)
         {
-            erreur = "Lien de réinitialisation invalide.";
+            erreur = Loc["Account.ResetLinkInvalid"].Value;
             return;
         }
 

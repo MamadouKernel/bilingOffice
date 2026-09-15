@@ -1,4 +1,4 @@
-@page "/societe/collaborateurs"
+﻿@page "/societe/collaborateurs"
 @page "/comptes/collaborateurs"
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -9,8 +9,11 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Comptes
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirDashboardSocieteQuery DashboardQuery
 @inject RattacherUtilisateurCommand Rattacher
@@ -23,49 +26,49 @@
 @inject NavigationManager Navigation
 @inject IConfiguration Configuration
 
-<PageTitle>Gestion des Collaborateurs — CIT</PageTitle>
+<PageTitle>@Loc["Collab.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>👥</span> Gestion des Collaborateurs
-        </h2>
+        <h1 class="cit-page-title">
+            <span>👥</span> @Loc["Collab.Title"]
+        </h1>
         <div class="cit-page-subtitle">
             @if (_dashboard is not null)
             {
-                <span>Société <strong class="text-dark">@_dashboard.SocieteNom</strong> · Administrateurs actifs : <span class="badge bg-primary-subtle text-primary">@_dashboard.NombreAdministrateursActifs</span></span>
+                <span>@Loc["Dash.Company"] <strong class="text-dark">@_dashboard.SocieteNom</strong> · @Loc["Societe.ActiveAdmins"] <span class="badge bg-primary-subtle text-primary">@_dashboard.NombreAdministrateursActifs</span></span>
             }
         </div>
     </div>
     <div class="mt-3 mt-md-0">
         <a href="/societe/dashboard" class="btn btn-outline-secondary btn-sm">
-            ← Retour Espace Entreprise
+            @Loc["Collab.BackToCompany"]
         </a>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des collaborateurs..." />
+    <IndicateurChargement Message="@Loc["Collab.Loading"]" />
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger">@_erreur</div>
+    <div class="alert alert-danger" role="alert">@_erreur</div>
 }
 else if (_dashboard is not null)
 {
     <!-- Formulaire d'ajout / rattachement de collaborateur -->
     <div class="cit-card mb-4">
-        <h6 class="fw-bold mb-2 text-dark">Rattacher un nouveau collaborateur</h6>
-        <p class="small text-muted mb-3">Saisissez l'identifiant unique du compte utilisateur pour l'intégrer à votre espace entreprise.</p>
-        
+        <h6 class="fw-bold mb-2 text-dark">@Loc["Collab.AttachTitle"]</h6>
+        <p class="small text-muted mb-3">@Loc["Collab.AttachHelp"]</p>
+
         <div class="row g-2 align-items-center">
             <div class="col-12 col-md-8">
-                <input type="text" class="form-control font-monospace" placeholder="Identifiant UUID du collaborateur..." @bind="_nouveauCollaborateurId" />
+                <input type="text" class="form-control font-monospace" placeholder="@Loc["Collab.UuidPlaceholder"]" @bind="_nouveauCollaborateurId" />
             </div>
             <div class="col-12 col-md-4">
                 <button type="button" class="btn btn-primary w-100" @onclick="RattacherAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauCollaborateurId)">
-                    <span>➕</span> Rattacher à l'entreprise
+                    <span>➕</span> @Loc["Collab.AttachButton"]
                 </button>
             </div>
         </div>
@@ -84,19 +87,19 @@ else if (_dashboard is not null)
        Aucun envoi automatique : la plateforme n'a pas de fournisseur d'e-mail. Le lien est
        affiche ici pour que vous le transmettiez par vos propres moyens. *@
     <div class="cit-card mb-4">
-        <h6 class="fw-bold text-dark mb-1">Inviter un nouveau collaborateur</h6>
+        <h6 class="fw-bold text-dark mb-1">@Loc["Collab.InviteTitle"]</h6>
         <p class="small text-muted">
-            Pour une personne qui n'a pas encore de compte sur la plateforme.
+            @Loc["Collab.InviteHelp"]
         </p>
         <div class="row g-2 align-items-end">
             <div class="col-12 col-md-8">
-                <label class="form-label small fw-bold" for="emailInvite">Adresse e-mail professionnelle</label>
+                <label class="form-label small fw-bold" for="emailInvite">@Loc["Collab.InviteEmailLabel"]</label>
                 <input id="emailInvite" class="form-control form-control-sm" @bind="_emailInvite" />
             </div>
             <div class="col-12 col-md-4">
                 <button type="button" class="btn btn-outline-primary w-100" @onclick="InviterAsync"
                         disabled="@string.IsNullOrWhiteSpace(_emailInvite)">
-                    <span>✉️</span> Créer une invitation
+                    <span>✉️</span> @Loc["Collab.InviteButton"]
                 </button>
             </div>
         </div>
@@ -107,11 +110,11 @@ else if (_dashboard is not null)
                 <table class="table table-sm align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Invité</th>
-                            <th>État</th>
-                            <th>Échéance</th>
-                            <th>Lien à transmettre</th>
-                            <th class="text-end">Action</th>
+                            <th>@Loc["Collab.InviteColInvitee"]</th>
+                            <th>@Loc["Collab.InviteColState"]</th>
+                            <th>@Loc["Collab.InviteColDeadline"]</th>
+                            <th>@Loc["Collab.InviteColLink"]</th>
+                            <th class="text-end">@Loc["Collab.InviteColAction"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -137,7 +140,7 @@ else if (_dashboard is not null)
                                     @if (invitation.Etat == EtatInvitation.EnAttente)
                                     {
                                         <button class="btn btn-outline-danger btn-sm"
-                                                @onclick="() => RevoquerAsync(invitation.Id)">Révoquer</button>
+                                                @onclick="() => DemanderConfirmationRevocation(invitation.Id)">@Loc["Collab.Revoke"]</button>
                                     }
                                 </td>
                             </tr>
@@ -151,19 +154,19 @@ else if (_dashboard is not null)
     <!-- Liste des collaborateurs avec actions -->
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="p-3 bg-light border-bottom">
-            <h6 class="fw-bold m-0 text-dark">Collaborateurs actifs et historiques</h6>
+            <h6 class="fw-bold m-0 text-dark">@Loc["Collab.ListTitle"]</h6>
         </div>
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Nom & E-mail</th>
-                        <th>Rôle</th>
-                        <th>Droit Soumission</th>
-                        <th>Périmètre Consultation</th>
-                        <th>Statut</th>
-                        <th class="text-end">Actions Administrateur</th>
+                        <th>@Loc["Societe.ColNameEmail"]</th>
+                        <th>@Loc["Societe.ColRole"]</th>
+                        <th>@Loc["Societe.ColSubmitRight"]</th>
+                        <th>@Loc["Societe.ColScope"]</th>
+                        <th>@Loc["Societe.ColStatus"]</th>
+                        <th class="text-end">@Loc["Collab.ColAdminActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -178,36 +181,36 @@ else if (_dashboard is not null)
                             <td>
                                 @if (col.EstAdministrateur)
                                 {
-                                    <span class="badge bg-primary">Administrateur</span>
+                                    <span class="badge bg-primary">@Loc["Societe.RoleAdmin"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-light text-dark border">Collaborateur</span>
+                                    <span class="badge bg-light text-dark border">@Loc["Societe.RoleCollaborator"]</span>
                                 }
                             </td>
                             <td>
                                 @if (col.DroitSoumission)
                                 {
-                                    <span class="text-success fw-semibold">✅ Autorisé</span>
+                                    <span class="text-success fw-semibold">@Loc["Societe.SubmitAllowed"]</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">❌ Bloqué</span>
+                                    <span class="text-muted">@Loc["Collab.SubmitBlocked"]</span>
                                 }
                             </td>
                             <td>
                                 <span class="small">
-                                    @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? "🌐 Toute la société" : "👤 Propres dossiers")
+                                    @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? Loc["Collab.ScopeAllCompany"].Value : Loc["Collab.ScopeOwnFiles"].Value)
                                 </span>
                             </td>
                             <td>
                                 @if (col.EstActif)
                                 {
-                                    <span class="badge bg-success text-white">Actif</span>
+                                    <span class="badge bg-success text-white">@Loc["Societe.StatusActive"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary text-white">Désactivé</span>
+                                    <span class="badge bg-secondary text-white">@Loc["Societe.StatusDisabled"]</span>
                                 }
                             </td>
                             <td class="text-end">
@@ -215,38 +218,38 @@ else if (_dashboard is not null)
                                     <!-- Rôle Admin -->
                                     @if (col.EstAdministrateur)
                                     {
-                                        <button type="button" class="btn btn-outline-secondary" title="Retirer droits admin" @onclick="() => RetirerRoleAdminAsync(col.Id)">
-                                            Rétrograder
+                                        <button type="button" class="btn btn-outline-secondary" title="@Loc["Collab.TitleRemoveAdmin"]" @onclick="() => RetirerRoleAdminAsync(col.Id)">
+                                            @Loc["Collab.Demote"]
                                         </button>
                                     }
                                     else
                                     {
-                                        <button type="button" class="btn btn-outline-primary" title="Nommer administrateur" @onclick="() => NommerAdminAsync(col.Id)">
-                                            Nommer admin
+                                        <button type="button" class="btn btn-outline-primary" title="@Loc["Collab.TitleNameAdmin"]" @onclick="() => NommerAdminAsync(col.Id)">
+                                            @Loc["Collab.NameAdmin"]
                                         </button>
                                     }
 
                                     <!-- Droit Soumission -->
-                                    <button type="button" class="btn btn-outline-secondary" title="Basculer droit soumission" @onclick="() => BasculerSoumissionAsync(col)">
-                                        @(col.DroitSoumission ? "Bloquer soumission" : "Autoriser soumission")
+                                    <button type="button" class="btn btn-outline-secondary" title="@Loc["Collab.TitleToggleSubmission"]" @onclick="() => BasculerSoumissionAsync(col)">
+                                        @(col.DroitSoumission ? Loc["Collab.BlockSubmission"].Value : Loc["Collab.AllowSubmission"].Value)
                                     </button>
 
                                     <!-- Droit Consultation -->
-                                    <button type="button" class="btn btn-outline-secondary" title="Basculer consultation" @onclick="() => BasculerConsultationAsync(col)">
-                                        @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? "Restreindre" : "Étendre")
+                                    <button type="button" class="btn btn-outline-secondary" title="@Loc["Collab.TitleToggleConsultation"]" @onclick="() => BasculerConsultationAsync(col)">
+                                        @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? Loc["Collab.Restrict"].Value : Loc["Collab.Extend"].Value)
                                     </button>
 
                                     <!-- Activation / Désactivation -->
                                     @if (col.EstActif)
                                     {
-                                        <button type="button" class="btn btn-outline-danger" title="Désactiver collaborateur" @onclick="() => DesactiverAsync(col.Id)">
-                                            Désactiver
+                                        <button type="button" class="btn btn-outline-danger" title="@Loc["Collab.TitleDeactivate"]" @onclick="() => DemanderConfirmationDesactivation(col.Id)">
+                                            @Loc["Collab.Deactivate"]
                                         </button>
                                     }
                                     else
                                     {
-                                        <button type="button" class="btn btn-outline-success" title="Réactiver collaborateur" @onclick="() => ActiverAsync(col.Id)">
-                                            Réactiver
+                                        <button type="button" class="btn btn-outline-success" title="@Loc["Collab.TitleReactivate"]" @onclick="() => ActiverAsync(col.Id)">
+                                            @Loc["Collab.Reactivate"]
                                         </button>
                                     }
                                 </div>
@@ -259,11 +262,25 @@ else if (_dashboard is not null)
     </div>
 }
 
+<ModaleConfirmation EstOuvert="@(_confirmation is not null)"
+                    Titre="@(_confirmation?.Titre ?? string.Empty)"
+                    Message="@(_confirmation?.Message ?? string.Empty)"
+                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? "Confirmer")"
+                    BoutonConfirmerClass="@(_confirmation?.ClasseConfirmer ?? "btn-danger")"
+                    Desactive="@_confirmationEnCours"
+                    OnConfirmer="@(async () => { if (_confirmation is not null) await _confirmation.Action(); })"
+                    OnAnnuler="AnnulerConfirmation" />
+
 @code {
     private bool _chargement = true;
     private string? _erreur;
     private string? _actionMessage;
     private DashboardSocieteVue? _dashboard;
+
+    // AM-03 — révocation d'invitation (irréversible) et désactivation de collaborateur (impact
+    // immédiat sur l'accès) passent par une confirmation explicite.
+    private ConfirmationEnAttente? _confirmation;
+    private bool _confirmationEnCours;
     private string _nouveauCollaborateurId = string.Empty;
     private string _emailInvite = string.Empty;
     private IReadOnlyList<InvitationVue>? _invitations;
@@ -296,7 +313,7 @@ else if (_dashboard is not null)
             var contexte = await ContexteService.ObtenirContexteAsync();
             if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue || !contexte.EstAdministrateurSociete)
             {
-                _erreur = "Accès réservé aux administrateurs de la société.";
+                _erreur = Loc["Societe.AccessAdminsOnly"].Value;
                 return;
             }
 
@@ -307,7 +324,7 @@ else if (_dashboard is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -319,7 +336,7 @@ else if (_dashboard is not null)
     {
         if (!Guid.TryParse(_nouveauCollaborateurId, out var nouvId))
         {
-            _actionMessage = "Format d'identifiant UUID invalide.";
+            _actionMessage = Loc["Collab.MsgInvalidUuid"].Value;
             return;
         }
 
@@ -327,12 +344,12 @@ else if (_dashboard is not null)
         {
             await Rattacher.ExecuterAsync(_appelantId, _societeId, nouvId);
             _nouveauCollaborateurId = string.Empty;
-            _actionMessage = "Collaborateur rattaché avec succès.";
+            _actionMessage = Loc["Collab.MsgAttached"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -341,12 +358,12 @@ else if (_dashboard is not null)
         try
         {
             await GererRole.AttribuerRoleAsync(_appelantId, rattachementId);
-            _actionMessage = "Rôle administrateur attribué.";
+            _actionMessage = Loc["Collab.MsgAdminGranted"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -355,12 +372,12 @@ else if (_dashboard is not null)
         try
         {
             await GererRole.RetirerRoleAsync(_appelantId, rattachementId);
-            _actionMessage = "Rôle administrateur retiré.";
+            _actionMessage = Loc["Collab.MsgAdminRemoved"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -369,12 +386,12 @@ else if (_dashboard is not null)
         try
         {
             await ModifierDroits.ExecuterAsync(_appelantId, col.Id, col.DroitConsultation, !col.DroitSoumission);
-            _actionMessage = "Droits de soumission mis à jour.";
+            _actionMessage = Loc["Collab.MsgSubmissionUpdated"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -386,12 +403,12 @@ else if (_dashboard is not null)
                 ? DroitConsultation.PropresDemandesUniquement
                 : DroitConsultation.ToutesDemandesSociete;
             await ModifierDroits.ExecuterAsync(_appelantId, col.Id, nouvConsultation, col.DroitSoumission);
-            _actionMessage = "Périmètre de consultation mis à jour.";
+            _actionMessage = Loc["Collab.MsgConsultationUpdated"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -400,12 +417,48 @@ else if (_dashboard is not null)
         try
         {
             await ActiverDesactiver.ActiverAsync(_appelantId, rattachementId);
-            _actionMessage = "Collaborateur réactivé.";
+            _actionMessage = Loc["Collab.MsgReactivated"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
+        }
+    }
+
+    private void DemanderConfirmationDesactivation(Guid rattachementId)
+    {
+        _confirmation = new ConfirmationEnAttente(
+            Loc["Collab.ConfirmDeactivateTitle"].Value,
+            Loc["Collab.ConfirmDeactivateMsg"].Value,
+            Loc["Collab.Deactivate"].Value,
+            "btn-danger",
+            () => ExecuterAvecConfirmation(() => DesactiverAsync(rattachementId)));
+    }
+
+    private void DemanderConfirmationRevocation(Guid invitationId)
+    {
+        _confirmation = new ConfirmationEnAttente(
+            Loc["Collab.ConfirmRevokeTitle"].Value,
+            Loc["Collab.ConfirmRevokeMsg"].Value,
+            Loc["Collab.Revoke"].Value,
+            "btn-danger",
+            () => ExecuterAvecConfirmation(() => RevoquerAsync(invitationId)));
+    }
+
+    private void AnnulerConfirmation() => _confirmation = null;
+
+    private async Task ExecuterAvecConfirmation(Func<Task> action)
+    {
+        _confirmationEnCours = true;
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            _confirmationEnCours = false;
+            _confirmation = null;
         }
     }
 
@@ -414,12 +467,12 @@ else if (_dashboard is not null)
         try
         {
             await ActiverDesactiver.DesactiverAsync(_appelantId, rattachementId);
-            _actionMessage = "Collaborateur désactivé.";
+            _actionMessage = Loc["Collab.MsgDeactivated"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -431,12 +484,12 @@ else if (_dashboard is not null)
         {
             var invitation = await InviterCollaborateur.ExecuterAsync(_appelantId, _societeId, _emailInvite, ValiditeInvitation);
             _emailInvite = string.Empty;
-            _actionMessage = $"Invitation créée pour {invitation.Email} — transmettez-lui le lien ci-dessous.";
+            _actionMessage = string.Format(Loc["Collab.MsgInviteCreated"].Value, invitation.Email);
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -445,12 +498,12 @@ else if (_dashboard is not null)
         try
         {
             await RevoquerInvitation.ExecuterAsync(_appelantId, invitationId);
-            _actionMessage = "Invitation révoquée.";
+            _actionMessage = Loc["Collab.MsgInviteRevoked"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionMessage = $"Erreur : {ex.Message}";
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 

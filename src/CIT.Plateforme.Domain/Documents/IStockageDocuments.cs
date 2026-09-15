@@ -24,10 +24,17 @@ public sealed record ReglesDepotDocument(IReadOnlyCollection<string> ExtensionsA
 {
     public bool Valide(string nomFichier, long tailleOctets, out string? erreur)
     {
-        var extension = Path.GetExtension(nomFichier).TrimStart('.').ToLowerInvariant();
-        if (!ExtensionsAutorisees.Contains(extension))
+        // REMÉDIATION RECETTE UAT (D-11b) : la comparaison passe par ExtensionFichier, qui ramène
+        // à la même forme canonique la liste déclarée par l'appelant ET l'extension du fichier.
+        // Auparavant seule l'extension du fichier était normalisée : une liste écrite « .pdf »
+        // ne correspondait donc jamais, et l'étape refusait tout dépôt.
+        if (!ExtensionFichier.EstAutorisee(nomFichier, ExtensionsAutorisees))
         {
-            erreur = $"Le type de fichier '.{extension}' n'est pas autorisé pour cette étape.";
+            var extension = ExtensionFichier.DeNomFichier(nomFichier);
+            erreur = extension.Length == 0
+                ? $"Le fichier n'a pas d'extension exploitable. Formats acceptés : {ExtensionFichier.Enumerer(ExtensionsAutorisees)}."
+                : $"Le type de fichier '.{extension}' n'est pas autorisé pour cette étape. "
+                  + $"Formats acceptés : {ExtensionFichier.Enumerer(ExtensionsAutorisees)}.";
             return false;
         }
 

@@ -12,6 +12,7 @@ public sealed class InstruireBrancheIesExportCommand(
     ITicketRepository tickets,
     ISuiviBrancheIesRepository suivisBranchesIes,
     IAutorisationService autorisation,
+    PorteeChampsIesService porteeChamps,
     IJournalisationService journalisation,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
@@ -26,6 +27,16 @@ public sealed class InstruireBrancheIesExportCommand(
             : Permission.BillingExportIesControleDocumentaireInstruire;
 
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
+
+        // RG-SEC-01 — droit d'action au niveau bloc, symétrique de l'import.
+        var bloc = branche == BrancheIes.BackOffice ? BlocDonneesIes.Manifeste : BlocDonneesIes.Douane;
+        var droits = await porteeChamps
+            .ResoudreAsync(agentId, ticket.FileCouranteId, ModuleIes.Export, ct).ConfigureAwait(false);
+        if (!droits.PeutEcrire(bloc))
+        {
+            throw new AccesRefuseException(
+                $"L'utilisateur {agentId} n'a pas le droit d'écriture sur le bloc {bloc} du ticket {ticketId} (SEC-02, EXP-03).");
+        }
 
         var suivis = await suivisBranchesIes.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
         var suivi = suivis.SingleOrDefault(s => s.Branche == branche)

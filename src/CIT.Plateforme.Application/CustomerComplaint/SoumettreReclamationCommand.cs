@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
@@ -24,6 +24,13 @@ public sealed class SoumettreReclamationCommand(
     IAutorisationService autorisationService,
     IJournalisationService journalisationService)
 {
+    /// <summary>
+    /// Module porteur des reclamations. Sert aussi de filtre aux files eligibles comme file cible
+    /// d'une categorie (REMEDIATION RECETTE UAT, D-14) : une reclamation ne peut etre routee que
+    /// vers une file de son propre module.
+    /// </summary>
+    public const string Module = "CustomerComplaint";
+
     public async Task<SoumettreReclamationResultat> ExecuterAsync(Guid appelantId, SoumettreReclamationRequete requete, CancellationToken ct = default)
     {
         // 1. Autorisation globale
@@ -61,7 +68,7 @@ public sealed class SoumettreReclamationCommand(
 
         // 4. Numérotation (D6)
         var numeroDossier = await numerotation.ProchainNumeroDossierAsync(ct).ConfigureAwait(false);
-        var numeroTicket = await numerotation.ProchainNumeroTicketAsync("CustomerComplaint", "Reclamation", ct).ConfigureAwait(false);
+        var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, "Reclamation", ct).ConfigureAwait(false);
         var maintenant = horloge.MaintenantUtc;
 
         // 5. Création des entités (Ticket = F001)
@@ -74,7 +81,7 @@ public sealed class SoumettreReclamationCommand(
             throw new InvalidOperationException($"La catégorie {categorie.Code} n'a pas de file cible configurée.");
         }
 
-        var ticket = Ticket.Creer(numeroTicket, "CustomerComplaint", "Reclamation", fileCibleId.Value, dossier.Id, maintenant);
+        var ticket = Ticket.Creer(numeroTicket, Module, "Reclamation", fileCibleId.Value, dossier.Id, maintenant);
 
         // Extension métier (REC-02)
         ticket.DefinirCategorieReclamation(categorie.Id);

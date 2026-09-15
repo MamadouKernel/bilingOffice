@@ -1,4 +1,4 @@
-@page "/comptes/invitation/{Jeton}"
+﻿@page "/comptes/invitation/{Jeton}"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Domain.Securite
@@ -8,6 +8,9 @@
 @inject AccepterInvitationCommand AccepterInvitationCommande
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 
 @* ENT-01 (Must) — « Une société cliente peut rattacher plusieurs utilisateurs à son compte. »
 
@@ -18,35 +21,34 @@
 
    Le compte Identity est créé ici, comme pour la soumission d'une demande (decision D1). *@
 
-<PageTitle>Rejoindre une entreprise — CIT</PageTitle>
+<PageTitle>@Loc["Account.InvitePageTitle"]</PageTitle>
 
 <div class="container" style="max-width: 32rem;">
     <div class="cit-page-header">
         <div>
-            <h2 class="cit-page-title"><span>✉️</span> Rejoindre une entreprise</h2>
+            <h1 class="cit-page-title"><span>✉️</span> @Loc["Account.InviteTitle"]</h1>
         </div>
     </div>
 
     @if (_chargement)
     {
-        <p class="text-muted">Vérification de l'invitation…</p>
+        <p class="text-muted">@Loc["Account.InviteChecking"]</p>
     }
     else if (_invitation is null)
     {
-        <div class="alert alert-danger">
-            <strong>Cette invitation n'est pas utilisable.</strong>
+        <div class="alert alert-danger" role="alert">
+            <strong>@Loc["Account.InviteUnusableTitle"]</strong>
             <div class="small mt-1">
-                Elle a peut-être expiré, été révoquée, ou déjà servi. Demandez à l'administrateur
-                de votre entreprise de vous en envoyer une nouvelle.
+                @Loc["Account.InviteUnusableText"]
             </div>
         </div>
     }
     else if (_termine)
     {
-        <div class="alert alert-success">
-            <strong>Votre compte est créé.</strong>
-            <div class="small mt-1">Vous êtes rattaché à @_invitation.SocieteNom.</div>
-            <a class="btn btn-primary btn-sm mt-3" href="/comptes/connexion">Se connecter</a>
+        <div class="alert alert-success" role="status">
+            <strong>@Loc["Account.InviteCreatedTitle"]</strong>
+            <div class="small mt-1">@Loc["Account.InviteAttachedPrefix"] @_invitation.SocieteNom.</div>
+            <a class="btn btn-primary btn-sm mt-3" href="/comptes/connexion">@Loc["Nav.SignIn"]</a>
         </div>
     }
     else
@@ -54,20 +56,20 @@
         <div class="card">
             <div class="card-body">
                 <p class="small text-muted">
-                    Vous avez été invité à rejoindre
+                    @Loc["Account.InviteInvitedPrefix"]
                     <strong class="text-dark">@_invitation.SocieteNom</strong>.
                 </p>
 
                 <div class="mb-3">
-                    <label for="adresse-e-mail" class="form-label small fw-bold">Adresse e-mail</label>
+                    <label for="adresse-e-mail" class="form-label small fw-bold">@Loc["Auth.Email"]</label>
                     <input id="adresse-e-mail" class="form-control form-control-sm" value="@_invitation.Email" disabled />
                     <div class="form-text">
-                        L'invitation est nominative : le compte porte cette adresse.
+                        @Loc["Account.InviteEmailHint"]
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small fw-bold" for="mdp">Choisissez votre mot de passe</label>
+                    <label class="form-label small fw-bold" for="mdp">@Loc["Account.InviteChoosePassword"]</label>
                     <ChampMotDePasse>
                         <input id="mdp" type="password" class="form-control form-control-sm" @bind="_motDePasse" />
                     </ChampMotDePasse>
@@ -75,11 +77,11 @@
 
                 @if (_erreur is not null)
                 {
-                    <div class="alert alert-danger small">@_erreur</div>
+                    <div class="alert alert-danger small" role="alert">@_erreur</div>
                 }
 
                 <button class="btn btn-primary w-100 fw-bold" @onclick="CreerAsync">
-                    Créer mon compte
+                    @Loc["Account.InviteCreateAccount"]
                 </button>
             </div>
         </div>
@@ -135,7 +137,7 @@
             // Le rattachement a échoué après la création du compte : le laisser en place
             // produirait un compte orphelin, sans société, incapable de se connecter.
             await UserManager.DeleteAsync(collaborateur);
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

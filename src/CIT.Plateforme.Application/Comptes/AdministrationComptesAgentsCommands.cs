@@ -193,3 +193,153 @@ public sealed class ListerComptesAgentsQuery(
         return vues;
     }
 }
+
+
+/// <summary>
+/// Résultat d'une opération d'habilitation en masse. Rendu à l'écran pour que l'utilisateur sache
+/// ce qui s'est réellement produit, plutôt qu'un « succès » indistinct.
+/// </summary>
+/// <param name="PermissionsAppliquees">Nombre de permissions réellement accordées ou retirées.</param>
+/// <param name="PermissionsInchangees">Permissions déjà dans l'état demandé — aucune écriture.</param>
+/// <param name="PermissionsConservees">
+/// Permissions volontairement NON retirées parce qu'un invariant l'interdit. Aujourd'hui un seul
+/// cas : un administrateur ne peut pas se retirer <c>administration.comptes</c>.
+/// </param>
+public sealed record ResultatHabilitationsEnMasse(
+    int PermissionsAppliquees,
+    int PermissionsInchangees,
+    IReadOnlyList<string> PermissionsConservees);
+
+/// <summary>
+/// REMÉDIATION UI/UX (UX-P0, défaut UI-01) — HABILITATIONS EN MASSE, EN UNE SEULE TRANSACTION.
+///
+/// DÉFAUT CORRIGÉ. L'écran d'administration bouclait sur <see cref="GererHabilitationAgentCommand"/>,
+/// dont chaque appel valide sa propre unité de travail. Accorder toutes les permissions déclenchait
+/// donc une soixantaine de transactions indépendantes : un échec au n-ième laissait les n−1
+/// précédentes acquises, sans message. Pire, « tout retirer » appliqué à soi-même retirait tout,
+/// <b>puis</b> levait sur <c>administration.comptes</c> — l'administrateur se retrouvait dépouillé
+/// et l'écran muet.
+///
+/// Cette commande ne change aucune règle : elle réunit les écritures sous <b>un seul</b>
+/// <see cref="IUniteDeTravail.EnregistrerAsync"/>. Les dépôts et la journalisation empilent dans le
+/// contexte sans écrire ; la validation finale est donc atomique — tout est appliqué, ou rien.
+///
+/// L'AUTORISATION RESTE CÔTÉ SERVEUR, et rien de ce que l'appelant transmet ne la fonde :
+/// <list type="bullet">
+///   <item>l'identité est le paramètre <c>appelantId</c>, résolu par l'écran depuis le contexte
+///   d'authentification (règle 1 de <c>docs/architecture-autorisation.md</c>) ;</item>
+///   <item>la permission requise est vérifiée <b>une fois, au début</b> — jamais déduite d'un rôle
+///   ou d'une valeur reçue ;</item>
+///   <item><b>la liste des permissions est déterminée ici</b>, depuis <see cref="Permission.Tous"/>,
+///   et n'est jamais fournie par l'appelant.</item>
+/// </list>
+/// </summary>
+public sealed class DefinirHabilitationsEnMasseCommand(
+    IHabilitationRepository habilitations,
+    IUtilisateurInfoRepository utilisateurs,
+    IAutorisationService autorisation,
+    IJournalisationService journalisation,
+    IUniteDeTravail uniteDeTravail)
+{
+    /// <summary>
+    /// Accorde à <paramref name="cibleId"/> toutes les permissions du référentiel qu'il ne détient
+    /// pas encore. Idempotent : relancer l'opération n'écrit rien de plus.
+    /// </summary>
+    public async Task<ResultatHabilitationsEnMasse> AccorderToutesAsync(
+        Guid appelantId, Guid cibleId, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(appelantId, Permission.AdministrationComptes, ct: ct).ConfigureAwait(false);
+        await ExigerCibleConnueAsync(utilisateurs, cibleId, ct).ConfigureAwait(false);
+
+        var detenues = await PermissionsNonBorneesAsync(cibleId, ct).ConfigureAwait(false);
+
+        // La liste vient du référentiel serveur, jamais de l'appelant.
+        var aAccorder = Permission.Tous.Where(p => !detenues.Contains(p)).OrderBy(p => p, StringComparer.Ordinal).ToList();
+
+        foreach (var permissionCode in aAccorder)
+        {
+            await habilitations
+                .AjouterAsync(HabilitationUtilisateur.Attribuer(cibleId, permissionCode), ct)
+                .ConfigureAwait(false);
+
+            // Trace individuelle conservée : RG-SEC-03 exige que chaque attribution soit traçable,
+            // et une ligne de synthèse ne remplacerait pas le détail.
+            await journalisation.ConsignerAuditAsync(
+                appelantId, "HabilitationAttribuee", "HabilitationUtilisateur", cibleId, null, permissionCode, ct)
+                .ConfigureAwait(false);
+        }
+
+        await journalisation.ConsignerAuditAsync(
+            appelantId, "HabilitationsAccordeesEnMasse", "HabilitationUtilisateur", cibleId,
+            null, $"{aAccorder.Count} permission(s)", ct).ConfigureAwait(false);
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+
+        return new ResultatHabilitationsEnMasse(aAccorder.Count, Permission.Tous.Count - aAccorder.Count, []);
+    }
+
+    /// <summary>
+    /// Retire à <paramref name="cibleId"/> toutes ses permissions.
+    ///
+    /// COMPORTEMENT DÉTERMINISTE SUR L'AUTO-RETRAIT : si l'appelant s'applique l'opération à
+    /// lui-même, <c>administration.comptes</c> est <b>conservée</b> et rendue dans
+    /// <see cref="ResultatHabilitationsEnMasse.PermissionsConservees"/>. L'invariant « un
+    /// administrateur ne ferme pas la porte de l'intérieur » est préservé <b>sans</b> exception en
+    /// cours de route : l'opération va à son terme et dit ce qu'elle a laissé.
+    /// </summary>
+    public async Task<ResultatHabilitationsEnMasse> RetirerToutesAsync(
+        Guid appelantId, Guid cibleId, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(appelantId, Permission.AdministrationComptes, ct: ct).ConfigureAwait(false);
+        await ExigerCibleConnueAsync(utilisateurs, cibleId, ct).ConfigureAwait(false);
+
+        var detenues = await PermissionsNonBorneesAsync(cibleId, ct).ConfigureAwait(false);
+
+        var conservees = new List<string>();
+        var aRetirer = new List<string>();
+        foreach (var permissionCode in detenues.OrderBy(p => p, StringComparer.Ordinal))
+        {
+            if (appelantId == cibleId && permissionCode == Permission.AdministrationComptes)
+            {
+                conservees.Add(permissionCode);
+                continue;
+            }
+
+            aRetirer.Add(permissionCode);
+        }
+
+        foreach (var permissionCode in aRetirer)
+        {
+            await habilitations.RetirerAsync(cibleId, permissionCode, null, ct).ConfigureAwait(false);
+
+            await journalisation.ConsignerAuditAsync(
+                appelantId, "HabilitationRetiree", "HabilitationUtilisateur", cibleId, permissionCode, null, ct)
+                .ConfigureAwait(false);
+        }
+
+        await journalisation.ConsignerAuditAsync(
+            appelantId, "HabilitationsRetireesEnMasse", "HabilitationUtilisateur", cibleId,
+            $"{aRetirer.Count} permission(s)", null, ct).ConfigureAwait(false);
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+
+        return new ResultatHabilitationsEnMasse(aRetirer.Count, 0, conservees);
+    }
+
+    /// <summary>
+    /// Permissions détenues SANS borne de file. L'écran d'administration des comptes agents ne
+    /// manipule que celles-là ; une habilitation bornée à une file relève d'un autre geste et n'est
+    /// donc ni comptée, ni retirée ici.
+    /// </summary>
+    private async Task<HashSet<string>> PermissionsNonBorneesAsync(Guid cibleId, CancellationToken ct) =>
+        (await habilitations.ListerParUtilisateurAsync(cibleId, ct).ConfigureAwait(false))
+            .Where(h => h.FileId is null)
+            .Select(h => h.PermissionCode)
+            .ToHashSet(StringComparer.Ordinal);
+
+    private static async Task ExigerCibleConnueAsync(IUtilisateurInfoRepository utilisateurs, Guid cibleId, CancellationToken ct)
+    {
+        _ = await utilisateurs.ObtenirInfoAsync(cibleId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Compte {cibleId} introuvable.");
+    }
+}

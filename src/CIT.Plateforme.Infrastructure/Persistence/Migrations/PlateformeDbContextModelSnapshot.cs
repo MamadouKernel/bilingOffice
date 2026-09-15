@@ -1045,6 +1045,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<double>("SeuilInformation")
                         .HasColumnType("float");
 
+                    b.Property<int?>("TypeClient")
+                        .HasColumnType("int");
+
                     b.Property<string>("TypeDemande")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -2004,6 +2007,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("DossierId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DraftInExportEmisLeUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<TimeSpan>("DureeAttenteClienteCumulee")
                         .HasColumnType("time");

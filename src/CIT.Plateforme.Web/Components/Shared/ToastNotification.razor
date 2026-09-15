@@ -1,8 +1,14 @@
+@using CIT.Plateforme.Web.Resources
+@implements IDisposable
+
 @if (EstVisible)
 {
-    <div class="cit-toast-container">
+    @* REMÉDIATION UI/UX : ce composant existait sans appelant. Deux ajouts avant câblage —
+       une région live pour que le retour d'action soit annoncé, et le masquage de l'icône
+       décorative, que les lecteurs d'écran énonçaient sans rien apporter. *@
+    <div class="cit-toast-container" role="status" aria-live="polite" aria-atomic="true">
         <div class="cit-toast border-start border-4 @ToastClass">
-            <span class="fs-5">@Icone</span>
+            <span class="fs-5" aria-hidden="true">@Icone</span>
             <div class="flex-grow-1">
                 @if (!string.IsNullOrWhiteSpace(Titre))
                 {
@@ -10,7 +16,7 @@
                 }
                 <div class="small text-muted">@Message</div>
             </div>
-            <button type="button" class="btn-close ms-2" @onclick="Fermer" aria-label="Close"></button>
+            <button type="button" class="btn-close ms-2" @onclick="Fermer" aria-label="@SharedResourcesLocalizer.Get("Common.CloseNotification")"></button>
         </div>
     </div>
 }
@@ -30,6 +36,62 @@
 
     [Parameter]
     public EventCallback OnFermer { get; set; }
+
+    /// <summary>
+    /// REMÉDIATION D-02 : durée avant fermeture automatique. Le toast n'en avait aucune — il
+    /// restait affiché indéfiniment (encore présent après 12 s en recette) et recouvrait, en
+    /// bas à droite, le bouton « Terminer » d'une modale ouverte. Il s'efface désormais seul ;
+    /// une valeur ≤ 0 conserve l'ancien comportement persistant si un appelant le souhaite.
+    /// </summary>
+    [Parameter]
+    public int DureeMs { get; set; } = 5000;
+
+    private bool _etaitVisible;
+    private CancellationTokenSource? _minuterie;
+
+    protected override void OnParametersSet()
+    {
+        // On (re)démarre la minuterie uniquement à l'apparition du toast, jamais à chaque rendu :
+        // sinon un rendu de la page prolongerait indéfiniment son affichage.
+        if (EstVisible && !_etaitVisible && DureeMs > 0)
+        {
+            _minuterie?.Cancel();
+            _minuterie = new CancellationTokenSource();
+            _ = FermerApresDelaiAsync(_minuterie.Token);
+        }
+        else if (!EstVisible)
+        {
+            _minuterie?.Cancel();
+        }
+
+        _etaitVisible = EstVisible;
+    }
+
+    private async Task FermerApresDelaiAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(DureeMs, token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        if (!token.IsCancellationRequested)
+        {
+            await InvokeAsync(async () =>
+            {
+                if (EstVisible)
+                {
+                    await Fermer();
+                    StateHasChanged();
+                }
+            });
+        }
+    }
+
+    public void Dispose() => _minuterie?.Cancel();
 
     private string ToastClass => TypeToast switch
     {

@@ -1,4 +1,4 @@
-@page "/administration/pieces-exigees-compte"
+﻿@page "/administration/pieces-exigees-compte"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -18,9 +18,9 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>📎</span> Référentiel Réglementaire
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
             Pièces Exigées à l'Ouverture de Compte
-        </h2>
+        </h1>
         <div class="cit-page-subtitle text-muted">
             Paramétrage des documents légaux obligatoires et facultatifs exigés des entreprises lors de leur inscription.
         </div>
@@ -44,7 +44,7 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
             <span class="me-2 fs-5">⚠️</span> @_erreur
         </div>
     }
@@ -202,7 +202,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -226,7 +226,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

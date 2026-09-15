@@ -1,4 +1,4 @@
-@page "/administration/disponibilite"
+﻿@page "/administration/disponibilite"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Affectation
@@ -16,9 +16,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>⏱️</span> Disponibilité des agents
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Modification administrative et traçabilité des statuts de présence des opérateurs</div>
     </div>
     <div class="mt-3 mt-md-0">
@@ -40,12 +40,12 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-3">@_erreur</div>
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
     }
 
     @if (_message is not null)
     {
-        <div class="alert alert-success d-flex align-items-center gap-2 mb-3">
+        <div class="alert alert-success d-flex align-items-center gap-2 mb-3" role="status">
             <span class="fs-4">✅</span>
             <div>@_message</div>
         </div>
@@ -176,7 +176,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -209,7 +209,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

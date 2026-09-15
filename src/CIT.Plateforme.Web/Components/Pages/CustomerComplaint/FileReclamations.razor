@@ -1,4 +1,4 @@
-@page "/reclamations/file"
+﻿@page "/reclamations/file"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -18,9 +18,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>📢</span> File Réclamations — Support Opérationnel
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Réclamations clients à instruire et réponses formalisées</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
@@ -41,12 +41,12 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-3">@_erreur</div>
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(_actionSuccess))
     {
-        <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        <div class="alert alert-success py-2 small mb-3" role="status">@_actionSuccess</div>
     }
 
     @if (_tickets.Count == 0)
@@ -121,7 +121,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -145,7 +145,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -161,7 +161,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

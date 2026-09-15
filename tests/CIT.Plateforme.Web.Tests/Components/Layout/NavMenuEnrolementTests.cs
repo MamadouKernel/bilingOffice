@@ -1,4 +1,4 @@
-using Bunit;
+﻿using Bunit;
 using CIT.Plateforme.Application.Web;
 using CIT.Plateforme.Web.Components.Layout;
 using CIT.Plateforme.Web.Services;
@@ -16,6 +16,11 @@ public sealed class NavMenuEnrolementTests : BunitContext
         var fakeContexte = new FakeContexteUtilisateurWeb();
         fakeContexte.Contexte = fakeContexte.Contexte with { EspaceActif = EspaceFonctionnel.Client };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        // REMÉDIATION RECETTE UAT (D-05/D-15) : le demandeur doit détenir « enrolement.soumettre »
+        // pour voir le lien de soumission — c'est exactement ce que le menu ne vérifiait pas.
+        NavigationDeTest.Enregistrer(
+            Services, fakeContexte.Contexte.UtilisateurId,
+            [CIT.Plateforme.Domain.Securite.Permission.EnrolementSoumettre]);
 
         var cut = Render<NavMenu>();
 
@@ -30,6 +35,9 @@ public sealed class NavMenuEnrolementTests : BunitContext
         var fakeContexte = new FakeContexteUtilisateurWeb();
         fakeContexte.Contexte = fakeContexte.Contexte with { EspaceActif = EspaceFonctionnel.Agent };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        NavigationDeTest.Enregistrer(
+            Services, fakeContexte.Contexte.UtilisateurId,
+            [CIT.Plateforme.Domain.Securite.Permission.EnrolementInstruire]);
 
         var cut = Render<NavMenu>();
 
@@ -44,6 +52,9 @@ public sealed class NavMenuEnrolementTests : BunitContext
         var fakeContexte = new FakeContexteUtilisateurWeb();
         fakeContexte.Contexte = fakeContexte.Contexte with { EspaceActif = EspaceFonctionnel.Supervision };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        NavigationDeTest.Enregistrer(
+            Services, fakeContexte.Contexte.UtilisateurId,
+            NavigationDeTest.ToutesLesPermissions());
 
         var cut = Render<NavMenu>();
 

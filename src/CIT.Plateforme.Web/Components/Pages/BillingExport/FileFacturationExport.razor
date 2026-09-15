@@ -1,4 +1,4 @@
-@page "/billing-export/facturation"
+﻿@page "/billing-export/facturation"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -12,6 +12,7 @@
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Components.Forms
 @inject IContexteUtilisateurWeb ContexteService
+@inject EmettreDraftInExportCommand EmettreDraftIn
 @inject EditerFactureExportCommand EditerFacture
 @inject ConsulterFileBillingExportQuery ConsulterFile
 
@@ -19,9 +20,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>💳</span> File Facturation EXPORT
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Émission des factures Export et orientation selon le profil client (Normal, En Compte, Deposit)</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
@@ -62,6 +63,7 @@ else
                             <th>Numéro Booking</th>
                             <th>Statut</th>
                             <th>Arrivée en file</th>
+                            <th>Draft IN</th>
                             <th>Déposer facture Export</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -86,8 +88,33 @@ else
                                     @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
                                 </td>
                                 <td>
+                                    @* RG-EXP-03 : le Draft IN précède la facture. *@
+                                    @if (t.DraftInExportEmis)
+                                    {
+                                        @* REMÉDIATION UI-20 : la date d'émission n'était portée que
+                                           par un attribut title (invisible au tactile et aux lecteurs
+                                           d'écran) — elle est désormais affichée. *@
+                                        <span class="badge bg-success-subtle text-success">✅ Émis</span>
+                                        @if (t.DraftInExportEmisLeUtc is DateTime emisLe)
+                                        {
+                                            <div class="small text-muted mt-1">le @emisLe.ToString("dd/MM/yyyy HH:mm")</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <InputFile class="form-control form-control-sm" OnChange="e => EmettreDraftInAsync(t.Id, e)" />
+                                    }
+                                </td>
+                                <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <InputFile class="form-control form-control-sm" OnChange="e => EditerFactureAsync(t.Id, e)" />
+                                        @if (t.DraftInExportEmis)
+                                        {
+                                            <InputFile class="form-control form-control-sm" OnChange="e => EditerFactureAsync(t.Id, e)" />
+                                        }
+                                        else
+                                        {
+                                            <span class="small text-muted">Draft IN requis</span>
+                                        }
                                     </div>
                                 </td>
                                 <td class="text-end">
@@ -149,11 +176,43 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
             _chargement = false;
+        }
+    }
+
+    /// <summary>RG-EXP-03 — émission du Draft IN, préalable à l'édition de la facture.</summary>
+    private async Task EmettreDraftInAsync(Guid ticketId, InputFileChangeEventArgs e)
+    {
+        _message = null;
+        _erreur = false;
+
+        var fichier = e.File;
+        if (fichier is null) return;
+
+        try
+        {
+            using var stream = fichier.OpenReadStream(maxAllowedSize: Regles.TailleMaxOctets);
+            await EmettreDraftIn.ExecuterAsync(
+                _agentId,
+                ticketId,
+                fichier.Name,
+                fichier.ContentType,
+                stream,
+                fichier.Size,
+                Regles);
+
+            _erreur = false;
+            _message = $"Le Draft IN '{fichier.Name}' a été émis. La facture peut maintenant être éditée.";
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = true;
+            _message = $"Échec de l'émission du Draft IN : {MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -184,7 +243,7 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = $"Échec de l'émission : {ex.Message}";
+            _message = $"Échec de l'émission : {MessagesUtilisateur.Pour(ex)}";
         }
     }
 }

@@ -1,3 +1,5 @@
+﻿using CIT.Plateforme.Domain.Documents;
+
 namespace CIT.Plateforme.Application.Documents;
 
 /// <summary>
@@ -33,10 +35,12 @@ public sealed class ValidateurFichierDocument
             return (false, "Le nom du fichier est obligatoire.");
         }
 
-        var ext = Path.GetExtension(nomFichier);
-        if (string.IsNullOrWhiteSpace(ext) || !_extensionsAutorisees.Contains(ext))
+        // REMÉDIATION RECETTE UAT (D-11b) : une seule convention d'extension dans toute la
+        // solution — voir ExtensionFichier. `ext` est ici la forme canonique (« pdf », sans point).
+        var ext = ExtensionFichier.DeNomFichier(nomFichier);
+        if (!ExtensionFichier.EstAutorisee(nomFichier, _extensionsAutorisees))
         {
-            return (false, $"Le type de fichier « {ext} » n'est pas autorisé. Formats acceptés : {string.Join(", ", _extensionsAutorisees)}.");
+            return (false, $"Le type de fichier « .{ext} » n'est pas autorisé. Formats acceptés : {ExtensionFichier.Enumerer(_extensionsAutorisees)}.");
         }
 
         if (tailleOctets <= 0)
@@ -70,7 +74,7 @@ public sealed class ValidateurFichierDocument
                 }
 
                 // Vérification spécifique de cohérence par extension
-                if (ext.Equals(".pdf", StringComparison.OrdinalIgnoreCase) && bytesLus >= 4)
+                if (ext == "pdf" && bytesLus >= 4)
                 {
                     // Signature PDF : %PDF (0x25, 0x50, 0x44, 0x46)
                     if (header[0] != 0x25 || header[1] != 0x50 || header[2] != 0x44 || header[3] != 0x46)
@@ -78,7 +82,7 @@ public sealed class ValidateurFichierDocument
                         return (false, "Fichier refusé : signature binaire non conforme au format PDF.");
                     }
                 }
-                else if (ext.Equals(".png", StringComparison.OrdinalIgnoreCase) && bytesLus >= 4)
+                else if (ext == "png" && bytesLus >= 4)
                 {
                     // Signature PNG : \x89PNG (0x89, 0x50, 0x4E, 0x47)
                     if (header[0] != 0x89 || header[1] != 0x50 || header[2] != 0x4E || header[3] != 0x47)
@@ -86,7 +90,7 @@ public sealed class ValidateurFichierDocument
                         return (false, "Fichier refusé : signature binaire non conforme au format PNG.");
                     }
                 }
-                else if ((ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase) || ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)) && bytesLus >= 3)
+                else if ((ext == "jpg" || ext == "jpeg") && bytesLus >= 3)
                 {
                     // Signature JPEG : 0xFF, 0xD8, 0xFF
                     if (header[0] != 0xFF || header[1] != 0xD8 || header[2] != 0xFF)

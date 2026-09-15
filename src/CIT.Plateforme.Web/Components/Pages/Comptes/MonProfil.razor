@@ -1,4 +1,4 @@
-@page "/comptes/mon-profil"
+﻿@page "/comptes/mon-profil"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -6,28 +6,31 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirMonProfilQuery ObtenirMonProfil
 @inject ModifierMonProfilCommand ModifierMonProfil
 @inject CloturerMonCompteCommand CloturerMonCompte
 @inject NavigationManager Navigation
 
-<PageTitle>Mon profil — CIT</PageTitle>
+<PageTitle>@Loc["Profil.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>👤</span> Mon profil
-        </h2>
-        <div class="cit-page-subtitle">Consultez les informations de votre compte et mettez à jour vos coordonnées</div>
+        <h1 class="cit-page-title">
+            <span>👤</span> @Loc["Profil.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["Profil.Subtitle"]</div>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de votre profil..." />
+    <IndicateurChargement Message="@Loc["Profil.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -38,84 +41,83 @@ else if (_profil is not null)
     <div style="max-width: 760px;">
         @if (_erreur is not null)
         {
-            <div class="alert alert-danger mb-4">@_erreur</div>
+            <div class="alert alert-danger mb-4" role="alert">@_erreur</div>
         }
         @if (_succes is not null)
         {
-            <div class="alert alert-success mb-4">@_succes</div>
+            <div class="alert alert-success mb-4" role="status">@_succes</div>
         }
 
         <!-- Identité -->
         <div class="cit-card mb-4">
-            <h6 class="fw-bold text-dark mb-1">Identité</h6>
-            <div class="small text-muted mb-4">Ces informations vous identifient auprès des agents CIT dans vos échanges.</div>
+            <h6 class="fw-bold text-dark mb-1">@Loc["Profil.IdentitySection"]</h6>
+            <div class="small text-muted mb-4">@Loc["Profil.IdentityHelp"]</div>
 
             <div class="mb-3">
-                <label class="form-label" for="nomAffiche">Nom affiché</label>
+                <label class="form-label" for="nomAffiche">@Loc["Profil.DisplayNameLabel"]</label>
                 <input id="nomAffiche" class="form-control" maxlength="128"
                        @bind="_nomAffiche" @bind:event="oninput"
-                       placeholder="Nom et prénoms" />
+                       placeholder="@Loc["Profil.DisplayNamePlaceholder"]" />
             </div>
 
             <div class="mb-3">
-                <label class="form-label" for="email">Adresse e-mail</label>
+                <label class="form-label" for="email">@Loc["Profil.EmailLabel"]</label>
                 <input id="email" class="form-control" value="@_profil.Email" disabled readonly />
                 <div class="form-text">
-                    Votre adresse e-mail est votre identifiant de connexion : elle ne peut pas être modifiée ici.
-                    Contactez l'administration CIT si elle doit changer.
+                    @Loc["Profil.EmailHelp"]
                 </div>
             </div>
 
             <div class="mb-0">
-                <label class="form-label" for="telephone">Téléphone</label>
+                <label class="form-label" for="telephone">@Loc["Profil.PhoneLabel"]</label>
                 <input id="telephone" class="form-control" maxlength="32"
                        @bind="_telephone" @bind:event="oninput"
-                       placeholder="Ex. : +225 01 02 03 04 05" />
-                <div class="form-text">Facultatif. Utilisé pour vous joindre au sujet de vos dossiers.</div>
+                       placeholder="@Loc["Profil.PhonePlaceholder"]" />
+                <div class="form-text">@Loc["Profil.PhoneHelp"]</div>
             </div>
         </div>
 
         <!-- Rattachement -->
         <div class="cit-card mb-4">
-            <h6 class="fw-bold text-dark mb-1">Rattachement</h6>
-            <div class="small text-muted mb-4">Informations gérées par CIT — elles ne sont pas modifiables depuis cette page.</div>
+            <h6 class="fw-bold text-dark mb-1">@Loc["Profil.AttachmentSection"]</h6>
+            <div class="small text-muted mb-4">@Loc["Profil.AttachmentHelp"]</div>
 
             <div class="table-responsive">
                 <table class="table table-sm align-middle mb-0">
                     <tbody>
                         <tr>
-                            <td class="text-muted" style="width: 40%;">Espace actif</td>
+                            <td class="text-muted" style="width: 40%;">@Loc["Profil.ActiveSpace"]</td>
                             <td class="fw-semibold text-dark">@LibelleEspace(_contexte!.EspaceActif)</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Type de compte</td>
+                            <td class="text-muted">@Loc["Profil.AccountType"]</td>
                             <td class="fw-semibold text-dark">@_profil.Nature</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Société</td>
+                            <td class="text-muted">@Loc["Dash.Company"]</td>
                             <td class="fw-semibold text-dark">@(_contexte.SocieteNom ?? "—")</td>
                         </tr>
                         @if (_contexte.SocieteProfil.HasValue)
                         {
                             <tr>
-                                <td class="text-muted">Profil client</td>
+                                <td class="text-muted">@Loc["Profil.ClientProfile"]</td>
                                 <td class="fw-semibold text-dark">@_contexte.SocieteProfil</td>
                             </tr>
                         }
                         <tr>
-                            <td class="text-muted">Habilitations</td>
+                            <td class="text-muted">@Loc["Profil.Permissions"]</td>
                             <td class="fw-semibold text-dark">@_contexte.Permissions.Count</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">État du compte</td>
+                            <td class="text-muted">@Loc["Profil.AccountState"]</td>
                             <td>
                                 @if (_profil.EstActif)
                                 {
-                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">Actif</span>
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">@Loc["Societe.StatusActive"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">Inactif</span>
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">@Loc["Profil.StateInactive"]</span>
                                 }
                             </td>
                         </tr>
@@ -126,14 +128,14 @@ else if (_profil is not null)
 
         <!-- Sécurité -->
         <div class="cit-card mb-4">
-            <h6 class="fw-bold text-dark mb-1">Sécurité</h6>
-            <div class="small text-muted mb-3">Renforcez la protection de votre compte.</div>
+            <h6 class="fw-bold text-dark mb-1">@Loc["Profil.SecuritySection"]</h6>
+            <div class="small text-muted mb-3">@Loc["Profil.SecurityHelp"]</div>
             <div class="d-flex flex-wrap gap-2">
                 <a href="/comptes/double-authentification" class="btn btn-outline-secondary btn-sm">
-                    🛡️ Double authentification (2FA)
+                    @Loc["Profil.Btn2fa"]
                 </a>
                 <a href="/comptes/mot-de-passe-oublie" class="btn btn-outline-secondary btn-sm">
-                    🔑 Changer mon mot de passe
+                    @Loc["Profil.BtnChangePassword"]
                 </a>
             </div>
         </div>
@@ -142,23 +144,22 @@ else if (_profil is not null)
         {
             <!-- Zone de danger : Clôture du compte -->
             <div class="cit-card border-danger-subtle mb-4">
-                <h6 class="fw-bold text-danger mb-1">Clôture du compte</h6>
+                <h6 class="fw-bold text-danger mb-1">@Loc["Profil.ClosureSection"]</h6>
                 <div class="small text-muted mb-3">
-                    La clôture de votre compte désactivera immédiatement votre accès à la plateforme CIT.
-                    L'historique des opérations antérieures (tickets, documents officiels, factures) reste archivé conformément aux obligations légales.
+                    @Loc["Profil.ClosureHelp"]
                 </div>
                 <div>
                     <button type="button" class="btn btn-outline-danger btn-sm fw-semibold" @onclick="AfficherModaleCloture">
-                        ⚠️ Clôturer mon compte
+                        @Loc["Profil.CloseAccountBtn"]
                     </button>
                 </div>
             </div>
         }
 
         <div class="d-flex justify-content-end gap-2 mb-5">
-            <button class="btn btn-outline-secondary" @onclick="AnnulerAsync" disabled="@_enregistrement">Annuler</button>
+            <button class="btn btn-outline-secondary" @onclick="AnnulerAsync" disabled="@_enregistrement">@Loc["Common.Cancel"]</button>
             <button class="btn btn-primary px-4 fw-bold" @onclick="EnregistrerAsync" disabled="@(!PeutEnregistrer || _enregistrement)">
-                @(_enregistrement ? "Enregistrement..." : "Enregistrer les modifications")
+                @(_enregistrement ? Loc["Profil.Saving"].Value : Loc["Profil.SaveChanges"].Value)
             </button>
         </div>
     </div>
@@ -169,37 +170,37 @@ else if (_profil is not null)
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header border-bottom-0 pb-0">
-                        <h5 class="modal-title fw-bold text-danger">⚠️ Confirmer la clôture de votre compte</h5>
+                        <h5 class="modal-title fw-bold text-danger">@Loc["Profil.ClosureModalTitle"]</h5>
                         <button type="button" class="btn-close" @onclick="FermerModaleCloture" disabled="@_clotureEnCours"></button>
                     </div>
                     <div class="modal-body py-3">
                         <p class="small text-muted mb-3">
-                            Cette action est irréversible. Votre compte sera immédiatement désactivé et vos sessions actives seront révoquées.
+                            @Loc["Profil.ClosureModalWarning"]
                         </p>
 
                         @if (_erreurCloture is not null)
                         {
-                            <div class="alert alert-danger py-2 small mb-3">@_erreurCloture</div>
+                            <div class="alert alert-danger py-2 small mb-3" role="alert">@_erreurCloture</div>
                         }
 
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold" for="motDePasseCloture">Mot de passe de confirmation <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-semibold" for="motDePasseCloture">@Loc["Profil.ClosurePwdLabel"] <span class="text-danger">*</span></label>
                             <input id="motDePasseCloture" type="password" class="form-control"
-                                   @bind="_motDePasseCloture" placeholder="Entrez votre mot de passe pour confirmer" />
+                                   @bind="_motDePasseCloture" placeholder="@Loc["Profil.ClosurePwdPlaceholder"]" />
                         </div>
 
                         <div class="mb-0">
-                            <label class="form-label small fw-semibold" for="motifCloture">Motif de clôture (facultatif)</label>
+                            <label class="form-label small fw-semibold" for="motifCloture">@Loc["Profil.ClosureReasonLabel"]</label>
                             <input id="motifCloture" type="text" class="form-control" maxlength="256"
-                                   @bind="_motifCloture" placeholder="Précisez la raison de votre départ si vous le souhaitez" />
+                                   @bind="_motifCloture" placeholder="@Loc["Profil.ClosureReasonPlaceholder"]" />
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 pt-0">
                         <button type="button" class="btn btn-outline-secondary" @onclick="FermerModaleCloture" disabled="@_clotureEnCours">
-                            Annuler
+                            @Loc["Common.Cancel"]
                         </button>
                         <button type="button" class="btn btn-danger fw-bold" @onclick="ConfirmerClotureAsync" disabled="@(string.IsNullOrWhiteSpace(_motDePasseCloture) || _clotureEnCours)">
-                            @(_clotureEnCours ? "Clôture en cours..." : "Confirmer la clôture")
+                            @(_clotureEnCours ? Loc["Profil.ClosureConfirmInProgress"].Value : Loc["Profil.ClosureConfirmBtn"].Value)
                         </button>
                     </div>
                 </div>
@@ -242,7 +243,7 @@ else if (_profil is not null)
             if (_contexte is null || !_contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour accéder à votre profil.";
+                _messageNonAutorise = Loc["Profil.MsgLoginRequired"].Value;
                 return;
             }
 
@@ -258,7 +259,7 @@ else if (_profil is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -279,12 +280,12 @@ else if (_profil is not null)
                 _contexte.UtilisateurId,
                 new ModifierMonProfilRequete(_nomAffiche, _telephone));
 
-            _succes = "Vos informations ont été enregistrées.";
+            _succes = Loc["Profil.MsgSaved"].Value;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -331,7 +332,7 @@ else if (_profil is not null)
         }
         catch (Exception ex)
         {
-            _erreurCloture = ex.Message;
+            _erreurCloture = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -341,11 +342,11 @@ else if (_profil is not null)
 
     private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
     {
-        EspaceFonctionnel.Client => "Espace Client",
-        EspaceFonctionnel.AdministrateurSociete => "Espace Entreprise",
-        EspaceFonctionnel.Agent => "Espace Opérateur CIT",
-        EspaceFonctionnel.Supervision => "Supervision CIT",
-        EspaceFonctionnel.AdministrationCit => "Administration CIT",
+        EspaceFonctionnel.Client => SharedResourcesLocalizer.Get("Profil.SpaceClient"),
+        EspaceFonctionnel.AdministrateurSociete => SharedResourcesLocalizer.Get("Societe.Title"),
+        EspaceFonctionnel.Agent => SharedResourcesLocalizer.Get("Profil.SpaceAgent"),
+        EspaceFonctionnel.Supervision => SharedResourcesLocalizer.Get("Profil.SpaceSupervision"),
+        EspaceFonctionnel.AdministrationCit => SharedResourcesLocalizer.Get("Profil.SpaceAdmin"),
         _ => espace.ToString()
     };
 }

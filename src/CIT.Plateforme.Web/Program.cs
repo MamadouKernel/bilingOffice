@@ -15,6 +15,18 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// RECETTE UAT — chargement des secrets utilisateur hors Development.
+//
+// .NET n'ajoute les user-secrets qu'en Development. L'environnement de RECETTE (« UAT ») en a
+// pourtant besoin : la chaîne de connexion vers CIT_UAT_RECETTE et le secret d'amorçage y vivent
+// (hors dépôt, dans dotnet user-secrets). On les charge donc EXPLICITEMENT pour l'environnement
+// « UAT » — et pour lui seul. La Production n'est jamais concernée : son EnvironmentName vaut
+// « Production », jamais « UAT ». Aucun secret n'entre dans un fichier versionné.
+if (builder.Environment.IsEnvironment("UAT"))
+{
+    builder.Configuration.AddUserSecrets<Program>(optional: true);
+}
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -149,6 +161,12 @@ else
     {
         var seeder = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.DevelopmentSeeder>();
         await seeder.SeedAsync();
+
+        // Jeu de RECETTE UAT — identités strictement fictives, distinct de l'amorçage de
+        // démonstration. Il ne s'exécute que si la configuration LOCALE l'active explicitement et
+        // fournit un secret : hors de ce cas, l'appel est sans effet (voir PolitiqueRecetteUat).
+        var seederUat = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.SeedRecetteUat>();
+        await seederUat.ExecuterAsync();
     }
 }
 
@@ -212,6 +230,10 @@ if (app.Environment.IsDevelopment())
 }
 
 CIT.Plateforme.Web.Api.ApiEndpoints.MapPlateformeApi(app);
+
+// OUVERTURE DE SESSION DE RECETTE UAT — hors Production, inerte hors du périmètre UAT complet.
+// Voir EndpointsRecetteUat : barrières cumulatives, aucun secret, aucune permission créée.
+CIT.Plateforme.Web.Recette.EndpointsRecetteUat.MapRecetteUat(app);
 
 // FEATURE 016 — Sondes de Disponibilité & Health Checks (NFR-03, NFR-10)
 app.MapHealthChecks("/healthz", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

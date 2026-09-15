@@ -1,4 +1,4 @@
-@page "/agent/dashboard"
+﻿@page "/agent/dashboard"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Agent
@@ -25,15 +25,15 @@ else if (_nonAutorise)
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger my-3">@_erreur</div>
+    <div class="alert alert-danger my-3" role="alert">@_erreur</div>
 }
 else if (_dashboard is not null)
 {
     <div class="cit-page-header">
         <div>
-            <h2 class="cit-page-title">
+            <h1 class="cit-page-title">
                 <span>⚡</span> Tableau de bord Opérateur
-            </h2>
+            </h1>
             <div class="cit-page-subtitle">Bienvenue, <strong class="text-dark">@_dashboard.AgentNom</strong> — Traitement et instruction des files en temps réel</div>
         </div>
     </div>
@@ -200,7 +200,7 @@ else if (_dashboard is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

@@ -20,6 +20,15 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "CIT_TEST_USERS_PASSWORD": ""
       }
+    },
+    "uat": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7097",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "UAT"
+      }
     }
   }
 }

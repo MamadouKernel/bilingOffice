@@ -1,4 +1,4 @@
-@page "/billing-import/ticket-cloture"
+﻿@page "/billing-import/ticket-cloture"
 @page "/billing-import/ticket-cloture/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -16,9 +16,9 @@
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
+        <h1 class="cit-page-title">
             <span>📑</span> Pièces et délivrance (Ticket clôturé)
-        </h2>
+        </h1>
         <div class="cit-page-subtitle">Téléchargement sécurisé des factures, BS et bons à délivrer (BADT)</div>
     </div>
     <div class="mt-3 mt-md-0">
@@ -37,7 +37,7 @@
     }
     else if (_erreur is not null)
     {
-        <div class="alert alert-danger">@_erreur</div>
+        <div class="alert alert-danger" role="alert">@_erreur</div>
     }
     else if (_documents is not null)
     {
@@ -126,7 +126,7 @@
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

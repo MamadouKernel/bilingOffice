@@ -64,7 +64,7 @@ public sealed class CircuitClientIesExportTests
             ticketRepository, dossierRepository, fileRepository, suivisBranchesIes,
             autorisation, journalisation, horloge, uniteDeTravail);
         var instruireBranche = new InstruireBrancheIesExportCommand(
-            ticketRepository, suivisBranchesIes, autorisation, journalisation, horloge, uniteDeTravail);
+            ticketRepository, suivisBranchesIes, autorisation, Support.FabriqueRequetes.PorteeChampsIes(dbContext), journalisation, horloge, uniteDeTravail);
         var finaliserIes = new ConstaterJointureIesExportEtFinaliserCommand(
             ticketRepository, suivisBranchesIes, autorisation, journalisation, horloge, uniteDeTravail);
 
