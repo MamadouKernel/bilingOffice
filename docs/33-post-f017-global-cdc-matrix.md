@@ -178,6 +178,24 @@ client, porte deux valeurs métier écrites en dur : une franchise de séjour de
 masses maximales de **32 t / 40 t**. Elles y étaient déjà ; les brancher les rend opposables au
 client. Elles relèvent de PC-12 et devraient être administrées, non codées.
 
+#### Mise à jour du 2026-09-15 — `NFR-07` re-certifiée (i18n FR/EN livrée)
+
+Le chantier i18n a été mené à terme en 6 lots (LOTs 1→6), mergés dans `main` (commit `42918d0`).
+**Toutes les pages `.razor` de l'interface sont désormais bilingues FR/EN**, avec parité stricte
+des dictionnaires vérifiée par **74 tests** (`TraductionParityTests`, `NfrCert07*`,
+`NavigationI18nTests`). Les 880 chaînes françaises codées en dur relevées le 04/09 ont été
+remplacées par des clés `SharedResourcesLocalizer` ; le compteur « composants qui les utilisent »
+est passé de 1/97 à la quasi-totalité des pages.
+
+`NFR-07` repasse donc de `PARTIAL` à **`CERTIFIED`** (voir ligne de matrice mise à jour).
+
+> Résidus confirmés au 15/09 (vérification code, hors i18n) : **écran d'administration des
+> « Libellés de statut » (§11.4)** et **des « Niveaux de priorité » (§17.3)** toujours absents
+> (entités `LibelleStatutTicket` / `Priorite` présentes) ; axe **« par étape »** de `COM-03`
+> toujours porté par `FileId` sans champ `Etape` explicite. `COM-01`/`ENR-04`/`IA-01..07`
+> restent bloqués faute de fournisseur arbitré ; `NFR-05/06/08/09`, `SEC-09`, `PC-13` relèvent
+> de l'infrastructure/DSI.
+
 #### Correction du 2026-09-04 (soir) — `NFR-07` déclassée
 
 L'utilisateur a signalé que le changement de langue ne produit aucun effet. Vérification faite :
@@ -510,7 +528,7 @@ Une exigence peut apparaître dans plusieurs specs lorsqu'elle a été traitée 
 | `NFR-04` | Must | Transverse | `IMPLEMENTED_NOT_ENVIRONMENT_PROVEN` | F016 | Temps de réponse < 3 secondes pour les écrans courants dans des conditions normales de charge |
 | `NFR-05` | Must | Transverse | `NOT_IMPLEMENTED` | — | Volumétrie dimensionnante à confirmer en phase de cadrage : tickets/jour, taille des pièces joi |
 | `NFR-06` | Must | Transverse | `NOT_IMPLEMENTED` | — | Sauvegardes régulières (données et documents) et procédure de restauration testée |
-| `NFR-07` | Should | Transverse | `PARTIAL` | 011, 013, 014 | Interface disponible en anglais (clients internationaux) |
+| `NFR-07` | Should | Transverse | `CERTIFIED` | 011, 013, 014, i18n LOTs 1→6 (`42918d0`) | Interface disponible en anglais (clients internationaux) — bilingue FR/EN, parité stricte, 74 tests |
 | `NFR-08` | Should | Transverse | `CERTIFIED` | 011, 013, 014, 015, 016, 017 | Architecture ouverte exposant des API pour faciliter d'éventuelles intégrations futures |
 | `NFR-09` | Should | Transverse | `NOT_IMPLEMENTED` | — | Hébergement conforme aux standards du groupe ; le choix (infrastructure CIT/AGL ou cloud) sera  |
 | `NFR-10` | Must | Transverse | `IMPLEMENTED_NOT_ENVIRONMENT_PROVEN` | F016 | La plateforme est accessible 24h/24 et 7j/7, hors périodes de maintenance planifiées |

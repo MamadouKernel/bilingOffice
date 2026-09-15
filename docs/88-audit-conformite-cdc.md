@@ -14,6 +14,20 @@
 > n'est pas une décision d'ingénierie. Le corps du document conserve le constat d'origine :
 > c'est lui qui explique pourquoi chaque écart comptait.
 
+> **Mise à jour du 2026-09-15.** Deux évolutions depuis la remédiation du 04/09 :
+> 1. **`NFR-07` (interface en anglais) fermée.** Chantier i18n livré en 6 lots (LOTs 1→6),
+>    mergé dans `main` (`42918d0`) : toutes les pages `.razor` sont bilingues FR/EN, parité
+>    stricte vérifiée par 74 tests. Passe de `PARTIAL` à `CERTIFIED`.
+> 2. **Écrans d'administration confirmés livrés** (§7 ci-dessous partiellement obsolète) :
+>    `SLA-05` → `/administration/parametres-sla`, `ALE-03` → `/administration/regles-escalade`,
+>    `SOC-07` → `/administration/pieces-exigees-etape` existent bien.
+>
+> **Résidus réels au 15/09** (vérifiés dans le code) : écrans d'admin **« Libellés de statut »
+> (§11.4)** et **« Niveaux de priorité » (§17.3)** toujours absents ; axe **« par étape »** de
+> `COM-03` non explicite (porté par `FileId`) ; `COM-01`/`ENR-04`/`IA-01..07` bloqués
+> fournisseur ; `NFR-05/06/08/09`, `SEC-09`, `PC-13` = infrastructure/DSI. Étiquetage des 19
+> tests (§6) non encore fait.
+
 ## Verdict en une phrase
 
 **L'application n'est pas conforme à 100 %, et l'écart principal n'est pas dans le code : il est
