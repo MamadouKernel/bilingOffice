@@ -1,22 +1,24 @@
-@page "/comptes/compte-cloture"
+﻿@page "/comptes/compte-cloture"
 @using Microsoft.AspNetCore.Authorization
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
 @attribute [AllowAnonymous]
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Compte clôturé — CIT</PageTitle>
+<PageTitle>@Loc["Account.ClosedPageTitle"]</PageTitle>
 
 <div class="container py-5" style="max-width: 600px;">
     <div class="cit-card text-center p-5 shadow-sm">
         <div class="display-4 mb-3">🔒</div>
-        <h3 class="fw-bold text-dark mb-3">Votre compte a été clôturé</h3>
+        <h1 class="fw-bold text-dark mb-3 h3">@Loc["Account.ClosedTitle"]</h1>
         <p class="text-muted mb-4">
-            La clôture de votre compte a bien été effectuée.
-            Vos accès à la plateforme CIT ont été révoqués et vos sessions ont été déconnectées.
+            @Loc["Account.ClosedText"]
         </p>
         <div class="alert alert-light border small text-start text-muted mb-4">
-            ℹ️ Conformément aux obligations légales et réglementaires portuaires, l'historique de vos opérations passées (tickets, documents officiels, factures) reste archivé et ne fait l'objet d'aucune suppression intempestive.
+            @Loc["Account.ClosedArchiveNote"]
         </div>
         <a href="/comptes/connexion" class="btn btn-primary fw-semibold px-4">
-            Retour à la page de connexion
+            @Loc["Account.ClosedBackToLogin"]
         </a>
     </div>
 </div>

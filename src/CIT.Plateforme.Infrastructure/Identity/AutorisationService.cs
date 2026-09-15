@@ -1,4 +1,5 @@
-using CIT.Plateforme.Application.Securite;
+﻿using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,9 +47,12 @@ public sealed class AutorisationService(
         var autorise = await EstAutoriseAsync(utilisateurId, permissionCode, fileId, ct).ConfigureAwait(false);
         if (!autorise)
         {
+            // REMÉDIATION D-06 : le message VISIBLE reste générique ; l'identifiant du compte et le
+            // code de permission — utiles au seul diagnostic — partent dans le détail technique.
             throw new AccesRefuseException(
-                $"L'utilisateur {utilisateurId} ne dispose pas de la permission '{permissionCode}'" +
-                (fileId is Guid f ? $" pour la file {f}." : "."));
+                "Vous ne disposez pas de l'habilitation requise pour accéder à cette ressource.",
+                detailTechnique: $"Utilisateur {utilisateurId} — permission '{permissionCode}'" +
+                    (fileId is Guid f ? $" — file {f}." : "."));
         }
     }
 
@@ -71,9 +75,17 @@ public sealed class AutorisationService(
 
         // Une habilitation globale (FileId == null) couvre toutes les files ; une habilitation
         // bornée à une file ne couvre que celle-ci (rattachement rôle/file — SEC-11, WKF-01).
-        return await db.Habilitations
+        //
+        // REMÉDIATION RECETTE UAT (D-05/D-15) : la règle elle-même n'est plus écrite ici. Elle est
+        // dans RegleHabilitation, et la construction du menu latéral s'appuie sur EXACTEMENT la
+        // même — un menu qui afficherait un lien que ce service refuse serait le symptôme de deux
+        // règles divergentes. Le filtrage SQL reste borné à l'utilisateur et à la permission ; seul
+        // l'arbitrage de portée remonte dans la règle partagée.
+        var habilitations = await db.Habilitations
             .Where(h => h.UtilisateurId == utilisateurId && h.PermissionCode == permissionCode)
-            .AnyAsync(h => h.FileId == null || h.FileId == fileId, ct)
+            .ToListAsync(ct)
             .ConfigureAwait(false);
+
+        return RegleHabilitation.Couvre(habilitations, permissionCode, fileId);
     }
 }

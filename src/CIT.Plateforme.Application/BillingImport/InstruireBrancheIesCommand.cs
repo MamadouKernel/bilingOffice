@@ -16,6 +16,7 @@ public sealed class InstruireBrancheIesCommand(
     ITicketRepository tickets,
     ISuiviBrancheIesRepository suivisBranchesIes,
     IAutorisationService autorisation,
+    PorteeChampsIesService porteeChamps,
     IJournalisationService journalisation,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
@@ -29,6 +30,19 @@ public sealed class InstruireBrancheIesCommand(
             ? Permission.BillingImportIesManifesteInstruire
             : Permission.BillingImportIesControleDocumentaireInstruire;
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
+
+        // RG-SEC-01 — le droit d'ACTION sur le bloc de la branche, décidé par la matrice du CDC.
+        // Cette vérification ne remplace pas celle du dessus : la permission dit « cet agent peut
+        // instruire cette branche », la matrice dit « ce rôle peut écrire ce bloc ». Les deux
+        // couches sont conservées, conformément au refus par défaut.
+        var bloc = branche == BrancheIes.Manifeste ? BlocDonneesIes.Manifeste : BlocDonneesIes.Douane;
+        var droits = await porteeChamps
+            .ResoudreAsync(agentId, ticket.FileCouranteId, ModuleIes.Import, ct).ConfigureAwait(false);
+        if (!droits.PeutEcrire(bloc))
+        {
+            throw new AccesRefuseException(
+                $"L'utilisateur {agentId} n'a pas le droit d'écriture sur le bloc {bloc} du ticket {ticketId} (SEC-02, IMP-40).");
+        }
 
         var suivis = await suivisBranchesIes.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
         var suivi = suivis.SingleOrDefault(s => s.Branche == branche)

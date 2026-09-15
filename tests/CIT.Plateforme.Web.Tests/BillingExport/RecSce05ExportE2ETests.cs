@@ -100,6 +100,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
         var validerBO = services.GetRequiredService<ValiderTicketExportCommand>();
+        var emettreDraftIn = services.GetRequiredService<EmettreDraftInExportCommand>();
         var editerFacture = services.GetRequiredService<EditerFactureExportCommand>();
         var deposerPreuve = services.GetRequiredService<DeposerPreuvePaiementExportCommand>();
         var validerPaiement = services.GetRequiredService<ValiderPreuvePaiementExportCommand>();
@@ -116,6 +117,8 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Facturation
+        // RG-EXP-03 : le Draft IN précède la facture.
+        await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Client dépose preuve paiement
@@ -151,6 +154,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
         var validerBO = services.GetRequiredService<ValiderTicketExportCommand>();
+        var emettreDraftIn = services.GetRequiredService<EmettreDraftInExportCommand>();
         var editerFacture = services.GetRequiredService<EditerFactureExportCommand>();
         var finaliserDoc = services.GetRequiredService<FinaliserControleDocumentaireExportCommand>();
 
@@ -163,6 +167,8 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Facturation -> Direct Contrôle Doc (pas de caisse)
+        // RG-EXP-03 : le Draft IN précède la facture.
+        await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         var fileDoc = await dbContext.Files.SingleAsync(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == NomsFilesExport.ControleDocumentaire);
@@ -196,6 +202,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
 
         var soumettre = services.GetRequiredService<SoumettreDemandeExportCommand>();
         var validerBO = services.GetRequiredService<ValiderTicketExportCommand>();
+        var emettreDraftIn = services.GetRequiredService<EmettreDraftInExportCommand>();
         var editerFacture = services.GetRequiredService<EditerFactureExportCommand>();
         var confirmerLettrage = services.GetRequiredService<ConfirmerLettrageExportCommand>();
         var finaliserDoc = services.GetRequiredService<FinaliserControleDocumentaireExportCommand>();
@@ -209,6 +216,8 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Facturation -> Comptabilité Client
+        // RG-EXP-03 : le Draft IN précède la facture.
+        await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Confirmation Lettrage

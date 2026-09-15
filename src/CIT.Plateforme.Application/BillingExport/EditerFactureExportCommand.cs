@@ -36,8 +36,9 @@ public sealed class EditerFactureExportCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingExportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
-        await deposerDocument.DeposerPourAgentAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
-
+        // ORDRE (remédiation post-audit final) : TOUS les refus sont prononcés AVANT le dépôt du
+        // document. Auparavant la pièce était déposée puis le type de client rejeté — un ticket IES
+        // conservait donc une facture qui n'aurait jamais dû y être jointe.
         var dossier = await dossiers.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Dossier {ticket.DossierId} introuvable.");
         var typeClient = dossier.TypeClient
@@ -49,11 +50,22 @@ public sealed class EditerFactureExportCommand(
             TypeClient.Normal => NomsFilesExport.ValidationPaiement,
             TypeClient.EnCompte => NomsFilesExport.ControleDocumentaire, // EXP-03 : transition directe vers contrôle doc
             TypeClient.Deposit => NomsFilesExport.ComptabiliteClient,
+            // RG-EXP-04 : la facture d'un client IES est produite hors plateforme. Ce refus précède
+            // celui du Draft IN : la règle du Draft IN ne s'oppose jamais à un parcours IES.
             _ => throw new InvalidOperationException($"EditerFactureExportCommand ne s'applique pas au type {typeClient}."),
         };
 
         var fileCible = toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == nomFileCible)
             ?? throw new InvalidOperationException($"File « {nomFileCible} » (module {SoumettreDemandeExportCommand.Module}) non paramétrée.");
+
+        // RG-EXP-03 (remédiation post-audit final) : le Draft IN précède la facture.
+        if (!ticket.DraftInExportEmis)
+        {
+            throw new DraftInRequisException(
+                $"La facture du ticket {ticket.Numero} ne peut être éditée avant l'émission du Draft IN (RG-EXP-03).");
+        }
+
+        await deposerDocument.DeposerPourAgentAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
 
         var maintenant = horloge.MaintenantUtc;
         // CYC-01 / CYC-05 (remédiation P1-01) : une facture est un document officiel, le ticket devient donc

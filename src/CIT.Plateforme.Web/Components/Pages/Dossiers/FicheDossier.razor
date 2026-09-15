@@ -1,42 +1,49 @@
-@page "/dossiers/{Id:guid}"
+﻿@page "/dossiers/{Id:guid}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.Client
 @using CIT.Plateforme.Application.Dossiers
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirFicheDossierQuery FicheDossierQuery
 @inject NavigationManager Navigation
 
+<PageTitle>@(_fiche is null ? Loc["DosF.PageTitleFallback"].Value : string.Format(Loc["DosF.PageTitlePrefix"].Value, _fiche.NumeroDossier)) — CIT</PageTitle>
+
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement du dossier..." />
+    <IndicateurChargement Message="@Loc["DosF.Loading"]" />
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger d-flex align-items-center justify-content-between my-3">
+    <div class="alert alert-danger d-flex align-items-center justify-content-between my-3" role="alert">
         <div>
-            <strong>Erreur d'accès :</strong> @_erreur
+            <strong>@Loc["Ticket.AccessErrorLabel"]</strong> @_erreur
         </div>
-        <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">← Retour</button>
+        <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">@Loc["DosF.Back"]</button>
     </div>
 }
 else if (_fiche is not null)
 {
+    <FilAriane Elements="@(new List<FilAriane.ElementAriane> { new(Loc["FicheAvoirExo.BcHome"].Value, "/"), new(string.Format(Loc["Ticket.BcDossier"].Value, _fiche.NumeroDossier)) })" />
+
     <!-- En-tête Dossier -->
     <div class="cit-page-header">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="RetourArriere">
-                ← Retour
+                @Loc["DosF.Back"]
             </button>
             <div>
-                <h2 class="cit-page-title mb-0">
-                    <span>📁</span> Dossier <span class="font-monospace text-primary">@_fiche.NumeroDossier</span>
-                </h2>
+                <h1 class="cit-page-title mb-0">
+                    <span>📁</span> @Loc["DosF.HeaderPrefix"] <span class="font-monospace text-primary">@_fiche.NumeroDossier</span>
+                </h1>
                 <div class="cit-page-subtitle">
-                    Société <strong class="text-dark">@_fiche.SocieteNom</strong> · Créé par <strong>@_fiche.AuteurNom</strong> le @_fiche.DateCreationUtc.ToString("dd/MM/yyyy")
+                    @Loc["Dash.Company"] <strong class="text-dark">@_fiche.SocieteNom</strong> · @Loc["DosF.CreatedBy"] <strong>@_fiche.AuteurNom</strong> @Loc["DosF.On"] @_fiche.DateCreationUtc.ToString("dd/MM/yyyy")
                 </div>
             </div>
         </div>
@@ -55,9 +62,9 @@ else if (_fiche is not null)
                     📑
                 </div>
                 <div>
-                    <div class="cit-stat-label">Total des tickets</div>
+                    <div class="cit-stat-label">@Loc["DosF.KpiTotal"]</div>
                     <div class="cit-stat-value text-primary">@_fiche.TotalTickets</div>
-                    <div class="small text-muted">Lignes d'opérations rattachées</div>
+                    <div class="small text-muted">@Loc["DosF.KpiTotalHint"]</div>
                 </div>
             </div>
         </div>
@@ -67,9 +74,9 @@ else if (_fiche is not null)
                     ⏳
                 </div>
                 <div>
-                    <div class="cit-stat-label">Tickets en cours / action</div>
+                    <div class="cit-stat-label">@Loc["DosF.KpiInProgress"]</div>
                     <div class="cit-stat-value text-warning">@_fiche.TotalTicketsEnCours</div>
-                    <div class="small text-muted">En attente d'action client ou CIT</div>
+                    <div class="small text-muted">@Loc["DosF.KpiInProgressHint"]</div>
                 </div>
             </div>
         </div>
@@ -79,9 +86,9 @@ else if (_fiche is not null)
                     ✅
                 </div>
                 <div>
-                    <div class="cit-stat-label">Tickets clôturés</div>
+                    <div class="cit-stat-label">@Loc["DosF.KpiClosed"]</div>
                     <div class="cit-stat-value text-success">@_fiche.TotalTicketsClotures</div>
-                    <div class="small text-muted">Opérations achevées avec succès</div>
+                    <div class="small text-muted">@Loc["DosF.KpiClosedHint"]</div>
                 </div>
             </div>
         </div>
@@ -90,20 +97,20 @@ else if (_fiche is not null)
     <!-- Liste des tickets du dossier -->
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="p-3 bg-light border-bottom">
-            <h6 class="fw-bold text-dark mb-0">Tickets et étapes du dossier</h6>
+            <h6 class="fw-bold text-dark mb-0">@Loc["DosF.TicketsSection"]</h6>
         </div>
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>N° Ticket & BL / Booking</th>
-                        <th>Module & Type</th>
-                        <th>File courante</th>
-                        <th>Statut</th>
-                        <th>Opérateur</th>
-                        <th>Date de création</th>
-                        <th class="text-end">Action</th>
+                        <th>@Loc["DosF.ColTicketBl"]</th>
+                        <th>@Loc["DosF.ColModuleType"]</th>
+                        <th>@Loc["DosF.ColCurrentQueue"]</th>
+                        <th>@Loc["Societe.ColStatus"]</th>
+                        <th>@Loc["DosF.ColOperator"]</th>
+                        <th>@Loc["AvoirExoList.ColDate"]</th>
+                        <th class="text-end">@Loc["SimHist.ColAction"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,7 +119,7 @@ else if (_fiche is not null)
                         <tr>
                             <td>
                                 <div class="fw-bold text-dark font-monospace">@(t.NumeroBl ?? t.NumeroTicket)</div>
-                                <div class="small text-muted font-monospace">Ref: @t.NumeroTicket</div>
+                                <div class="small text-muted font-monospace">@Loc["DosF.RefWord"] @t.NumeroTicket</div>
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark border">@t.Module</span>
@@ -125,14 +132,14 @@ else if (_fiche is not null)
                                 <StatutBadge Statut="@t.Statut" />
                             </td>
                             <td>
-                                <span class="small text-muted">@(t.OperateurAssigneNom ?? "Non assigné")</span>
+                                <span class="small text-muted">@(t.OperateurAssigneNom ?? Loc["DosF.Unassigned"].Value)</span>
                             </td>
                             <td class="small text-muted font-monospace">
                                 @t.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")
                             </td>
                             <td class="text-end">
                                 <a href="/tickets/@t.TicketId" class="btn btn-outline-primary btn-sm">
-                                    Consulter ➔
+                                    @Loc["AvoirExoList.Consult"]
                                 </a>
                             </td>
                         </tr>
@@ -167,7 +174,7 @@ else if (_fiche is not null)
             var contexte = await ContexteService.ObtenirContexteAsync();
             if (!contexte.EstAuthentifie)
             {
-                _erreur = "Veuillez vous connecter pour consulter ce dossier.";
+                _erreur = Loc["DosF.LoginRequired"].Value;
                 return;
             }
 
@@ -177,7 +184,7 @@ else if (_fiche is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -197,12 +204,12 @@ else if (_fiche is not null)
 
     private static string LibelleEtatDossier(StatutVisuelDossier etat) => etat switch
     {
-        StatutVisuelDossier.ClotureTermine => "Clôturé / Terminé",
-        StatutVisuelDossier.EnAttenteClient => "Action requise",
-        StatutVisuelDossier.EnCoursTraitement => "En cours CIT",
-        StatutVisuelDossier.Annule => "Annulé",
-        StatutVisuelDossier.Rejete => "Rejeté",
-        _ => "En attente CIT"
+        StatutVisuelDossier.ClotureTermine => SharedResourcesLocalizer.Get("Dash.EtatCloture"),
+        StatutVisuelDossier.EnAttenteClient => SharedResourcesLocalizer.Get("Dash.EtatActionRequise"),
+        StatutVisuelDossier.EnCoursTraitement => SharedResourcesLocalizer.Get("Dash.EtatEnCoursCit"),
+        StatutVisuelDossier.Annule => SharedResourcesLocalizer.Get("Dash.EtatAnnule"),
+        StatutVisuelDossier.Rejete => SharedResourcesLocalizer.Get("Dash.EtatRejete"),
+        _ => SharedResourcesLocalizer.Get("Dash.EtatEnAttenteCit")
     };
 
     private void RetourArriere()

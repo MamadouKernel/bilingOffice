@@ -1,4 +1,4 @@
-@page "/comptes/valider"
+﻿@page "/comptes/valider"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -6,36 +6,39 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Comptes
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Validation des demandes de compte — CIT</PageTitle>
+<PageTitle>@Loc["ValidDem.PageTitle"]</PageTitle>
 
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>🛡️</span> Administration CIT
+            <span>🛡️</span> @Loc["ValidDem.Pill"]
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">
-            Validation des Demandes de Compte
-        </h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
+            @Loc["ValidDem.Title"]
+        </h1>
         <div class="cit-page-subtitle text-muted">
-            Revue administrative des dossiers, examen des pièces justificatives et habilitation des profils d'entreprise.
+            @Loc["ValidDem.Subtitle"]
         </div>
     </div>
     <div>
         <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
-            <span>🔄</span> Actualiser la file
+            <span>🔄</span> @Loc["ValidDem.BtnRefresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des demandes en attente d'instruction..." />
+    <IndicateurChargement Message="@Loc["ValidDem.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -45,7 +48,7 @@ else
 {
     @if (erreur is not null)
     {
-        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm">
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
             <span class="me-2 fs-5">⚠️</span> @erreur
         </div>
     }
@@ -54,8 +57,8 @@ else
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
             <div class="fs-1 mb-3">✅</div>
-            <h4 class="fw-bold text-dark mb-2">File d'attente à jour</h4>
-            <p class="text-muted mb-0">Toutes les demandes d'ouverture de compte ont été instruites. Aucune action en attente.</p>
+            <h4 class="fw-bold text-dark mb-2">@Loc["ValidDem.EmptyTitle"]</h4>
+            <p class="text-muted mb-0">@Loc["ValidDem.EmptyDesc"]</p>
         </div>
     }
     else
@@ -63,19 +66,19 @@ else
         <div class="cit-card p-0 overflow-hidden border-0 shadow-sm mb-4" style="border-radius: 1rem;">
             <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
                 <div class="fw-bold text-dark small text-uppercase tracking-wider">
-                    📋 Demandes à instruire (@demandes.Count)
+                    @Loc["ValidDem.ListTitle", demandes.Count]
                 </div>
-                <span class="badge bg-warning text-dark fw-bold px-2 py-1">En attente de décision</span>
+                <span class="badge bg-warning text-dark fw-bold px-2 py-1">@Loc["ValidDem.BadgeEnAttente"]</span>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-uppercase text-muted small fw-bold" style="font-size: 0.75rem;">
                         <tr>
-                            <th class="ps-4 py-3">Entreprise Demandeuse</th>
-                            <th class="py-3">Justificatifs Produits</th>
-                            <th class="py-3">Profil Déclaré</th>
-                            <th class="py-3">Date Réception</th>
-                            <th class="text-end pe-4 py-3">Décision d'Instruction</th>
+                            <th class="ps-4 py-3">@Loc["ValidDem.ColEntreprise"]</th>
+                            <th class="py-3">@Loc["ValidDem.ColJustif"]</th>
+                            <th class="py-3">@Loc["ValidDem.ColProfil"]</th>
+                            <th class="py-3">@Loc["ValidDem.ColDate"]</th>
+                            <th class="text-end pe-4 py-3">@Loc["ValidDem.ColDecision"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,10 +88,10 @@ else
                                 <td class="ps-4 py-3">
                                     <div class="fw-bold text-dark" style="font-size: 0.95rem;">
                                         @(string.IsNullOrWhiteSpace(demande.InformationsDeclarees)
-                                            ? "Informations non renseignées"
+                                            ? Loc["ValidDem.InfoNonRenseignees"].Value
                                             : demande.InformationsDeclarees)
                                     </div>
-                                    <div class="small text-muted font-monospace">ID: @demande.Id.ToString()[..8]...</div>
+                                    <div class="small text-muted font-monospace">@Loc["ValidDem.IdLabel"] @demande.Id.ToString()[..8]...</div>
                                 </td>
                                 <td>
                                     @if (justificatifs.TryGetValue(demande.Id, out var pieces) && pieces.Count > 0)
@@ -104,7 +107,7 @@ else
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">Aucune pièce jointe</span>
+                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@Loc["ValidDem.AucunePiece"]</span>
                                     }
                                 </td>
                                 <td>
@@ -125,15 +128,15 @@ else
                                     <div class="d-flex justify-content-end align-items-center gap-2">
                                         <button class="btn btn-success btn-sm px-3 py-1 fw-bold shadow-sm d-flex align-items-center gap-1" 
                                                 @onclick="() => ValiderAsync(demande.Id)">
-                                            <span>✓</span> Valider
+                                            <span>✓</span> @Loc["ValidDem.BtnValider"]
                                         </button>
-                                        <input type="text" class="form-control form-control-sm border-0 shadow-sm" 
+                                        <input type="text" class="form-control form-control-sm border-0 shadow-sm"
                                                style="width: 13rem; background-color: var(--surface);"
-                                               placeholder="Motif si rejet..." 
+                                               placeholder="@Loc["ValidDem.PlaceholderRejet"]"
                                                @bind="motifsRejet[demande.Id]" />
-                                        <button class="btn btn-outline-danger btn-sm px-2 py-1 fw-semibold d-flex align-items-center gap-1" 
+                                        <button class="btn btn-outline-danger btn-sm px-2 py-1 fw-semibold d-flex align-items-center gap-1"
                                                 @onclick="() => RejeterAsync(demande.Id)">
-                                            <span>✕</span> Rejeter
+                                            <span>✕</span> @Loc["ValidDem.BtnRejeter"]
                                         </button>
                                     </div>
                                 </td>
@@ -170,7 +173,7 @@ else
             if (contexte is null || !contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour instruire les demandes de compte.";
+                _messageNonAutorise = Loc["ValidDem.LoginRequis"].Value;
                 return;
             }
 
@@ -217,7 +220,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -249,7 +252,7 @@ else
         }
         catch (Exception ex) when (ex is AccesRefuseException or ArgumentException)
         {
-            erreur = ex.Message;
+            erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

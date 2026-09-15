@@ -1,7 +1,10 @@
-@page "/not-found"
+﻿@page "/not-found"
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
 @layout MainLayout
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Page introuvable (404) — Côte d'Ivoire Terminal</PageTitle>
+<PageTitle>@Loc["Error.404.PageTitle"]</PageTitle>
 
 <div class="py-5 mx-auto" style="max-width: 720px;">
     <div class="cit-card text-center p-4 p-md-5 border-0 shadow-lg position-relative overflow-hidden" 
@@ -14,43 +17,43 @@
         <!-- Icône de recherche 404 -->
         <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4 p-3 shadow-sm position-relative z-1" 
              style="width: 84px; height: 84px; background: var(--azure-100); border: 2px solid var(--action);">
-            <span class="fs-1" role="img" aria-label="Introuvable">🔍</span>
+            <span class="fs-1" role="img" aria-label="@Loc["Error.404.NotFoundAria"]">🔍</span>
         </div>
 
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-3 border border-primary-subtle">
-            <span>⚓</span> Ressource Introuvable • HTTP 404
+            <span>⚓</span> @Loc["Error.404.Badge"]
         </div>
 
-        <h2 class="fw-bold text-dark mb-2">
-            Page Introuvable <span class="badge bg-primary bg-opacity-10 text-primary fs-6 align-middle border border-primary-subtle ms-1 px-3 py-1 rounded-pill">404</span>
-        </h2>
-        
+        <h1 class="fw-bold text-dark mb-2 h2">
+            @Loc["Error.404.Title"] <span class="badge bg-primary bg-opacity-10 text-primary fs-6 align-middle border border-primary-subtle ms-1 px-3 py-1 rounded-pill">404</span>
+        </h1>
+
         <p class="text-secondary mb-4 mx-auto" style="max-width: 520px; line-height: 1.6; font-size: 1rem;">
-            La page ou la ressource maritime que vous tentez d'atteindre n'existe pas, a été déplacée ou son URL est incorrecte.
+            @Loc["Error.404.Body"]
         </p>
 
         <!-- Liens rapides utiles -->
         <div class="row g-3 text-start mb-4 mx-auto" style="max-width: 540px;">
             <div class="col-12 col-sm-6">
                 <a href="/comptes/connexion" class="p-3 bg-light rounded-3 border d-block text-decoration-none text-dark h-100 hover-shadow">
-                    <div class="fw-bold text-primary mb-1">🔑 Espace de Connexion</div>
-                    <div class="small text-muted">Accéder à votre compte utilisateur ou agent CIT</div>
+                    <div class="fw-bold text-primary mb-1">🔑 @Loc["Error.404.LoginLinkTitle"]</div>
+                    <div class="small text-muted">@Loc["Error.404.LoginLinkText"]</div>
                 </a>
             </div>
             <div class="col-12 col-sm-6">
                 <a href="/simulation/proforma" class="p-3 bg-light rounded-3 border d-block text-decoration-none text-dark h-100 hover-shadow">
-                    <div class="fw-bold text-primary mb-1">🧮 Simulateur Proforma</div>
-                    <div class="small text-muted">Estimer vos frais de passage portuaire</div>
+                    <div class="fw-bold text-primary mb-1">🧮 @Loc["Error.404.SimLinkTitle"]</div>
+                    <div class="small text-muted">@Loc["Error.404.SimLinkText"]</div>
                 </a>
             </div>
         </div>
 
         <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
             <a href="/" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm d-inline-flex align-items-center gap-2">
-                <span>🏠</span> Retour à l'accueil
+                <span>🏠</span> @Loc["Common.BackHome"]
             </a>
             <a href="/client/dashboard" class="btn btn-outline-secondary px-4 py-2 fw-semibold rounded-pill d-inline-flex align-items-center gap-2">
-                <span>📊</span> Tableau de bord
+                <span>📊</span> @Loc["Tableau de bord"]
             </a>
         </div>
     </div>

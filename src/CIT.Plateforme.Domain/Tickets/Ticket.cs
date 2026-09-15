@@ -58,16 +58,57 @@ public sealed class Ticket
     /// c'est au module métier appelant (Billing Office…, hors périmètre) de le signaler via
     /// <see cref="MarquerEtatEngageant"/>.</summary>
     public bool EstEnEtatEngageant { get; private set; }
+
+    /// <summary>
+    /// RG-EXP-03 — date d'émission du Draft IN sur le parcours EXPORT. <c>null</c> tant qu'il n'a
+    /// pas été émis, et l'édition de la facture est alors refusée. Toujours <c>null</c> à l'import,
+    /// qui ne connaît pas cette étape.
+    /// </summary>
+    public DateTime? DraftInExportEmisLeUtc { get; private set; }
+
+    /// <summary>RG-EXP-03 — prérequis à l'édition de la facture export.</summary>
+    public bool DraftInExportEmis => DraftInExportEmisLeUtc.HasValue;
     public bool EstSousGelLegal { get; private set; } = false;
     public DateTime? DateArchivageUtc { get; private set; }
     public bool EstAnonymise { get; private set; } = false;
 
+    /// <summary>
+    /// RG-TCK-06 — le ticket est ARCHIVÉ. Distinct de la clôture, qui est une décision métier :
+    /// l'archivage en est la conséquence automatique, et il n'entraîne ni suppression, ni
+    /// déplacement, ni perte de lisibilité. Un ticket archivé reste consultable avec son historique
+    /// complet, ses documents et ses échanges.
+    /// </summary>
+    public bool EstArchive => DateArchivageUtc.HasValue;
+
     public void ActiverGelLegal() => EstSousGelLegal = true;
     public void DesactiverGelLegal() => EstSousGelLegal = false;
+
+    /// <summary>
+    /// RG-TCK-06 (remédiation post-audit final) — archivage automatique.
+    ///
+    /// L'audit final a constaté que l'archivage n'était « représenté » que par la présence de
+    /// <see cref="DateClotureUtc"/> : rien ne le matérialisait, et <see cref="DateArchivageUtc"/>
+    /// n'était alimentée que par la purge de rétention — ce qui confondait <b>archiver</b> et
+    /// <b>anonymiser</b>, deux opérations opposées quant à la lisibilité des données.
+    ///
+    /// Idempotent : archiver un ticket déjà archivé ne déplace pas sa date. La date d'archivage est
+    /// une donnée d'historique, elle ne se réécrit pas.
+    /// </summary>
+    public void Archiver(DateTime maintenantUtc)
+    {
+        DateArchivageUtc ??= maintenantUtc;
+    }
+
+    /// <summary>
+    /// Rétention (SEC-06) : le contenu est anonymisé. L'anonymisation n'EST PAS l'archivage — elle
+    /// intervient bien après, et retire de la lisibilité là où l'archivage la préserve. La date
+    /// d'archivage n'est donc pas écrasée ici ; elle est seulement renseignée si le ticket n'avait
+    /// jamais été archivé (cas d'un ticket purgé sans être passé par la clôture).
+    /// </summary>
     public void MarquerAnonymise(DateTime dateArchivageUtc)
     {
         EstAnonymise = true;
-        DateArchivageUtc = dateArchivageUtc;
+        DateArchivageUtc ??= dateArchivageUtc;
     }
 
     /// <summary>Jeton de concurrence optimiste EF Core (D3/D6) — garantit qu'une seule prise en
@@ -395,8 +436,13 @@ public sealed class Ticket
         DeclarationPresentielle = true;
     }
 
-    /// <summary>SOC-09 : la clôture déclenche un archivage automatique (représenté ici par
-    /// DateClotureUtc — le ticket reste consultable en permanence, jamais supprimé).</summary>
+    /// <summary>
+    /// SOC-09 / RG-TCK-06 : la clôture déclenche un archivage automatique.
+    ///
+    /// Les deux notions restent DISTINCTES — la clôture est la décision, l'archivage sa conséquence
+    /// — mais elles sont désormais liées ici, et non plus seulement affirmées en commentaire.
+    /// Le ticket n'est ni supprimé ni déplacé : il reste consultable avec tout son contenu.
+    /// </summary>
     public void Cloturer(MotifClotureType motif, DateTime maintenantUtc)
     {
         if (Statut is StatutTicket.Cloture or StatutTicket.Annule)
@@ -408,6 +454,7 @@ public sealed class Ticket
         MotifCloture = motif;
         DateClotureUtc = maintenantUtc;
         DateDerniereActiviteUtc = maintenantUtc;
+        Archiver(maintenantUtc);
     }
 
     /// <summary>CLAR-02 : la réouverture ne s'applique qu'aux tickets clôturés (normale ou pour
@@ -427,6 +474,11 @@ public sealed class Ticket
         OperateurAssigneId = null;
         DateArriveeEnFileUtc = maintenantUtc;
         DateDerniereActiviteUtc = maintenantUtc;
+
+        // RG-TCK-06 / RG-TCK-12 : l'archivage suit la clôture. Un ticket rouvert redevient actif —
+        // le laisser marqué archivé le décrirait faussement. L'historique de la clôture et de la
+        // réouverture, lui, est conservé : c'est le journal qui porte la mémoire, pas ce drapeau.
+        DateArchivageUtc = null;
     }
 
     public void DefinirPriorite(Guid prioriteId)
@@ -439,6 +491,20 @@ public sealed class Ticket
     public void MarquerEtatEngageant()
     {
         EstEnEtatEngageant = true;
+    }
+
+    /// <summary>
+    /// RG-EXP-03 (remédiation post-audit final) — le Pilote Facturation a émis le <b>Draft IN</b>.
+    ///
+    /// C'est l'adaptation que le CDC exige à l'export et qui manquait entièrement : « le Pilote
+    /// Facturation crée un Draft IN <b>avant</b> l'édition de la facture ». Le brouillon n'est pas
+    /// un document officiel — il ne rend donc PAS le ticket engageant, et ne change pas d'étape :
+    /// il conditionne seulement l'édition de la facture, qui suit dans la même file.
+    /// </summary>
+    public void EmettreDraftInExport(DateTime maintenantUtc)
+    {
+        DraftInExportEmisLeUtc = maintenantUtc;
+        DateDerniereActiviteUtc = maintenantUtc;
     }
 
     /// <summary>CYC-04 : enregistre l'émission d'une relance automatique.</summary>

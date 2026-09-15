@@ -1,13 +1,16 @@
-@page "/comptes/inscription-transporteur"
+﻿@page "/comptes/inscription-transporteur"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Infrastructure.Identity
 @using Microsoft.AspNetCore.Identity
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
 @inject UserManager<ApplicationUser> UserManager
 @inject InscrireTransporteurCommand InscrireTransporteur
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Inscription Transporteur — Côte d'Ivoire Terminal</PageTitle>
+<PageTitle>@Loc["Account.CarrierPageTitle"]</PageTitle>
 
 <div class="row justify-content-center py-2">
     <div class="col-12 col-xl-11">
@@ -15,13 +18,13 @@
         <!-- Navigation Top Bar : Accueil & Aide -->
         <div class="d-flex align-items-center justify-content-between mb-3 px-2">
             <a href="/" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold rounded-pill bg-white shadow-xs d-inline-flex align-items-center gap-2">
-                <span>🏠</span> Retour à l'accueil
+                <span>🏠</span> @Loc["Common.BackHome"]
             </a>
-            
-            <button class="btn btn-light btn-sm px-3 py-2 fw-semibold rounded-pill text-primary border shadow-xs d-inline-flex align-items-center gap-2" 
-                    type="button" 
+
+            <button class="btn btn-light btn-sm px-3 py-2 fw-semibold rounded-pill text-primary border shadow-xs d-inline-flex align-items-center gap-2"
+                    type="button"
                     @onclick="() => _afficherAide = !_afficherAide">
-                <span>💡</span> Guide & Aide
+                <span>💡</span> @Loc["Account.GuideHelp"]
             </button>
         </div>
 
@@ -31,27 +34,27 @@
             <div class="cit-card p-4 mb-4 border-0 shadow-sm rounded-4" style="background-color: var(--info-100); border: 1px solid var(--info-border);">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <span>💡</span> Guide d'enrôlement Transporteur & Chauffeur
+                        <span>💡</span> @Loc["Account.CarrierGuideTitle"]
                     </h5>
-                    <button type="button" class="btn-close" aria-label="Fermer" @onclick="() => _afficherAide = false"></button>
+                    <button type="button" class="btn-close" aria-label="@Loc["Common.Close"]" @onclick="() => _afficherAide = false"></button>
                 </div>
                 <div class="row g-3 small text-muted mt-1">
                     <div class="col-12 col-md-4">
                         <div class="p-3 bg-white rounded-3 border h-100">
-                            <strong class="text-dark d-block mb-1">1. Création de votre accès</strong>
-                            Renseignez votre e-mail, nom complet et mot de passe pour créer votre compte chauffeur personnel.
+                            <strong class="text-dark d-block mb-1">@Loc["Account.CarrierStep1Title"]</strong>
+                            @Loc["Account.CarrierStep1Text"]
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         <div class="p-3 bg-white rounded-3 border h-100">
-                            <strong class="text-dark d-block mb-1">2. Enrôlement camion & permis</strong>
-                            Une fois connecté, déclarez vos numéros de permis de conduire, carte grise et immatriculation de tracteur.
+                            <strong class="text-dark d-block mb-1">@Loc["Account.CarrierStep2Title"]</strong>
+                            @Loc["Account.CarrierStep2Text"]
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         <div class="p-3 bg-white rounded-3 border h-100">
-                            <strong class="text-dark d-block mb-1">3. Passage fluide aux barrières</strong>
-                            Obtenez votre badge numérique / QR Code pour accéder sans attente aux guérites du terminal CIT.
+                            <strong class="text-dark d-block mb-1">@Loc["Account.CarrierStep3Title"]</strong>
+                            @Loc["Account.CarrierStep3Text"]
                         </div>
                     </div>
                 </div>
@@ -72,32 +75,32 @@
                             </div>
 
                             <h3 class="fw-bold text-dark mb-3 lh-sm" style="color: var(--warn-600);">
-                                Espace Transporteur & Chauffeur
+                                @Loc["Account.CarrierPanelHeading"]
                             </h3>
                             <p class="text-muted small mb-4" style="line-height: 1.6;">
-                                Vous assurez l'enlèvement ou la livraison de conteneurs au Port d'Abidjan ? Pré-enrôlez votre flotte et vos chauffeurs pour fluidifier votre passage aux barrières de contrôle.
+                                @Loc["Account.CarrierPanelTagline"]
                             </p>
 
                             <div class="d-flex flex-column gap-3 mb-4">
                                 <div class="d-flex align-items-start gap-2">
                                     <span class="badge bg-warning bg-opacity-25 text-dark p-2 rounded-circle">🚚</span>
                                     <div class="small">
-                                        <strong class="text-dark d-block">Accès Prioritaire Gate</strong>
-                                        <span class="text-muted">Enregistrement préalable des plaques et cartes grises.</span>
+                                        <strong class="text-dark d-block">@Loc["Account.CarrierBenefit1Title"]</strong>
+                                        <span class="text-muted">@Loc["Account.CarrierBenefit1Text"]</span>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-2">
                                     <span class="badge bg-success bg-opacity-10 text-success p-2 rounded-circle">⏱️</span>
                                     <div class="small">
-                                        <strong class="text-dark d-block">Gain de Temps Quotidien</strong>
-                                        <span class="text-muted">Réduction drastique des files d'attente à l'entrée du terminal.</span>
+                                        <strong class="text-dark d-block">@Loc["Account.CarrierBenefit2Title"]</strong>
+                                        <span class="text-muted">@Loc["Account.CarrierBenefit2Text"]</span>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-2">
                                     <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-circle">📱</span>
                                     <div class="small">
-                                        <strong class="text-dark d-block">Badge Numérique Chauffeur</strong>
-                                        <span class="text-muted">Suivi des missions et alertes de créneau de passage.</span>
+                                        <strong class="text-dark d-block">@Loc["Account.CarrierBenefit3Title"]</strong>
+                                        <span class="text-muted">@Loc["Account.CarrierBenefit3Text"]</span>
                                     </div>
                                 </div>
                             </div>
@@ -105,12 +108,12 @@
 
                         <!-- Image illustration -->
                         <div class="text-center pt-2">
-                            <img src="images/transport-illustration.jpg" 
-                                 alt="Terminal Portuaire Transport CIT" 
-                                 class="img-fluid rounded-4 shadow-sm border border-white border-2" 
+                            <img src="images/transport-illustration.jpg"
+                                 alt="@Loc["Account.CarrierImageAlt"]"
+                                 class="img-fluid rounded-4 shadow-sm border border-white border-2"
                                  style="max-height: 280px; object-fit: cover;" />
                             <div class="text-muted small mt-2" style="font-size: 0.75rem;">
-                                Entrée sécurisée des camions - Guérite Gate CIT Abidjan
+                                @Loc["Account.CarrierImageCaption"]
                             </div>
                         </div>
                     </div>
@@ -125,11 +128,11 @@
                             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                                 <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 48px; object-fit: contain; border-radius: 6px;" />
                                 <span class="badge bg-warning bg-opacity-20 text-dark fw-bold px-3 py-2 rounded-pill small">
-                                    🚚 Transporteur
+                                    🚚 @Loc["Account.CarrierBadge"]
                                 </span>
                             </div>
-                            <h2 class="fw-bold text-dark mb-1">Inscription Transporteur</h2>
-                            <p class="text-muted small mb-0">Créez votre accès personnel pour renseigner votre tracteur et constituer votre dossier d'enrôlement.</p>
+                            <h1 class="fw-bold text-dark mb-1 h2">@Loc["Account.CarrierTitle"]</h1>
+                            <p class="text-muted small mb-0">@Loc["Account.CarrierSubtitle"]</p>
                         </div>
 
                         @if (_termine)
@@ -137,42 +140,42 @@
                             <div class="p-4 p-md-5 border-0 shadow-sm mb-4 text-center rounded-4" 
                                  style="background-color: var(--ok-100); border: 1px solid var(--ok-border);">
                                 <div class="fs-1 mb-2">🎉</div>
-                                <h4 class="fw-bold mb-2" style="color: var(--ok-600);">Votre compte chauffeur est créé avec succès !</h4>
+                                <h4 class="fw-bold mb-2" style="color: var(--ok-600);">@Loc["Account.CarrierSuccessTitle"]</h4>
                                 <p class="text-muted small mb-4">
-                                    Connectez-vous pour constituer votre dossier d'enrôlement et déposer vos pièces (permis, carte grise, immatriculation).
+                                    @Loc["Account.CarrierSuccessText"]
                                 </p>
                                 <a class="btn btn-success px-4 py-2 fw-bold shadow-sm rounded-pill" href="/comptes/connexion">
-                                    Se connecter à mon espace ➔
+                                    @Loc["Account.CarrierSuccessCta"] ➔
                                 </a>
                             </div>
                         }
                         else
                         {
                             <div class="mb-3">
-                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="email">Adresse E-mail Professionnelle <span class="text-danger">*</span></label>
-                                <input id="email" class="form-control form-control-lg border-0 shadow-xs px-3 py-3" 
-                                       placeholder="chauffeur@transport.ci" 
-                                       style="background-color: var(--surface); border-radius: 0.75rem;" 
+                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="email">@Loc["Account.CarrierEmailLabel"] <span class="text-danger">*</span></label>
+                                <input id="email" class="form-control form-control-lg border-0 shadow-xs px-3 py-3"
+                                       placeholder="@Loc["Account.CarrierEmailPlaceholder"]"
+                                       style="background-color: var(--surface); border-radius: 0.75rem;"
                                        @bind="_email" />
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="nom">Nom et Prénoms Complets <span class="text-danger">*</span></label>
-                                <input id="nom" class="form-control form-control-lg border-0 shadow-xs px-3 py-3" 
-                                       placeholder="Kouadio Yao Michel" 
-                                       style="background-color: var(--surface); border-radius: 0.75rem;" 
+                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="nom">@Loc["Account.FullNameLabel"] <span class="text-danger">*</span></label>
+                                <input id="nom" class="form-control form-control-lg border-0 shadow-xs px-3 py-3"
+                                       placeholder="@Loc["Account.FullNamePlaceholder"]"
+                                       style="background-color: var(--surface); border-radius: 0.75rem;"
                                        @bind="_nomAffiche" />
                             </div>
 
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="mdp">Mot de Passe <span class="text-danger">*</span></label>
+                                <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.75rem;" for="mdp">@Loc["Account.Password"] <span class="text-danger">*</span></label>
                                 <ChampMotDePasse>
                                     <input id="mdp" type="password" class="form-control form-control-lg border-0 shadow-xs px-3 py-3"
                                            placeholder="••••••••••••"
                                            style="background-color: var(--surface); border-radius: 0.75rem;"
                                            @bind="_motDePasse" />
                                 </ChampMotDePasse>
-                                <div class="form-text small text-muted">10 caractères minimum recommandés.</div>
+                                <div class="form-text small text-muted">@Loc["Account.PasswordHint"]</div>
                             </div>
 
                             @if (_erreur is not null)
@@ -186,17 +189,17 @@
 
                             <div class="pt-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
                                 <a href="/comptes/connexion" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">
-                                    ← Déjà inscrit ? Se connecter
+                                    @Loc["Account.CarrierAlreadySignIn"]
                                 </a>
                                 <button class="btn btn-warning btn-lg px-4 py-2 fw-bold text-dark shadow-sm rounded-pill" @onclick="CreerAsync">
-                                    Créer mon accès chauffeur ➔
+                                    @Loc["Account.CarrierSubmit"] ➔
                                 </button>
                             </div>
 
                             <div class="mt-4 pt-3 border-top text-center">
-                                <span class="text-muted small">Vous représentez une entreprise cliente ou un transitaire ?</span><br />
+                                <span class="text-muted small">@Loc["Account.CarrierToCompanyQuestion"]</span><br />
                                 <a href="/comptes/soumettre" class="fw-bold text-primary text-decoration-none small">
-                                    🏢 Ouvrir plutôt un compte entreprise (Société)
+                                    @Loc["Account.CarrierToCompanyLink"]
                                 </a>
                             </div>
                         }
@@ -223,7 +226,7 @@
 
         if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche))
         {
-            _erreur = "L'adresse e-mail et le nom complet sont obligatoires.";
+            _erreur = Loc["Account.CarrierNameRequired"].Value;
             return;
         }
 
@@ -250,7 +253,7 @@
         catch (Exception ex)
         {
             await UserManager.DeleteAsync(transporteur);
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

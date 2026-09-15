@@ -18,7 +18,8 @@ public sealed class ObtenirDashboardClientQueryTests
     private static (PlateformeDbContext Db, ObtenirDashboardClientQuery Query, Guid SocieteId, Guid UtilisateurId) ConstruireContexte(
         DroitConsultation droit = DroitConsultation.PropresDemandesUniquement,
         bool estAdmin = false,
-        TypeClient profil = TypeClient.Normal)
+        TypeClient profil = TypeClient.Normal,
+        bool droitSoumission = true)
     {
         var db = ContexteDeTest.CreerNouveauContexte();
         var socId = Guid.NewGuid();
@@ -29,8 +30,8 @@ public sealed class ObtenirDashboardClientQueryTests
         soc.Valider();
         db.Societes.Add(soc);
 
-        var userSoc = UtilisateurSociete.Rattacher(userId, socId, DateTime.UtcNow, estAdmin, true);
-        userSoc.ModifierDroits(droit, true);
+        var userSoc = UtilisateurSociete.Rattacher(userId, socId, DateTime.UtcNow, estAdmin, droitSoumission);
+        userSoc.ModifierDroits(droit, droitSoumission);
         db.UtilisateursSociete.Add(userSoc);
 
         var dossierRepo = new DossierRepository(db);
@@ -41,6 +42,30 @@ public sealed class ObtenirDashboardClientQueryTests
         var query = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
 
         return (db, query, socId, userId);
+    }
+
+    [Fact]
+    public async Task AM02_CollaborateurAvecDroitSoumission_PeutSoumettre_estVrai()
+    {
+        var (db, query, socId, userId) = ConstruireContexte(droitSoumission: true);
+        await db.SaveChangesAsync();
+
+        var dashboard = await query.ExecuterAsync(userId, socId);
+
+        Assert.True(dashboard.PeutSoumettre);
+    }
+
+    [Fact]
+    public async Task AM02_CollaborateurLimiteSansDroitSoumission_PeutSoumettre_estFaux()
+    {
+        // Collaborateur limité : rattachement actif mais droit de soumission retiré. Le raccourci
+        // de soumission du tableau de bord doit disparaître — il mènerait à un refus serveur.
+        var (db, query, socId, userId) = ConstruireContexte(droitSoumission: false);
+        await db.SaveChangesAsync();
+
+        var dashboard = await query.ExecuterAsync(userId, socId);
+
+        Assert.False(dashboard.PeutSoumettre);
     }
 
     [Fact]

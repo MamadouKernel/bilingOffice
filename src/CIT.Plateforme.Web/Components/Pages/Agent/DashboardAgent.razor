@@ -1,4 +1,4 @@
-@page "/agent/dashboard"
+﻿@page "/agent/dashboard"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Agent
@@ -6,16 +6,19 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirDashboardAgentQuery DashboardQuery
 
-<PageTitle>Tableau de bord Opérateur — CIT</PageTitle>
+<PageTitle>@Loc["Agent.PageTitle"]</PageTitle>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de votre espace de travail..." />
+    <IndicateurChargement Message="@Loc["Agent.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -25,16 +28,16 @@ else if (_nonAutorise)
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger my-3">@_erreur</div>
+    <div class="alert alert-danger my-3" role="alert">@_erreur</div>
 }
 else if (_dashboard is not null)
 {
     <div class="cit-page-header">
         <div>
-            <h2 class="cit-page-title">
-                <span>⚡</span> Tableau de bord Opérateur
-            </h2>
-            <div class="cit-page-subtitle">Bienvenue, <strong class="text-dark">@_dashboard.AgentNom</strong> — Traitement et instruction des files en temps réel</div>
+            <h1 class="cit-page-title">
+                <span>⚡</span> @Loc["Agent.Title"]
+            </h1>
+            <div class="cit-page-subtitle">@Loc["Agent.WelcomePrefix"] <strong class="text-dark">@_dashboard.AgentNom</strong> @Loc["Agent.WelcomeSuffix"]</div>
         </div>
     </div>
 
@@ -49,9 +52,9 @@ else if (_dashboard is not null)
                     📋
                 </div>
                 <div>
-                    <div class="cit-stat-label">Mes tickets en cours</div>
+                    <div class="cit-stat-label">@Loc["Agent.KpiMyTickets"]</div>
                     <div class="cit-stat-value text-primary font-monospace">@_dashboard.TotalTicketsEnCoursAgent</div>
-                    <div class="small text-muted">Dossiers pris en charge sous votre responsabilité</div>
+                    <div class="small text-muted">@Loc["Agent.KpiMyTicketsHint"]</div>
                 </div>
             </div>
         </div>
@@ -61,9 +64,9 @@ else if (_dashboard is not null)
                     🗂️
                 </div>
                 <div>
-                    <div class="cit-stat-label">Files de traitement actives</div>
+                    <div class="cit-stat-label">@Loc["Agent.KpiQueues"]</div>
                     <div class="cit-stat-value text-dark font-monospace">@_dashboard.FilesHabilitees.Count</div>
-                    <div class="small text-muted">Files où vous disposez d'une habilitation d'instruction</div>
+                    <div class="small text-muted">@Loc["Agent.KpiQueuesHint"]</div>
                 </div>
             </div>
         </div>
@@ -71,14 +74,14 @@ else if (_dashboard is not null)
 
     <!-- Synthèse des files de traitement -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-dark m-0">Files de traitement habilitées</h5>
-        <span class="badge bg-light text-dark border">Temps réel</span>
+        <h5 class="fw-bold text-dark m-0">@Loc["Agent.QueuesTitle"]</h5>
+        <span class="badge bg-light text-dark border">@Loc["Agent.RealTime"]</span>
     </div>
 
     @if (_dashboard.FilesHabilitees.Count == 0)
     {
-        <EtatVide Titre="Aucune file habilitée"
-                  Description="Vous n'êtes actuellement affecté à aucune file de traitement active. Veuillez contacter votre superviseur."
+        <EtatVide Titre="@Loc["Agent.NoQueueTitle"]"
+                  Description="@Loc["Agent.NoQueueDesc"]"
                   Icone="🗂️" />
     }
     else
@@ -95,19 +98,19 @@ else if (_dashboard is not null)
                             </div>
 
                             <div class="d-flex justify-content-between py-2 border-top border-bottom small">
-                                <span class="text-muted">En attente :</span>
+                                <span class="text-muted">@Loc["Agent.Waiting"]</span>
                                 <strong class="@(file.TicketsEnAttente > 0 ? "text-warning font-monospace" : "text-muted font-monospace")">
                                     @file.TicketsEnAttente
                                 </strong>
                             </div>
                             <div class="d-flex justify-content-between py-2 border-bottom small mb-3">
-                                <span class="text-muted">En cours :</span>
+                                <span class="text-muted">@Loc["Agent.InProgress"]</span>
                                 <strong class="text-primary font-monospace">@file.TicketsEnCours</strong>
                             </div>
                         </div>
 
                         <a href="@file.UrlFile" class="btn btn-outline-primary btn-sm w-100 fw-bold shadow-sm">
-                            Accéder à la file ➔
+                            @Loc["Agent.AccessQueue"]
                         </a>
                     </div>
                 </div>
@@ -118,18 +121,18 @@ else if (_dashboard is not null)
     <!-- Mes tickets en cours de traitement -->
     @if (_dashboard.MesTicketsEnCours.Count > 0)
     {
-        <h5 class="fw-bold text-dark mb-3">Mes dossiers en cours d'instruction</h5>
+        <h5 class="fw-bold text-dark mb-3">@Loc["Agent.MyFilesTitle"]</h5>
         <div class="cit-card p-0 overflow-hidden mb-4">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>N° Ticket</th>
-                            <th>Numéro BL / Booking</th>
-                            <th>File</th>
-                            <th>Statut</th>
-                            <th>Prise en charge</th>
-                            <th class="text-end">Action</th>
+                            <th>@Loc["AvoirExoList.ColTicket"]</th>
+                            <th>@Loc["Agent.ColBlBooking"]</th>
+                            <th>@Loc["Agent.ColQueue"]</th>
+                            <th>@Loc["Societe.ColStatus"]</th>
+                            <th>@Loc["Agent.ColTakenCharge"]</th>
+                            <th class="text-end">@Loc["SimHist.ColAction"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,7 +156,7 @@ else if (_dashboard is not null)
                                 </td>
                                 <td class="text-end">
                                     <a href="/tickets/@ticket.TicketId" class="btn btn-outline-primary btn-sm">
-                                        Reprendre ➔
+                                        @Loc["Agent.Resume"]
                                     </a>
                                 </td>
                             </tr>
@@ -180,14 +183,14 @@ else if (_dashboard is not null)
             if (!contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour accéder à cet espace.";
+                _messageNonAutorise = Loc["Agent.LoginRequired"].Value;
                 return;
             }
 
             if (contexte.Nature != NatureUtilisateur.Agent)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Cet espace de travail est exclusivement réservé aux opérateurs et agents CIT.";
+                _messageNonAutorise = Loc["Agent.AgentsOnly"].Value;
                 return;
             }
 
@@ -200,7 +203,7 @@ else if (_dashboard is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

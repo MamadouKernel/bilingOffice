@@ -5,35 +5,37 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.SuiviTemps
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Paramètres SLA — CIT</PageTitle>
+<PageTitle>@Loc["AdmSla.PageTitle"]</PageTitle>
 
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span aria-hidden="true">⏱️</span> Temps &amp; engagements de service
+            <span aria-hidden="true">⏱️</span> @Loc["AdmSla.Pill"]
         </div>
-        <h2 class="cit-page-title fw-bold text-dark mb-1">Paramètres SLA</h2>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["AdmSla.Title"]</h1>
         <div class="cit-page-subtitle text-muted">
-            Durées cibles et seuils, affinables par étape et par priorité. Le paramétrage le plus
-            précis l'emporte ; en l'absence de paramétrage, aucune surveillance n'a lieu.
+            @Loc["AdmSla.Subtitle"]
         </div>
     </div>
     <div>
         <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
-            <span aria-hidden="true">🔄</span> Actualiser
+            <span aria-hidden="true">🔄</span> @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des paramètres SLA..." />
+    <IndicateurChargement Message="@Loc["AdmSla.Loading"]" />
 }
 else if (_refuse)
 {
@@ -51,22 +53,22 @@ else
     <div class="cit-card p-4 mb-4 border-0 shadow-sm">
         <div class="d-flex align-items-center gap-2 mb-3">
             <span class="fs-4" aria-hidden="true">➕</span>
-            <h4 class="fw-bold text-dark mb-0 fs-5">Ajouter un paramétrage</h4>
+            <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["AdmSla.AddTitle"]</h4>
         </div>
 
         <div class="row g-3 align-items-end">
             <div class="col-12 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="module">Module</label>
-                <input id="module" class="form-control" @bind="_module" placeholder="ex. BillingOffice" />
+                <label class="form-label small fw-bold text-dark" for="module">@Loc["AdmSla.ModuleLabel"]</label>
+                <input id="module" class="form-control" @bind="_module" placeholder="@Loc["AdmSla.ModulePlaceholder"]" />
             </div>
             <div class="col-12 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="typeDemande">Type de demande</label>
-                <input id="typeDemande" class="form-control" @bind="_typeDemande" placeholder="ex. Import" />
+                <label class="form-label small fw-bold text-dark" for="typeDemande">@Loc["AdmSla.TypeLabel"]</label>
+                <input id="typeDemande" class="form-control" @bind="_typeDemande" placeholder="@Loc["AdmSla.TypePlaceholder"]" />
             </div>
             <div class="col-12 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="file">Étape</label>
+                <label class="form-label small fw-bold text-dark" for="file">@Loc["AdmSla.EtapeLabel"]</label>
                 <select id="file" class="form-select" @bind="_fileId">
-                    <option value="">Toutes les étapes</option>
+                    <option value="">@Loc["AdmSla.EtapeAll"]</option>
                     @foreach (var f in _axes?.Files ?? new List<(Guid, string)>())
                     {
                         <option value="@f.Item1">@f.Item2</option>
@@ -74,9 +76,9 @@ else
                 </select>
             </div>
             <div class="col-12 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="priorite">Priorité</label>
+                <label class="form-label small fw-bold text-dark" for="priorite">@Loc["AdmSla.PrioLabel"]</label>
                 <select id="priorite" class="form-select" @bind="_prioriteId">
-                    <option value="">Toutes les priorités</option>
+                    <option value="">@Loc["AdmSla.PrioAll"]</option>
                     @foreach (var p in _axes?.Priorites ?? new List<(Guid, string)>())
                     {
                         <option value="@p.Item1">@p.Item2</option>
@@ -85,29 +87,29 @@ else
             </div>
 
             <div class="col-6 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="heures">Durée cible</label>
+                <label class="form-label small fw-bold text-dark" for="heures">@Loc["AdmSla.DureeLabel"]</label>
                 <div class="input-group">
                     <input id="heures" type="number" step="0.25" min="0.25" class="form-control" @bind="_dureeCibleHeures" />
-                    <span class="input-group-text">heures</span>
+                    <span class="input-group-text">@Loc["AdmSla.HoursUnit"]</span>
                 </div>
             </div>
             <div class="col-6 col-md-2">
-                <label class="form-label small fw-bold text-dark" for="sInfo">Seuil information</label>
+                <label class="form-label small fw-bold text-dark" for="sInfo">@Loc["AdmSla.SeuilInfoLabel"]</label>
                 <input id="sInfo" type="number" step="0.05" min="0" max="1" class="form-control" @bind="_seuilInformation" />
             </div>
             <div class="col-6 col-md-2">
-                <label class="form-label small fw-bold text-dark" for="sAlerte">Seuil alerte</label>
+                <label class="form-label small fw-bold text-dark" for="sAlerte">@Loc["AdmSla.SeuilAlerteLabel"]</label>
                 <input id="sAlerte" type="number" step="0.05" min="0" max="1" class="form-control" @bind="_seuilAlerte" />
             </div>
             <div class="col-6 col-md-3">
-                <label class="form-label small fw-bold text-dark" for="sEsc">Seuil escalade</label>
+                <label class="form-label small fw-bold text-dark" for="sEsc">@Loc["AdmSla.SeuilEscaladeLabel"]</label>
                 <input id="sEsc" type="number" step="0.1" min="0" class="form-control"
                        aria-describedby="aide-escalade" @bind="_seuilEscalade" />
-                <div id="aide-escalade" class="form-text small">Au-delà de 1. Laisser 0 pour aucune escalade.</div>
+                <div id="aide-escalade" class="form-text small">@Loc["AdmSla.EscaladeHint"]</div>
             </div>
             <div class="col-12 col-md-2">
                 <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
-                    Ajouter
+                    @Loc["Common.Add"]
                 </button>
             </div>
         </div>
@@ -117,8 +119,8 @@ else
     {
         <div class="cit-card p-5 text-center text-muted border-0 shadow-sm">
             <div class="fs-1 mb-2" aria-hidden="true">⏱️</div>
-            <div class="fw-semibold">Aucun paramétrage SLA</div>
-            <div class="small">Aucune surveillance SLA n'a lieu tant qu'aucun paramétrage n'est administré.</div>
+            <div class="fw-semibold">@Loc["AdmSla.EmptyTitle"]</div>
+            <div class="small">@Loc["AdmSla.EmptyDesc"]</div>
         </div>
     }
     else
@@ -126,19 +128,19 @@ else
         <div class="cit-card border-0 shadow-sm overflow-hidden">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
-                    <caption class="visually-hidden">Paramétrages SLA administrés, du plus précis au plus général</caption>
+                    <caption class="visually-hidden">@Loc["AdmSla.TableCaption"]</caption>
                     <thead class="table-light">
                         <tr>
-                            <th scope="col" class="small fw-bold">Module</th>
-                            <th scope="col" class="small fw-bold">Type</th>
-                            <th scope="col" class="small fw-bold">Étape</th>
-                            <th scope="col" class="small fw-bold">Priorité</th>
-                            <th scope="col" class="small fw-bold text-end">Durée cible</th>
-                            <th scope="col" class="small fw-bold text-end">Information</th>
-                            <th scope="col" class="small fw-bold text-end">Alerte</th>
-                            <th scope="col" class="small fw-bold text-end">Escalade</th>
-                            <th scope="col" class="small fw-bold text-end">Précision</th>
-                            <th scope="col"><span class="visually-hidden">Actions</span></th>
+                            <th scope="col" class="small fw-bold">@Loc["AdmSla.ColModule"]</th>
+                            <th scope="col" class="small fw-bold">@Loc["AdmSla.ColType"]</th>
+                            <th scope="col" class="small fw-bold">@Loc["AdmSla.ColEtape"]</th>
+                            <th scope="col" class="small fw-bold">@Loc["AdmSla.ColPrio"]</th>
+                            <th scope="col" class="small fw-bold text-end">@Loc["AdmSla.ColDuree"]</th>
+                            <th scope="col" class="small fw-bold text-end">@Loc["AdmSla.ColInfo"]</th>
+                            <th scope="col" class="small fw-bold text-end">@Loc["AdmSla.ColAlerte"]</th>
+                            <th scope="col" class="small fw-bold text-end">@Loc["AdmSla.ColEscalade"]</th>
+                            <th scope="col" class="small fw-bold text-end">@Loc["AdmSla.ColPrecision"]</th>
+                            <th scope="col"><span class="visually-hidden">@Loc["AdmPieceC.ColActions"]</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -156,7 +158,7 @@ else
                                 <td class="text-end"><span class="badge bg-secondary bg-opacity-25 text-dark">@p.Specificite</span></td>
                                 <td class="text-end">
                                     <button class="btn btn-sm btn-outline-danger"
-                                            @onclick="() => SupprimerAsync(p.Id)">Retirer</button>
+                                            @onclick="() => DemanderConfirmationSuppression(p.Id)">@Loc["AdmSla.Remove"]</button>
                                 </td>
                             </tr>
                         }
@@ -167,14 +169,27 @@ else
     }
 }
 
+<ModaleConfirmation EstOuvert="@(_confirmation is not null)"
+                    Titre="@(_confirmation?.Titre ?? string.Empty)"
+                    Message="@(_confirmation?.Message ?? string.Empty)"
+                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? Loc["AdmSla.Remove"].Value)"
+                    BoutonConfirmerClass="@(_confirmation?.ClasseConfirmer ?? "btn-danger")"
+                    Desactive="@_confirmationEnCours"
+                    OnConfirmer="@(async () => { if (_confirmation is not null) await _confirmation.Action(); })"
+                    OnAnnuler="AnnulerConfirmation" />
+
 @code {
     private IReadOnlyList<ParametreSlaAdministrable>? _parametres;
     private AxesSlaDisponibles? _axes;
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des SLA (administration.sla) pour accéder à cette interface.";
+    private string _messageRefus = string.Empty;
     private string? _erreur;
+
+    // AM-03 — le retrait d'un paramètre SLA est une suppression de configuration : confirmation requise.
+    private ConfirmationEnAttente? _confirmation;
+    private bool _confirmationEnCours;
 
     private string _module = string.Empty;
     private string _typeDemande = string.Empty;
@@ -187,6 +202,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _messageRefus = Loc["AdmSla.Refuse"].Value;
         var contexte = await ContexteService.ObtenirContexteAsync();
         _appelantId = contexte.UtilisateurId;
         _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationSla);
@@ -214,7 +230,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -238,7 +254,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -257,6 +273,32 @@ else
         _seuilEscalade = 0;
     });
 
+    private void DemanderConfirmationSuppression(Guid parametreId)
+    {
+        _confirmation = new ConfirmationEnAttente(
+            Loc["AdmSla.ConfirmTitle"].Value,
+            Loc["AdmSla.ConfirmMsg"].Value,
+            Loc["AdmSla.Remove"].Value,
+            "btn-danger",
+            () => ExecuterSuppressionAsync(parametreId));
+    }
+
+    private void AnnulerConfirmation() => _confirmation = null;
+
+    private async Task ExecuterSuppressionAsync(Guid parametreId)
+    {
+        _confirmationEnCours = true;
+        try
+        {
+            await SupprimerAsync(parametreId);
+        }
+        finally
+        {
+            _confirmationEnCours = false;
+            _confirmation = null;
+        }
+    }
+
     private Task SupprimerAsync(Guid parametreId) => ExecuterAsync(sp =>
         sp.GetRequiredService<GererParametresSlaCommand>().SupprimerAsync(_appelantId, parametreId));
 
@@ -266,11 +308,11 @@ else
 
     private string NomFile(Guid? fileId) =>
         fileId is null
-            ? "Toutes"
+            ? Loc["AdmSla.All"].Value
             : _axes?.Files.FirstOrDefault(f => f.Id == fileId.Value).Nom ?? fileId.Value.ToString();
 
     private string LibellePriorite(Guid? prioriteId) =>
         prioriteId is null
-            ? "Toutes"
+            ? Loc["AdmSla.All"].Value
             : _axes?.Priorites.FirstOrDefault(p => p.Id == prioriteId.Value).Libelle ?? prioriteId.Value.ToString();
 }

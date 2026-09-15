@@ -9,30 +9,34 @@
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
+@inject EmettreDraftInExportCommand EmettreDraftIn
 @inject EditerFactureExportCommand EditerFacture
 @inject ConsulterFileBillingExportQuery ConsulterFile
 
-<PageTitle>File Facturation EXPORT — CIT</PageTitle>
+<PageTitle>@Loc["FileFactExp.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>💳</span> File Facturation EXPORT
-        </h2>
-        <div class="cit-page-subtitle">Émission des factures Export et orientation selon le profil client (Normal, En Compte, Deposit)</div>
+        <h1 class="cit-page-title">
+            <span>💳</span> @Loc["FileFactExp.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["FileFactExp.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
-        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">Mon tableau de bord</a>
+        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des tickets en attente de facturation Export..." />
+    <IndicateurChargement Message="@Loc["FileFactExp.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -47,8 +51,8 @@ else
 
     @if (_tickets.Count == 0)
     {
-        <EtatVide Titre="Aucun ticket à facturer"
-                  Description="Tous les dossiers Export validés ont été facturés."
+        <EtatVide Titre="@Loc["FileFactExp.EmptyTitle"]"
+                  Description="@Loc["FileFactExp.EmptyDesc"]"
                   Icone="🧾" />
     }
     else
@@ -58,12 +62,13 @@ else
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>N° Ticket</th>
-                            <th>Numéro Booking</th>
-                            <th>Statut</th>
-                            <th>Arrivée en file</th>
-                            <th>Déposer facture Export</th>
-                            <th class="text-end">Actions</th>
+                            <th>@Loc["AvoirExoList.ColTicket"]</th>
+                            <th>@Loc["File.ColBooking"]</th>
+                            <th>@Loc["Societe.ColStatus"]</th>
+                            <th>@Loc["File.ColArrival"]</th>
+                            <th>@Loc["FileFactExp.ColDraftIn"]</th>
+                            <th>@Loc["FileFactExp.ColUploadInvoice"]</th>
+                            <th class="text-end">@Loc["FileFactExp.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,13 +91,38 @@ else
                                     @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
                                 </td>
                                 <td>
+                                    @* RG-EXP-03 : le Draft IN précède la facture. *@
+                                    @if (t.DraftInExportEmis)
+                                    {
+                                        @* REMÉDIATION UI-20 : la date d'émission n'était portée que
+                                           par un attribut title (invisible au tactile et aux lecteurs
+                                           d'écran) — elle est désormais affichée. *@
+                                        <span class="badge bg-success-subtle text-success">@Loc["FileFactExp.DraftEmitted"]</span>
+                                        @if (t.DraftInExportEmisLeUtc is DateTime emisLe)
+                                        {
+                                            <div class="small text-muted mt-1">@Loc["FileFactExp.EmittedOnPrefix"] @emisLe.ToString("dd/MM/yyyy HH:mm")</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <InputFile class="form-control form-control-sm" OnChange="e => EmettreDraftInAsync(t.Id, e)" />
+                                    }
+                                </td>
+                                <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <InputFile class="form-control form-control-sm" OnChange="e => EditerFactureAsync(t.Id, e)" />
+                                        @if (t.DraftInExportEmis)
+                                        {
+                                            <InputFile class="form-control form-control-sm" OnChange="e => EditerFactureAsync(t.Id, e)" />
+                                        }
+                                        else
+                                        {
+                                            <span class="small text-muted">@Loc["FileFactExp.DraftInRequired"]</span>
+                                        }
                                     </div>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="Consulter la fiche">
-                                        🔍 Fiche
+                                    <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="@Loc["File.SheetTitle"]">
+                                        @Loc["File.Sheet"]
                                     </a>
                                 </td>
                             </tr>
@@ -131,7 +161,7 @@ else
             if (!contexte.EstAuthentifie || contexte.Nature == NatureUtilisateur.Client)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Cet espace est strictement réservé aux agents de facturation.";
+                _messageNonAutorise = Loc["FileFactExp.NotAuthorized"].Value;
                 return;
             }
 
@@ -149,11 +179,43 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
             _chargement = false;
+        }
+    }
+
+    /// <summary>RG-EXP-03 — émission du Draft IN, préalable à l'édition de la facture.</summary>
+    private async Task EmettreDraftInAsync(Guid ticketId, InputFileChangeEventArgs e)
+    {
+        _message = null;
+        _erreur = false;
+
+        var fichier = e.File;
+        if (fichier is null) return;
+
+        try
+        {
+            using var stream = fichier.OpenReadStream(maxAllowedSize: Regles.TailleMaxOctets);
+            await EmettreDraftIn.ExecuterAsync(
+                _agentId,
+                ticketId,
+                fichier.Name,
+                fichier.ContentType,
+                stream,
+                fichier.Size,
+                Regles);
+
+            _erreur = false;
+            _message = string.Format(Loc["FileFactExp.DraftIssued"].Value, fichier.Name);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = true;
+            _message = string.Format(Loc["FileFactExp.DraftError"].Value, MessagesUtilisateur.Pour(ex));
         }
     }
 
@@ -178,13 +240,13 @@ else
                 Regles);
 
             _erreur = false;
-            _message = $"La facture '{fichier.Name}' a été jointe et le ticket orienté vers l'étape suivante.";
+            _message = string.Format(Loc["FileFactExp.InvoiceIssued"].Value, fichier.Name);
             await ChargerAsync();
         }
         catch (Exception ex)
         {
             _erreur = true;
-            _message = $"Échec de l'émission : {ex.Message}";
+            _message = string.Format(Loc["FileFactExp.InvoiceError"].Value, MessagesUtilisateur.Pour(ex));
         }
     }
 }

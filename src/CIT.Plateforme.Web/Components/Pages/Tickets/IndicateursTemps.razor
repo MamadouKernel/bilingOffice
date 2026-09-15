@@ -1,28 +1,31 @@
-@page "/tickets/{TicketId:guid}/temps"
+﻿@page "/tickets/{TicketId:guid}/temps"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Domain.SuiviTemps
 @using Microsoft.Extensions.DependencyInjection
 @using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IServiceScopeFactory ScopeFactory
 @inject IContexteUtilisateurWeb ContexteService
 
-<PageTitle>Indicateurs temps et SLA — CIT</PageTitle>
+<PageTitle>@Loc["TempsSla.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>⏱️</span> Temps et SLA
-        </h2>
-        <div class="cit-page-subtitle">Décomposition des temps de parcours pour le ticket <span class="font-monospace text-primary">@TicketId</span></div>
+        <h1 class="cit-page-title">
+            <span>⏱️</span> @Loc["TempsSla.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["TempsSla.SubtitlePrefix"]<span class="font-monospace text-primary">@TicketId</span></div>
     </div>
 </div>
 
 @if (_accesRefuse)
 {
-    <PermissionDenied Message="Ce ticket ne relève pas de votre périmètre." />
+    <PermissionDenied Message="@Loc["TempsSla.AccessDenied"]" />
 }
 else if (mesure is not null)
 {
@@ -31,9 +34,9 @@ else if (mesure is not null)
             <div class="cit-stat-card border-start border-4 border-primary">
                 <div class="cit-stat-icon bg-primary-subtle text-primary">⏳</div>
                 <div>
-                    <div class="cit-stat-label">Temps d'attente initial</div>
+                    <div class="cit-stat-label">@Loc["TempsSla.AttenteInitiale"]</div>
                     <div class="cit-stat-value text-primary font-monospace">@mesure.TempsAttente.ToString(@"hh\:mm\:ss")</div>
-                    <div class="small text-muted">Avant première prise en charge</div>
+                    <div class="small text-muted">@Loc["TempsSla.AttenteInitialeSub"]</div>
                 </div>
             </div>
         </div>
@@ -42,9 +45,9 @@ else if (mesure is not null)
             <div class="cit-stat-card border-start border-4 border-info">
                 <div class="cit-stat-icon bg-info-subtle text-info">⚙️</div>
                 <div>
-                    <div class="cit-stat-label">Temps de traitement</div>
+                    <div class="cit-stat-label">@Loc["TempsSla.Traitement"]</div>
                     <div class="cit-stat-value text-info font-monospace">@mesure.TempsTraitement.ToString(@"hh\:mm\:ss")</div>
-                    <div class="small text-muted">Par les opérateurs CIT</div>
+                    <div class="small text-muted">@Loc["TempsSla.TraitementSub"]</div>
                 </div>
             </div>
         </div>
@@ -53,9 +56,9 @@ else if (mesure is not null)
             <div class="cit-stat-card border-start border-4 border-warning">
                 <div class="cit-stat-icon bg-warning-subtle text-warning">⏸️</div>
                 <div>
-                    <div class="cit-stat-label">Attente client (neutralisée)</div>
+                    <div class="cit-stat-label">@Loc["TempsSla.AttenteClient"]</div>
                     <div class="cit-stat-value text-warning font-monospace">@mesure.TempsAttenteClient.ToString(@"hh\:mm\:ss")</div>
-                    <div class="small text-muted">Non imputée au SLA</div>
+                    <div class="small text-muted">@Loc["TempsSla.AttenteClientSub"]</div>
                 </div>
             </div>
         </div>
@@ -64,9 +67,9 @@ else if (mesure is not null)
             <div class="cit-stat-card border-start border-4 border-secondary">
                 <div class="cit-stat-icon bg-secondary-subtle text-secondary">🏢</div>
                 <div>
-                    <div class="cit-stat-label">Temps interne CIT</div>
+                    <div class="cit-stat-label">@Loc["TempsSla.InterneCit"]</div>
                     <div class="cit-stat-value text-dark font-monospace">@mesure.TempsInterneCit.ToString(@"hh\:mm\:ss")</div>
-                    <div class="small text-muted">Temps net sous responsabilité CIT</div>
+                    <div class="small text-muted">@Loc["TempsSla.InterneCitSub"]</div>
                 </div>
             </div>
         </div>
@@ -75,9 +78,9 @@ else if (mesure is not null)
             <div class="cit-stat-card border-start border-4 border-success">
                 <div class="cit-stat-icon bg-success-subtle text-success">🏁</div>
                 <div>
-                    <div class="cit-stat-label">Temps total du parcours</div>
+                    <div class="cit-stat-label">@Loc["TempsSla.Total"]</div>
                     <div class="cit-stat-value text-success font-monospace">@mesure.TempsTotal.ToString(@"hh\:mm\:ss")</div>
-                    <div class="small text-muted">Depuis la création initiale</div>
+                    <div class="small text-muted">@Loc["TempsSla.TotalSub"]</div>
                 </div>
             </div>
         </div>

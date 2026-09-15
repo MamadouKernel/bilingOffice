@@ -66,7 +66,7 @@ public sealed class CircuitClientIesTests
         var valider = new ValiderTicketImportCommand(
             ticketRepository, dossierRepository, fileRepository, suivisBranchesIesRepository,
             autorisation, journalisation, horloge, uniteDeTravail);
-        var instruire = new InstruireBrancheIesCommand(ticketRepository, suivisBranchesIesRepository, autorisation, journalisation, horloge, uniteDeTravail);
+        var instruire = new InstruireBrancheIesCommand(ticketRepository, suivisBranchesIesRepository, autorisation, Support.FabriqueRequetes.PorteeChampsIes(dbContext), journalisation, horloge, uniteDeTravail);
         var constaterJointure = new ConstaterJointureIesEtFinaliserCommand(ticketRepository, suivisBranchesIesRepository, autorisation, journalisation, horloge, uniteDeTravail);
 
         return new Contexte(

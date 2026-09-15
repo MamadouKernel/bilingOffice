@@ -1,4 +1,4 @@
-@page "/tickets/{Id:guid}"
+﻿@page "/tickets/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -9,7 +9,10 @@
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirFicheTicketQuery FicheTicketQuery
 @inject PrendreEnChargeCommand PrendreEnCharge
@@ -21,10 +24,12 @@
 @inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
 
+<PageTitle>@(_fiche is null ? Loc["Ticket.PageTitleFallback"].Value : string.Format(Loc["Ticket.PageTitleTicket"].Value, _fiche.NumeroTicket)) — CIT</PageTitle>
+
 <div class="container-fluid py-3">
     @if (_chargement)
     {
-        <IndicateurChargement Message="Chargement de la fiche ticket..." />
+        <IndicateurChargement Message="@Loc["Ticket.Loading"]" />
     }
     else if (_nonAutorise)
     {
@@ -34,23 +39,25 @@
     }
     else if (_erreur is not null)
     {
-        <div class="alert alert-danger d-flex align-items-center justify-content-between">
+        <div class="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
             <div>
-                <strong>Erreur d'accès :</strong> @_erreur
+                <strong>@Loc["Ticket.AccessErrorLabel"]</strong> @_erreur
             </div>
-            <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">⬅ Retour</button>
+            <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">@Loc["Ticket.Back"]</button>
         </div>
     }
     else if (_fiche is not null)
     {
+        <FilAriane Elements="@(new List<FilAriane.ElementAriane> { new(Loc["FicheAvoirExo.BcHome"].Value, "/"), new(string.Format(Loc["Ticket.BcDossier"].Value, _fiche.NumeroDossier), $"/dossiers/{_fiche.DossierId}"), new(string.Format(Loc["Ticket.BcTicket"].Value, _fiche.NumeroTicket)) })" />
+
         <!-- Barre de navigation supérieure & retour -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-3">
                 <button class="btn btn-outline-secondary btn-sm" @onclick="RetourArriere">
-                    ⬅ Retour
+                    @Loc["Ticket.Back"]
                 </button>
                 <div>
-                    <h3 class="fw-bold mb-0 text-dark">
+                    <h1 class="fw-bold mb-0 text-dark h3">
                         @if (!string.IsNullOrWhiteSpace(_fiche.NumeroBooking))
                         {
                             <span>Booking @_fiche.NumeroBooking</span>
@@ -63,9 +70,9 @@
                         {
                             <span>Ticket @_fiche.NumeroTicket</span>
                         }
-                    </h3>
+                    </h1>
                     <div class="small text-muted">
-                        Dossier : <a href="/dossiers/@_fiche.DossierId" class="text-decoration-none fw-semibold">@_fiche.NumeroDossier</a> • Ref : @_fiche.NumeroTicket
+                        @Loc["Ticket.FileLabel"] <a href="/dossiers/@_fiche.DossierId" class="text-decoration-none fw-semibold">@_fiche.NumeroDossier</a> • @Loc["Ticket.RefLabel"] @_fiche.NumeroTicket
                     </div>
                 </div>
             </div>
@@ -73,16 +80,16 @@
                 <StatutBadge Statut="@_fiche.Statut" />
                 @if (_fiche.TypeAnnulationExport == TypeAnnulationExport.RejetBackOffice)
                 {
-                    <span class="badge bg-danger">❌ Rejet Back Office</span>
+                    <span class="badge bg-danger">@Loc["Ticket.RejectBackOffice"]</span>
                 }
                 @if (_fiche.DeclarationPresentielle)
                 {
-                    <span class="badge bg-dark">🏛️ Finalisation Présentielle</span>
+                    <span class="badge bg-dark">@Loc["Ticket.InPersonFinalization"]</span>
                 }
                 @if (_fiche.Statut is not StatutTicket.Cloture and not StatutTicket.Annule)
                 {
-                    <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="Planifier un rendez-vous physique au guichet">
-                        📅 Prendre RDV Guichet
+                    <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="@Loc["Ticket.BookApptTitle"]">
+                        @Loc["Ticket.BookAppt"]
                     </a>
                 }
             </div>
@@ -100,13 +107,13 @@
                 <div class="d-flex align-items-center gap-2">
                     <span class="fs-4">⚠️</span>
                     <div>
-                        <strong>Action requise de votre part :</strong> Le dossier est en attente de complément ou de validation client.
+                        <strong>@Loc["Ticket.ActionRequiredLabel"]</strong> @Loc["Ticket.ActionRequiredText"]
                     </div>
                 </div>
                 @if (_fiche.PeutReprendreApresClient)
                 {
                     <button class="btn btn-warning btn-sm fw-bold" @onclick="ReprendreApresClientAsync">
-                        ✅ Marquer complément fourni
+                        @Loc["Ticket.MarkComplementProvided"]
                     </button>
                 }
             </div>
@@ -117,30 +124,30 @@
             <!-- REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : contenu réel de la
                  réclamation, réponse formalisée et évaluation — jamais affichés avant remédiation. -->
             <div class="cit-card mb-4">
-                <h6 class="fw-bold text-dark mb-3">📝 Réclamation — @_fiche.NumeroTicket</h6>
+                <h6 class="fw-bold text-dark mb-3">@Loc["Ticket.ComplaintPrefix"] @_fiche.NumeroTicket</h6>
                 @if (!string.IsNullOrWhiteSpace(_fiche.Objet))
                 {
-                    <div class="mb-2"><span class="text-muted small">Objet :</span> <span class="fw-semibold">@_fiche.Objet</span></div>
+                    <div class="mb-2"><span class="text-muted small">@Loc["FicheAvoirExo.ObjectField"]</span> <span class="fw-semibold">@_fiche.Objet</span></div>
                 }
                 @if (!string.IsNullOrWhiteSpace(_fiche.Description))
                 {
-                    <div class="mb-3"><span class="text-muted small d-block">Description :</span> <span>@_fiche.Description</span></div>
+                    <div class="mb-3"><span class="text-muted small d-block">@Loc["Ticket.DescLabel"]</span> <span>@_fiche.Description</span></div>
                 }
 
                 @if (!string.IsNullOrWhiteSpace(_fiche.ReponseFormalisee))
                 {
-                    <div class="alert alert-success mb-0">
-                        <strong>Réponse formalisée de CIT :</strong>
+                    <div class="alert alert-success mb-0" role="status">
+                        <strong>@Loc["Ticket.FormalResponseLabel"]</strong>
                         <div>@_fiche.ReponseFormalisee</div>
                     </div>
                 }
                 else if (!_estClient && _fiche.PeutCloturer)
                 {
                     <div class="border-top pt-3">
-                        <label class="form-label fw-semibold small" for="reponseFormalisee">Réponse formalisée (obligatoire pour clôturer)</label>
+                        <label class="form-label fw-semibold small" for="reponseFormalisee">@Loc["Ticket.FormalResponseFieldLabel"]</label>
                         <textarea id="reponseFormalisee" class="form-control mb-2" rows="3" @bind="_reponseFormalisee" @bind:event="oninput"></textarea>
                         <button class="btn btn-success btn-sm" @onclick="ClotureReclamationAsync" disabled="@string.IsNullOrWhiteSpace(_reponseFormalisee)">
-                            ✅ Clôturer avec réponse formalisée
+                            @Loc["Ticket.CloseWithResponse"]
                         </button>
                     </div>
                 }
@@ -151,7 +158,7 @@
                         @if (_fiche.EvaluationNote.HasValue)
                         {
                             <div class="small text-muted">
-                                Votre évaluation : <span class="fw-bold">@(new string('★', _fiche.EvaluationNote.Value))@(new string('☆', 5 - _fiche.EvaluationNote.Value))</span>
+                                @Loc["Ticket.YourRating"] <span class="fw-bold">@(new string('★', _fiche.EvaluationNote.Value))@(new string('☆', 5 - _fiche.EvaluationNote.Value))</span>
                                 @if (!string.IsNullOrWhiteSpace(_fiche.EvaluationCommentaire))
                                 {
                                     <div class="fst-italic">« @_fiche.EvaluationCommentaire »</div>
@@ -160,7 +167,7 @@
                         }
                         else
                         {
-                            <label class="form-label fw-semibold small">Votre satisfaction</label>
+                            <label class="form-label fw-semibold small">@Loc["Ticket.YourSatisfaction"]</label>
                             <div class="d-flex gap-1 mb-2">
                                 @for (var n = 1; n <= 5; n++)
                                 {
@@ -170,9 +177,9 @@
                                     </button>
                                 }
                             </div>
-                            <input class="form-control form-control-sm mb-2" placeholder="Commentaire (facultatif)" @bind="_commentaireEvaluation" />
+                            <input class="form-control form-control-sm mb-2" placeholder="@Loc["Ticket.CommentOptional"]" @bind="_commentaireEvaluation" />
                             <button class="btn btn-outline-primary btn-sm" @onclick="EvaluerAsync" disabled="@(_noteEvaluation == 0)">
-                                Envoyer mon évaluation
+                                @Loc["Ticket.SendRating"]
                             </button>
                         }
                     </div>
@@ -185,53 +192,53 @@
             <!-- Colonne gauche : Synthèse & Informations -->
             <div class="col-12 col-lg-4">
                 <div class="cit-card mb-3">
-                    <h6 class="fw-bold text-dark mb-3">Informations générales</h6>
+                    <h6 class="fw-bold text-dark mb-3">@Loc["Ticket.GeneralInfo"]</h6>
                     <ul class="list-unstyled mb-0 small">
                         <li class="mb-2 d-flex justify-content-between">
-                            <span class="text-muted">Société cliente :</span>
+                            <span class="text-muted">@Loc["Ticket.ClientCompany"]</span>
                             <span class="fw-semibold text-end">@_fiche.SocieteNom</span>
                         </li>
                         <li class="mb-2 d-flex justify-content-between">
-                            <span class="text-muted">Module :</span>
+                            <span class="text-muted">@Loc["Ticket.ModuleLabel"]</span>
                             <span class="fw-semibold">@_fiche.Module</span>
                         </li>
                         @if (_fiche.Module == "CustomerComplaint" && !string.IsNullOrWhiteSpace(_fiche.CategorieReclamationLibelle))
                         {
                             <li class="mb-2 d-flex justify-content-between">
-                                <span class="text-muted">Catégorie :</span>
+                                <span class="text-muted">@Loc["FicheAvoirExo.DocCategory"]</span>
                                 <span class="fw-semibold text-end">@_fiche.CategorieReclamationLibelle</span>
                             </li>
                         }
                         @if (!string.IsNullOrWhiteSpace(_fiche.NumeroBooking))
                         {
                             <li class="mb-2 d-flex justify-content-between">
-                                <span class="text-muted">Booking :</span>
+                                <span class="text-muted">@Loc["Ticket.BookingLabel"]</span>
                                 <span class="fw-semibold text-primary">@_fiche.NumeroBooking</span>
                             </li>
                         }
                         else if (!string.IsNullOrWhiteSpace(_fiche.NumeroBl))
                         {
                             <li class="mb-2 d-flex justify-content-between">
-                                <span class="text-muted">Connaissement BL :</span>
+                                <span class="text-muted">@Loc["Ticket.BlLabel"]</span>
                                 <span class="fw-semibold text-primary">@_fiche.NumeroBl</span>
                             </li>
                         }
                         <li class="mb-2 d-flex justify-content-between">
-                            <span class="text-muted">File actuelle :</span>
+                            <span class="text-muted">@Loc["Ticket.CurrentQueue"]</span>
                             <span class="badge bg-light text-dark border">@_fiche.FileNom</span>
                         </li>
                         <li class="mb-2 d-flex justify-content-between">
-                            <span class="text-muted">Opérateur assigné :</span>
-                            <span class="fw-semibold text-primary">@(_fiche.OperateurAssigneNom ?? "Non affecté")</span>
+                            <span class="text-muted">@Loc["Ticket.AssignedOperator"]</span>
+                            <span class="fw-semibold text-primary">@(_fiche.OperateurAssigneNom ?? Loc["Ticket.Unassigned"].Value)</span>
                         </li>
                         <li class="mb-2 d-flex justify-content-between">
-                            <span class="text-muted">Création :</span>
+                            <span class="text-muted">@Loc["Ticket.CreatedLabel"]</span>
                             <span>@_fiche.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</span>
                         </li>
                         @if (_fiche.DatePriseEnChargeUtc.HasValue)
                         {
                             <li class="mb-2 d-flex justify-content-between">
-                                <span class="text-muted">Prise en charge :</span>
+                                <span class="text-muted">@Loc["Ticket.TakenChargeLabel"]</span>
                                 <span>@_fiche.DatePriseEnChargeUtc.Value.ToString("dd/MM/yyyy HH:mm")</span>
                             </li>
                         }
@@ -240,33 +247,33 @@
 
                 <!-- Barre d'actions métier -->
                 <div class="cit-card">
-                    <h6 class="fw-bold text-dark mb-3">Actions disponibles</h6>
+                    <h6 class="fw-bold text-dark mb-3">@Loc["Ticket.AvailableActions"]</h6>
                     <div class="d-grid gap-2">
                         @if (_fiche.PeutPrendreEnCharge)
                         {
                             <button class="btn btn-primary" @onclick="PrendreEnChargeAsync">
-                                📥 Prendre en charge ce ticket
+                                @Loc["Ticket.TakeCharge"]
                             </button>
                         }
 
                         @if (_fiche.PeutMettreEnAttenteClient)
                         {
                             <button class="btn btn-outline-warning" @onclick="MettreEnAttenteClientAsync">
-                                ⏳ Mettre en attente client
+                                @Loc["Ticket.PutOnHoldClient"]
                             </button>
                         }
 
                         @if (_fiche.PeutReprendreApresClient && _fiche.Statut == StatutTicket.EnAttenteClient)
                         {
                             <button class="btn btn-outline-success" @onclick="ReprendreApresClientAsync">
-                                🔄 Reprendre le traitement
+                                @Loc["Ticket.ResumeProcessing"]
                             </button>
                         }
 
                         @if (_fiche.PeutDemanderFacture)
                         {
                             <button class="btn btn-outline-primary" @onclick="DemanderFactureAsync" disabled="@_factureDemandee">
-                                🧾 @(_factureDemandee ? "Facture demandée" : "Demander ma facture")
+                                🧾 @(_factureDemandee ? Loc["Ticket.InvoiceRequested"].Value : Loc["Ticket.RequestInvoice"].Value)
                             </button>
                         }
 
@@ -275,14 +282,14 @@
                             @* IMP-12 / EXP-03 — c'est par ici que le client joint sa preuve de
                                paiement. La page existait, rien n'y menait. *@
                             <a class="btn btn-outline-secondary" href="@($"/tickets/{_fiche.TicketId}/documents")">
-                                📎 Joindre un document
+                                @Loc["Ticket.AttachDocument"]
                             </a>
                         }
 
                         @if (_fiche.PeutAnnuler)
                         {
                             <button class="btn btn-outline-danger" @onclick="AnnulerTicketAsync">
-                                ❌ Annuler ma demande
+                                @Loc["Ticket.CancelMyRequest"]
                             </button>
                         }
                     </div>
@@ -293,11 +300,11 @@
                habilité, visible par les agents ET par le client concerné ». La commande existait,
                testée ; aucun écran ne l'appelait, et aucune fiche ne montrait ses liaisons. *@
             <div class="cit-card p-3 mb-3">
-                <h6 class="fw-bold text-dark mb-3">🔗 Tickets liés</h6>
+                <h6 class="fw-bold text-dark mb-3">@Loc["Ticket.LinkedTickets"]</h6>
 
                 @if (_fiche.Liaisons is null || _fiche.Liaisons.Count == 0)
                 {
-                    <div class="small text-muted mb-2">Aucun ticket lié à celui-ci.</div>
+                    <div class="small text-muted mb-2">@Loc["Ticket.NoLinkedTickets"]</div>
                 }
                 else
                 {
@@ -317,10 +324,10 @@
                 @if (_fiche.PeutLierTickets)
                 {
                     <div class="input-group input-group-sm mt-2">
-                        <input class="form-control" @bind="_numeroALier" placeholder="N° du ticket à lier"
-                               aria-label="Numéro du ticket à lier" />
+                        <input class="form-control" @bind="_numeroALier" placeholder="@Loc["Ticket.LinkPlaceholder"]"
+                               aria-label="@Loc["Ticket.LinkAria"]" />
                         <button class="btn btn-outline-primary" @onclick="LierTicketAsync"
-                                disabled="@(string.IsNullOrWhiteSpace(_numeroALier))">Lier</button>
+                                disabled="@(string.IsNullOrWhiteSpace(_numeroALier))">@Loc["Ticket.Link"]</button>
                     </div>
                     @if (_erreurLiaison is not null)
                     {
@@ -335,17 +342,17 @@
                     <ul class="nav nav-tabs px-3 pt-3 border-bottom" role="tablist">
                         <li class="nav-item">
                             <button class="nav-link @(_ongletActif == "messages" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "messages")">
-                                💬 Échanges (@_fiche.Messages.Count)
+                                @Loc["Ticket.TabMessages"] (@_fiche.Messages.Count)
                             </button>
                         </li>
                         <li class="nav-item">
                             <button class="nav-link @(_ongletActif == "documents" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "documents")">
-                                📁 Documents (@_fiche.Documents.Count)
+                                @Loc["Ticket.TabDocuments"] (@_fiche.Documents.Count)
                             </button>
                         </li>
                         <li class="nav-item">
                             <button class="nav-link @(_ongletActif == "chronologie" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "chronologie")">
-                                🕒 Historique (@_fiche.Chronologie.Count)
+                                @Loc["Ticket.TabHistory"] (@_fiche.Chronologie.Count)
                             </button>
                         </li>
                     </ul>
@@ -357,7 +364,7 @@
                             <div class="messages-container mb-3" style="max-height: 400px; overflow-y: auto;">
                                 @if (_fiche.Messages.Count == 0)
                                 {
-                                    <div class="text-muted small py-4 text-center">Aucun message pour le moment.</div>
+                                    <div class="text-muted small py-4 text-center">@Loc["Ticket.NoMessages"]</div>
                                 }
                                 else
                                 {
@@ -370,7 +377,7 @@
                                                         @msg.AuteurNom
                                                         @if (msg.EstInterne)
                                                         {
-                                                            <span class="badge bg-warning text-dark ms-2">🔒 Note interne CIT</span>
+                                                            <span class="badge bg-warning text-dark ms-2">@Loc["Ticket.InternalNoteBadge"]</span>
                                                         }
                                                     </span>
                                                     <span class="text-muted" style="font-size: 0.75rem;">@msg.DateEnvoiUtc.ToString("dd/MM/yyyy HH:mm")</span>
@@ -387,16 +394,16 @@
                             {
                                 <div class="border-top pt-3">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="Rédigez votre message ou complément..." @bind="_nouveauMessageContenu" />
+                                        <input type="text" class="form-control" placeholder="@Loc["Ticket.MessagePlaceholder"]" @bind="_nouveauMessageContenu" />
                                         @if (!_estClient)
                                         {
                                             <div class="input-group-text bg-light">
                                                 <input class="form-check-input mt-0 me-1" type="checkbox" @bind="_estNoteInterne" id="chkNoteInterne" />
-                                                <label class="small mb-0" for="chkNoteInterne">Note interne</label>
+                                                <label class="small mb-0" for="chkNoteInterne">@Loc["Ticket.InternalNoteCheck"]</label>
                                             </div>
                                         }
                                         <button class="btn btn-primary" @onclick="EnvoyerMessageAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauMessageContenu)">
-                                            Envoyer 📤
+                                            @Loc["Ticket.Send"]
                                         </button>
                                     </div>
 
@@ -408,8 +415,8 @@
                                            puisqu'une mention n'existe que là. *@
                                         <div class="mt-2">
                                             <input type="email" class="form-control form-control-sm"
-                                                   placeholder="Mentionner un collaborateur (adresse professionnelle) — facultatif"
-                                                   aria-label="Adresse du collaborateur à mentionner"
+                                                   placeholder="@Loc["Ticket.MentionPlaceholder"]"
+                                                   aria-label="@Loc["Ticket.MentionAria"]"
                                                    @bind="_emailCollaborateur" />
                                         </div>
                                     }
@@ -420,7 +427,7 @@
                         {
                             @if (_fiche.Documents.Count == 0)
                             {
-                                <div class="text-muted small py-4 text-center">Aucun document déposé pour ce ticket.</div>
+                                <div class="text-muted small py-4 text-center">@Loc["Ticket.NoDocuments"]</div>
                             }
                             else
                             {
@@ -428,10 +435,10 @@
                                     <table class="table table-sm table-hover mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Nom du fichier</th>
-                                                <th>Type</th>
-                                                <th>Taille</th>
-                                                <th>Date de dépôt</th>
+                                                <th>@Loc["Ticket.ColFileName"]</th>
+                                                <th>@Loc["Ticket.ColType"]</th>
+                                                <th>@Loc["Ticket.ColSize"]</th>
+                                                <th>@Loc["Ticket.ColDepositDate"]</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -440,7 +447,7 @@
                                                 <tr>
                                                     <td class="fw-semibold">📄 @doc.NomFichier</td>
                                                     <td><span class="badge bg-secondary">@doc.TypeContenu</span></td>
-                                                    <td>@((doc.TailleOctets / 1024.0).ToString("0.0")) Ko</td>
+                                                    <td>@((doc.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
                                                     <td class="small text-muted">@doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
                                                 </tr>
                                             }
@@ -502,7 +509,7 @@
             if (!contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour consulter ce ticket.";
+                _messageNonAutorise = Loc["Ticket.LoginRequired"].Value;
                 return;
             }
 
@@ -517,7 +524,7 @@
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -530,12 +537,12 @@
         try
         {
             await PrendreEnCharge.ExecuterAsync(_utilisateurId, Id);
-            _actionFeedback = "Ticket pris en charge avec succès.";
+            _actionFeedback = Loc["Ticket.MsgTakenCharge"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionFeedback = $"Erreur : {ex.Message}";
+            _actionFeedback = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -543,13 +550,13 @@
     {
         try
         {
-            await AttenteClient.MettreEnAttenteAsync(_utilisateurId, Id, "Complément d'information demandé");
-            _actionFeedback = "Ticket mis en attente client.";
+            await AttenteClient.MettreEnAttenteAsync(_utilisateurId, Id, Loc["Ticket.HoldReason"].Value);
+            _actionFeedback = Loc["Ticket.MsgOnHold"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionFeedback = $"Erreur : {ex.Message}";
+            _actionFeedback = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -558,12 +565,12 @@
         try
         {
             await AttenteClient.RependreApresReponseAsync(Id);
-            _actionFeedback = "Traitement du ticket repris.";
+            _actionFeedback = Loc["Ticket.MsgResumed"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionFeedback = $"Erreur : {ex.Message}";
+            _actionFeedback = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -594,7 +601,7 @@
         {
             // Erreur locale au panneau : lier un ticket qui n'existe pas ne doit pas remplacer la
             // fiche par un bandeau d'erreur pleine page.
-            _erreurLiaison = ex.Message;
+            _erreurLiaison = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -614,14 +621,14 @@
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
     private async Task AnnulerTicketAsync()
     {
         // Rediriger vers l'espace client ou afficher confirmation
-        _actionFeedback = "Demande d'annulation transmise.";
+        _actionFeedback = Loc["Ticket.MsgCancelSent"].Value;
         await RechargerAsync();
     }
 
@@ -667,12 +674,12 @@
 
             _nouveauMessageContenu = string.Empty;
             _emailCollaborateur = string.Empty;
-            _actionFeedback = "Message envoyé.";
+            _actionFeedback = Loc["Ticket.MsgSent"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionFeedback = $"Erreur lors de l'envoi : {ex.Message}";
+            _actionFeedback = $"{Loc["Ticket.SendErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -684,12 +691,12 @@
         {
             await ClotureReclamation.ExecuterAsync(new CloturerReclamationRequete(_utilisateurId, Id, _reponseFormalisee));
             _reponseFormalisee = string.Empty;
-            _actionFeedback = "Réclamation clôturée avec réponse formalisée.";
+            _actionFeedback = Loc["Ticket.MsgComplaintClosed"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionFeedback = $"Erreur : {ex.Message}";
+            _actionFeedback = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 
@@ -700,12 +707,12 @@
         try
         {
             await EvaluerReclamation.ExecuterAsync(new EvaluerReclamationRequete(_utilisateurId, Id, _noteEvaluation, _commentaireEvaluation));
-            _actionFeedback = "Merci pour votre évaluation.";
+            _actionFeedback = Loc["Ticket.MsgThanksRating"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)
         {
-            _actionFeedback = $"Erreur : {ex.Message}";
+            _actionFeedback = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
 

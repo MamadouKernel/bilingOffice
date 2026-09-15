@@ -1,4 +1,4 @@
-@page "/rendez-vous/prendre/{TicketId:guid}"
+﻿@page "/rendez-vous/prendre/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -6,46 +6,49 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject CIT.Plateforme.Application.Tickets.ObtenirFicheTicketQuery FicheTicket
 @inject ListerCreneauxDisponiblesQuery ListerCreneauxQuery
 @inject ReserverRendezVousCommand ReserverCommand
 @inject NavigationManager Navigation
 
-<PageTitle>Prendre un rendez-vous — Guichet CIT</PageTitle>
+<PageTitle>@Loc["PrdRdv.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>📅</span> Prise de Rendez-vous Guichet
-        </h2>
+        <h1 class="cit-page-title">
+            <span>📅</span> @Loc["PrdRdv.Title"]
+        </h1>
         <div class="cit-page-subtitle">
-            Planifiez votre passage physique au Billing Office de Côte d'Ivoire Terminal
+            @Loc["PrdRdv.Subtitle"]
         </div>
     </div>
     <div>
         <a href="/rendez-vous/mes-rendez-vous" class="btn btn-outline-secondary">
-            Mes rendez-vous
+            @Loc["PrdRdv.MyAppointments"]
         </a>
     </div>
 </div>
 
 @if (_chargementInitial)
 {
-    <IndicateurChargement Message="Chargement des informations du ticket..." />
+    <IndicateurChargement Message="@Loc["PrdRdv.LoadingTicket"]" />
 }
 else if (_ticket is null)
 {
     <div class="alert alert-danger" role="alert">
-        <strong>Erreur :</strong> Le ticket spécifié est introuvable.
+        <strong>@Loc["PrdRdv.ErrorLabel"]</strong> @Loc["PrdRdv.TicketNotFound"]
     </div>
 }
 else if (_ticket.Statut is StatutTicket.Cloture or StatutTicket.Annule)
 {
     <div class="alert alert-warning" role="alert">
-        <strong>Attention :</strong> Impossible de réserver un rendez-vous pour un ticket clôturé ou annulé.
+        <strong>@Loc["PrdRdv.WarnLabel"]</strong> @Loc["PrdRdv.ClosedTicketWarn"]
     </div>
 }
 else
@@ -62,33 +65,33 @@ else
         <div class="col-md-4">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0 fw-bold">🎫 Détails du Ticket</h6>
+                    <h6 class="mb-0 fw-bold">@Loc["PrdRdv.TicketDetails"]</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-2">
-                        <span class="text-muted small">Numéro :</span>
+                        <span class="text-muted small">@Loc["PrdRdv.FieldNumber"]</span>
                         <div class="fw-bold">@_ticket.NumeroTicket</div>
                     </div>
                     <div class="mb-2">
-                        <span class="text-muted small">Module :</span>
+                        <span class="text-muted small">@Loc["PrdRdv.FieldModule"]</span>
                         <div><span class="badge bg-secondary">@_ticket.Module</span></div>
                     </div>
                     @if (!string.IsNullOrEmpty(_ticket.NumeroBl))
                     {
                         <div class="mb-2">
-                            <span class="text-muted small">Numéro BL :</span>
+                            <span class="text-muted small">@Loc["PrdRdv.FieldBl"]</span>
                             <div class="fw-bold text-primary">@_ticket.NumeroBl</div>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(_ticket.NumeroBooking))
                     {
                         <div class="mb-2">
-                            <span class="text-muted small">Numéro Booking :</span>
+                            <span class="text-muted small">@Loc["PrdRdv.FieldBooking"]</span>
                             <div class="fw-bold text-primary">@_ticket.NumeroBooking</div>
                         </div>
                     }
                     <div class="mb-2">
-                        <span class="text-muted small">Statut :</span>
+                        <span class="text-muted small">@Loc["PrdRdv.FieldStatus"]</span>
                         <div><span class="badge bg-info text-dark">@_ticket.Statut</span></div>
                     </div>
                 </div>
@@ -98,35 +101,35 @@ else
         <div class="col-md-8">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0 text-primary">1. Choisissez une date et un créneau</h5>
+                    <h5 class="mb-0 text-primary">@Loc["PrdRdv.Step1"]</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3 mb-4 align-items-center">
                         <div class="col-md-6">
-                            <label for="date-du-rendez-vous" class="form-label fw-bold">Date du rendez-vous :</label>
+                            <label for="date-du-rendez-vous" class="form-label fw-bold">@Loc["PrdRdv.DateLabel"]</label>
                             <input id="date-du-rendez-vous" type="date" class="form-control form-control-lg" min="@DateTime.Today.ToString("yyyy-MM-dd")"
                                    value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
                             <button class="btn btn-outline-primary" @onclick="() => ChargerCreneauxAsync()">
-                                🔄 Actualiser les créneaux
+                                @Loc["PrdRdv.RefreshSlots"]
                             </button>
                         </div>
                     </div>
 
                     @if (_chargementCreneaux)
                     {
-                        <IndicateurChargement Message="Recherche des créneaux disponibles..." />
+                        <IndicateurChargement Message="@Loc["Rdv.SearchingSlots"]" />
                     }
                     else if (_creneaux.Count == 0)
                     {
                         <div class="alert alert-info">
-                            Aucun créneau disponible pour cette date. Veuillez choisir un autre jour ouvré (Lundi au Vendredi).
+                            @Loc["PrdRdv.NoSlotsWorkday"]
                         </div>
                     }
                     else
                     {
-                        <label class="form-label fw-bold">Créneaux horaires disponibles :</label>
+                        <label class="form-label fw-bold">@Loc["PrdRdv.SlotsAvailable"]</label>
                         <div class="row g-2 mb-4">
                             @foreach (var c in _creneaux)
                             {
@@ -137,7 +140,7 @@ else
                                             @onclick="() => ChoisirHeure(c.HeureDebut)" disabled="@(!disponible)">
                                         <div class="fw-bold">@c.HeureDebut.ToString(@"hh\:mm") - @c.HeureFin.ToString(@"hh\:mm")</div>
                                         <small class="d-block @(disponible ? "text-success" : "text-danger")">
-                                            @(disponible ? $"{c.PlacesRestantes} place(s)" : "Complet")
+                                            @(disponible ? string.Format(Loc["Rdv.PlacesLeft"].Value, c.PlacesRestantes) : Loc["Rdv.Full"].Value)
                                         </small>
                                     </button>
                                 </div>
@@ -147,29 +150,29 @@ else
 
                     <hr />
 
-                    <h5 class="mb-3 text-primary">2. Motif et confirmation</h5>
+                    <h5 class="mb-3 text-primary">@Loc["PrdRdv.Step2"]</h5>
                     <div class="mb-3">
-                        <label for="motif-du-deplacement-physique" class="form-label fw-bold">Motif du déplacement physique :</label>
+                        <label for="motif-du-deplacement-physique" class="form-label fw-bold">@Loc["PrdRdv.MotifLabel"]</label>
                         <select id="motif-du-deplacement-physique" class="form-select" @bind="_motifSelectionne">
-                            <option value="Paiement Caisse">Paiement Caisse (Espèces / Chèque certifié)</option>
-                            <option value="Dépôt Pièces Physiques">Dépôt ou présentation de documents originaux</option>
-                            <option value="Assistance Guichet">Assistance et conseil au guichet</option>
-                            <option value="Autre démarche">Autre démarche présentielle</option>
+                            <option value="Paiement Caisse">@Loc["PrdRdv.MotifPaiement"]</option>
+                            <option value="Dépôt Pièces Physiques">@Loc["PrdRdv.MotifDepot"]</option>
+                            <option value="Assistance Guichet">@Loc["PrdRdv.MotifAssistance"]</option>
+                            <option value="Autre démarche">@Loc["PrdRdv.MotifAutre"]</option>
                         </select>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
-                        <a href="/rendez-vous/mes-rendez-vous" class="btn btn-secondary">Annuler</a>
+                        <a href="/rendez-vous/mes-rendez-vous" class="btn btn-secondary">@Loc["Common.Cancel"]</a>
                         <button class="btn btn-success btn-lg" @onclick="ConfirmerReservationAsync"
                                 disabled="@(_heureSelectionnee is null || _enReservation)">
                             @if (_enReservation)
                             {
                                 <span class="spinner-border spinner-border-sm me-1"></span>
-                                <span>Réservation en cours...</span>
+                                <span>@Loc["PrdRdv.Reserving"]</span>
                             }
                             else
                             {
-                                <span>Confirmer le rendez-vous ✅</span>
+                                <span>@Loc["PrdRdv.Confirm"]</span>
                             }
                         </button>
                     </div>
@@ -243,7 +246,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -260,7 +263,7 @@ else
     {
         if (_heureSelectionnee is null)
         {
-            _messageErreur = "Veuillez sélectionner un créneau horaire.";
+            _messageErreur = Loc["PrdRdv.SelectSlot"].Value;
             return;
         }
 
@@ -280,7 +283,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

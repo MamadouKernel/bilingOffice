@@ -1,4 +1,7 @@
 @using CIT.Plateforme.Application.Client
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 
 @if (Actions is not null && Actions.Count > 0)
 {
@@ -7,10 +10,10 @@
             <div class="d-flex align-items-center gap-2">
                 <span class="fs-4">⚠️</span>
                 <h5 class="m-0 fw-bold text-dark">
-                    Mes actions requises (@Actions.Count)
+                    @Loc["Zar.TitlePrefix"] (@Actions.Count)
                 </h5>
             </div>
-            <span class="badge bg-warning text-dark px-3 py-1 fw-semibold">Action client requise</span>
+            <span class="badge bg-warning text-dark px-3 py-1 fw-semibold">@Loc["Zar.Badge"]</span>
         </div>
 
         <div class="d-flex flex-column gap-3">

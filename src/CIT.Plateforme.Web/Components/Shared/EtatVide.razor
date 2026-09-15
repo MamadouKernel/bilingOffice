@@ -1,9 +1,11 @@
+@using CIT.Plateforme.Web.Resources
+
 <div class="cit-card text-center py-5 my-3">
     <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle bg-light border p-3 mx-auto" style="width: 72px; height: 72px; font-size: 2rem;">
         @(Icone ?? "📂")
     </div>
-    <h5 class="fw-bold mb-2 text-dark">@Titre</h5>
-    <p class="text-muted mb-4 max-w-md mx-auto" style="max-width: 480px;">@(string.IsNullOrWhiteSpace(Description) ? Message : Description)</p>
+    <h5 class="fw-bold mb-2 text-dark">@(Titre ?? SharedResourcesLocalizer.Get("Common.EmptyTitle"))</h5>
+    <p class="text-muted mb-4 max-w-md mx-auto" style="max-width: 480px;">@(string.IsNullOrWhiteSpace(Description) ? (Message ?? SharedResourcesLocalizer.Get("Common.EmptyMessage")) : Description)</p>
     @if (!string.IsNullOrWhiteSpace(ActionLibelle) && !string.IsNullOrWhiteSpace(ActionUrl))
     {
         <a href="@ActionUrl" class="btn btn-primary px-4 py-2">
@@ -14,10 +16,10 @@
 
 @code {
     [Parameter]
-    public string? Titre { get; set; } = "Aucun élément";
+    public string? Titre { get; set; }
 
     [Parameter]
-    public string Message { get; set; } = "Aucune donnée n'est disponible pour le moment.";
+    public string? Message { get; set; }
 
     [Parameter]
     public string? Description { get; set; }

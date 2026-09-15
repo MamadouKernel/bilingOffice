@@ -1,4 +1,4 @@
-@page "/rendez-vous/mes-rendez-vous"
+﻿@page "/rendez-vous/mes-rendez-vous"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -6,8 +6,11 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Guichet
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ListerMesRendezVousQuery ListerMesRdvQuery
 @inject AnnulerRendezVousCommand AnnulerCommand
@@ -15,22 +18,22 @@
 @inject ListerCreneauxDisponiblesQuery ListerCreneauxQuery
 @inject NavigationManager Navigation
 
-<PageTitle>Mes Rendez-vous Guichet — CIT</PageTitle>
+<PageTitle>@Loc["Rdv.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>📅</span> Mes Rendez-vous Guichet
-        </h2>
+        <h1 class="cit-page-title">
+            <span>📅</span> @Loc["Rdv.Title"]
+        </h1>
         <div class="cit-page-subtitle">
-            Suivi de vos rendez-vous physiques au Billing Office de Côte d'Ivoire Terminal
+            @Loc["Rdv.Subtitle"]
         </div>
     </div>
 </div>
 
 @if (_chargementInitial)
 {
-    <IndicateurChargement Message="Chargement de vos rendez-vous..." />
+    <IndicateurChargement Message="@Loc["Rdv.Loading"]" />
 }
 else
 {
@@ -55,34 +58,34 @@ else
     {
         <div class="card shadow border-warning mb-4">
             <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">🔄 Reporter le rendez-vous du @_rdvEnReport.Date.ToString("dd/MM/yyyy") (@_rdvEnReport.NumeroTicket)</h5>
-                <button class="btn btn-sm btn-outline-dark" @onclick="FermerReport">✕ Fermer</button>
+                <h5 class="mb-0">@Loc["Rdv.ReportHeaderPrefix"] @_rdvEnReport.Date.ToString("dd/MM/yyyy") (@_rdvEnReport.NumeroTicket)</h5>
+                <button class="btn btn-sm btn-outline-dark" @onclick="FermerReport">@Loc["Rdv.Close"]</button>
             </div>
             <div class="card-body">
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label for="nouvelle-date" class="form-label fw-bold">Nouvelle date :</label>
+                        <label for="nouvelle-date" class="form-label fw-bold">@Loc["Rdv.NewDate"]</label>
                         <input id="nouvelle-date" type="date" class="form-control" min="@DateTime.Today.ToString("yyyy-MM-dd")"
                                value="@_nouvelleDateReport.ToString("yyyy-MM-dd")" @onchange="ChangerDateReportAsync" />
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
                         <button class="btn btn-outline-primary" @onclick="ChargerCreneauxReportAsync">
-                            🔄 Actualiser
+                            @Loc["ProfilSoc.Refresh"]
                         </button>
                     </div>
                 </div>
 
                 @if (_chargementCreneauxReport)
                 {
-                    <IndicateurChargement Message="Recherche des créneaux disponibles..." />
+                    <IndicateurChargement Message="@Loc["Rdv.SearchingSlots"]" />
                 }
                 else if (_creneauxReport.Count == 0)
                 {
-                    <div class="alert alert-info">Aucun créneau disponible pour cette date.</div>
+                    <div class="alert alert-info">@Loc["Rdv.NoSlots"]</div>
                 }
                 else
                 {
-                    <label class="form-label fw-bold">Nouveau créneau horaire :</label>
+                    <label class="form-label fw-bold">@Loc["Rdv.NewSlot"]</label>
                     <div class="row g-2 mb-3">
                         @foreach (var c in _creneauxReport)
                         {
@@ -93,7 +96,7 @@ else
                                         @onclick="() => _nouvelleHeureReport = c.HeureDebut" disabled="@(!disponible)">
                                     <div class="fw-bold">@c.HeureDebut.ToString(@"hh\:mm") - @c.HeureFin.ToString(@"hh\:mm")</div>
                                     <small class="d-block @(disponible ? "text-success" : "text-danger")">
-                                        @(disponible ? $"{c.PlacesRestantes} place(s)" : "Complet")
+                                        @(disponible ? string.Format(Loc["Rdv.PlacesLeft"].Value, c.PlacesRestantes) : Loc["Rdv.Full"].Value)
                                     </small>
                                 </button>
                             </div>
@@ -102,13 +105,13 @@ else
                 }
 
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-secondary" @onclick="FermerReport">Annuler</button>
+                    <button class="btn btn-secondary" @onclick="FermerReport">@Loc["Common.Cancel"]</button>
                     <button class="btn btn-warning" @onclick="ConfirmerReportAsync" disabled="@(_nouvelleHeureReport is null || _enAction)">
                         @if (_enAction)
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
                         }
-                        <span>Valider le report</span>
+                        <span>@Loc["Rdv.ValidateReport"]</span>
                     </button>
                 </div>
             </div>
@@ -120,23 +123,23 @@ else
     {
         <div class="card shadow border-danger mb-4">
             <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">⚠️ Confirmer l'annulation du rendez-vous (@_rdvEnAnnulation.NumeroTicket)</h5>
-                <button class="btn btn-sm btn-light" @onclick="FermerAnnulation">✕ Fermer</button>
+                <h5 class="mb-0">@Loc["Rdv.CancelHeaderPrefix"] (@_rdvEnAnnulation.NumeroTicket)</h5>
+                <button class="btn btn-sm btn-light" @onclick="FermerAnnulation">@Loc["Rdv.Close"]</button>
             </div>
             <div class="card-body">
-                <p>Êtes-vous sûr de vouloir annuler votre rendez-vous du <strong>@_rdvEnAnnulation.Date.ToString("dd/MM/yyyy") à @_rdvEnAnnulation.HeureDebut.ToString(@"hh\:mm")</strong> ? Cette place sera immédiatement libérée.</p>
+                <p>@Loc["Rdv.CancelConfirmPre"] <strong>@_rdvEnAnnulation.Date.ToString("dd/MM/yyyy") @Loc["Rdv.At"] @_rdvEnAnnulation.HeureDebut.ToString(@"hh\:mm")</strong> @Loc["Rdv.CancelConfirmPost"]</p>
                 <div class="mb-3">
-                    <label for="motif-de-l-annulation" class="form-label fw-bold">Motif de l'annulation :</label>
-                    <input id="motif-de-l-annulation" type="text" class="form-control" placeholder="Ex: Démarche effectuée en ligne / empêchement" @bind="_motifAnnulation" />
+                    <label for="motif-de-l-annulation" class="form-label fw-bold">@Loc["Rdv.CancelMotifLabel"]</label>
+                    <input id="motif-de-l-annulation" type="text" class="form-control" placeholder="@Loc["Rdv.CancelMotifPlaceholder"]" @bind="_motifAnnulation" />
                 </div>
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-secondary" @onclick="FermerAnnulation">Conserver le RDV</button>
+                    <button class="btn btn-secondary" @onclick="FermerAnnulation">@Loc["Rdv.KeepRdv"]</button>
                     <button class="btn btn-danger" @onclick="ConfirmerAnnulationAsync" disabled="@_enAction">
                         @if (_enAction)
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
                         }
-                        <span>Confirmer l'annulation</span>
+                        <span>@Loc["Rdv.ConfirmCancel"]</span>
                     </button>
                 </div>
             </div>
@@ -147,11 +150,11 @@ else
     {
         <div class="card shadow-sm text-center p-5 border-0">
             <div class="text-muted fs-5 mb-3">
-                Vous n'avez aucun rendez-vous guichet enregistré.
+                @Loc["Rdv.EmptyMsg"]
             </div>
             <div>
                 <a href="/client/mes-demandes" class="btn btn-primary">
-                    Consulter mes demandes pour prendre un rendez-vous
+                    @Loc["Rdv.EmptyCta"]
                 </a>
             </div>
         </div>
@@ -160,19 +163,19 @@ else
     {
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white">
-                <h5 class="mb-0">Historique de vos rendez-vous (@_rendezVousList.Count)</h5>
+                <h5 class="mb-0">@Loc["Rdv.HistoryTitlePrefix"] (@_rendezVousList.Count)</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Ticket</th>
-                                <th>Date & Heure</th>
-                                <th>Motif</th>
-                                <th>Statut</th>
-                                <th>Réservé le</th>
-                                <th>Actions</th>
+                                <th>@Loc["Rdv.ColTicket"]</th>
+                                <th>@Loc["Rdv.ColDateTime"]</th>
+                                <th>@Loc["Rdv.ColMotif"]</th>
+                                <th>@Loc["Societe.ColStatus"]</th>
+                                <th>@Loc["Rdv.ColReservedOn"]</th>
+                                <th>@Loc["Common.Actions"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -191,16 +194,16 @@ else
                                         @switch (r.Statut)
                                         {
                                             case "Reserve":
-                                                <span class="badge bg-primary">Réservé</span>
+                                                <span class="badge bg-primary">@Loc["Rdv.StatusReserved"]</span>
                                                 break;
                                             case "Honore":
-                                                <span class="badge bg-success">Honoré ✅</span>
+                                                <span class="badge bg-success">@Loc["Rdv.StatusHonored"]</span>
                                                 break;
                                             case "Annule":
-                                                <span class="badge bg-secondary">Annulé</span>
+                                                <span class="badge bg-secondary">@Loc["Rdv.StatusCancelled"]</span>
                                                 break;
                                             case "NonPresente":
-                                                <span class="badge bg-danger">Non présenté ❌</span>
+                                                <span class="badge bg-danger">@Loc["Rdv.StatusNoShow"]</span>
                                                 break;
                                             default:
                                                 <span class="badge bg-secondary">@r.Statut</span>
@@ -213,10 +216,10 @@ else
                                         {
                                             <div class="btn-group btn-group-sm">
                                                 <button class="btn btn-outline-warning" @onclick="() => OuvrirReport(r)">
-                                                    🔄 Reporter
+                                                    @Loc["Rdv.Reschedule"]
                                                 </button>
                                                 <button class="btn btn-outline-danger" @onclick="() => OuvrirAnnulation(r)">
-                                                    ❌ Annuler
+                                                    @Loc["Rdv.CancelBtn"]
                                                 </button>
                                             </div>
                                         }
@@ -247,7 +250,7 @@ else
     private IReadOnlyList<CreneauDisponibleDto> _creneauxReport = [];
 
     private RendezVousClientDto? _rdvEnAnnulation;
-    private string _motifAnnulation = "Annulation par l'usager";
+    private string _motifAnnulation = string.Empty;
 
     private bool _enAction = false;
     private string? _messageErreur;
@@ -276,7 +279,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -314,7 +317,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -337,13 +340,13 @@ else
                 _nouvelleDateReport,
                 _nouvelleHeureReport.Value
             ));
-            _messageSucces = "Rendez-vous reporté avec succès.";
+            _messageSucces = Loc["Rdv.MsgRescheduled"].Value;
             _rdvEnReport = null;
             await ChargerRendezVousAsync();
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -355,7 +358,7 @@ else
     {
         _rdvEnAnnulation = rdv;
         _rdvEnReport = null;
-        _motifAnnulation = "Annulation par l'usager";
+        _motifAnnulation = Loc["Rdv.DefaultCancelMotif"].Value;
     }
 
     private void FermerAnnulation()
@@ -377,13 +380,13 @@ else
                 _rdvEnAnnulation.Id,
                 _motifAnnulation
             ));
-            _messageSucces = "Rendez-vous annulé avec succès. Le créneau a été libéré.";
+            _messageSucces = Loc["Rdv.MsgCancelled"].Value;
             _rdvEnAnnulation = null;
             await ChargerRendezVousAsync();
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

@@ -1,377 +1,126 @@
 ﻿@using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
 @inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+@inject IStringLocalizer<SharedResources> Loc
 @implements IDisposable
+
+@*
+    MENU LATÉRAL — REMÉDIATION RECETTE UAT (D-05/D-15).
+
+    Ce composant ne décide plus rien. Il affichait auparavant, pour chaque espace fonctionnel, la
+    totalité des entrées de cet espace — sans jamais regarder les habilitations. La recette a
+    mesuré jusqu'à 16 liens sur 22 menant à « Accès Refusé ».
+
+    Le choix de ce qui est visible appartient désormais à ConstruireNavigationQuery, qui l'établit à
+    partir des habilitations réelles et de RegleHabilitation — la même règle que celle appliquée par
+    AutorisationService pour refuser côté serveur. Écrire ici un second test « cet utilisateur
+    a-t-il cette permission ? » aurait créé une deuxième vérité, condamnée à diverger de la première.
+
+    Le menu n'est pas une frontière de sécurité : chaque page garde son contrôle serveur, et il
+    refuse toujours à qui tape l'URL directement.
+*@
 
 <div class="cit-sidebar">
     @if (_contexte is null)
     {
-        <div class="p-3 text-muted small">Chargement du menu...</div>
+        <div class="p-3 text-muted small">@Loc["Nav.MenuLoading"]</div>
     }
     else if (!_contexte.EstAuthentifie)
     {
-        <div class="cit-nav-group-title">Accueil</div>
+        <div class="cit-nav-group-title">@Loc["Nav.Home"]</div>
         <NavLink class="cit-nav-item" href="/" Match="NavLinkMatch.All">
-            <span>🏠</span> Accueil
+            <span>🏠</span> @Loc["Nav.Home"]
         </NavLink>
         <NavLink class="cit-nav-item" href="/comptes/connexion">
-            <span>🔑</span> Se connecter
+            <span>🔑</span> @Loc["Nav.SignIn"]
         </NavLink>
         <NavLink class="cit-nav-item" href="/comptes/soumettre">
-            <span>📝</span> Créer un compte société
+            <span>📝</span> @Loc["Nav.CreateCompanyAccount"]
         </NavLink>
     }
     else
     {
-        <!-- Switcher d'Espace Persona si multi-rôles -->
         <div class="px-2 pt-2 pb-1 border-bottom border-white border-opacity-10 mb-2">
             <PersonaSwitcher Contexte="@_contexte" />
         </div>
 
-        <!-- 1. 🏢 ESPACE STRUCTURE -->
-        <details class="cit-accordion-group" open>
-            <summary class="cit-accordion-header">
-                <span class="cit-accordion-title">
-                    <span>🏢</span> Espace Structure
-                </span>
-                <span class="cit-accordion-chevron">▶</span>
-            </summary>
-            <div class="cit-accordion-body">
-                @switch (_contexte.EspaceActif)
-                {
-                    case EspaceFonctionnel.Client:
-                        <NavLink class="cit-nav-subitem" href="/client/dashboard" Match="NavLinkMatch.All">
-                            <span>📊</span> Tableau de bord
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/comptes/profil">
-                            <span>🏢</span> Profil société
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrateurSociete:
-                        <NavLink class="cit-nav-subitem" href="/societe/dashboard" Match="NavLinkMatch.All">
-                            <span>🏢</span> Tableau de bord Société
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/societe/collaborateurs">
-                            <span>👥</span> Collaborateurs
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/comptes/profil">
-                            <span>⚙️</span> Profil de l'entreprise
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Agent:
-                        <NavLink class="cit-nav-subitem" href="/agent/dashboard" Match="NavLinkMatch.All">
-                            <span>📋</span> Tableau de bord Opérateur
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Supervision:
-                        <NavLink class="cit-nav-subitem" href="/supervision" Match="NavLinkMatch.All">
-                            <span>📈</span> Vue Supervision
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrationCit:
-                        <NavLink class="cit-nav-subitem" href="/comptes/valider" Match="NavLinkMatch.All">
-                            <span>🏢</span> Accueil Admin CIT
-                        </NavLink>
-                        break;
-                }
+        @if (_groupes.Count == 0)
+        {
+            @* Un compte sans aucune habilitation exploitable. Le dire vaut mieux que présenter un
+               menu de liens qui refuseront tous. *@
+            <div class="p-3 small text-white-50">
+                @Loc["Nav.NoAccessibleScreen"]
             </div>
-        </details>
-
-        <!-- 2. 📦 GESTION DES DOSSIERS -->
-        <details class="cit-accordion-group" open>
-            <summary class="cit-accordion-header">
-                <span class="cit-accordion-title">
-                    <span>📦</span> Gestion des Dossiers
-                </span>
-                <span class="cit-accordion-chevron">▶</span>
-            </summary>
-            <div class="cit-accordion-body">
-                @switch (_contexte.EspaceActif)
-                {
-                    case EspaceFonctionnel.Client:
-                        <NavLink class="cit-nav-subitem" href="/client/demandes">
-                            <span>📁</span> Mes demandes
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/rendez-vous/mes-rendez-vous">
-                            <span>📅</span> Mes rendez-vous
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrateurSociete:
-                        <NavLink class="cit-nav-subitem" href="/client/demandes?vue=societe">
-                            <span>📂</span> Demandes de la société
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/rendez-vous/mes-rendez-vous">
-                            <span>📅</span> Mes rendez-vous
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Agent:
-                        <NavLink class="cit-nav-subitem" href="/guichet/recherche">
-                            <span>🏛️</span> Guichet Billing Office
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/guichet/agenda">
-                            <span>📅</span> Agenda Guichet
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-import/manifeste">
-                            <span>📜</span> Pilote Manifeste
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-import/controle-documentaire">
-                            <span>📑</span> Contrôle Doc Import
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/back-office">
-                            <span>📦</span> Back Office Export
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/controle-documentaire">
-                            <span>📑</span> Contrôle Doc Export (BEE)
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-import/ies">
-                            <span>⚡</span> Traitement IES Import
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/ies">
-                            <span>⚡</span> Traitement IES Export
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/reclamations/file">
-                            <span>📝</span> File Réclamations
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/enrolement/file-agent-gate">
-                            <span>🛂</span> File Agent Gate
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Supervision:
-                        <NavLink class="cit-nav-subitem" href="/supervision" Match="NavLinkMatch.All">
-                            <span>📈</span> Supervision en direct
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/disponibilite">
-                            <span>🟢</span> Disponibilité agents
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/strategie-file">
-                            <span>⚙️</span> Stratégie des files
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/motifs-transfert">
-                            <span>🔀</span> Motifs de transfert
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/parametres-sla">
-                            <span>⏱️</span> Paramètres SLA
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/regles-escalade">
-                            <span>🚨</span> Règles d'escalade
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/pieces-exigees-etape">
-                            <span>📎</span> Pièces exigées par étape
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/matrice-transitions">
-                            <span>🔁</span> Matrice des transitions
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/perimetres-supervision">
-                            <span>🗺️</span> Périmètres de supervision
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/competences-operateur">
-                            <span>🎯</span> Compétences des opérateurs
-                        </NavLink>
-                        break;
-                }
-            </div>
-        </details>
-
-        <!-- 3. 📊 FACTURATION & SIMULATION -->
-        <details class="cit-accordion-group" open>
-            <summary class="cit-accordion-header">
-                <span class="cit-accordion-title">
-                    <span>📊</span> Facturation & Simulation
-                </span>
-                <span class="cit-accordion-chevron">▶</span>
-            </summary>
-            <div class="cit-accordion-body">
-                @switch (_contexte.EspaceActif)
-                {
-                    case EspaceFonctionnel.Client:
-                        <NavLink class="cit-nav-subitem" href="/billing-import/soumettre">
-                            <span>📥</span> Demande IMPORT (BL)
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/soumettre">
-                            <span>📤</span> Demande EXPORT (Booking)
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/avoir-exoneration/soumettre">
-                            <span>🏷️</span> Demande Avoir / Exonération
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/avoir-exoneration/mes-demandes">
-                            <span>📑</span> Mes Avoirs & Exonérations
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/simulation/proforma">
-                            <span>🧮</span> Simulation de Proforma
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/simulation/historique">
-                            <span>🕒</span> Historique simulations
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrateurSociete:
-                        <NavLink class="cit-nav-subitem" href="/billing-export/soumettre">
-                            <span>📤</span> Nouvelle demande EXPORT
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/avoir-exoneration/soumettre">
-                            <span>🏷️</span> Demande Avoir / Exonération
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/avoir-exoneration/mes-demandes">
-                            <span>📑</span> Mes Avoirs & Exonérations
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/simulation/proforma">
-                            <span>🧮</span> Simulation de Proforma
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/simulation/historique">
-                            <span>🕒</span> Historique simulations
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Agent:
-                        <NavLink class="cit-nav-subitem" href="/billing-import/facturation">
-                            <span>💳</span> Facturation Import
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-import/validation-paiement">
-                            <span>💰</span> Validation Caisse Import
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-import/comptabilite-client">
-                            <span>💼</span> Comptabilité Deposit Import
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/facturation">
-                            <span>💳</span> Facturation Export
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/validation-paiement">
-                            <span>💰</span> Validation Caisse Export
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/billing-export/comptabilite">
-                            <span>💼</span> Comptabilité Deposit Export
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/avoir-exoneration/file">
-                            <span>⚖️</span> File Avoirs & Exonérations
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrationCit:
-                        <NavLink class="cit-nav-subitem" href="/admin/tarification">
-                            <span>📊</span> Grilles tarifaires
-                        </NavLink>
-                        break;
-                }
-            </div>
-        </details>
-
-        <!-- 4. ⚙️ ADMINISTRATION & SÉCURITÉ -->
-        <details class="cit-accordion-group" open>
-            <summary class="cit-accordion-header">
-                <span class="cit-accordion-title">
-                    <span>⚙️</span> Administration & Sécurité
-                </span>
-                <span class="cit-accordion-chevron">▶</span>
-            </summary>
-            <div class="cit-accordion-body">
-                @switch (_contexte.EspaceActif)
-                {
-                    case EspaceFonctionnel.Client:
-                        <NavLink class="cit-nav-subitem" href="/reclamations/soumettre">
-                            <span>📝</span> Nouvelle réclamation
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/reclamations/mes-reclamations">
-                            <span>📋</span> Mes réclamations
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/enrolement/soumettre">
-                            <span>🚚</span> Nouvel enrôlement
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/enrolement/mes-enrolements">
-                            <span>📋</span> Mes enrôlements
-                        </NavLink>
-                        @* FEATURE 009 (COM-05) — préférences de canaux. *@
-                        <NavLink class="cit-nav-subitem" href="/notifications/preferences">
-                            <span>🔔</span> Préférences de notification
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/comptes/double-authentification">
-                            <span>🛡️</span> Sécurité (2FA)
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrateurSociete:
-                        <NavLink class="cit-nav-subitem" href="/comptes/collaborateurs">
-                            <span>👥</span> Gestion collaborateurs
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/notifications/preferences">
-                            <span>🔔</span> Préférences de notification
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/comptes/double-authentification">
-                            <span>🛡️</span> Sécurité (2FA)
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Agent:
-                        <NavLink class="cit-nav-subitem" href="/comptes/double-authentification">
-                            <span>🛡️</span> Sécurité (2FA)
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.Supervision:
-                        <NavLink class="cit-nav-subitem" href="/comptes/valider">
-                            <span>📝</span> Demandes de compte
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/audit">
-                            <span>🔒</span> Journal d'audit technique
-                        </NavLink>
-                        break;
-
-                    case EspaceFonctionnel.AdministrationCit:
-                        <NavLink class="cit-nav-subitem" href="/comptes/valider" Match="NavLinkMatch.All">
-                            <span>📝</span> Demandes de compte
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/comptes/modifier-type">
-                            <span>🏷️</span> Modifier type de client
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/reclamations/administration-categories">
-                            <span>📝</span> Catégories réclamation
-                        </NavLink>
-                        @* FEATURE 009 (COM-03, NOT-02) — règles de diffusion et modèles.
-                           L'habilitation est vérifiée côté serveur par les commandes. *@
-                        <NavLink class="cit-nav-subitem" href="/administration/notifications">
-                            <span>🔔</span> Notifications
-                        </NavLink>
-                        @* CDC art. 17.3 — gestion des comptes agents et de leurs roles.
-                           L'habilitation est verifiee cote serveur par les commandes. *@
-                        <NavLink class="cit-nav-subitem" href="/administration/comptes-agents">
-                            <span>🛠️</span> Comptes agents
-                        </NavLink>
-                        @* CPT-01 — justificatifs exiges a l'ouverture d'un compte client,
-                           parametrables sans developpement. *@
-                        <NavLink class="cit-nav-subitem" href="/administration/pieces-exigees-compte">
-                            <span>📎</span> Pièces exigées
-                        </NavLink>
-                        <NavLink class="cit-nav-subitem" href="/administration/audit">
-                            <span>🔒</span> Journal d'audit
-                        </NavLink>
-                        break;
-                }
-            </div>
-        </details>
+        }
+        else
+        {
+            @foreach (var groupe in _groupes)
+            {
+                <details class="cit-accordion-group" open>
+                    <summary class="cit-accordion-header">
+                        <span class="cit-accordion-title">
+                            <span>@groupe.Icone</span> @Loc[groupe.Titre]
+                        </span>
+                        <span class="cit-accordion-chevron">▶</span>
+                    </summary>
+                    <div class="cit-accordion-body">
+                        @foreach (var lien in groupe.Liens)
+                        {
+                            <NavLink class="cit-nav-subitem" href="@lien.Route"
+                                     Match="@(lien.CorrespondanceExacte ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                                <span>@lien.Icone</span> @Loc[lien.Libelle]
+                            </NavLink>
+                        }
+                    </div>
+                </details>
+            }
+        }
     }
 </div>
 
 @code {
     private ContexteUtilisateurVue? _contexte;
+    private IReadOnlyList<GroupeNavigationVue> _groupes = [];
 
     protected override async Task OnInitializedAsync()
     {
         ContexteService.SurChangementContexte += StateHasChangedWrapper;
+        await RechargerAsync();
+    }
+
+    private async Task RechargerAsync()
+    {
         _contexte = await ContexteService.ObtenirContexteAsync();
+
+        if (_contexte is null || !_contexte.EstAuthentifie)
+        {
+            _groupes = [];
+            return;
+        }
+
+        // ISOLATION PAR OPÉRATION — même motif que les pages d'administration (cf. 75bd614).
+        // Le menu latéral est rendu sur CHAQUE page : interroger la base sur le DbContext partagé
+        // de la requête le met en concurrence avec le rendu de la page elle-même, et le DbContext
+        // n'est pas sûr en accès concurrent. Un scope par appel supprime la collision.
+        using var scope = ScopeFactory.CreateScope();
+        var construire = scope.ServiceProvider.GetRequiredService<ConstruireNavigationQuery>();
+
+        _groupes = await construire.ExecuterAsync(
+            _contexte.UtilisateurId,
+            _contexte.EspaceActif,
+            _contexte.SocieteId.HasValue);
     }
 
     private void StateHasChangedWrapper()
     {
         InvokeAsync(async () =>
         {
-            _contexte = await ContexteService.ObtenirContexteAsync();
+            await RechargerAsync();
             StateHasChanged();
         });
     }

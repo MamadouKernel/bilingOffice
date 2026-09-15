@@ -1,4 +1,4 @@
-@page "/admin/tarification"
+﻿@page "/admin/tarification"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -6,28 +6,29 @@
 @using CIT.Plateforme.Application.Tarification
 @using CIT.Plateforme.Domain.Tarification
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterVersionsGrillesTarifairesQueryHandler ConsulterVersions
 @inject ImporterGrilleTarifaireCsvCommandHandler ImporterCsv
 
-<PageTitle>Administration tarifaire — CIT</PageTitle>
-
-<PageTitle>Administration tarifaire — CIT</PageTitle>
+<PageTitle>@Loc["TarifGrille.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>⚙️</span> Administration des grilles tarifaires
-        </h2>
-        <div class="cit-page-subtitle">Versionnement et import CSV atomique — aucune valeur tarifaire codée en dur</div>
+        <h1 class="cit-page-title">
+            <span>⚙️</span> @Loc["TarifGrille.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["TarifGrille.Subtitle"]</div>
     </div>
 </div>
 
 <div style="max-width: 1100px;">
     @if (_chargement)
     {
-        <IndicateurChargement Message="Vérification de vos habilitations..." />
+        <IndicateurChargement Message="@Loc["TarifGrille.Loading"]" />
     }
     else if (_nonAutorise)
     {
@@ -36,23 +37,21 @@
     else
     {
         <div class="cit-card mb-4">
-            <h6 class="fw-bold text-dark mb-2">Importer une nouvelle version (CSV)</h6>
+            <h6 class="fw-bold text-dark mb-2">@Loc["TarifGrille.ImportTitle"]</h6>
             <p class="text-muted small mb-3">
-                Format attendu : UTF-8, séparateur point-virgule, en-tête
-                <code>Sens;Taille;Categorie;Acconage;Relevage;BranchementJour</code>.
-                L'import est atomique : la moindre erreur bloque la totalité du fichier.
+                @((MarkupString)Loc["TarifGrille.ImportDesc"].Value)
             </p>
             <div class="row g-2 align-items-end mb-2">
                 <div class="col-md-3">
-                    <label for="n-de-version" class="form-label small fw-semibold text-dark">N° de version</label>
-                    <input id="n-de-version" class="form-control form-control-sm font-monospace" @bind="_numeroVersion" placeholder="v2.0" />
+                    <label for="n-de-version" class="form-label small fw-semibold text-dark">@Loc["TarifGrille.LblNumVersion"]</label>
+                    <input id="n-de-version" class="form-control form-control-sm font-monospace" @bind="_numeroVersion" placeholder="@Loc["TarifGrille.PhVersion"]" />
                 </div>
                 <div class="col-md-3">
-                    <label for="date-d-effet" class="form-label small fw-semibold text-dark">Date d'effet</label>
+                    <label for="date-d-effet" class="form-label small fw-semibold text-dark">@Loc["TarifGrille.LblDateEffet"]</label>
                     <input id="date-d-effet" type="date" class="form-control form-control-sm font-monospace" @bind="_dateEffet" />
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-semibold text-dark">Fichier CSV</label>
+                    <label class="form-label small fw-semibold text-dark">@Loc["TarifGrille.LblFichierCsv"]</label>
                     <InputFile class="form-control form-control-sm" OnChange="ImporterAsync" />
                 </div>
             </div>
@@ -61,14 +60,14 @@
             {
                 @if (_resultatImport.Succes)
                 {
-                    <div class="alert alert-success mt-2 mb-0">
-                        ✅ Version <strong>@_numeroVersion</strong> créée avec @_resultatImport.NombreLignesImportees ligne(s) tarifaire(s).
+                    <div class="alert alert-success mt-2 mb-0" role="status">
+                        @((MarkupString)Loc["TarifGrille.ImportSuccess", _numeroVersion, _resultatImport.NombreLignesImportees].Value)
                     </div>
                 }
                 else
                 {
-                    <div class="alert alert-danger mt-2 mb-0">
-                        <strong class="d-block mb-1">Import refusé — aucune donnée persistée :</strong>
+                    <div class="alert alert-danger mt-2 mb-0" role="alert">
+                        <strong class="d-block mb-1">@Loc["TarifGrille.ImportRejected"]</strong>
                         <ul class="mb-0 small ps-3">
                             @foreach (var erreur in _resultatImport.Erreurs)
                             {
@@ -81,18 +80,18 @@
 
             @if (_erreur is not null)
             {
-                <div class="alert alert-danger mt-2 mb-0">@_erreur</div>
+                <div class="alert alert-danger mt-2 mb-0" role="alert">@_erreur</div>
             }
         </div>
 
         <div class="cit-card p-0 overflow-hidden mb-4">
             <div class="p-3 bg-light border-bottom">
-                <h6 class="fw-bold text-dark mb-0">Versions des grilles existantes</h6>
+                <h6 class="fw-bold text-dark mb-0">@Loc["TarifGrille.VersionsTitle"]</h6>
             </div>
             @if (_versions.Count == 0)
             {
                 <div class="p-4">
-                    <EtatVide Titre="Aucune grille tarifaire" Message="Importez un fichier CSV pour créer la première version." Icone="📊" />
+                    <EtatVide Titre="@Loc["TarifGrille.EmptyTitle"]" Message="@Loc["TarifGrille.EmptyDesc"]" Icone="📊" />
                 </div>
             }
             else
@@ -101,11 +100,11 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Version</th>
-                                <th>Date d'effet</th>
-                                <th>Créée le</th>
-                                <th class="text-end">Lignes</th>
-                                <th>Statut</th>
+                                <th>@Loc["TarifGrille.ColVersion"]</th>
+                                <th>@Loc["TarifGrille.ColDateEffet"]</th>
+                                <th>@Loc["TarifGrille.ColCreeeLe"]</th>
+                                <th class="text-end">@Loc["TarifGrille.ColLignes"]</th>
+                                <th>@Loc["TarifGrille.ColStatut"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -119,11 +118,11 @@
                                     <td>
                                         @if (v.EstActive)
                                         {
-                                            <span class="badge bg-success-subtle text-success">Active</span>
+                                            <span class="badge bg-success-subtle text-success">@Loc["TarifGrille.StActive"]</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                                            <span class="badge bg-secondary-subtle text-secondary">@Loc["TarifGrille.StInactive"]</span>
                                         }
                                     </td>
                                 </tr>
@@ -157,7 +156,7 @@
             if (!contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Vous devez être connecté pour accéder à l'administration tarifaire.";
+                _messageNonAutorise = Loc["TarifGrille.LoginRequis"].Value;
                 return;
             }
 
@@ -179,7 +178,7 @@
         catch (AccesRefuseException)
         {
             _nonAutorise = true;
-            _messageNonAutorise = "Vous ne disposez pas de l'habilitation d'administration tarifaire.";
+            _messageNonAutorise = Loc["TarifGrille.ErrNoHabilitation"].Value;
         }
     }
 
@@ -190,7 +189,7 @@
 
         if (string.IsNullOrWhiteSpace(_numeroVersion))
         {
-            _erreur = "Veuillez renseigner le numéro de la nouvelle version avant d'importer le fichier.";
+            _erreur = Loc["TarifGrille.ErrNumVersion"].Value;
             return;
         }
 
@@ -217,11 +216,11 @@
         catch (AccesRefuseException)
         {
             _nonAutorise = true;
-            _messageNonAutorise = "Vous ne disposez pas de l'habilitation d'administration tarifaire.";
+            _messageNonAutorise = Loc["TarifGrille.ErrNoHabilitation"].Value;
         }
         catch (Exception ex)
         {
-            _erreur = $"Erreur lors de l'import : {ex.Message}";
+            _erreur = Loc["TarifGrille.ErrImport", MessagesUtilisateur.Pour(ex)].Value;
         }
     }
 }

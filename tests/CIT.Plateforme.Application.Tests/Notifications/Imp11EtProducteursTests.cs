@@ -92,11 +92,13 @@ public class Imp11EtProducteursTests
         //   doit être averti qu'un fil lui a été transmis)
         // → 26 fichiers producteurs.
         //
-        // CETTE GARDE A FAIT SON OFFICE : elle a signalé l'ajout du 26e producteur au moment où il a
-        // été introduit. Son objectif est inchangé — détecter tout producteur d'événement non
-        // délibéré ; seul l'inventaire attendu est mis à jour, et le nouveau producteur est nommé
-        // ci-dessous pour que sa disparition soit à son tour détectée.
-        Assert.Equal(26, fichiersProducteurs.Count);
+        // CETTE GARDE A FAIT SON OFFICE, DEUX FOIS : elle a signalé l'ajout du 26e producteur au
+        // moment où il a été introduit, puis du 27e — EmettreDraftInExportCommand, remédiation
+        // post-audit final RG-EXP-03. Son objectif est inchangé : détecter tout producteur
+        // d'événement non délibéré. Seul l'inventaire attendu est mis à jour, et chaque nouveau
+        // producteur est nommé ci-dessous pour que sa disparition soit à son tour détectée.
+        Assert.Equal(27, fichiersProducteurs.Count);
+        Assert.Contains("EmettreDraftInExportCommand.cs", fichiersProducteurs);
         Assert.Contains("AssistantCommands.cs", fichiersProducteurs);
         Assert.Contains("ValiderDemandeCompteCommand.cs", fichiersProducteurs);
         Assert.Contains("EditerFactureCommand.cs", fichiersProducteurs);

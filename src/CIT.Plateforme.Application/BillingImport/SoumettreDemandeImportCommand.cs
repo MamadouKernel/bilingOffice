@@ -1,4 +1,4 @@
-using CIT.Plateforme.Application.Abstractions;
+﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
@@ -27,7 +27,15 @@ public sealed record BlRefuseInfo(string NumeroBl, Guid? TicketExistantId);
 /// tous les BL sont refusés, cohérent avec IMP-01) ; <see cref="BlRefuses"/> ne bloque jamais les
 /// autres BL de la même soumission (jamais de transaction globale « tout ou rien »).
 /// </summary>
-public sealed record SoumettreDemandeImportResultat(Dossier Dossier, IReadOnlyList<Ticket> TicketsCrees, IReadOnlyList<BlRefuseInfo> BlRefuses);
+/// <summary>
+/// Résultat d'une soumission import. <see cref="Dossier"/> est <c>null</c> lorsqu'AUCUN
+/// connaissement n'a été retenu (tous en doublon) : dans ce cas aucun dossier n'est créé
+/// (REMÉDIATION D-10). <see cref="EstRetenu"/> distingue le succès du refus intégral.
+/// </summary>
+public sealed record SoumettreDemandeImportResultat(Dossier? Dossier, IReadOnlyList<Ticket> TicketsCrees, IReadOnlyList<BlRefuseInfo> BlRefuses)
+{
+    public bool EstRetenu => Dossier is not null;
+}
 
 public sealed class SoumettreDemandeImportCommand(
     ITicketRepository tickets,
@@ -69,6 +77,39 @@ public sealed class SoumettreDemandeImportCommand(
         var fileManifeste = toutesLesFiles.SingleOrDefault(f => f.Module == Module && f.Nom == FilePiloteManifeste)
             ?? throw new InvalidOperationException($"File « {FilePiloteManifeste} » (module {Module}) non paramétrée — voir quickstart.md §3.");
 
+        // REMÉDIATION D-10 — LE DOSSIER N'EST CRÉÉ QUE SI AU MOINS UN BL EST RETENU.
+        // Auparavant le dossier était persisté AVANT la boucle : une soumission entièrement en
+        // doublon laissait un dossier vide en base et affichait pourtant « succès ». La détection
+        // des doublons se fait donc désormais en pré-passe, avant toute écriture de dossier.
+        var blRefuses = new List<BlRefuseInfo>();
+        var candidats = new List<string>();
+        foreach (var numeroBlBrut in requete.NumerosBl)
+        {
+            // research.md D2 : seul le trim des espaces externes est appliqué — jamais la casse
+            // (collation explicite, D3), jamais les tirets/espaces internes.
+            var numeroBl = numeroBlBrut.Trim();
+            if (numeroBl.Length == 0)
+            {
+                continue;
+            }
+
+            var actif = await tickets.ObtenirTicketActifParNumeroBlAsync(numeroBl, ct).ConfigureAwait(false);
+            if (actif is not null)
+            {
+                blRefuses.Add(await CreerRefusAsync(numeroBl, actif, requete.SocieteId, ct).ConfigureAwait(false));
+            }
+            else
+            {
+                candidats.Add(numeroBl);
+            }
+        }
+
+        if (candidats.Count == 0)
+        {
+            // Aucun connaissement retenu : aucun dossier n'est créé, la demande est refusée.
+            return new SoumettreDemandeImportResultat(null, [], blRefuses);
+        }
+
         var numeroDossier = await numerotation.ProchainNumeroDossierAsync(ct).ConfigureAwait(false);
         var dossier = Dossier.Creer(
             numeroDossier,
@@ -81,24 +122,11 @@ public sealed class SoumettreDemandeImportCommand(
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 
         var ticketsCrees = new List<Ticket>();
-        var blRefuses = new List<BlRefuseInfo>();
 
-        // research.md D4 : chaque BL est vérifié et créé indépendamment, jamais dans une
-        // transaction globale — un doublon sur un BL n'affecte jamais les autres BL de la même
-        // soumission (IMP-02, REC-SCE-01).
-        foreach (var numeroBlBrut in requete.NumerosBl)
+        // research.md D4 : chaque BL retenu est créé indépendamment — un doublon détecté à
+        // l'écriture (course, D3) n'affecte jamais les autres BL de la même soumission.
+        foreach (var numeroBl in candidats)
         {
-            // research.md D2 (CLARIFICATION PROJET) : seul le trim des espaces externes est
-            // appliqué avant persistance — jamais la casse (gérée par la collation explicite de la
-            // colonne, D3), jamais les tirets/espaces internes.
-            var numeroBl = numeroBlBrut.Trim();
-            var actif = await tickets.ObtenirTicketActifParNumeroBlAsync(numeroBl, ct).ConfigureAwait(false);
-            if (actif is not null)
-            {
-                blRefuses.Add(await CreerRefusAsync(numeroBl, actif, requete.SocieteId, ct).ConfigureAwait(false));
-                continue;
-            }
-
             var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, TypeDemande, ct).ConfigureAwait(false);
             var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileManifeste.Id, dossier.Id, maintenant, numeroBl);
 

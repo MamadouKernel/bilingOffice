@@ -1,35 +1,38 @@
-@page "/client/demandes"
+﻿@page "/client/demandes"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Client
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirDashboardClientQuery DashboardQuery
 @inject IServiceScopeFactory ScopeFactory
 @inject Microsoft.JSInterop.IJSRuntime Js
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Mes Demandes — CIT</PageTitle>
+<PageTitle>@Loc["Demandes.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>📁</span> Mes Demandes & Dossiers
-        </h2>
-        <div class="cit-page-subtitle">Consultez l'historique complet de vos opérations d'importation et export portuaire</div>
+        <h1 class="cit-page-title">
+            <span>📁</span> @Loc["Demandes.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["Demandes.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
         @* SOC-14 — export tabulaire de la liste. La requête applique le cloisonnement CPT-04 :
            elle n'exporte que les tickets de la société à laquelle le compte est rattaché. *@
         <button type="button" class="btn btn-outline-secondary shadow-sm"
                 @onclick="ExporterAsync" disabled="@_exportEnCours">
-            @(_exportEnCours ? "Export..." : "Exporter CSV")
+            @(_exportEnCours ? Loc["Demandes.Exporting"].Value : Loc["Demandes.Export"].Value)
         </button>
         <a href="/billing-import/soumettre" class="btn btn-primary shadow-sm">
-            <span>➕</span> Nouvelle demande
+            <span>➕</span> @Loc["Demandes.NewRequest"]
         </a>
     </div>
 </div>
@@ -37,17 +40,17 @@
 @if (_erreurExport is not null)
 {
     <div class="alert alert-warning border-0 mb-3 rounded-3" role="alert">
-        L'export n'a pas abouti : @_erreurExport
+        @Loc["Demandes.ExportFailed"] @_erreurExport
     </div>
 }
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de vos dossiers..." />
+    <IndicateurChargement Message="@Loc["Demandes.Loading"]" />
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger">@_erreur</div>
+    <div class="alert alert-danger" role="alert">@_erreur</div>
 }
 else if (_dashboard is not null)
 {
@@ -56,8 +59,8 @@ else if (_dashboard is not null)
             <div class="row g-2 align-items-center">
                 <div class="col-12 col-md-6 col-lg-5">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
-                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Rechercher par n° de dossier ou BL..." @bind="_recherche" @bind:event="oninput" />
+                        <span class="input-group-text bg-white border-end-0 text-muted" aria-hidden="true">🔍</span>
+                        <input type="text" class="form-control border-start-0 ps-0" aria-label="@Loc["Demandes.SearchAria"]" placeholder="@Loc["Demandes.SearchPlaceholder"]" @bind="_recherche" @bind:event="oninput" />
                     </div>
                 </div>
             </div>
@@ -74,8 +77,8 @@ else if (_dashboard is not null)
         @if (dossiersFiltres.Count == 0)
         {
             <div class="p-4">
-                <EtatVide Titre="Aucun dossier trouvé"
-                          Message="Aucune demande ne correspond à vos critères de recherche."
+                <EtatVide Titre="@Loc["Demandes.EmptyTitle"]"
+                          Message="@Loc["Demandes.EmptyMsg"]"
                           Icone="🔍" />
             </div>
         }
@@ -85,12 +88,12 @@ else if (_dashboard is not null)
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>N° Dossier</th>
-                            <th>Date de soumission</th>
-                            <th>Module</th>
-                            <th>Connaissements (BL)</th>
-                            <th>Statut global</th>
-                            <th class="text-end">Actions</th>
+                            <th>@Loc["Dash.ColFile"]</th>
+                            <th>@Loc["Demandes.ColSubmitDate"]</th>
+                            <th>@Loc["Dash.ColModule"]</th>
+                            <th>@Loc["Demandes.ColBl"]</th>
+                            <th>@Loc["Dash.ColStatus"]</th>
+                            <th class="text-end">@Loc["Common.Actions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,7 +110,7 @@ else if (_dashboard is not null)
                                 <td>
                                     @if (d.Tickets.Count == 0)
                                     {
-                                        <span class="text-muted small">Aucun BL</span>
+                                        <span class="text-muted small">@Loc["Dash.NoBl"]</span>
                                     }
                                     else
                                     {
@@ -128,7 +131,7 @@ else if (_dashboard is not null)
                                 </td>
                                 <td class="text-end">
                                     <a href="/dossiers/@d.DossierId" class="btn btn-outline-primary btn-sm">
-                                        Détails ➔
+                                        @Loc["Demandes.Details"]
                                     </a>
                                 </td>
                             </tr>
@@ -157,7 +160,7 @@ else if (_dashboard is not null)
             var contexte = await ContexteService.ObtenirContexteAsync();
             if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
             {
-                _erreur = "Session invalide ou compte non rattaché.";
+                _erreur = Loc["Demandes.SessionInvalid"].Value;
                 return;
             }
 
@@ -167,7 +170,7 @@ else if (_dashboard is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -206,7 +209,7 @@ else if (_dashboard is not null)
         {
             // Pas _erreur : celle-ci remplace toute la page. Un export qui échoue ne doit pas
             // faire disparaître la liste que le client était en train de consulter.
-            _erreurExport = ex.Message;
+            _erreurExport = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -226,11 +229,11 @@ else if (_dashboard is not null)
 
     private static string LibelleEtatDossier(StatutVisuelDossier etat) => etat switch
     {
-        StatutVisuelDossier.ClotureTermine => "Clôturé / Traité",
-        StatutVisuelDossier.EnAttenteClient => "Action requise",
-        StatutVisuelDossier.EnCoursTraitement => "En cours CIT",
-        StatutVisuelDossier.Annule => "Annulé",
-        StatutVisuelDossier.Rejete => "Rejeté",
-        _ => "En attente CIT"
+        StatutVisuelDossier.ClotureTermine => SharedResourcesLocalizer.Get("Dash.EtatCloture"),
+        StatutVisuelDossier.EnAttenteClient => SharedResourcesLocalizer.Get("Dash.EtatActionRequise"),
+        StatutVisuelDossier.EnCoursTraitement => SharedResourcesLocalizer.Get("Dash.EtatEnCoursCit"),
+        StatutVisuelDossier.Annule => SharedResourcesLocalizer.Get("Dash.EtatAnnule"),
+        StatutVisuelDossier.Rejete => SharedResourcesLocalizer.Get("Dash.EtatRejete"),
+        _ => SharedResourcesLocalizer.Get("Dash.EtatEnAttenteCit")
     };
 }

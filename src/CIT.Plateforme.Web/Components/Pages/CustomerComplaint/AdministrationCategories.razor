@@ -1,4 +1,4 @@
-@page "/reclamations/administration-categories"
+﻿@page "/reclamations/administration-categories"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -6,29 +6,31 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ListerToutesCategoriesReclamationQuery ListerToutesCategories
 @inject ModifierCategoriesReclamationCommand ModifierCategorie
 @inject CreerCategorieReclamationCommand CreerCategorie
+@inject ListerFilesCibleReclamationQuery ListerFilesCible
 
-<PageTitle>Administration des catégories de réclamation — CIT</PageTitle>
-
-<PageTitle>Administration des catégories de réclamation — CIT</PageTitle>
+<PageTitle>@Loc["RecAdm.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>⚙️</span> Catégories de réclamation
-        </h2>
-        <div class="cit-page-subtitle">Paramétrage sans développement des catégories — activation, désactivation, libellé, file cible</div>
+        <h1 class="cit-page-title">
+            <span>⚙️</span> @Loc["RecAdm.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["RecAdm.Subtitle"]</div>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des catégories..." />
+    <IndicateurChargement Message="@Loc["RecAdm.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -38,50 +40,90 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-3">@_erreur</div>
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(_actionSuccess))
     {
-        <div class="alert alert-success py-2 small mb-3">@_actionSuccess</div>
+        <div class="alert alert-success py-2 small mb-3" role="status">@_actionSuccess</div>
     }
 
     <div class="cit-card mb-4">
         @if (!_formulaireCreationOuvert)
         {
-            <button class="btn btn-primary btn-sm shadow-sm fw-bold" @onclick="() => _formulaireCreationOuvert = true">➕ Nouvelle catégorie</button>
+            <button class="btn btn-primary btn-sm shadow-sm fw-bold" @onclick="() => _formulaireCreationOuvert = true">@Loc["RecAdm.BtnNouvelle"]</button>
         }
         else
         {
-            <h6 class="fw-bold text-dark mb-3">Ajouter une nouvelle catégorie</h6>
+            <h6 class="fw-bold text-dark mb-3">@Loc["RecAdm.AddTitle"]</h6>
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-3">
-                    <label class="form-label small fw-semibold text-dark" for="nouveauCode">Code unique</label>
-                    <input id="nouveauCode" class="form-control form-control-sm font-monospace" placeholder="Ex : URGENT" @bind="_nouveauCode" @bind:event="oninput" maxlength="50" />
+                    <label class="form-label small fw-semibold text-dark" for="nouveauCode">@Loc["RecAdm.LblCode"]</label>
+                    <input id="nouveauCode" class="form-control form-control-sm font-monospace" placeholder="@Loc["RecAdm.PhCode"]" @bind="_nouveauCode" @bind:event="oninput" maxlength="50" />
                 </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label small fw-semibold text-dark" for="nouveauLibelle">Libellé affiché</label>
-                    <input id="nouveauLibelle" class="form-control form-control-sm" placeholder="Ex : Demande urgente" @bind="_nouveauLibelle" @bind:event="oninput" maxlength="100" />
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-semibold text-dark" for="nouveauLibelle">@Loc["RecAdm.LblLibelle"]</label>
+                    <input id="nouveauLibelle" class="form-control form-control-sm" placeholder="@Loc["RecAdm.PhLibelle"]" @bind="_nouveauLibelle" @bind:event="oninput" maxlength="100" />
                 </div>
-                <div class="col-12 col-md-3 d-flex gap-2">
-                    <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(string.IsNullOrWhiteSpace(_nouveauCode) || string.IsNullOrWhiteSpace(_nouveauLibelle))">
-                        Créer
+                @* REMÉDIATION RECETTE UAT (D-14) : sans file cible, la catégorie est créée mais
+                   refuse toute réclamation. Le choix se fait ici, par le nom de la file, dans la
+                   liste que le serveur établit — l'écran ne compose aucun identifiant. *@
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-semibold text-dark" for="nouvelleFile">@Loc["RecAdm.LblFileCible"]</label>
+                    <select id="nouvelleFile" class="form-select form-select-sm" @bind="_nouvelleFileCible">
+                        <option value="">@Loc["RecAdm.ChooseFile"]</option>
+                        @foreach (var file in _filesCible)
+                        {
+                            <option value="@file.Id">@file.Nom</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(!CreationComplete)">
+                        @Loc["RecAdm.BtnCreer"]
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerCreation">Annuler</button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerCreation">@Loc["RecAdm.BtnAnnuler"]</button>
                 </div>
+                @if (_filesCible.Count == 0)
+                {
+                    <div class="col-12">
+                        <div class="alert alert-warning py-2 small mb-0 mt-2">
+                            @Loc["RecAdm.WarnNoFile"]
+                        </div>
+                    </div>
+                }
+                else if (!CreationComplete)
+                {
+                    <div class="col-12">
+                        <div class="form-text mt-2">
+                            @((MarkupString)Loc["RecAdm.HintRequired"].Value)
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>
 
+    @* REMÉDIATION D-20 : état vide explicite, cohérent avec les files métier — l'en-tête de
+       tableau seul laissait croire à un écran cassé. *@
+    @if (_categories.Count == 0)
+    {
+        <EtatVide Titre="@Loc["RecAdm.EmptyTitle"]"
+                  Description="@Loc["RecAdm.EmptyDesc"]"
+                  Icone="📢" />
+    }
+    else
+    {
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Code</th>
-                        <th>Libellé</th>
-                        <th>Statut</th>
-                        <th class="text-end">Actions</th>
+                        <th>@Loc["RecAdm.ColCode"]</th>
+                        <th>@Loc["RecAdm.ColLibelle"]</th>
+                        <th>@Loc["RecAdm.ColFileCible"]</th>
+                        <th>@Loc["RecAdm.ColStatut"]</th>
+                        <th class="text-end">@Loc["RecAdm.ColActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -100,29 +142,52 @@ else
                                 }
                             </td>
                             <td>
+                                @if (_categorieEnEdition == cat.Id)
+                                {
+                                    <select class="form-select form-select-sm" @bind="_fileCibleEnEdition">
+                                        <option value="">@Loc["RecAdm.OptAucune"]</option>
+                                        @foreach (var file in _filesCible)
+                                        {
+                                            <option value="@file.Id">@file.Nom</option>
+                                        }
+                                    </select>
+                                }
+                                else if (cat.FileCibleDefautId.HasValue && _nomsFiles.TryGetValue(cat.FileCibleDefautId.Value, out var nomFile))
+                                {
+                                    <span class="text-dark">@nomFile</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis"
+                                          title="@Loc["RecAdm.BadgeNoFileTitle"]">
+                                        @Loc["RecAdm.BadgeNoFile"]
+                                    </span>
+                                }
+                            </td>
+                            <td>
                                 <span class="badge @(cat.EstActif ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
-                                    @(cat.EstActif ? "Active" : "Désactivée")
+                                    @(cat.EstActif ? Loc["RecAdm.StActive"] : Loc["RecAdm.StDesactivee"])
                                 </span>
                             </td>
                             <td class="text-end">
                                 @if (_categorieEnEdition == cat.Id)
                                 {
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-primary" @onclick="() => EnregistrerLibelleAsync(cat)">Enregistrer</button>
-                                        <button class="btn btn-outline-secondary" @onclick="() => _categorieEnEdition = null">Annuler</button>
+                                        <button class="btn btn-primary" @onclick="() => EnregistrerLibelleAsync(cat)">@Loc["RecAdm.BtnEnregistrer"]</button>
+                                        <button class="btn btn-outline-secondary" @onclick="() => _categorieEnEdition = null">@Loc["RecAdm.BtnAnnuler"]</button>
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" @onclick="() => CommencerEditionAsync(cat)">Modifier</button>
+                                        <button class="btn btn-outline-primary" @onclick="() => CommencerEditionAsync(cat)">@Loc["RecAdm.BtnModifier"]</button>
                                         @if (cat.EstActif)
                                         {
-                                            <button class="btn btn-outline-secondary" @onclick="() => BasculerActifAsync(cat, false)">Désactiver</button>
+                                            <button class="btn btn-outline-secondary" @onclick="() => BasculerActifAsync(cat, false)">@Loc["RecAdm.BtnDesactiver"]</button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-outline-success" @onclick="() => BasculerActifAsync(cat, true)">Activer</button>
+                                            <button class="btn btn-outline-success" @onclick="() => BasculerActifAsync(cat, true)">@Loc["RecAdm.BtnActiver"]</button>
                                         }
                                     </div>
                                 }
@@ -133,6 +198,7 @@ else
             </table>
         </div>
     </div>
+    }
 }
 
 @code {
@@ -152,6 +218,18 @@ else
     private string _nouveauCode = string.Empty;
     private string _nouveauLibelle = string.Empty;
 
+    // REMÉDIATION RECETTE UAT (D-14) : files éligibles et file retenue. Les identifiants ne sont
+    // jamais saisis — ils viennent de la liste que le serveur a fournie et qu'il revérifie.
+    private IReadOnlyList<FileCibleReclamationVue> _filesCible = [];
+    private Dictionary<Guid, string> _nomsFiles = [];
+    private string _nouvelleFileCible = string.Empty;
+    private string _fileCibleEnEdition = string.Empty;
+
+    private bool CreationComplete =>
+        !string.IsNullOrWhiteSpace(_nouveauCode)
+        && !string.IsNullOrWhiteSpace(_nouveauLibelle)
+        && Guid.TryParse(_nouvelleFileCible, out _);
+
     protected override async Task OnInitializedAsync()
     {
         _chargement = true;
@@ -161,7 +239,7 @@ else
             if (!contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette page.";
+                _messageNonAutorise = Loc["RecAdm.LoginRequis"].Value;
                 return;
             }
 
@@ -170,7 +248,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -184,10 +262,14 @@ else
         try
         {
             _categories = await ListerToutesCategories.ExecuterAsync(_appelantId);
+            _filesCible = await ListerFilesCible.ExecuterAsync(_appelantId);
+            _nomsFiles = _filesCible.ToDictionary(f => f.Id, f => f.Nom);
         }
         catch (AccesRefuseException ex)
         {
             _categories = [];
+            _filesCible = [];
+            _nomsFiles = [];
             _nonAutorise = true;
             _messageNonAutorise = ex.Message;
         }
@@ -197,33 +279,39 @@ else
     {
         _categorieEnEdition = cat.Id;
         _libelleEnEdition = cat.Libelle;
+        _fileCibleEnEdition = cat.FileCibleDefautId?.ToString() ?? string.Empty;
     }
 
     private async Task EnregistrerLibelleAsync(CategorieAdminVue cat)
     {
-        await AppliquerAsync(cat, _libelleEnEdition, cat.EstActif, "Libellé mis à jour.");
+        await AppliquerAsync(cat, _libelleEnEdition, FileCibleChoisie(_fileCibleEnEdition), cat.EstActif, Loc["RecAdm.MsgMaj"].Value);
         _categorieEnEdition = null;
     }
 
     private Task BasculerActifAsync(CategorieAdminVue cat, bool actif) =>
-        AppliquerAsync(cat, cat.Libelle, actif, actif ? "Catégorie activée." : "Catégorie désactivée.");
+        AppliquerAsync(cat, cat.Libelle, cat.FileCibleDefautId, actif, actif ? Loc["RecAdm.MsgActivee"].Value : Loc["RecAdm.MsgDesactivee"].Value);
+
+    /// <summary>Traduit la valeur du select en identifiant, sans jamais en fabriquer un.</summary>
+    private static Guid? FileCibleChoisie(string valeur) =>
+        Guid.TryParse(valeur, out var id) ? id : null;
 
     private async Task CreerCategorieAsync()
     {
-        if (string.IsNullOrWhiteSpace(_nouveauCode) || string.IsNullOrWhiteSpace(_nouveauLibelle)) return;
+        if (!CreationComplete) return;
 
         _erreur = null;
         _actionSuccess = null;
         try
         {
-            await CreerCategorie.ExecuterAsync(new CreerCategorieReclamationRequete(_appelantId, _nouveauCode, _nouveauLibelle, null));
-            _actionSuccess = $"Catégorie « {_nouveauLibelle} » créée.";
+            await CreerCategorie.ExecuterAsync(new CreerCategorieReclamationRequete(
+                _appelantId, _nouveauCode, _nouveauLibelle, FileCibleChoisie(_nouvelleFileCible)));
+            _actionSuccess = Loc["RecAdm.MsgCreee", _nouveauLibelle].Value;
             AnnulerCreation();
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -232,21 +320,22 @@ else
         _formulaireCreationOuvert = false;
         _nouveauCode = string.Empty;
         _nouveauLibelle = string.Empty;
+        _nouvelleFileCible = string.Empty;
     }
 
-    private async Task AppliquerAsync(CategorieAdminVue cat, string libelle, bool actif, string messageSucces)
+    private async Task AppliquerAsync(CategorieAdminVue cat, string libelle, Guid? fileCibleId, bool actif, string messageSucces)
     {
         _erreur = null;
         _actionSuccess = null;
         try
         {
-            await ModifierCategorie.ExecuterAsync(new ModifierCategoriesReclamationRequete(_appelantId, cat.Id, libelle, cat.FileCibleDefautId, actif));
+            await ModifierCategorie.ExecuterAsync(new ModifierCategoriesReclamationRequete(_appelantId, cat.Id, libelle, fileCibleId, actif));
             _actionSuccess = messageSucces;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

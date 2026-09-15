@@ -1,3 +1,6 @@
+﻿using System.Threading;
+using Moq;
+using CIT.Plateforme.Application.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,9 +36,9 @@ public sealed class CreerCategorieReclamationIntegrationTests
         dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, adminId), Permission.AdministrationCategoriesReclamation));
         await dbContext.SaveChangesAsync();
 
-        var creer = new CreerCategorieReclamationCommand(catRepo, autorisation, journalisation, uow);
+        var creer = new CreerCategorieReclamationCommand(catRepo, GardeFilesDeRecette(), autorisation, journalisation, uow);
         var lister = new ListerCategoriesReclamationQuery(catRepo);
-        var modifier = new ModifierCategoriesReclamationCommand(catRepo, autorisation, journalisation, uow);
+        var modifier = new ModifierCategoriesReclamationCommand(catRepo, GardeFilesDeRecette(), autorisation, journalisation, uow);
 
         // Création (T030 — ajout).
         var categorieId = await creer.ExecuterAsync(new CreerCategorieReclamationRequete(adminId, "URGE", "Urgence", null));
@@ -50,5 +53,21 @@ public sealed class CreerCategorieReclamationIntegrationTests
         // F. Catégorie désactivée -> n'apparaît plus pour une nouvelle soumission.
         var listeApresDesactivation = await lister.ExecuterAsync();
         Assert.DoesNotContain(listeApresDesactivation, c => c.Id == categorieId);
+    }
+
+    /// <summary>
+    /// REMÉDIATION RECETTE UAT (D-14) : les deux commandes vérifient désormais que la file cible
+    /// existe et relève du module des réclamations. Ce double renvoie une file conforme pour tout
+    /// identifiant, afin que ces tests continuent d'éprouver ce qu'ils éprouvaient — la création et
+    /// la modification — et non la nouvelle garde, couverte par ses propres tests.
+    /// </summary>
+    private static CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation GardeFilesDeRecette()
+    {
+        var files = new Mock<IFileDeTraitementRepository>();
+        files.Setup(f => f.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CIT.Plateforme.Domain.Files.FileDeTraitement.Creer(
+                CIT.Plateforme.Application.CustomerComplaint.SoumettreReclamationCommand.Module,
+                "Support Opérationnel"));
+        return new CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation(files.Object);
     }
 }

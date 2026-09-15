@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
@@ -18,6 +18,7 @@ public sealed record ModifierCategoriesReclamationRequete(
 
 public sealed class ModifierCategoriesReclamationCommand(
     ICategorieReclamationRepository categorieRepository,
+    CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation gardeFileCible,
     IAutorisationService autorisationService,
     IJournalisationService journalisationService,
     IUniteDeTravail uniteDeTravail)
@@ -28,6 +29,9 @@ public sealed class ModifierCategoriesReclamationCommand(
 
         var categorie = await categorieRepository.ObtenirParIdAsync(requete.CategorieId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"La catégorie {requete.CategorieId} n'existe pas.");
+
+        // REMÉDIATION RECETTE UAT (D-14) : même garde qu'à la création, même exemplaire.
+        await gardeFileCible.ExigerEligibleAsync(requete.FileCibleDefautId, ct).ConfigureAwait(false);
 
         categorie.MettreAJour(requete.Libelle, requete.FileCibleDefautId);
 

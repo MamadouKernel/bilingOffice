@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Bunit;
 using CIT.Plateforme.Application.Abstractions;
@@ -47,9 +47,16 @@ public sealed class AdministrationCategoriesTests : BunitContext
         var journalisation = new JournalisationService(db, horloge);
         var uow = new UniteDeTravail(db);
 
+        // REMÉDIATION RECETTE UAT (D-14) : la page propose désormais un choix de file cible, et les
+        // deux commandes vérifient ce choix. Les deux services correspondants doivent donc être
+        // résolvables, sans quoi la page ne s'afficherait plus.
+        var fileRepo = new FileDeTraitementRepository(db);
+        var garde = new GardeFileCibleReclamation(fileRepo);
+
         Services.AddSingleton(new ListerToutesCategoriesReclamationQuery(catRepo, autorisation));
-        Services.AddSingleton(new ModifierCategoriesReclamationCommand(catRepo, autorisation, journalisation, uow));
-        Services.AddSingleton(new CreerCategorieReclamationCommand(catRepo, autorisation, journalisation, uow));
+        Services.AddSingleton(new ListerFilesCibleReclamationQuery(fileRepo, autorisation));
+        Services.AddSingleton(new ModifierCategoriesReclamationCommand(catRepo, garde, autorisation, journalisation, uow));
+        Services.AddSingleton(new CreerCategorieReclamationCommand(catRepo, garde, autorisation, journalisation, uow));
         Services.AddSingleton(new ListerCategoriesReclamationQuery(catRepo));
     }
 
@@ -132,6 +139,16 @@ public sealed class AdministrationCategoriesTests : BunitContext
     {
         var (db, adminId) = ConstruireBase();
         db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, adminId), Permission.AdministrationCategoriesReclamation));
+
+        // REMEDIATION RECETTE UAT (D-14) : une categorie sans file cible refuse ensuite TOUTE
+        // reclamation. L'ecran exige donc desormais ce choix, et le referentiel doit proposer au
+        // moins une file du module. C'etait precisement ce qui manquait en recette : la creation
+        // reussissait, et le module restait inatteignable.
+        var fileSupport = CIT.Plateforme.Domain.Files.FileDeTraitement.Creer(
+            CIT.Plateforme.Application.CustomerComplaint.SoumettreReclamationCommand.Module,
+            "Support Operationnel");
+        db.Files.Add(fileSupport);
+        db.SaveChanges();
         db.SaveChanges();
 
         var fakeContexte = new FakeContexteUtilisateurWeb();
@@ -150,6 +167,7 @@ public sealed class AdministrationCategoriesTests : BunitContext
 
         cut.Find("#nouveauCode").Input("URGE");
         cut.Find("#nouveauLibelle").Input("Urgence");
+        cut.Find("#nouvelleFile").Change(fileSupport.Id.ToString());
         cut.Find("button.btn-success").Click();
 
         Assert.Contains("URGE", cut.Markup);

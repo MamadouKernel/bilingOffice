@@ -19,17 +19,27 @@ public sealed class ParametresSlaProvider(PlateformeDbContext dbContext) : IPara
         // `SingleOrDefaultAsync` levait une exception dans ce cas — c'était correct tant qu'un
         // seul paramétrage était possible, ce n'est plus le cas. Un `null` sur un axe signifie
         // « ce paramétrage ne discrimine pas dessus », il reste donc candidat.
+        // RG-SLA-01 (remédiation post-audit final) : la catégorie de client est le sixième axe
+        // exigé. Elle se lit sur l'INSTANTANÉ du dossier, pas sur le profil courant de la
+        // société — sans quoi un retypage ferait changer le SLA d'un ticket en cours (CPT-06).
+        var typeClientDuTicket = await dbContext.Dossiers
+            .Where(d => d.Id == ticket.DossierId)
+            .Select(d => d.TypeClient)
+            .SingleOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
         var candidats = await dbContext.ParametresSla
             .Where(p => p.Module == ticket.Module
                      && p.TypeDemande == ticket.TypeDemande
                      && (p.FileId == null || p.FileId == ticket.FileCouranteId)
-                     && (p.PrioriteId == null || p.PrioriteId == ticket.PrioriteId))
+                     && (p.PrioriteId == null || p.PrioriteId == ticket.PrioriteId)
+                     && (p.TypeClient == null || p.TypeClient == typeClientDuTicket))
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
         // Le plus spécifique l'emporte. Le tri se fait en mémoire : `Specificite` est une
-        // propriété calculée, non une colonne — et l'ensemble candidat compte au plus quatre
-        // lignes (les combinaisons de deux axes optionnels).
+        // propriété calculée, non une colonne — et l'ensemble candidat compte au plus huit
+        // lignes (les combinaisons de trois axes optionnels).
         var parametre = candidats
             .OrderByDescending(p => p.Specificite)
             .FirstOrDefault();

@@ -1,0 +1,50 @@
+@*
+    Fil d'Ariane partagé (REMÉDIATION UI/UX — Navigation).
+
+    Les pages de détail (fiche ticket, fiche dossier, détail simulation…) étaient atteintes sans
+    rappel de la hiérarchie : un bouton « ← Retour » existait, mais aucun repère de position ni
+    landmark de navigation. Ce composant fournit les deux :
+      - un landmark <nav aria-label="Fil d'Ariane"> exploitable par les lecteurs d'écran ;
+      - une liste ordonnée <ol> dont le dernier élément porte aria-current="page" et n'est pas un
+        lien (position courante, non cliquable).
+
+    Il n'ajoute AUCUN comportement métier : purement une aide d'orientation. Les segments cliquables
+    ne mènent qu'à des routes déjà autorisées par ailleurs — la sécurité reste côté serveur.
+*@
+
+@using CIT.Plateforme.Web.Resources
+
+@if (Elements is { Count: > 0 })
+{
+    <nav aria-label="@SharedResourcesLocalizer.Get("Common.Breadcrumb")" class="cit-fil-ariane-nav">
+        <ol class="cit-fil-ariane">
+            @for (var i = 0; i < Elements.Count; i++)
+            {
+                var element = Elements[i];
+                var estDernier = i == Elements.Count - 1;
+
+                <li class="cit-fil-ariane-item">
+                    @if (estDernier || string.IsNullOrWhiteSpace(element.Href))
+                    {
+                        <span class="cit-fil-ariane-courant" aria-current="@(estDernier ? "page" : null)">@element.Libelle</span>
+                    }
+                    else
+                    {
+                        <a href="@element.Href">@element.Libelle</a>
+                    }
+                </li>
+            }
+        </ol>
+    </nav>
+}
+
+@code {
+    /// <summary>Segments du fil d'Ariane, de la racine (premier) à la page courante (dernier).</summary>
+    [Parameter]
+    public IReadOnlyList<ElementAriane>? Elements { get; set; }
+
+    /// <summary>Un segment du fil d'Ariane : un libellé, et une destination optionnelle.</summary>
+    /// <param name="Libelle">Texte affiché.</param>
+    /// <param name="Href">Route de destination ; nulle pour un segment non cliquable (dont la page courante).</param>
+    public sealed record ElementAriane(string Libelle, string? Href = null);
+}

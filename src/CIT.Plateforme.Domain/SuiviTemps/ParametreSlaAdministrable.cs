@@ -1,3 +1,5 @@
+using CIT.Plateforme.Domain.Comptes;
+
 namespace CIT.Plateforme.Domain.SuiviTemps;
 
 /// <summary>
@@ -46,6 +48,21 @@ public sealed class ParametreSlaAdministrable
     public Guid? PrioriteId { get; private set; }
 
     /// <summary>
+    /// SLA-01 — axe « CATÉGORIE DE CLIENT » (remédiation post-audit final, RG-SLA-01).
+    ///
+    /// Le CDC énumère six axes : « module, type de demande, étape, file, priorité, catégorie de
+    /// client ». Les cinq premiers étaient portés (l'étape étant la file) ; le sixième manquait
+    /// entièrement — aucun SLA ne pouvait être différencié par profil client.
+    ///
+    /// La valeur retenue est celle de l'INSTANTANÉ du dossier (<c>Dossier.TypeClient</c>), jamais
+    /// le profil courant de la société : un SLA ne doit pas changer sous un ticket en cours
+    /// parce qu'un administrateur a retypé le client (CPT-06, RG-CPT-05).
+    ///
+    /// <c>null</c> = ne discrimine pas.
+    /// </summary>
+    public TypeClient? TypeClient { get; private set; }
+
+    /// <summary>
     /// Départage deux paramétrages applicables : <b>le plus spécifique l'emporte</b>.
     ///
     /// Les poids sont des puissances de deux, ce qui rend l'ordre TOTAL — deux paramétrages
@@ -57,7 +74,8 @@ public sealed class ParametreSlaAdministrable
     /// l'énumération du CDC, non une règle qu'il énonce. Si le métier veut qu'un SLA de priorité
     /// prime sur un SLA de file, seuls ces poids changent.
     /// </summary>
-    public int Specificite => (FileId.HasValue ? 2 : 0) + (PrioriteId.HasValue ? 1 : 0);
+    public int Specificite =>
+        (FileId.HasValue ? 4 : 0) + (PrioriteId.HasValue ? 2 : 0) + (TypeClient.HasValue ? 1 : 0);
 
     /// <summary>Horaires ouvrés — sérialisés simplement (heures, jours, fériés) pour ce paramètre.
     /// Un calendrier « toujours ouvert » est utilisé si non renseigné explicitement (voir
@@ -115,10 +133,11 @@ public sealed class ParametreSlaAdministrable
     /// <see cref="Definir"/> pour que les paramétrages existants, qui ne discriminent sur aucun
     /// de ces axes, restent valides sans être réécrits.
     /// </summary>
-    public void Cibler(Guid? fileId, Guid? prioriteId)
+    public void Cibler(Guid? fileId, Guid? prioriteId, TypeClient? typeClient = null)
     {
         FileId = fileId;
         PrioriteId = prioriteId;
+        TypeClient = typeClient;
     }
 
     /// <summary>SLA-02 — fixe le seuil d'escalade. Au-delà de 100 % par définition : un seuil

@@ -1,17 +1,17 @@
-@page "/"
+﻿@page "/"
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Web.Services
 @using CIT.Plateforme.Web.Resources
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Bienvenue sur la Plateforme Digitale — Côte d'Ivoire Terminal (CIT)</PageTitle>
+<PageTitle>@Loc["Home.PageTitle"]</PageTitle>
 
 @if (_estAuthentifie)
 {
     <div class="d-flex align-items-center justify-content-center p-5">
         <div class="spinner-border text-primary me-3" role="status"></div>
-        <span class="text-muted fw-semibold">Redirection vers votre espace de travail...</span>
+        <span class="text-muted fw-semibold">@Loc["Home.Redirecting"]</span>
     </div>
 }
 else
@@ -19,8 +19,8 @@ else
     <div class="cit-landing-container py-3">
         
         <!-- 1. HERO BANNER PRINCIPAL : PRÉSENTATION DE CÔTE D'IVOIRE TERMINAL -->
-        <div class="cit-card p-4 p-lg-5 mb-5 text-white border-0 shadow-lg overflow-hidden position-relative" 
-             style="background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #173f82 100%); border-radius: 1.5rem;">
+        <div class="cit-card cit-hero-gradient p-4 p-lg-5 mb-5 text-white border-0 shadow-lg overflow-hidden position-relative"
+             style="border-radius: 1.5rem;">
             
             <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center opacity-10 pe-5 pointer-events-none" style="font-size: 15rem;">
                 ⚓
@@ -29,52 +29,50 @@ else
             <div class="row align-items-center position-relative z-1">
                 <div class="col-12 col-lg-8 pe-lg-4">
                     <div class="d-inline-flex align-items-center gap-2 gap-sm-3 p-2 ps-3 pe-3 pe-sm-4 bg-white rounded-pill shadow-sm mb-4 flex-wrap flex-sm-nowrap">
-                        <img src="images/logo_cit.jpeg" alt="Logo Côte d'Ivoire Terminal" 
+                        <img src="images/logo_cit.jpeg" alt="@Loc["Home.LogoAlt"]"
                              style="height: 52px; width: auto; object-fit: contain; border-radius: 6px;" />
                         <div class="vr bg-secondary opacity-25 d-none d-sm-block" style="height: 30px;"></div>
                         <span class="d-inline-block small fw-bold text-dark text-nowrap" style="font-size: 0.95rem;">
-                            Espace Digital • Billing Office
+                            @Loc["Home.BadgeDigital"]
                         </span>
                     </div>
 
                     <h1 class="display-5 fw-bold mb-3 text-white lh-sm">
-                        Pilotez toutes vos opérations portuaires <span style="color: #f59e0b;">en toute simplicité.</span>
+                        @Loc["Home.HeroTitlePart1"] <span style="color: #f59e0b;">@Loc["Home.HeroTitleAccent"]</span>
                     </h1>
 
                     <p class="lead mb-4 text-white-50 fs-6" style="line-height: 1.6;">
-                        Bienvenue sur la plateforme digitale officielle de <strong>Côte d'Ivoire Terminal (CIT)</strong>. 
-                        Accédez 24h/24 et 7j/7 au traitement dématérialisé de vos facturations maritimes, au suivi de vos conteneurs Import/Export, 
-                        aux simulations tarifaires proforma et à la gestion de vos flux douaniers.
+                        @((MarkupString)Loc["Home.HeroLead"].Value)
                     </p>
 
                     <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
                         <a href="/comptes/connexion" class="btn btn-warning btn-lg fw-bold px-4 py-3 text-dark shadow-sm rounded-pill d-flex align-items-center gap-2">
-                            <span>🔑</span> Se Connecter
+                            <span>🔑</span> @Loc["Home.CtaLogin"]
                         </a>
                         <a href="/comptes/soumettre" class="btn btn-light btn-lg fw-bold px-4 py-3 text-primary shadow-sm rounded-pill d-flex align-items-center gap-2">
-                            <span>🏢</span> Créer un compte Société
+                            <span>🏢</span> @Loc["Home.CtaCreateCompany"]
                         </a>
-                        <a href="/simulation/proforma" class="btn btn-outline-light fw-bold px-4 py-3 rounded-pill d-flex align-items-center gap-2 shadow-sm" style="background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.4); color: #ffffff;">
-                            <span>🧮</span> Simuler une Proforma
+                        <a href="/simulation/proforma" class="btn btn-outline-light cit-btn-glass fw-bold px-4 py-3 rounded-pill d-flex align-items-center gap-2 shadow-sm">
+                            <span>🧮</span> @Loc["Home.CtaSimulate"]
                         </a>
                     </div>
 
                     <!-- Badges de réassurance -->
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-3 border-top border-white border-opacity-25 small text-white">
-                        <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); font-weight: 600;">
-                            🛡️ Données Chiffrées & Auditées
+                        <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill cit-pill-glass">
+                            🛡️ @Loc["Home.BadgeEncrypted"]
                         </span>
-                        <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); font-weight: 600;">
-                            ⚡ Facturation en Temps Réel
+                        <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill cit-pill-glass">
+                            ⚡ @Loc["Home.BadgeRealtime"]
                         </span>
-                        <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); font-weight: 600;">
-                            ⏱️ Zéro Attente Guichet
+                        <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill cit-pill-glass">
+                            ⏱️ @Loc["Home.BadgeNoWait"]
                         </span>
                     </div>
                 </div>
 
                 <div class="col-12 col-lg-4 d-none d-lg-block text-center">
-                    <img src="images/login-illustration.jpg" alt="Terminal CIT 3D" 
+                    <img src="images/login-illustration.jpg" alt="@Loc["Home.IllustrationAlt"]"
                          class="img-fluid rounded-4 shadow" 
                          style="max-height: 280px; mix-blend-mode: luminosity; opacity: 0.85; border: 2px solid rgba(255,255,255,0.2);" />
                 </div>
@@ -85,11 +83,11 @@ else
         <div class="mb-5">
             <div class="text-center mb-4">
                 <div class="d-inline-block px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary fw-bold small mb-2">
-                    🎯 Démarche Simplifiée
+                    🎯 @Loc["Home.BadgeSimplified"]
                 </div>
-                <h2 class="fw-bold text-dark">Vous n'avez pas de compte ? Choisissez votre parcours</h2>
+                <h2 class="fw-bold text-dark">@Loc["Home.PersonaTitle"]</h2>
                 <p class="text-muted mx-auto" style="max-width: 650px;">
-                    Sélectionnez la situation qui correspond à votre activité pour être orienté immédiatement vers la bonne démarche.
+                    @Loc["Home.PersonaSubtitle"]
                 </p>
             </div>
 
@@ -97,20 +95,20 @@ else
                 <!-- Parcours 1 : Nouvelle Entreprise / Transitaire -->
                 <div class="col-12 col-md-4">
                     <div class="cit-card h-100 p-4 border-0 shadow-sm d-flex flex-column justify-content-between position-relative overflow-hidden" 
-                         style="border-radius: 1.25rem; border-top: 5px solid #2563eb !important; background-color: #ffffff;">
+                         style="border-radius: 1.25rem; border-top: 5px solid var(--action) !important;">
                         <div>
                             <div class="d-inline-flex align-items-center justify-content-center rounded-3 p-3 bg-primary bg-opacity-10 text-primary fs-3 mb-3">
                                 🏢
                             </div>
-                            <h4 class="fw-bold text-dark mb-2">Nouvelle Entreprise</h4>
-                            <div class="badge bg-primary-subtle text-primary mb-3">Transitaire • Armateur • Client</div>
+                            <h4 class="fw-bold text-dark mb-2">@Loc["Home.Persona1Title"]</h4>
+                            <div class="badge bg-primary-subtle text-primary mb-3">@Loc["Home.Persona1Badge"]</div>
                             <p class="text-muted small mb-4" style="line-height: 1.5;">
-                                Votre société n'est pas encore enregistrée sur Côte d'Ivoire Terminal. Déposez votre dossier avec vos pièces légales (RCCM, DFE) pour ouvrir un compte société.
+                                @Loc["Home.Persona1Text"]
                             </p>
                         </div>
                         <div>
                             <a href="/comptes/soumettre" class="btn btn-primary w-100 py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
-                                <span>Ouvrir mon compte société</span> <span>➔</span>
+                                <span>@Loc["Home.Persona1Cta"]</span> <span>➔</span>
                             </a>
                         </div>
                     </div>
@@ -119,20 +117,20 @@ else
                 <!-- Parcours 2 : Collaborateur Invité -->
                 <div class="col-12 col-md-4">
                     <div class="cit-card h-100 p-4 border-0 shadow-sm d-flex flex-column justify-content-between position-relative overflow-hidden" 
-                         style="border-radius: 1.25rem; border-top: 5px solid #10b981 !important; background-color: #ffffff;">
+                         style="border-radius: 1.25rem; border-top: 5px solid var(--ok-600) !important;">
                         <div>
                             <div class="d-inline-flex align-items-center justify-content-center rounded-3 p-3 bg-success bg-opacity-10 text-success fs-3 mb-3">
                                 👥
                             </div>
-                            <h4 class="fw-bold text-dark mb-2">Collaborateur d'Entreprise</h4>
-                            <div class="badge bg-success-subtle text-success mb-3">Déclarant • Agent Maritime • Comptable</div>
+                            <h4 class="fw-bold text-dark mb-2">@Loc["Home.Persona2Title"]</h4>
+                            <div class="badge bg-success-subtle text-success mb-3">@Loc["Home.Persona2Badge"]</div>
                             <p class="text-muted small mb-4" style="line-height: 1.5;">
-                                Votre entreprise possède <strong>déjà</strong> un compte actif. L'administrateur de votre société peut vous envoyer une invitation directe par e-mail pour activer votre mot de passe.
+                                @((MarkupString)Loc["Home.Persona2Text"].Value)
                             </p>
                         </div>
                         <div>
                             <a href="/comptes/connexion" class="btn btn-outline-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
-                                <span>J'ai reçu mon invitation</span> <span>➔</span>
+                                <span>@Loc["Home.Persona2Cta"]</span> <span>➔</span>
                             </a>
                         </div>
                     </div>
@@ -141,20 +139,20 @@ else
                 <!-- Parcours 3 : Transporteur / Chauffeur -->
                 <div class="col-12 col-md-4">
                     <div class="cit-card h-100 p-4 border-0 shadow-sm d-flex flex-column justify-content-between position-relative overflow-hidden" 
-                         style="border-radius: 1.25rem; border-top: 5px solid #f59e0b !important; background-color: #ffffff;">
+                         style="border-radius: 1.25rem; border-top: 5px solid var(--signal-500) !important;">
                         <div>
                             <div class="d-inline-flex align-items-center justify-content-center rounded-3 p-3 bg-warning bg-opacity-10 text-warning fs-3 mb-3">
                                 🚚
                             </div>
-                            <h4 class="fw-bold text-dark mb-2">Transporteur / Chauffeur</h4>
-                            <div class="badge bg-warning-subtle text-dark mb-3">Flotte • Tracteur • Enlèvement</div>
+                            <h4 class="fw-bold text-dark mb-2">@Loc["Home.Persona3Title"]</h4>
+                            <div class="badge bg-warning-subtle text-dark mb-3">@Loc["Home.Persona3Badge"]</div>
                             <p class="text-muted small mb-4" style="line-height: 1.5;">
-                                Vous assurez le transport terrestre de conteneurs. Effectuez votre pré-enrôlement (permis, carte grise, immatriculation) pour obtenir votre badge d'accès portuaire.
+                                @Loc["Home.Persona3Text"]
                             </p>
                         </div>
                         <div>
                             <a href="/comptes/inscription-transporteur" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
-                                <span>Pré-enrôlement Transporteur</span> <span>➔</span>
+                                <span>@Loc["Home.Persona3Cta"]</span> <span>➔</span>
                             </a>
                         </div>
                     </div>
@@ -163,13 +161,13 @@ else
         </div>
 
         <!-- 3. COMMENT OBTENIR UN COMPTE EN 3 ÉTAPES SIMPLES -->
-        <div class="cit-card p-4 p-lg-5 mb-5 border-0 shadow-sm" style="border-radius: 1.5rem; background-color: #f8fafc;">
+        <div class="cit-card p-4 p-lg-5 mb-5 border-0 shadow-sm" style="border-radius: 1.5rem; background: var(--surface-2);">
             <div class="text-center mb-4">
                 <div class="d-inline-block px-3 py-1 rounded-pill bg-dark bg-opacity-10 text-dark fw-bold small mb-2">
-                    📋 Guide d'Enregistrement
+                    📋 @Loc["Home.BadgeGuide"]
                 </div>
-                <h3 class="fw-bold text-dark">Comment obtenir votre compte entreprise en 3 étapes ?</h3>
-                <p class="text-muted">Un processus 100% digitalisé, rapide et sécurisé.</p>
+                <h3 class="fw-bold text-dark">@Loc["Home.StepsTitle"]</h3>
+                <p class="text-muted">@Loc["Home.StepsSubtitle"]</p>
             </div>
 
             <div class="row g-4 position-relative">
@@ -178,9 +176,9 @@ else
                         <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">
                             1
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">Dépôt du Dossier</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Step1Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Remplissez le formulaire en ligne avec votre Raison Sociale, RCCM, Compte Contribuable et téléversez vos pièces justificatives officielles.
+                            @Loc["Home.Step1Text"]
                         </p>
                     </div>
                 </div>
@@ -190,9 +188,9 @@ else
                         <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">
                             2
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">Instruction Administrative</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Step2Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Les équipes Billing Office de CIT vérifient vos pièces et paramètrent votre profil tarifaire (Normal, En Compte, Deposit ou IES) sous 24h ouvrées.
+                            @Loc["Home.Step2Text"]
                         </p>
                     </div>
                 </div>
@@ -202,9 +200,9 @@ else
                         <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center fw-bold fs-4 mb-3" style="width: 50px; height: 50px;">
                             3
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">Activation & Pleine Autonomie</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Step3Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Votre compte est activé : vous pouvez immédiatement soumettre vos BL/Bookings, simuler des proformas et inviter vos déclarants.
+                            @Loc["Home.Step3Text"]
                         </p>
                     </div>
                 </div>
@@ -215,18 +213,18 @@ else
         <div class="mb-5">
             <div class="text-center mb-4">
                 <div class="d-inline-block px-3 py-1 rounded-pill bg-success bg-opacity-10 text-success fw-bold small mb-2">
-                    ⚡ Avantages & Services
+                    ⚡ @Loc["Home.BadgeAdvantages"]
                 </div>
-                <h3 class="fw-bold text-dark">Les fonctionnalités majeures à votre disposition</h3>
+                <h3 class="fw-bold text-dark">@Loc["Home.FeaturesTitle"]</h3>
             </div>
 
             <div class="row g-3 g-md-4">
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
                         <div class="fs-2 mb-2">📦</div>
-                        <h5 class="fw-bold text-dark mb-2">Gestion Import / Export</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature1Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Soumission en ligne de vos Connaissements (BL) et Réservations (Booking) avec contrôle documentaire intégré.
+                            @Loc["Home.Feature1Text"]
                         </p>
                     </div>
                 </div>
@@ -234,9 +232,9 @@ else
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
                         <div class="fs-2 mb-2">🧮</div>
-                        <h5 class="fw-bold text-dark mb-2">Simulations Proforma</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature2Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Estimez vos frais de manutention, stockage et branchement conteneur par conteneur avant toute opération.
+                            @Loc["Home.Feature2Text"]
                         </p>
                     </div>
                 </div>
@@ -244,9 +242,9 @@ else
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
                         <div class="fs-2 mb-2">💳</div>
-                        <h5 class="fw-bold text-dark mb-2">Comptes Deposit & IES</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature3Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Suivez vos soldes de provisions en temps réel, vos factures et accédez aux facilités de traitement express IES.
+                            @Loc["Home.Feature3Text"]
                         </p>
                     </div>
                 </div>
@@ -254,9 +252,9 @@ else
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
                         <div class="fs-2 mb-2">🛡️</div>
-                        <h5 class="fw-bold text-dark mb-2">Sécurité & Audit 2FA</h5>
+                        <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature4Title"]</h5>
                         <p class="text-muted small mb-0">
-                            Authentification renforcée par code TOTP, journal d'audit immuable et protection réglementaire des données (ARTCI).
+                            @Loc["Home.Feature4Text"]
                         </p>
                     </div>
                 </div>
@@ -264,18 +262,18 @@ else
         </div>
 
         <!-- 5. BANDEAU DE CONTACT & ASSISTANCE -->
-        <div class="p-4 p-md-5 border-0 shadow-lg text-center text-md-start d-flex flex-wrap align-items-center justify-content-between gap-3" 
-             style="border-radius: 1.25rem; background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #173f82 100%); color: #ffffff !important;">
+        <div class="cit-hero-gradient p-4 p-md-5 border-0 shadow-lg text-center text-md-start d-flex flex-wrap align-items-center justify-content-between gap-3"
+             style="border-radius: 1.25rem; color: #ffffff !important;">
             <div>
-                <h4 class="fw-bold mb-2 text-white" style="color: #ffffff !important;">Besoin d'aide ou d'une assistance personnalisée ?</h4>
-                <div class="small text-white" style="color: #e2e8f0 !important; font-size: 0.95rem;">Notre équipe support Billing Office est disponible 24/7 pour accompagner votre transition digitale.</div>
+                <h4 class="fw-bold mb-2 text-white" style="color: #ffffff !important;">@Loc["Home.ContactTitle"]</h4>
+                <div class="small text-white" style="color: #e2e8f0 !important; font-size: 0.95rem;">@Loc["Home.ContactText"]</div>
             </div>
             <div class="d-flex flex-wrap gap-3">
                 <a href="/comptes/connexion" class="btn btn-warning btn-lg fw-bold px-4 py-3 text-dark rounded-pill shadow-sm d-flex align-items-center gap-2">
-                    <span>🔑</span> Se Connecter ➔
+                    <span>🔑</span> @Loc["Home.CtaLogin"] ➔
                 </a>
-                <a href="/simulation/proforma" class="btn btn-outline-light btn-lg fw-semibold px-4 py-3 rounded-pill shadow-sm d-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.4); color: #ffffff !important;">
-                    <span>🧮</span> Calculer une proforma
+                <a href="/simulation/proforma" class="btn btn-outline-light cit-btn-glass btn-lg fw-semibold px-4 py-3 rounded-pill shadow-sm d-flex align-items-center gap-2" style="color: #ffffff !important;">
+                    <span>🧮</span> @Loc["Home.ContactCtaSimulate"]
                 </a>
             </div>
         </div>

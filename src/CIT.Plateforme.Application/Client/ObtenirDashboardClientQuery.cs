@@ -142,7 +142,11 @@ public sealed class ObtenirDashboardClientQuery(
             DemandesRecentes: dossiersVues,
             TotalDemandesActives: dossiersVues.Count(d => d.EtatGlobal != StatutVisuelDossier.ClotureTermine && d.EtatGlobal != StatutVisuelDossier.Annule),
             TotalEnAttenteCit: totalEnAttenteCit,
-            TotalActionsRequises: actionsRequises.Count
+            TotalActionsRequises: actionsRequises.Count,
+            // AM-02 — même prédicat que SoumettreDemandeImportCommand/SoumettreDemandeExportCommand
+            // (« refusé si !EstActif || !DroitSoumission »). Le cloisonnement société est déjà
+            // garanti par le contrôle §1 ci-dessus (userSoc.SocieteId == societeId).
+            PeutSoumettre: userSoc.EstActif && userSoc.DroitSoumission
         );
     }
 

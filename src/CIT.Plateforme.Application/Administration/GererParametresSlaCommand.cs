@@ -1,5 +1,6 @@
 ﻿using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.SuiviTemps;
 
@@ -46,18 +47,19 @@ public sealed class GererParametresSlaCommand(
     /// </summary>
     public async Task<Guid> DefinirAsync(
         Guid administrateurId, string module, string typeDemande, TimeSpan dureeCible, double seuilInformation, double seuilAlerte,
-        Guid? fileId = null, Guid? prioriteId = null, double seuilEscalade = 0, CancellationToken ct = default)
+        Guid? fileId = null, Guid? prioriteId = null, double seuilEscalade = 0,
+        TypeClient? typeClient = null, CancellationToken ct = default)
     {
         await autorisation.ExigerAsync(administrateurId, Permission.AdministrationSla, ct: ct).ConfigureAwait(false);
 
         var parametre = ParametreSlaAdministrable.Definir(module, typeDemande, dureeCible, seuilInformation, seuilAlerte);
-        parametre.Cibler(fileId, prioriteId);
+        parametre.Cibler(fileId, prioriteId, typeClient);
         parametre.FixerSeuilEscalade(seuilEscalade);
         await parametres.AjouterAsync(parametre, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerAuditAsync(
             administrateurId, "ParametreSlaDefini", nameof(ParametreSlaAdministrable), parametre.Id,
-            null, $"{module}/{typeDemande}={dureeCible} (file={fileId?.ToString() ?? "toutes"}, priorité={prioriteId?.ToString() ?? "toutes"}, escalade={seuilEscalade})", ct).ConfigureAwait(false);
+            null, $"{module}/{typeDemande}={dureeCible} (file={fileId?.ToString() ?? "toutes"}, priorité={prioriteId?.ToString() ?? "toutes"}, client={typeClient?.ToString() ?? "tous"}, escalade={seuilEscalade})", ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 
         return parametre.Id;

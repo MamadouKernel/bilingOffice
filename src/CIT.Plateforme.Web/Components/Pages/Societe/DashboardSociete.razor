@@ -1,42 +1,45 @@
-@page "/societe/dashboard"
+﻿@page "/societe/dashboard"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Societe
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Comptes
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirDashboardSocieteQuery DashboardQuery
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Espace Entreprise — CIT</PageTitle>
+<PageTitle>@Loc["Societe.PageTitle"]</PageTitle>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de l'espace entreprise..." />
+    <IndicateurChargement Message="@Loc["Societe.Loading"]" />
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger">@_erreur</div>
+    <div class="alert alert-danger" role="alert">@_erreur</div>
 }
 else if (_dashboard is not null)
 {
     <div class="cit-page-header">
         <div>
-            <h2 class="cit-page-title">
-                <span>🏢</span> Espace Entreprise
-            </h2>
+            <h1 class="cit-page-title">
+                <span>🏢</span> @Loc["Societe.Title"]
+            </h1>
             <div class="cit-page-subtitle">
-                Société <strong class="text-dark">@_dashboard.SocieteNom</strong> · Profil <span class="badge bg-secondary-subtle text-secondary">@_dashboard.SocieteProfil</span> · Administrateurs actifs : <strong>@_dashboard.NombreAdministrateursActifs</strong>
+                @Loc["Dash.Company"] <strong class="text-dark">@_dashboard.SocieteNom</strong> · @Loc["Dash.Profile"] <span class="badge bg-secondary-subtle text-secondary">@_dashboard.SocieteProfil</span> · @Loc["Societe.ActiveAdmins"] <strong>@_dashboard.NombreAdministrateursActifs</strong>
             </div>
         </div>
         <div class="d-flex gap-2 mt-3 mt-md-0">
             <a href="/societe/collaborateurs" class="btn btn-outline-primary btn-sm">
-                <span>👥</span> Gérer l'équipe
+                <span>👥</span> @Loc["Societe.ManageTeam"]
             </a>
             <a href="/comptes/profil" class="btn btn-outline-secondary btn-sm">
-                <span>⚙️</span> Profil société
+                <span>⚙️</span> @Loc["Societe.CompanyProfile"]
             </a>
         </div>
     </div>
@@ -49,9 +52,9 @@ else if (_dashboard is not null)
                     📦
                 </div>
                 <div>
-                    <div class="cit-stat-label">Dossiers de la société</div>
+                    <div class="cit-stat-label">@Loc["Societe.KpiFilesTitle"]</div>
                     <div class="cit-stat-value text-primary">@_dashboard.TotalDossiersSociete</div>
-                    <div class="small text-muted">Total des importations de l'entreprise</div>
+                    <div class="small text-muted">@Loc["Societe.KpiFilesHint"]</div>
                 </div>
             </div>
         </div>
@@ -61,9 +64,9 @@ else if (_dashboard is not null)
                     ⏳
                 </div>
                 <div>
-                    <div class="cit-stat-label">Tickets en cours</div>
+                    <div class="cit-stat-label">@Loc["Societe.KpiTicketsTitle"]</div>
                     <div class="cit-stat-value text-warning">@_dashboard.TotalTicketsEnCours</div>
-                    <div class="small text-muted">Traitement portuaire en direct</div>
+                    <div class="small text-muted">@Loc["Societe.KpiTicketsHint"]</div>
                 </div>
             </div>
         </div>
@@ -73,9 +76,9 @@ else if (_dashboard is not null)
                     👥
                 </div>
                 <div>
-                    <div class="cit-stat-label">Équipe rattachée</div>
+                    <div class="cit-stat-label">@Loc["Societe.KpiTeamTitle"]</div>
                     <div class="cit-stat-value text-success">@_dashboard.Collaborateurs.Count</div>
-                    <div class="small text-muted">Collaborateurs déclarés et habilités</div>
+                    <div class="small text-muted">@Loc["Societe.KpiTeamHint"]</div>
                 </div>
             </div>
         </div>
@@ -84,9 +87,9 @@ else if (_dashboard is not null)
     <!-- Tableau des collaborateurs -->
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-            <h6 class="fw-bold m-0 text-dark">Collaborateurs de l'entreprise</h6>
+            <h6 class="fw-bold m-0 text-dark">@Loc["Societe.CollaboratorsCardTitle"]</h6>
             <a href="/societe/collaborateurs" class="btn btn-primary btn-sm">
-                <span>➕</span> Nouveau collaborateur
+                <span>➕</span> @Loc["Societe.NewCollaborator"]
             </a>
         </div>
 
@@ -94,12 +97,12 @@ else if (_dashboard is not null)
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Nom & E-mail</th>
-                        <th>Rôle</th>
-                        <th>Droit de soumission</th>
-                        <th>Périmètre de consultation</th>
-                        <th>Statut</th>
-                        <th class="text-end">Rattaché le</th>
+                        <th>@Loc["Societe.ColNameEmail"]</th>
+                        <th>@Loc["Societe.ColRole"]</th>
+                        <th>@Loc["Societe.ColSubmitRight"]</th>
+                        <th>@Loc["Societe.ColScope"]</th>
+                        <th>@Loc["Societe.ColStatus"]</th>
+                        <th class="text-end">@Loc["Societe.ColAttachedOn"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,36 +116,36 @@ else if (_dashboard is not null)
                             <td>
                                 @if (c.EstAdministrateur)
                                 {
-                                    <span class="badge bg-primary">Administrateur</span>
+                                    <span class="badge bg-primary">@Loc["Societe.RoleAdmin"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-light text-dark border">Collaborateur</span>
+                                    <span class="badge bg-light text-dark border">@Loc["Societe.RoleCollaborator"]</span>
                                 }
                             </td>
                             <td>
                                 @if (c.DroitSoumission)
                                 {
-                                    <span class="text-success fw-semibold">✅ Autorisé</span>
+                                    <span class="text-success fw-semibold">@Loc["Societe.SubmitAllowed"]</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">❌ Non autorisé</span>
+                                    <span class="text-muted">@Loc["Societe.SubmitNotAllowed"]</span>
                                 }
                             </td>
                             <td>
                                 <span class="small">
-                                    @(c.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? "🌐 Toutes les demandes" : "👤 Propres demandes")
+                                    @(c.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? Loc["Societe.ScopeAll"].Value : Loc["Societe.ScopeOwn"].Value)
                                 </span>
                             </td>
                             <td>
                                 @if (c.EstActif)
                                 {
-                                    <span class="badge bg-success text-white">Actif</span>
+                                    <span class="badge bg-success text-white">@Loc["Societe.StatusActive"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary text-white">Désactivé</span>
+                                    <span class="badge bg-secondary text-white">@Loc["Societe.StatusDisabled"]</span>
                                 }
                             </td>
                             <td class="text-end text-muted small">
@@ -168,7 +171,7 @@ else if (_dashboard is not null)
             var contexte = await ContexteService.ObtenirContexteAsync();
             if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue || !contexte.EstAdministrateurSociete)
             {
-                _erreur = "Accès réservé aux administrateurs de la société.";
+                _erreur = Loc["Societe.AccessAdminsOnly"].Value;
                 return;
             }
 
@@ -176,7 +179,7 @@ else if (_dashboard is not null)
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

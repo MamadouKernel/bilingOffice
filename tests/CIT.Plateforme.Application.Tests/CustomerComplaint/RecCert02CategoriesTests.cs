@@ -1,3 +1,6 @@
+﻿using System.Threading;
+using Moq;
+using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.CustomerComplaint;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tests.Support;
@@ -32,7 +35,7 @@ public sealed class RecCert02CategoriesTests
         await dbContext.SaveChangesAsync();
 
         // 1. Création dynamique d'une nouvelle catégorie
-        var commandeCreer = new CreerCategorieReclamationCommand(categorieRepo, autorisation, journalisation, uniteDeTravail);
+        var commandeCreer = new CreerCategorieReclamationCommand(categorieRepo, GardeFilesDeRecette(), autorisation, journalisation, uniteDeTravail);
         var fileSupportId = Guid.NewGuid();
         var nouvelleCategorieId = await commandeCreer.ExecuterAsync(
             new CreerCategorieReclamationRequete(adminId, "RETARD_LIVRAISON", "Retard de livraison", fileSupportId));
@@ -45,7 +48,7 @@ public sealed class RecCert02CategoriesTests
         Assert.True(nouvelleCategorie.EstActif);
 
         // 2. Modification du libellé et désactivation dynamique
-        var commandeModifier = new ModifierCategoriesReclamationCommand(categorieRepo, autorisation, journalisation, uniteDeTravail);
+        var commandeModifier = new ModifierCategoriesReclamationCommand(categorieRepo, GardeFilesDeRecette(), autorisation, journalisation, uniteDeTravail);
         await commandeModifier.ExecuterAsync(
             new ModifierCategoriesReclamationRequete(adminId, nouvelleCategorie.Id, "Retard conteneur maritime", fileSupportId, EstActif: false));
 
@@ -63,5 +66,21 @@ public sealed class RecCert02CategoriesTests
             new ModifierCategoriesReclamationRequete(adminId, nouvelleCategorie.Id, "Retard conteneur maritime", fileSupportId, EstActif: true));
         var categoriesReactivées = await queryClient.ExecuterAsync();
         Assert.Contains(categoriesReactivées, c => c.Id == nouvelleCategorie.Id);
+    }
+
+    /// <summary>
+    /// REMÉDIATION RECETTE UAT (D-14) : les deux commandes vérifient désormais que la file cible
+    /// existe et relève du module des réclamations. Ce double renvoie une file conforme pour tout
+    /// identifiant, afin que ces tests continuent d'éprouver ce qu'ils éprouvaient — la création et
+    /// la modification — et non la nouvelle garde, couverte par ses propres tests.
+    /// </summary>
+    private static CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation GardeFilesDeRecette()
+    {
+        var files = new Mock<IFileDeTraitementRepository>();
+        files.Setup(f => f.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CIT.Plateforme.Domain.Files.FileDeTraitement.Creer(
+                CIT.Plateforme.Application.CustomerComplaint.SoumettreReclamationCommand.Module,
+                "Support Opérationnel"));
+        return new CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation(files.Object);
     }
 }

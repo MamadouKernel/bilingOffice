@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
@@ -26,7 +26,7 @@ public class CreerCategorieReclamationCommandTests
 
     public CreerCategorieReclamationCommandTests()
     {
-        _command = new CreerCategorieReclamationCommand(_categorieRepo.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
+        _command = new CreerCategorieReclamationCommand(_categorieRepo.Object, GardeFilesDeRecette(), _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
     }
 
     // A. Admin habilité crée une catégorie valide -> succès.
@@ -98,5 +98,21 @@ public class CreerCategorieReclamationCommandTests
             _command.ExecuterAsync(new CreerCategorieReclamationRequete(adminId, "FACT", "Encore Facturation", null)));
 
         _categorieRepo.Verify(r => r.AjouterAsync(It.IsAny<CategorieReclamation>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
+    /// REMÉDIATION RECETTE UAT (D-14) : les deux commandes vérifient désormais que la file cible
+    /// existe et relève du module des réclamations. Ce double renvoie une file conforme pour tout
+    /// identifiant, afin que ces tests continuent d'éprouver ce qu'ils éprouvaient — la création et
+    /// la modification — et non la nouvelle garde, couverte par ses propres tests.
+    /// </summary>
+    private static CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation GardeFilesDeRecette()
+    {
+        var files = new Mock<IFileDeTraitementRepository>();
+        files.Setup(f => f.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CIT.Plateforme.Domain.Files.FileDeTraitement.Creer(
+                CIT.Plateforme.Application.CustomerComplaint.SoumettreReclamationCommand.Module,
+                "Support Opérationnel"));
+        return new CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation(files.Object);
     }
 }

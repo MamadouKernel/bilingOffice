@@ -1,12 +1,15 @@
-@page "/avoir-exoneration/fiche/{TicketId:guid}"
+﻿@page "/avoir-exoneration/fiche/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.AvoirExoneration
 @using CIT.Plateforme.Domain.AvoirExoneration
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirFicheAvoirExonerationQuery ObtenirFiche
 @inject PrendreEnChargeAvoirExoCommand PrendreEnCharge
@@ -14,18 +17,20 @@
 @inject DeciderDemandeAvoirExoCommand DeciderDemande
 @inject NavigationManager Navigation
 
-<PageTitle>Fiche Demande @(_fiche?.NumeroTicket ?? "Avoir & Exonération") — CIT</PageTitle>
+<PageTitle>@Loc["FicheAvoirExo.PageTitlePrefix"] @(_fiche?.NumeroTicket ?? Loc["FicheAvoirExo.PageTitleFallback"].Value) — CIT</PageTitle>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de la fiche de demande..." />
+    <IndicateurChargement Message="@Loc["FicheAvoirExo.LoadingFiche"]" />
 }
 else if (_erreur is not null)
 {
-    <div class="alert alert-danger">@_erreur</div>
+    <div class="alert alert-danger" role="alert">@_erreur</div>
 }
 else if (_fiche is not null)
 {
+    <FilAriane Elements="@(new List<FilAriane.ElementAriane> { new(Loc["FicheAvoirExo.BcHome"].Value, "/"), _estAgent ? new FilAriane.ElementAriane(Loc["FicheAvoirExo.BcAgentFile"].Value, "/avoir-exoneration/file") : new FilAriane.ElementAriane(Loc["FicheAvoirExo.BcMyRequests"].Value, "/avoir-exoneration/mes-demandes"), new(Loc["FicheAvoirExo.BcSheet"].Value) })" />
+
     <div class="cit-page-header">
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
@@ -34,26 +39,26 @@ else if (_fiche is not null)
                 </span>
                 <span class="badge @ObtenirBadgeStatut(_fiche.Statut)">@_fiche.Statut</span>
             </div>
-            <h2 class="cit-page-title">
-                Demande @_fiche.NumeroTicket
-            </h2>
-            <div class="cit-page-subtitle">Dossier @_fiche.NumeroDossier — Client : <strong>@_fiche.ClientNom</strong></div>
+            <h1 class="cit-page-title">
+                @Loc["FicheAvoirExo.FileHeaderPrefix"] @_fiche.NumeroTicket
+            </h1>
+            <div class="cit-page-subtitle">@Loc["FicheAvoirExo.FileWord"] @_fiche.NumeroDossier — @Loc["FicheAvoirExo.ClientWord"] <strong>@_fiche.ClientNom</strong></div>
         </div>
         <div class="mt-3 mt-md-0 d-flex gap-2">
             @if (_estAgent)
             {
-                <a href="/avoir-exoneration/file" class="btn btn-outline-secondary btn-sm shadow-sm">← File Avoir/Exo</a>
+                <a href="/avoir-exoneration/file" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["FicheAvoirExo.BackAgentQueue"]</a>
             }
             else
             {
-                <a href="/avoir-exoneration/mes-demandes" class="btn btn-outline-secondary btn-sm shadow-sm">← Mes demandes</a>
+                <a href="/avoir-exoneration/mes-demandes" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["FicheAvoirExo.BackMyRequests"]</a>
             }
         </div>
     </div>
 
     @if (!string.IsNullOrEmpty(_messageSucces))
     {
-        <div class="alert alert-success alert-dismissible fade show mb-4">
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="status">
             @_messageSucces
             <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
         </div>
@@ -62,28 +67,28 @@ else if (_fiche is not null)
     <!-- Décision / Statut Alerte -->
     @if (_fiche.Decision == "Accorde")
     {
-        <div class="alert alert-success d-flex align-items-center gap-3 mb-4 shadow-sm">
+        <div class="alert alert-success d-flex align-items-center gap-3 mb-4 shadow-sm" role="status">
             <span class="fs-2">🎉</span>
             <div>
-                <h5 class="fw-bold mb-0">Demande accordée</h5>
-                <div>Montant accordé : <strong class="fs-5">@(_fiche.MontantAccorde?.ToString("N0") ?? "0") XOF</strong></div>
+                <h5 class="fw-bold mb-0">@Loc["FicheAvoirExo.GrantedTitle"]</h5>
+                <div>@Loc["FicheAvoirExo.GrantedAmount"] <strong class="fs-5">@(_fiche.MontantAccorde?.ToString("N0") ?? "0") XOF</strong></div>
                 @if (_fiche.DateDecisionUtc.HasValue)
                 {
-                    <div class="small text-muted">Décision rendue le @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</div>
+                    <div class="small text-muted">@Loc["FicheAvoirExo.DecisionRenderedOn"] @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
                 }
             </div>
         </div>
     }
     else if (_fiche.Decision == "Rejete")
     {
-        <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 shadow-sm">
+        <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
             <span class="fs-2">❌</span>
             <div>
-                <h5 class="fw-bold mb-0">Demande rejetée</h5>
-                <div>Motif du rejet : <strong class="text-danger">@_fiche.MotifRejet</strong></div>
+                <h5 class="fw-bold mb-0">@Loc["FicheAvoirExo.RejectedTitle"]</h5>
+                <div>@Loc["FicheAvoirExo.RejectReason"] <strong class="text-danger">@_fiche.MotifRejet</strong></div>
                 @if (_fiche.DateDecisionUtc.HasValue)
                 {
-                    <div class="small text-muted">Décision rendue le @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</div>
+                    <div class="small text-muted">@Loc["FicheAvoirExo.DecisionRenderedOn"] @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
                 }
             </div>
         </div>
@@ -94,23 +99,23 @@ else if (_fiche is not null)
         <div class="col-lg-8">
             <!-- Détails de la demande -->
             <div class="cit-card mb-4 p-4 shadow-sm">
-                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">📋 Détails de la demande</h5>
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">@Loc["FicheAvoirExo.DetailsTitle"]</h5>
                 <div class="mb-3">
-                    <div class="text-muted small">Objet :</div>
+                    <div class="text-muted small">@Loc["FicheAvoirExo.ObjectField"]</div>
                     <div class="fw-bold fs-6">@_fiche.Objet</div>
                 </div>
                 <div class="mb-3">
-                    <div class="text-muted small">Description / Justification :</div>
+                    <div class="text-muted small">@Loc["FicheAvoirExo.DescField"]</div>
                     <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-wrap;">@_fiche.Description</div>
                 </div>
 
                 <div class="row g-3 pt-2">
                     <div class="col-sm-6">
-                        <div class="text-muted small">Montant contesté :</div>
-                        <div class="fw-semibold">@(_fiche.MontantConteste.HasValue ? $"{_fiche.MontantConteste.Value:N0} XOF" : "Non spécifié")</div>
+                        <div class="text-muted small">@Loc["FicheAvoirExo.DisputedAmountField"]</div>
+                        <div class="fw-semibold">@(_fiche.MontantConteste.HasValue ? $"{_fiche.MontantConteste.Value:N0} XOF" : Loc["FicheAvoirExo.NotSpecified"].Value)</div>
                     </div>
                     <div class="col-sm-6">
-                        <div class="text-muted small">Date de soumission :</div>
+                        <div class="text-muted small">@Loc["FicheAvoirExo.SubmitDateField"]</div>
                         <div class="fw-semibold">@_fiche.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
                     </div>
                 </div>
@@ -118,9 +123,9 @@ else if (_fiche is not null)
                 @if (_fiche.TicketParent != null)
                 {
                     <div class="mt-3 pt-3 border-top">
-                        <div class="text-muted small">Ticket lié / dossier parent :</div>
+                        <div class="text-muted small">@Loc["FicheAvoirExo.LinkedTicketField"]</div>
                         <div class="badge bg-light text-dark border p-2 mt-1">
-                            🔗 N° <strong>@_fiche.TicketParent.Numero</strong> (Module: @_fiche.TicketParent.Module - @_fiche.TicketParent.TypeDemande)
+                            🔗 N° <strong>@_fiche.TicketParent.Numero</strong> (@Loc["FicheAvoirExo.ModuleWord"] @_fiche.TicketParent.Module - @_fiche.TicketParent.TypeDemande)
                         </div>
                     </div>
                 }
@@ -128,10 +133,10 @@ else if (_fiche is not null)
 
             <!-- Documents joints -->
             <div class="cit-card mb-4 p-4 shadow-sm">
-                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">📎 Justificatifs & Documents déposés</h5>
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">@Loc["FicheAvoirExo.DocsTitle"]</h5>
                 @if (_fiche.Documents.Count == 0)
                 {
-                    <p class="text-muted small mb-0">Aucun document joint.</p>
+                    <p class="text-muted small mb-0">@Loc["FicheAvoirExo.NoDocs"]</p>
                 }
                 else
                 {
@@ -141,7 +146,7 @@ else if (_fiche is not null)
                             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <div>
                                     <div class="fw-semibold">📄 @doc.NomFichier</div>
-                                    <div class="text-muted small">Catégorie : @doc.Categorie • @(doc.TailleOctets / 1024) Ko • Déposé le @doc.DateDepotUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                                    <div class="text-muted small">@Loc["FicheAvoirExo.DocCategory"] @doc.Categorie • @(doc.TailleOctets / 1024) @Loc["Common.KoUnit"] • @Loc["FicheAvoirExo.DocDepositedOn"] @doc.DateDepotUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
                                 </div>
                             </div>
                         }
@@ -151,10 +156,10 @@ else if (_fiche is not null)
 
             <!-- Chronologie / Historique -->
             <div class="cit-card mb-4 p-4 shadow-sm">
-                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">🕒 Chronologie des événements</h5>
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">@Loc["FicheAvoirExo.TimelineTitle"]</h5>
                 @if (_fiche.Chronologie.Count == 0)
                 {
-                    <p class="text-muted small mb-0">Aucun événement enregistré.</p>
+                    <p class="text-muted small mb-0">@Loc["FicheAvoirExo.NoEvent"]</p>
                 }
                 else
                 {
@@ -182,14 +187,14 @@ else if (_fiche is not null)
             @if (_estAgent && _fiche.Statut != "Cloture" && _fiche.Statut != "Annule")
             {
                 <div class="cit-card mb-4 p-4 shadow-sm border-primary">
-                    <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">⚙️ Actions Instructeur</h5>
+                    <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">@Loc["FicheAvoirExo.AgentActionsTitle"]</h5>
 
                     @if (_fiche.Statut == "EnAttenteDePriseEnCharge")
                     {
                         <div class="mb-3">
-                            <p class="small text-muted">Le ticket n'est pas encore pris en charge par un agent.</p>
+                            <p class="small text-muted">@Loc["FicheAvoirExo.NotTakenYet"]</p>
                             <button class="btn btn-primary w-100 fw-bold" @onclick="PrendreEnChargeAsync" disabled="@_actionEnCours">
-                                Prendre en charge le dossier
+                                @Loc["FicheAvoirExo.TakeCharge"]
                             </button>
                         </div>
                     }
@@ -197,41 +202,41 @@ else if (_fiche is not null)
                     {
                         <!-- Demande de complément -->
                         <div class="mb-4">
-                            <label for="demander-un-complement" class="form-label small fw-semibold text-dark">Demander un complément</label>
-                            <textarea id="demander-un-complement" class="form-control form-control-sm mb-2" rows="3" placeholder="Précisez les pièces ou explications manquantes..." @bind="_motifComplement"></textarea>
+                            <label for="demander-un-complement" class="form-label small fw-semibold text-dark">@Loc["FicheAvoirExo.RequestComplementLabel"]</label>
+                            <textarea id="demander-un-complement" class="form-control form-control-sm mb-2" rows="3" placeholder="@Loc["FicheAvoirExo.RequestComplementPlaceholder"]" @bind="_motifComplement"></textarea>
                             <button class="btn btn-warning btn-sm w-100 fw-semibold text-dark" @onclick="DemanderComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_motifComplement) || _actionEnCours)">
-                                📩 Mettre en attente client
+                                @Loc["FicheAvoirExo.PutOnHold"]
                             </button>
                         </div>
 
                         <!-- Décision Finale (Accord / Rejet) -->
                         <div class="pt-3 border-top">
-                            <h6 class="fw-bold text-dark mb-2">Décision Finale</h6>
+                            <h6 class="fw-bold text-dark mb-2">@Loc["FicheAvoirExo.FinalDecision"]</h6>
                             <div class="mb-2">
-                                <label for="verdict" class="form-label small fw-semibold text-muted">Verdict :</label>
+                                <label for="verdict" class="form-label small fw-semibold text-muted">@Loc["FicheAvoirExo.VerdictLabel"]</label>
                                 <select id="verdict" class="form-select form-select-sm" @bind="_decisionChoisie">
-                                    <option value="Accorde">✅ Accorder la demande</option>
-                                    <option value="Rejete">❌ Rejeter la demande</option>
+                                    <option value="Accorde">@Loc["FicheAvoirExo.VerdictGrant"]</option>
+                                    <option value="Rejete">@Loc["FicheAvoirExo.VerdictReject"]</option>
                                 </select>
                             </div>
 
                             @if (_decisionChoisie == "Accorde")
                             {
                                 <div class="mb-2">
-                                    <label for="montant-accorde-xof" class="form-label small fw-semibold text-muted">Montant accordé (XOF) :</label>
-                                    <input id="montant-accorde-xof" type="number" step="1000" class="form-control form-control-sm" placeholder="Montant final accordé" @bind="_montantAccordeSaisi" />
+                                    <label for="montant-accorde-xof" class="form-label small fw-semibold text-muted">@Loc["FicheAvoirExo.GrantedAmountLabel"]</label>
+                                    <input id="montant-accorde-xof" type="number" step="1000" class="form-control form-control-sm" placeholder="@Loc["FicheAvoirExo.GrantedAmountPlaceholder"]" @bind="_montantAccordeSaisi" />
                                 </div>
                             }
                             else
                             {
                                 <div class="mb-2">
-                                    <label for="motif-du-rejet-obligatoire" class="form-label small fw-semibold text-danger">Motif du rejet * (Obligatoire) :</label>
-                                    <textarea id="motif-du-rejet-obligatoire" class="form-control form-control-sm border-danger" rows="3" placeholder="Expliquez formellement la cause du rejet..." @bind="_motifRejetSaisi"></textarea>
+                                    <label for="motif-du-rejet-obligatoire" class="form-label small fw-semibold text-danger">@Loc["FicheAvoirExo.RejectReasonLabel"]</label>
+                                    <textarea id="motif-du-rejet-obligatoire" class="form-control form-control-sm border-danger" rows="3" placeholder="@Loc["FicheAvoirExo.RejectReasonPlaceholder"]" @bind="_motifRejetSaisi"></textarea>
                                 </div>
                             }
 
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold text-muted">Document officiel de décision (optionnel) :</label>
+                                <label class="form-label small fw-semibold text-muted">@Loc["FicheAvoirExo.OfficialDocLabel"]</label>
                                 <InputFile class="form-control form-control-sm" OnChange="OnDecisionFileSelected" />
                                 @if (_decisionDoc != null)
                                 {
@@ -240,7 +245,7 @@ else if (_fiche is not null)
                             </div>
 
                             <button class="btn btn-success btn-sm w-100 fw-bold shadow-sm" @onclick="EnregistrerDecisionAsync" disabled="@(!PeutValiderDecision || _actionEnCours)">
-                                ⚖️ Enregistrer la décision & Clôturer
+                                @Loc["FicheAvoirExo.SaveDecision"]
                             </button>
                         </div>
                     }
@@ -300,7 +305,7 @@ else if (_fiche is not null)
         }
         catch (Exception ex)
         {
-            _erreur = $"Erreur lors du chargement de la fiche : {ex.Message}";
+            _erreur = $"{Loc["FicheAvoirExo.LoadError"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
         finally
         {
@@ -317,12 +322,12 @@ else if (_fiche is not null)
             if (contexte is null) return;
 
             await PrendreEnCharge.ExecuterAsync(contexte.UtilisateurId, TicketId);
-            _messageSucces = "Dossier pris en charge avec succès.";
+            _messageSucces = Loc["FicheAvoirExo.MsgTakenCharge"].Value;
             await ChargerFicheAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -342,12 +347,12 @@ else if (_fiche is not null)
 
             await DemanderComplement.ExecuterAsync(contexte.UtilisateurId, TicketId, _motifComplement.Trim());
             _motifComplement = string.Empty;
-            _messageSucces = "Demande de complément transmise au client.";
+            _messageSucces = Loc["FicheAvoirExo.MsgComplementSent"].Value;
             await ChargerFicheAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -385,12 +390,12 @@ else if (_fiche is not null)
                 DocumentDecision: _decisionDoc);
 
             await DeciderDemande.ExecuterAsync(contexte.UtilisateurId, requete);
-            _messageSucces = "Décision formelle enregistrée avec succès. Le ticket est clôturé.";
+            _messageSucces = Loc["FicheAvoirExo.MsgDecisionSaved"].Value;
             await ChargerFicheAsync();
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

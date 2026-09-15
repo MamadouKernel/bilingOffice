@@ -1,9 +1,13 @@
-@page "/comptes/acces-refuse"
+﻿@page "/comptes/acces-refuse"
 @page "/acces-refuse"
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Accès Refusé (403) — CIT</PageTitle>
+<PageTitle>@Loc["Account.AccessDeniedPageTitle"]</PageTitle>
 
 <div class="container py-4">
-    <PermissionDenied Message="Votre compte ne possède pas les habilitations ou droits requis pour accéder à cette page." />
+    <h1 class="visually-hidden">@Loc["Account.AccessDeniedHeading"]</h1>
+    <PermissionDenied Message="@Loc["Account.AccessDeniedMessage"]" />
 </div>

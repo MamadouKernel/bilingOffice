@@ -63,12 +63,19 @@ public sealed class DeposerDocumentCommand(
             throw new DepotDocumentRefuseException(erreur!);
         }
 
-        var cle = await stockage.EnregistrerAsync(contenu, nomFichier, ct).ConfigureAwait(false);
+        // REMÉDIATION RECETTE UAT (D-11a) : le contenu est lu DEUX fois — stockage puis antivirus.
+        // Le flux d'un InputFile Blazor est à passe unique ; le repositionner y lève
+        // NotSupportedException. FluxRejouable ne recopie que si la source ne sait pas rembobiner,
+        // et plafonne cette recopie par la taille maximale de l'étape.
+        await using var rejouable = await FluxRejouable
+            .CreerAsync(contenu, reglesEtape.TailleMaxOctets, ct).ConfigureAwait(false);
+
+        var cle = await stockage.EnregistrerAsync(rejouable.Flux, nomFichier, ct).ConfigureAwait(false);
         var document = Document.Deposer(ticketId, deposantId, nomFichier, typeContenu, tailleOctets, cle, horloge.MaintenantUtc);
 
         // SEC-07 : analyse antivirale avant que le document soit accessible.
-        contenu.Position = 0;
-        var resultat = await antivirus.AnalyserAsync(contenu, ct).ConfigureAwait(false);
+        rejouable.Rembobiner();
+        var resultat = await antivirus.AnalyserAsync(rejouable.Flux, ct).ConfigureAwait(false);
         document.MarquerResultatAntivirus(resultat);
 
         await documents.AjouterAsync(document, ct).ConfigureAwait(false);

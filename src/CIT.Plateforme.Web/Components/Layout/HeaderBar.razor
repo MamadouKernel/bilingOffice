@@ -1,7 +1,10 @@
 @using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResources> Loc
 @* FEATURE 009 (NOT-03) — compteur de non-lues du seul utilisateur authentifié. *@
 @using Microsoft.Extensions.DependencyInjection
 @inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
@@ -27,7 +30,7 @@
         {
             <details class="cit-mobile-menu d-lg-none">
                 <summary class="btn btn-outline-secondary btn-sm cit-mobile-menu-trigger"
-                         role="button" aria-label="Menu de navigation">
+                         role="button" aria-label="@Loc["Header.NavMenuAria"]">
                     <span class="cit-burger-ouvrir" aria-hidden="true">☰</span>
                     <span class="cit-burger-fermer" aria-hidden="true">✕</span>
                 </summary>
@@ -35,7 +38,7 @@
                 <div class="cit-modal-backdrop">
                     <div class="cit-mobile-sidebar h-100 p-3">
                         <div class="d-flex align-items-center mb-4 pb-2 border-bottom border-light">
-                            <span class="fw-bold fs-5 text-white">Menu</span>
+                            <span class="fw-bold fs-5 text-white">@Loc["Header.Menu"]</span>
                         </div>
                         <NavMenu />
                     </div>
@@ -45,14 +48,18 @@
 
         <a href="/" class="cit-brand">
             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" class="cit-brand-logo" />
-            <span class="cit-brand-sub d-none d-sm-inline-block">Plateforme Digitale</span>
+            <span class="cit-brand-sub d-none d-sm-inline-block">@Loc["Header.BrandSub"]</span>
         </a>
 
+        @* REMÉDIATION D-17 : entre 768 et ~1100 px, la barre affichait d'un coup la marque, le
+           bandeau société, la langue, le thème, la cloche et l'identité — d'où un débordement
+           horizontal de toute la page (+160 px à 768). Le bandeau société ne réapparaît donc qu'en
+           XL, et le nom, potentiellement long, est tronqué au lieu de pousser la barre. *@
         @if (Contexte?.SocieteNom is not null)
         {
-            <div class="d-none d-md-flex align-items-center gap-2 ms-2 px-3 py-1 bg-light border rounded-pill small">
+            <div class="d-none d-xl-flex align-items-center gap-2 ms-2 px-3 py-1 bg-light border rounded-pill small" style="min-width: 0;">
                 <span class="text-primary">🏢</span>
-                <span class="fw-bold text-dark">@Contexte.SocieteNom</span>
+                <span class="fw-bold text-dark text-truncate" style="max-width: 220px;">@Contexte.SocieteNom</span>
                 @if (Contexte.SocieteProfil.HasValue)
                 {
                     <span class="badge bg-secondary-subtle text-secondary rounded-pill py-1 px-2" style="font-size: 0.7rem;">
@@ -65,7 +72,7 @@
 
     <div class="d-flex align-items-center gap-2">
         <LanguageSwitcher />
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="toggleTheme()" title="Basculer le thème" style="font-size: 0.9rem;">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="toggleTheme()" title="@Loc["Header.ThemeToggleTitle"]" aria-label="@Loc["Header.ThemeToggleAria"]" style="font-size: 0.9rem;">
             🌓
         </button>
 
@@ -75,8 +82,8 @@
                les classes CSS sont conservées telles quelles, seul le comportement est ajouté.
                MainLayout est rendu en SSR statique — un @onclick n'y serait jamais déclenché :
                la cloche est donc un lien, et le compteur est calculé au rendu serveur. *@
-            <a href="/notifications" class="cit-notification-btn" title="Notifications"
-               aria-label="@($"Notifications : {NombreNonLues} non lue(s)")">
+            <a href="/notifications" class="cit-notification-btn" title="@Loc["Header.Notifications"]"
+               aria-label="@Loc["Header.NotificationsAria", NombreNonLues]">
                 <span>🔔</span>
                 @if (NombreNonLues > 0)
                 {
@@ -89,9 +96,9 @@
                @rendermode) : un @onclick Blazor n'y serait jamais déclenché. Même
                patron que l'accordéon du menu latéral. *@
             <details class="cit-user-menu" data-cit-menu>
-                <summary class="cit-user-trigger" title="Mon compte" aria-haspopup="true">
+                <summary class="cit-user-trigger" title="@Loc["Header.MyAccount"]" aria-haspopup="true">
                     <span class="cit-user-avatar">@Initiale</span>
-                    <span class="cit-user-identity d-none d-sm-flex">
+                    <span class="cit-user-identity d-none d-lg-flex">
                         <span class="cit-user-name">@Contexte.NomAffiche</span>
                         <span class="cit-user-role">@LibelleEspace(Contexte.EspaceActif)</span>
                     </span>
@@ -110,15 +117,15 @@
                     <div class="cit-user-dropdown-sep"></div>
 
                     <a href="/comptes/mon-profil" class="cit-user-dropdown-item" role="menuitem">
-                        <span>👤</span> Mon profil
+                        <span>👤</span> @Loc["Header.MyProfile"]
                     </a>
                     <a href="/comptes/double-authentification" class="cit-user-dropdown-item" role="menuitem">
-                        <span>🛡️</span> Sécurité (2FA)
+                        <span>🛡️</span> @Loc["Sécurité (2FA)"]
                     </a>
                     @if (Contexte.SocieteId.HasValue)
                     {
                         <a href="/comptes/profil" class="cit-user-dropdown-item" role="menuitem">
-                            <span>🏢</span> Profil de la société
+                            <span>🏢</span> @Loc["Header.CompanyProfile"]
                         </a>
                     }
 
@@ -127,7 +134,7 @@
                     <!-- La déconnexion reste un POST : ne jamais la transformer en lien. -->
                     <form method="post" action="/comptes/deconnexion" class="m-0">
                         <button type="submit" class="cit-user-dropdown-item danger w-100" role="menuitem">
-                            <span>⏻</span> Déconnexion
+                            <span>⏻</span> @Loc["Nav.Logout"]
                         </button>
                     </form>
                 </div>
@@ -137,7 +144,7 @@
         {
             <div class="d-flex gap-2 ms-2 ps-3">
                 <a href="/comptes/connexion" class="btn btn-primary btn-sm rounded-pill px-4">
-                    Connexion
+                    @Loc["Nav.Login"]
                 </a>
             </div>
         }
@@ -195,13 +202,13 @@
 
     private void FermerMenu() => _menuOuvert = false;
 
-    private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
+    private string LibelleEspace(EspaceFonctionnel espace) => espace switch
     {
-        EspaceFonctionnel.Client => "Espace Client",
-        EspaceFonctionnel.AdministrateurSociete => "Espace Entreprise",
-        EspaceFonctionnel.Agent => "Espace Opérateur CIT",
-        EspaceFonctionnel.Supervision => "Supervision CIT",
-        EspaceFonctionnel.AdministrationCit => "Administration CIT",
+        EspaceFonctionnel.Client => Loc["Header.SpaceClient"],
+        EspaceFonctionnel.AdministrateurSociete => Loc["Header.SpaceCompany"],
+        EspaceFonctionnel.Agent => Loc["Header.SpaceOperator"],
+        EspaceFonctionnel.Supervision => Loc["Header.SpaceSupervision"],
+        EspaceFonctionnel.AdministrationCit => Loc["Header.SpaceAdmin"],
         _ => espace.ToString()
     };
 }

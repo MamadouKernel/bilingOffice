@@ -1,4 +1,6 @@
-<div class="cit-card text-center p-4 p-md-5 my-4 mx-auto border-0 shadow-lg position-relative overflow-hidden" 
+@using CIT.Plateforme.Web.Resources
+
+<div class="cit-card text-center p-4 p-md-5 my-4 mx-auto border-0 shadow-lg position-relative overflow-hidden"
      style="max-width: 680px; border-radius: 1.5rem; background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%); border-top: 5px solid var(--stop-600) !important;">
     
     <!-- Halo décoratif discret en arrière-plan -->
@@ -8,17 +10,17 @@
     <!-- Icône de sécurité avec halo lumineux -->
     <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4 p-3 shadow-sm position-relative z-1" 
          style="width: 84px; height: 84px; background: linear-gradient(135deg, var(--stop-100) 0%, var(--stop-border) 100%); border: 2px solid var(--stop-600);">
-        <span class="fs-1" role="img" aria-label="Verrouillé">🔒</span>
+        <span class="fs-1" role="img" aria-label="@SharedResourcesLocalizer.Get("AccessDenied.LockAria")">🔒</span>
     </div>
-    
+
     <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-danger bg-opacity-10 text-danger small fw-bold mb-3 border border-danger-subtle">
-        <span>🛡️</span> Sécurité Portuaire • CIT-SEC-403
+        <span>🛡️</span> @SharedResourcesLocalizer.Get("AccessDenied.SecurityBadge") • CIT-SEC-403
     </div>
 
     <h2 class="fw-bold text-dark mb-2">
-        Accès Refusé <span class="badge bg-danger bg-opacity-10 text-danger fs-6 align-middle border border-danger-subtle ms-1 px-3 py-1 rounded-pill">403</span>
+        @SharedResourcesLocalizer.Get("AccessDenied.Title") <span class="badge bg-danger bg-opacity-10 text-danger fs-6 align-middle border border-danger-subtle ms-1 px-3 py-1 rounded-pill">403</span>
     </h2>
-    
+
     <p class="text-secondary mb-4 mx-auto" style="max-width: 520px; line-height: 1.6; font-size: 1rem;">
         @if (!string.IsNullOrWhiteSpace(Message))
         {
@@ -26,25 +28,25 @@
         }
         else
         {
-            <span>Vous ne disposez pas des habilitations nécessaires ou votre profil n'est pas rattaché à une entreprise autorisée pour accéder à cette ressource.</span>
+            <span>@SharedResourcesLocalizer.Get("AccessDenied.DefaultMessage")</span>
         }
     </p>
 
     <div class="p-3 bg-light rounded-4 border mb-4 text-start mx-auto" style="max-width: 520px;">
         <div class="d-flex align-items-center gap-2 small text-muted mb-1">
-            <span>💡</span> <strong>Conseil d'orientation :</strong>
+            <span>💡</span> <strong>@SharedResourcesLocalizer.Get("AccessDenied.TipLabel")</strong>
         </div>
         <div class="small text-secondary">
-            Vérifiez que vous utilisez le bon compte utilisateur ou rapprochez-vous de l'administrateur de votre société pour obtenir les autorisations requises.
+            @SharedResourcesLocalizer.Get("AccessDenied.TipBody")
         </div>
     </div>
 
     <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
         <a href="/" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm d-inline-flex align-items-center gap-2">
-            <span>🏠</span> ← Retour à l'accueil
+            <span>🏠</span> @SharedResourcesLocalizer.Get("AccessDenied.BackHome")
         </a>
         <a href="/client/dashboard" class="btn btn-outline-secondary px-4 py-2 fw-semibold rounded-pill d-inline-flex align-items-center gap-2">
-            <span>📊</span> Mon Tableau de Bord
+            <span>📊</span> @SharedResourcesLocalizer.Get("AccessDenied.MyDashboard")
         </a>
     </div>
 </div>

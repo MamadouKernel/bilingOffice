@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
@@ -21,8 +21,7 @@ public class ModifierCategoriesReclamationCommandTests
 
     public ModifierCategoriesReclamationCommandTests()
     {
-        _command = new ModifierCategoriesReclamationCommand(
-            _repo.Object,
+        _command = new ModifierCategoriesReclamationCommand(_repo.Object, GardeFilesDeRecette(),
             _autorisation.Object,
             _journalisation.Object,
             _uniteDeTravail.Object);
@@ -66,5 +65,21 @@ public class ModifierCategoriesReclamationCommandTests
         // Act & Assert
         await Assert.ThrowsAsync<AccesRefuseException>(() => 
             _command.ExecuterAsync(new ModifierCategoriesReclamationRequete(agentId, Guid.NewGuid(), "Libelle", null, true), CancellationToken.None));
+    }
+
+    /// <summary>
+    /// REMÉDIATION RECETTE UAT (D-14) : les deux commandes vérifient désormais que la file cible
+    /// existe et relève du module des réclamations. Ce double renvoie une file conforme pour tout
+    /// identifiant, afin que ces tests continuent d'éprouver ce qu'ils éprouvaient — la création et
+    /// la modification — et non la nouvelle garde, couverte par ses propres tests.
+    /// </summary>
+    private static CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation GardeFilesDeRecette()
+    {
+        var files = new Mock<IFileDeTraitementRepository>();
+        files.Setup(f => f.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CIT.Plateforme.Domain.Files.FileDeTraitement.Creer(
+                CIT.Plateforme.Application.CustomerComplaint.SoumettreReclamationCommand.Module,
+                "Support Opérationnel"));
+        return new CIT.Plateforme.Application.CustomerComplaint.GardeFileCibleReclamation(files.Object);
     }
 }

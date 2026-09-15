@@ -83,6 +83,11 @@ public sealed class CircuitClientDepositExportTests
 
         // 2. Facturation -> Comptabilité Client
         var factureContenu = Encoding.UTF8.GetBytes("Facture Export Deposit");
+        // RG-EXP-03 : le Draft IN précède l'édition de la facture (remédiation post-audit final).
+        var draftContenu = System.Text.Encoding.UTF8.GetBytes("draft-in");
+        await new EmettreDraftInExportCommand(ticketRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail)
+            .ExecuterAsync(agentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", new MemoryStream(draftContenu), draftContenu.Length, Regles);
+
         await editerFacture.ExecuterAsync(agentId, ticket.Id, "Facture-001.pdf", "application/pdf", new MemoryStream(factureContenu), factureContenu.Length, Regles);
 
         var ticketApresFacture = await ticketRepository.ObtenirParIdAsync(ticket.Id);

@@ -3,31 +3,34 @@
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Journal d'audit — CIT</PageTitle>
+<PageTitle>@Loc["AdmAudit.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>🛡️</span> Journal d'audit de sécurité
-        </h2>
-        <div class="cit-page-subtitle">Registre d'imputabilité immuable, distinct de l'historique métier — réservé à l'administrateur technique</div>
+        <h1 class="cit-page-title">
+            <span>🛡️</span> @Loc["AdmAudit.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["AdmAudit.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
         <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+            @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement du journal d'audit..." />
+    <IndicateurChargement Message="@Loc["AdmAudit.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -37,35 +40,61 @@ else
 {
     @if (_erreur is not null)
     {
-        <div class="alert alert-danger mb-3">@_erreur</div>
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
     }
 
-    @if (_entrees is null || _entrees.Count == 0)
+    @if (_page is null || _page.Entrees.Count == 0)
     {
-        <EtatVide Titre="Aucun événement audité" Description="Le journal d'audit ne contient encore aucune entrée." Icone="🛡️" />
+        <EtatVide Titre="@Loc["AdmAudit.EmptyTitle"]" Description="@Loc["AdmAudit.EmptyDesc"]" Icone="🛡️" />
     }
     else
     {
         <div class="cit-card p-0 overflow-hidden mb-4">
             <div class="p-3 bg-light border-bottom">
-                <h6 class="fw-bold text-dark mb-0">Événements audités (@_entrees.Count)</h6>
+                <h6 class="fw-bold text-dark mb-0">
+                    @Loc["AdmAudit.EventsHeader"] &mdash;
+                    <span class="fw-normal">@_page.PremierRang @Loc["AdmAudit.RangeTo"] @_page.DernierRang @Loc["AdmAudit.RangeOf"] @_page.Total</span>
+                </h6>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Date et heure (UTC)</th>
-                            <th>Auteur</th>
-                            <th>Action</th>
-                            <th>Élément concerné</th>
+                            <th>@Loc["AdmAudit.ColDateTime"]</th>
+                            <th>@Loc["AdmAudit.ColAuthor"]</th>
+                            <th>@Loc["AdmAudit.ColAction"]</th>
+                            <th>@Loc["AdmAudit.ColElement"]</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var entree in _entrees)
+                        @foreach (var entree in _page.Entrees)
                         {
                             <tr>
                                 <td class="small text-muted font-monospace">@entree.HorodatageUtc.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                                <td class="small fw-semibold text-dark">@(entree.AuteurId is null ? "Système CIT" : "Utilisateur")</td>
+                                @* REMÉDIATION D-03 : l'auteur est désormais résolu — identité lisible
+                                   en tête, e-mail et identifiant stable en dessous pour la traçabilité. *@
+                                <td class="small">
+                                    <div class="fw-semibold text-dark d-flex align-items-center gap-1">
+                                        @entree.AuteurLibelle
+                                        @if (entree.AuteurNature is not null)
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary" style="font-size:.65rem;">@entree.AuteurNature</span>
+                                        }
+                                        @if (entree.AuteurIntrouvable)
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size:.65rem;">@Loc["AdmAudit.DeletedAccount"]</span>
+                                        }
+                                    </div>
+                                    @if (entree.AuteurId is Guid auteurId)
+                                    {
+                                        @if (!entree.AuteurIntrouvable && !string.IsNullOrWhiteSpace(entree.AuteurEmail)
+                                             && !string.Equals(entree.AuteurEmail, entree.AuteurLibelle, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <div class="text-muted" style="font-size:.72rem;">@entree.AuteurEmail</div>
+                                        }
+                                        <div class="text-muted font-monospace" style="font-size:.65rem;" title="@Loc["AdmAudit.StableIdTitle"]">@auteurId</div>
+                                    }
+                                </td>
                                 <td><span class="badge bg-secondary-subtle text-secondary">@entree.Action</span></td>
                                 <td class="small text-dark">@entree.EntiteType</td>
                             </tr>
@@ -73,6 +102,30 @@ else
                     </tbody>
                 </table>
             </div>
+
+            @* UX-P1 (UI-04) : navigation par page. La pagination est faite EN BASE, pas après
+               chargement complet — c'est ce qui protège la page et le serveur. *@
+            @if (_page.NombrePages > 1)
+            {
+                <nav class="p-3 border-top d-flex align-items-center justify-content-between gap-2"
+                     aria-label="@Loc["AdmAudit.PaginationAria"]">
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            disabled="@(!_page.APagePrecedente || _chargement)"
+                            @onclick="PagePrecedenteAsync">
+                        @Loc["AdmAudit.PrevPage"]
+                    </button>
+
+                    <span class="small text-muted" aria-live="polite">
+                        @Loc["AdmAudit.PageXofY", _page.Page, _page.NombrePages]
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            disabled="@(!_page.APageSuivante || _chargement)"
+                            @onclick="PageSuivanteAsync">
+                        @Loc["AdmAudit.NextPage"]
+                    </button>
+                </nav>
+            }
         </div>
     }
 }
@@ -82,9 +135,34 @@ else
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;
     private string? _erreur;
-    private IReadOnlyList<EntreeJournalAuditVue>? _entrees;
+    // UX-P1 (UI-04) : le journal croît sans borne — il se consulte page par page.
+    private PageJournalAudit? _page;
+    private int _numeroPage = 1;
+    private const int TaillePage = 50;
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task PagePrecedenteAsync()
+    {
+        if (_page is null || !_page.APagePrecedente || _chargement)
+        {
+            return;
+        }
+
+        _numeroPage = _page.Page - 1;
+        await ChargerAsync();
+    }
+
+    private async Task PageSuivanteAsync()
+    {
+        if (_page is null || !_page.APageSuivante || _chargement)
+        {
+            return;
+        }
+
+        _numeroPage = _page.Page + 1;
+        await ChargerAsync();
+    }
 
     private async Task ChargerAsync()
     {
@@ -96,7 +174,7 @@ else
             if (contexte is null || !contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour consulter le journal d'audit.";
+                _messageNonAutorise = Loc["AdmAudit.LoginRequired"].Value;
                 return;
             }
 
@@ -104,7 +182,7 @@ else
             // identifiant technique à saisir. L'habilitation reste vérifiée côté serveur.
             using var scope = ScopeFactory.CreateScope();
             var consulterAudit = scope.ServiceProvider.GetRequiredService<ConsulterJournalAuditQuery>();
-            _entrees = await consulterAudit.ExecuterAsync(contexte.UtilisateurId);
+            _page = await consulterAudit.ExecuterPageAsync(contexte.UtilisateurId, _numeroPage, TaillePage);
             _nonAutorise = false;
         }
         catch (AccesRefuseException ex)
@@ -114,7 +192,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

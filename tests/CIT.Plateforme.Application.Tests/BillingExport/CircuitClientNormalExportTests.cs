@@ -28,6 +28,7 @@ public sealed class CircuitClientNormalExportTests
         PlateformeDbContext DbContext,
         SoumettreDemandeExportCommand Soumettre,
         ValiderTicketExportCommand Valider,
+        EmettreDraftInExportCommand EmettreDraftIn,
         EditerFactureExportCommand EditerFacture,
         DeposerPreuvePaiementExportCommand DeposerPreuve,
         ValiderPreuvePaiementExportCommand ValiderPreuve,
@@ -80,6 +81,8 @@ public sealed class CircuitClientNormalExportTests
         var valider = new ValiderTicketExportCommand(
             ticketRepository, dossierRepository, fileRepository, new SuiviBrancheIesRepository(dbContext),
             autorisation, journalisation, horloge, uniteDeTravail);
+        var emettreDraftIn = new EmettreDraftInExportCommand(
+            ticketRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
         var editerFacture = new EditerFactureExportCommand(
             ticketRepository, dossierRepository, fileRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
         var deposerPreuve = new DeposerPreuvePaiementExportCommand(deposerDocument);
@@ -88,7 +91,7 @@ public sealed class CircuitClientNormalExportTests
         var finaliserControle = new FinaliserControleDocumentaireExportCommand(
             ticketRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
 
-        return new Contexte(dbContext, soumettre, valider, editerFacture, deposerPreuve, validerPreuve, finaliserControle, agentId, societe.Id, auteurId);
+        return new Contexte(dbContext, soumettre, valider, emettreDraftIn, editerFacture, deposerPreuve, validerPreuve, finaliserControle, agentId, societe.Id, auteurId);
     }
 
     [Fact]
@@ -103,6 +106,10 @@ public sealed class CircuitClientNormalExportTests
 
         // 2. Facturation émet la facture -> File Validation Paiement
         var factureContenu = Encoding.UTF8.GetBytes("Facture EXPORT FCT-2026-001");
+        // RG-EXP-03 : le Draft IN précède l'édition de la facture (remédiation post-audit final).
+        var draftContenu = System.Text.Encoding.UTF8.GetBytes("draft-in");
+        await c.EmettreDraftIn.ExecuterAsync(c.AgentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", new MemoryStream(draftContenu), draftContenu.Length, Regles);
+
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", new MemoryStream(factureContenu), factureContenu.Length, Regles);
 
         // 3. Client dépose la preuve de paiement

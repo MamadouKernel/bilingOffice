@@ -1,4 +1,4 @@
-@page "/tickets/{TicketId:guid}/documents"
+﻿@page "/tickets/{TicketId:guid}/documents"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Documents
@@ -7,9 +7,12 @@
 @using CIT.Plateforme.Domain.Documents
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -30,19 +33,18 @@
     AccesRefuseException, et l'identité vient du contexte authentifié.
 *@
 
-<PageTitle>Documents du ticket — CIT</PageTitle>
+<PageTitle>@Loc["Docs.PageTitle"]</PageTitle>
 
 <div class="cit-page-header mb-4">
-    <h2 class="cit-page-title fw-bold text-dark mb-1">Documents du ticket</h2>
+    <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["Docs.Title"]</h1>
     <div class="cit-page-subtitle text-muted">
-        Pièces déposées par le client et par les agents. Formats acceptés : PDF, JPG, PNG, XLSX —
-        @(TailleMaxMo) Mo maximum par fichier.
+        @string.Format(Loc["Docs.Subtitle"].Value, TailleMaxMo)
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des documents..." />
+    <IndicateurChargement Message="@Loc["Docs.Loading"]" />
 }
 else if (_refuse)
 {
@@ -58,10 +60,10 @@ else
     }
 
     <div class="cit-card p-4 mb-4 border-0 shadow-sm">
-        <h4 class="fw-bold text-dark fs-5 mb-3">Déposer un document</h4>
+        <h4 class="fw-bold text-dark fs-5 mb-3">@Loc["Docs.UploadTitle"]</h4>
         <InputFile OnChange="DeposerAsync" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.xlsx" />
         <div class="form-text small">
-            Le dépôt est enregistré sous votre identité — @_nomAffiche — et tracé dans le journal d'audit.
+            @string.Format(Loc["Docs.UploadHint"].Value, _nomAffiche)
         </div>
     </div>
 
@@ -69,8 +71,8 @@ else
     {
         <div class="cit-card p-5 text-center text-muted border-0 shadow-sm">
             <div class="fs-1 mb-2" aria-hidden="true">📁</div>
-            <div class="fw-semibold">Aucun document déposé</div>
-            <div class="small">Les pièces déposées pour ce ticket apparaîtront ici.</div>
+            <div class="fw-semibold">@Loc["Docs.EmptyTitle"]</div>
+            <div class="small">@Loc["Docs.EmptyHint"]</div>
         </div>
     }
     else
@@ -78,13 +80,13 @@ else
         <div class="cit-card border-0 shadow-sm overflow-hidden">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
-                    <caption class="visually-hidden">Documents déposés pour ce ticket</caption>
+                    <caption class="visually-hidden">@Loc["Docs.TableCaption"]</caption>
                     <thead class="table-light">
                         <tr>
-                            <th scope="col" class="small fw-bold">Fichier</th>
-                            <th scope="col" class="small fw-bold">Déposé le</th>
-                            <th scope="col" class="small fw-bold">Analyse antivirale</th>
-                            <th scope="col" class="small fw-bold text-end"><span class="visually-hidden">Téléchargement</span></th>
+                            <th scope="col" class="small fw-bold">@Loc["Docs.ColFile"]</th>
+                            <th scope="col" class="small fw-bold">@Loc["FicheAvoirExo.DocDepositedOn"]</th>
+                            <th scope="col" class="small fw-bold">@Loc["Docs.ColAntivirus"]</th>
+                            <th scope="col" class="small fw-bold text-end"><span class="visually-hidden">@Loc["Docs.DownloadHidden"]</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,7 +102,7 @@ else
                                         <button type="button" class="btn btn-sm btn-outline-primary"
                                                 @onclick="() => TelechargerAsync(doc)"
                                                 disabled="@(_telechargementEnCours == doc.Id)">
-                                            @(_telechargementEnCours == doc.Id ? "Préparation..." : "Télécharger")
+                                            @(_telechargementEnCours == doc.Id ? Loc["Docs.Preparing"].Value : Loc["Docs.Download"].Value)
                                         </button>
                                     }
                                     else
@@ -109,8 +111,8 @@ else
                                            téléchargeable. Le dire ici évite un bouton qui échoue sans expliquer. *@
                                         <span class="small text-muted">
                                             @(doc.StatutAntivirus == StatutAnalyseAntivirus.Infecte
-                                                ? "Bloqué — fichier infecté"
-                                                : "Analyse en cours")
+                                                ? Loc["Docs.BlockedInfected"].Value
+                                                : Loc["Docs.Scanning"].Value)
                                         </span>
                                     }
                                 </td>
@@ -133,7 +135,7 @@ else
     private bool _estClient;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous n'êtes pas autorisé à consulter les documents de ce ticket.";
+    private string _messageRefus = string.Empty;
     private string? _message;
     private bool _erreur;
     private Guid? _telechargementEnCours;
@@ -149,6 +151,7 @@ else
         if (!contexte.EstAuthentifie)
         {
             _refuse = true;
+            _messageRefus = Loc["Docs.AccessDenied"].Value;
             _chargement = false;
             return;
         }
@@ -186,7 +189,7 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -234,7 +237,7 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -268,7 +271,7 @@ else
                     _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles);
             }
 
-            _message = "Document déposé et analysé.";
+            _message = Loc["Docs.Deposited"].Value;
             _erreur = false;
             await ChargerAsync();
         }
@@ -280,7 +283,7 @@ else
         catch (Exception ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Pour(ex);
         }
     }
 }

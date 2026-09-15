@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +52,11 @@ public sealed class NavMenuTests : BunitContext
     {
         var fakeContexte = new FakeContexteUtilisateurWeb();
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        // REMÉDIATION RECETTE UAT (D-05/D-15) : le menu s'établit désormais sur les habilitations
+        // réelles. Le test déclare donc ce que ce client détient, au lieu de son seul espace.
+        NavigationDeTest.Enregistrer(
+            Services, fakeContexte.Contexte.UtilisateurId,
+            [Permission.BillingImportSoumettre, Permission.BillingExportSoumettre]);
 
         var cut = Render<NavMenu>();
 
@@ -74,6 +79,9 @@ public sealed class NavMenuTests : BunitContext
             Permissions = new[] { Permission.TicketPrendreEnCharge, Permission.BillingImportManifesteInstruire }
         };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        NavigationDeTest.Enregistrer(
+            Services, fakeContexte.Contexte.UtilisateurId,
+            [Permission.TicketPrendreEnCharge, Permission.BillingImportManifesteInstruire]);
 
         var cut = Render<NavMenu>();
 

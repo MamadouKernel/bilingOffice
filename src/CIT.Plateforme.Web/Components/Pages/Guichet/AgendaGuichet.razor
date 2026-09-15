@@ -1,4 +1,4 @@
-@page "/guichet/agenda"
+﻿@page "/guichet/agenda"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -7,40 +7,43 @@
 @using CIT.Plateforme.Domain.Guichet
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject CIT.Plateforme.Application.Guichet.ListerAgendaGuichetQuery ListerAgenda
 @inject MarquerRendezVousHonoreCommand MarquerHonoreCommand
 @inject MarquerRendezVousNonPresenteCommand MarquerNonPresenteCommand
 @inject NavigationManager Navigation
 
-<PageTitle>Agenda Guichet — Rendez-vous</PageTitle>
+<PageTitle>@Loc["GuiAgenda.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title">
-            <span>📅</span> Agenda des Rendez-vous Guichet
-        </h2>
+        <h1 class="cit-page-title">
+            <span>📅</span> @Loc["GuiAgenda.Title"]
+        </h1>
         <div class="cit-page-subtitle">
-            Accueil et validation de la présence physique des usagers au Billing Office
+            @Loc["GuiAgenda.Subtitle"]
         </div>
     </div>
     <div class="d-flex gap-2">
         <a href="/guichet/recherche" class="btn btn-outline-secondary">
-            🔍 Recherche Guichet
+            @Loc["GuiAgenda.LinkRecherche"]
         </a>
     </div>
 </div>
 
 @if (_chargementInitial)
 {
-    <IndicateurChargement Message="Vérification des habilitations..." />
+    <IndicateurChargement Message="@Loc["Gui.CheckingPerm"]" />
 }
 else if (!_estHabilite)
 {
     <div class="alert alert-danger" role="alert">
-        <strong>Accès refusé :</strong> Vous devez disposer de l'habilitation <code>RendezVousGerer</code> pour consulter et gérer l'agenda du guichet.
+        @((MarkupString)Loc["GuiAgenda.AccessDenied"].Value)
     </div>
 }
 else
@@ -65,13 +68,13 @@ else
         <div class="card-body">
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
-                    <label for="selectionner-la-date" class="form-label fw-bold mb-0">Sélectionner la date :</label>
+                    <label for="selectionner-la-date" class="form-label fw-bold mb-0">@Loc["GuiAgenda.SelectDate"]</label>
                 </div>
                 <div class="col-auto">
                     <input id="selectionner-la-date" type="date" class="form-control" value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-outline-primary" @onclick="() => AllerAujourdhuiAsync()">Aujourd'hui</button>
+                    <button class="btn btn-outline-primary" @onclick="() => AllerAujourdhuiAsync()">@Loc["GuiAgenda.Today"]</button>
                 </div>
             </div>
         </div>
@@ -79,13 +82,13 @@ else
 
     @if (_chargementAgenda)
     {
-        <IndicateurChargement Message="Chargement des rendez-vous de la journée..." />
+        <IndicateurChargement Message="@Loc["GuiAgenda.LoadingAgenda"]" />
     }
     else if (_rendezVousJournee.Count == 0)
     {
         <div class="card shadow-sm text-center p-5 border-0">
             <div class="text-muted fs-5">
-                Aucun rendez-vous réservé pour le @_dateSelectionnee.ToString("dd/MM/yyyy").
+                @Loc["GuiAgenda.NoRdv", _dateSelectionnee.ToString("dd/MM/yyyy")]
             </div>
         </div>
     }
@@ -94,7 +97,7 @@ else
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                    Rendez-vous du @_dateSelectionnee.ToString("dddd dd MMMM yyyy") (@_rendezVousJournee.Count)
+                    @Loc["GuiAgenda.RdvOfDay", _dateSelectionnee.ToString("dddd dd MMMM yyyy"), _rendezVousJournee.Count]
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -102,12 +105,12 @@ else
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Créneau</th>
-                                <th>Motif</th>
-                                <th>Statut</th>
-                                <th>Date Réservation</th>
-                                <th>Commentaire Agent</th>
-                                <th>Actions</th>
+                                <th>@Loc["GuiAgenda.ColCreneau"]</th>
+                                <th>@Loc["GuiAgenda.ColMotif"]</th>
+                                <th>@Loc["GuiAgenda.ColStatut"]</th>
+                                <th>@Loc["GuiAgenda.ColDateReservation"]</th>
+                                <th>@Loc["GuiAgenda.ColCommentaire"]</th>
+                                <th>@Loc["GuiAgenda.ColActions"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -122,16 +125,16 @@ else
                                         @switch (rdv.Statut)
                                         {
                                             case StatutRendezVous.Reserve:
-                                                <span class="badge bg-primary">Réservé</span>
+                                                <span class="badge bg-primary">@Loc["GuiAgenda.StReserve"]</span>
                                                 break;
                                             case StatutRendezVous.Honore:
-                                                <span class="badge bg-success">Honoré ✅</span>
+                                                <span class="badge bg-success">@Loc["GuiAgenda.StHonore"]</span>
                                                 break;
                                             case StatutRendezVous.Annule:
-                                                <span class="badge bg-secondary">Annulé</span>
+                                                <span class="badge bg-secondary">@Loc["GuiAgenda.StAnnule"]</span>
                                                 break;
                                             case StatutRendezVous.NonPresente:
-                                                <span class="badge bg-danger">Non présenté ❌</span>
+                                                <span class="badge bg-danger">@Loc["GuiAgenda.StNonPresente"]</span>
                                                 break;
                                         }
                                     </td>
@@ -141,17 +144,17 @@ else
                                         @if (rdv.Statut == StatutRendezVous.Reserve)
                                         {
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="Valider la présence physique de l'usager">
-                                                    ✅ Présent
+                                                <button class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnPresentTitle"]">
+                                                    @Loc["GuiAgenda.BtnPresent"]
                                                 </button>
-                                                <button class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="Constater l'absence au créneau échu">
-                                                    ❌ Absent
+                                                <button class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnAbsentTitle"]">
+                                                    @Loc["GuiAgenda.BtnAbsent"]
                                                 </button>
                                             </div>
                                         }
                                         else
                                         {
-                                            <span class="text-muted small">Traité</span>
+                                            <span class="text-muted small">@Loc["GuiAgenda.Traite"]</span>
                                         }
                                     </td>
                                 </tr>
@@ -207,7 +210,7 @@ else
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -239,14 +242,14 @@ else
             await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(
                 _agentId,
                 rdvId,
-                "Usager accueilli au guichet physique"
+                Loc["GuiAgenda.PresenceComment"].Value
             ));
-            _messageSucces = "Présence validée avec succès.";
+            _messageSucces = Loc["GuiAgenda.SuccessPresence"].Value;
             await ChargerAgendaAsync();
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -259,14 +262,14 @@ else
             await MarquerNonPresenteCommand.ExecuterAsync(new MarquerNonPresenteRequest(
                 _agentId,
                 rdvId,
-                "Usager non présenté à l'heure du créneau"
+                Loc["GuiAgenda.AbsenceComment"].Value
             ));
-            _messageSucces = "Absence constatée et enregistrée.";
+            _messageSucces = Loc["GuiAgenda.SuccessAbsence"].Value;
             await ChargerAgendaAsync();
         }
         catch (Exception ex)
         {
-            _messageErreur = ex.Message;
+            _messageErreur = MessagesUtilisateur.Pour(ex);
         }
     }
 }

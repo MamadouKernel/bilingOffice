@@ -1,12 +1,15 @@
-@page "/notifications/preferences"
+﻿@page "/notifications/preferences"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Notifications
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Notifications
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject GererPreferencesCanauxCommand PreferencesCommand
 
@@ -21,18 +24,18 @@
    Une notification qualifiée d'OBLIGATOIRE au paramétrage est transmise MALGRÉ une
    désactivation ici — l'utilisateur en est informé explicitement. *@
 
-<PageTitle>Mes préférences de notification — CIT</PageTitle>
+<PageTitle>@Loc["NotifPref.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h2 class="cit-page-title"><span>⚙️</span> Mes préférences de notification</h2>
-        <div class="cit-page-subtitle">Choisissez les canaux sur lesquels vous souhaitez être informé</div>
+        <h1 class="cit-page-title"><span>⚙️</span> @Loc["NotifPref.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["NotifPref.Subtitle"]</div>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de vos préférences..." />
+    <IndicateurChargement Message="@Loc["NotifPref.Loading"]" />
 }
 else
 {
@@ -42,9 +45,7 @@ else
     }
 
     <div class="alert alert-info" role="alert">
-        Le centre de notifications du portail reste toujours actif.
-        Certaines notifications sont <strong>obligatoires</strong> et vous seront transmises même si
-        vous désactivez le canal correspondant.
+        @((MarkupString)Loc["NotifPref.Info"].Value)
     </div>
 
     <div class="list-group shadow-sm">
@@ -90,7 +91,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
         finally
         {
@@ -111,25 +112,24 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 
-    private static string Libelle(CanalNotification canal) => canal switch
+    private string Libelle(CanalNotification canal) => canal switch
     {
-        CanalNotification.Email => "E-mail",
-        CanalNotification.Sms => "SMS",
-        CanalNotification.WhatsApp => "WhatsApp",
+        CanalNotification.Email => Loc["NotifPref.CanalEmail"].Value,
+        CanalNotification.Sms => Loc["NotifPref.CanalSms"].Value,
+        CanalNotification.WhatsApp => Loc["NotifPref.CanalWhatsApp"].Value,
         _ => canal.ToString(),
     };
 
-    private static string Description(CanalNotification canal) => canal switch
+    private string Description(CanalNotification canal) => canal switch
     {
-        CanalNotification.Email => "Notifications envoyées à l'adresse de votre compte.",
+        CanalNotification.Email => Loc["NotifPref.DescEmail"].Value,
         // PC-16 : les canaux mobiles supposent une souscription non encore réalisée. Le
         // paramétrage reste possible dès maintenant, sans bloquer le portail ni l'e-mail.
-        CanalNotification.Sms or CanalNotification.WhatsApp =>
-            "Canal mobile — nécessite un numéro de téléphone renseigné sur votre profil.",
+        CanalNotification.Sms or CanalNotification.WhatsApp => Loc["NotifPref.DescMobile"].Value,
         _ => string.Empty,
     };
 }

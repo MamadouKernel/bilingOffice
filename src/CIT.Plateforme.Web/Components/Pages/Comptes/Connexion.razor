@@ -1,4 +1,4 @@
-@page "/comptes/connexion"
+﻿@page "/comptes/connexion"
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Securite
@@ -20,11 +20,11 @@
         <!-- Navigation Top Bar : Accueil & Inscription -->
         <div class="d-flex align-items-center justify-content-between mb-3 px-2">
             <a href="/" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold rounded-pill bg-white shadow-xs d-inline-flex align-items-center gap-2">
-                <span>🏠</span> Retour à l'accueil
+                <span>🏠</span> @Loc["Common.BackHome"]
             </a>
-            
+
             <a href="/comptes/soumettre" class="btn btn-light btn-sm px-3 py-2 fw-semibold rounded-pill text-primary border shadow-xs d-inline-flex align-items-center gap-2">
-                <span>🏢</span> Créer un compte société
+                <span>🏢</span> @Loc["Nav.CreateCompanyAccount"]
             </a>
         </div>
 
@@ -34,10 +34,10 @@
                 <!-- Left Side: 3D Illustration -->
                 <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
-                        <img src="images/login-illustration.jpg" alt="Terminal Maritime 3D" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
+                        <img src="images/login-illustration.jpg" alt="@Loc["Auth.MaritimeIllustrationAlt"]" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">Bienvenue sur l'Espace Digital</h3>
-                            <p class="text-muted mb-0">Gérez vos expéditions, conteneurs et facturations maritimes en toute simplicité grâce à la plateforme.</p>
+                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">@Loc["Auth.WelcomeDigital"]</h3>
+                            <p class="text-muted mb-0">@Loc["Auth.WelcomeTagline"]</p>
                         </div>
                     </div>
                 </div>
@@ -47,14 +47,14 @@
                     <div class="p-5 p-lg-5 w-100">
                         <div class="mb-5 text-center text-md-start">
                             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
-                            <h2 class="fw-bold" style="color: var(--ink);">@Loc["Auth.LoginTitle"]</h2>
-                            <p class="text-muted">Renseignez vos identifiants pour accéder à votre espace de travail.</p>
+                            <h1 class="fw-bold h2 mb-0" style="color: var(--ink);">@Loc["Auth.LoginTitle"]</h1>
+                            <p class="text-muted">@Loc["Auth.LoginSubtitle"]</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="ConnecterAsync" FormName="connexion">
                             <div class="mb-4">
                                 <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">@Loc["Auth.Email"]</label>
-                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="jean.dupont@entreprise.com" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
+                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="@Loc["Common.EmailPlaceholder"]" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
                             </div>
                             
                             <div class="mb-4">
@@ -106,15 +106,29 @@
 
     private string? erreur;
 
-    protected override void OnInitialized() => Modele ??= new();
+    protected override void OnInitialized()
+    {
+        // Le modèle est initialisé EN PREMIER : l'EditForm l'exige dès le rendu, y compris pendant
+        // la redirection ci-dessous (le rendu SSR peut se poursuivre après l'appel à NavigateTo).
+        Modele ??= new();
+
+        // REMÉDIATION D-07 : un utilisateur déjà authentifié était rendu SUR l'écran de connexion,
+        // DANS la coquille authentifiée — son identité en en-tête au-dessus d'un formulaire de
+        // connexion. La page est en SSR : NavigateTo émet ici une redirection HTTP vers l'accueil.
+        if (AccesContexteHttp.HttpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
 
     private async Task ConnecterAsync()
     {
         erreur = null;
         // Message volontairement générique quel que soit le cas de refus (identifiants invalides,
         // société non validée/désactivée, rattachement désactivé) — ne révèle aucune information
-        // sensible sur l'état exact du compte (US2 scénario 2).
-        const string messageRefusGenerique = "Identifiants incorrects ou compte non accessible.";
+        // sensible sur l'état exact du compte (US2 scénario 2). Localisé, mais TOUJOURS unique :
+        // la culture ne change que la langue, jamais la décision ni le degré d'information.
+        var messageRefusGenerique = Loc["Auth.LoginFailed"].Value;
 
         var utilisateur = await UserManager.FindByEmailAsync(Modele.Email);
         if (utilisateur is null)

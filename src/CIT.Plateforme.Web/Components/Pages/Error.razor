@@ -1,8 +1,11 @@
-@page "/Error"
+﻿@page "/Error"
 @using System.Diagnostics
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
 @layout MainLayout
+@inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>Erreur d'exécution (500) — Côte d'Ivoire Terminal</PageTitle>
+<PageTitle>@Loc["Error.500.PageTitle"]</PageTitle>
 
 <div class="py-5 mx-auto" style="max-width: 760px;">
     <div class="cit-card text-center p-4 p-md-5 border-0 shadow-lg position-relative overflow-hidden" 
@@ -15,27 +18,27 @@
         <!-- Icône d'incident -->
         <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4 p-3 shadow-sm position-relative z-1" 
              style="width: 84px; height: 84px; background: var(--warn-100); border: 2px solid var(--signal-500);">
-            <span class="fs-1" role="img" aria-label="Incident">⚠️</span>
+            <span class="fs-1" role="img" aria-label="@Loc["Error.500.IncidentAria"]">⚠️</span>
         </div>
 
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-warning bg-opacity-10 text-warning small fw-bold mb-3 border border-warning-subtle">
-            <span>⚡</span> Incident d'Exploitation • HTTP 500
+            <span>⚡</span> @Loc["Error.500.Badge"]
         </div>
 
-        <h2 class="fw-bold text-dark mb-2">
-            Incident Technique <span class="badge bg-warning bg-opacity-10 text-dark fs-6 align-middle border border-warning-subtle ms-1 px-3 py-1 rounded-pill">500</span>
-        </h2>
-        
+        <h1 class="fw-bold text-dark mb-2 h2">
+            @Loc["Error.500.Title"] <span class="badge bg-warning bg-opacity-10 text-dark fs-6 align-middle border border-warning-subtle ms-1 px-3 py-1 rounded-pill">500</span>
+        </h1>
+
         <p class="text-secondary mb-4 mx-auto" style="max-width: 540px; line-height: 1.6; font-size: 1rem;">
-            Une anomalie inattendue a interrompu le traitement de votre demande. L'équipe d'exploitation CIT a été alertée de cet événement.
+            @Loc["Error.500.Body"]
         </p>
 
         @if (ShowRequestId)
         {
             <div class="p-3 bg-light rounded-4 border mb-4 text-start mx-auto" style="max-width: 540px;">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="text-muted small fw-semibold">Identifiant de suivi (Request ID) :</span>
-                    <span class="badge bg-secondary-subtle text-dark">Traçabilité Audit</span>
+                    <span class="text-muted small fw-semibold">@Loc["Error.500.RequestIdLabel"]</span>
+                    <span class="badge bg-secondary-subtle text-dark">@Loc["Error.500.AuditBadge"]</span>
                 </div>
                 <div class="font-monospace fw-bold text-dark fs-6 text-break">@RequestId</div>
             </div>
@@ -43,10 +46,10 @@
 
         <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
             <a href="/" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm d-inline-flex align-items-center gap-2">
-                <span>🏠</span> Retour à l'accueil
+                <span>🏠</span> @Loc["Common.BackHome"]
             </a>
             <button type="button" onclick="window.location.reload()" class="btn btn-outline-secondary px-4 py-2 fw-semibold rounded-pill d-inline-flex align-items-center gap-2">
-                <span>🔄</span> Réessayer
+                <span>🔄</span> @Loc["Common.Retry"]
             </button>
         </div>
     </div>

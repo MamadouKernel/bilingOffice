@@ -194,6 +194,15 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False(c.Ticket.EstEnEtatEngageant);
 
+        // RG-EXP-03 : le Draft IN précède la facture. Il ne rend PAS le ticket engageant —
+        // un brouillon n'est pas un document officiel — ce que l'assertion ci-dessous vérifie.
+        await new EmettreDraftInExportCommand(
+                new TicketRepository(db), DepotDeTest(db, auto, journal, horloge, uow),
+                auto, journal, horloge, uow)
+            .ExecuterAsync(c.AgentId, c.Ticket.Id, "draft-in.pdf", "application/pdf", Contenu(), 8, Regles);
+
+        Assert.False((await RechargerAsync(db, c.Ticket.Id)).EstEnEtatEngageant);
+
         await new EditerFactureExportCommand(
                 new TicketRepository(db), new DossierRepository(db), new FileDeTraitementRepository(db),
                 DepotDeTest(db, auto, journal, horloge, uow), auto, journal, horloge, uow)
