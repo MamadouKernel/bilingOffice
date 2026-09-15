@@ -1,37 +1,40 @@
-﻿@page "/administration/perimetres-supervision"
+@page "/administration/perimetres-supervision"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Périmètres de supervision — CIT</PageTitle>
+<PageTitle>@Loc["AdmPerim.PageTitle"]</PageTitle>
 
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>👁️</span> Supervision
+            <span>👁️</span> @Loc["AdmPerim.Pill"]
         </div>
-        <h1 class="cit-page-title fw-bold text-dark mb-1">Périmètres de supervision</h1>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["AdmPerim.Title"]</h1>
         <div class="cit-page-subtitle text-muted">
-            Quelles files chaque superviseur est habilité à voir et à piloter (CLAR-05, SUP-05).
+            @Loc["AdmPerim.Subtitle"]
         </div>
     </div>
     <div>
         <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+            @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des périmètres de supervision..." />
+    <IndicateurChargement Message="@Loc["AdmPerim.Loading"]" />
 }
 else if (_refuse)
 {
@@ -49,30 +52,29 @@ else if (_vue is not null)
     <div class="cit-card p-4 mb-4 border-0 shadow-sm">
         <div class="d-flex align-items-center gap-2 mb-3">
             <span class="fs-4">➕</span>
-            <h4 class="fw-bold text-dark mb-0 fs-5">Définir ou corriger un périmètre</h4>
+            <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["AdmPerim.AddTitle"]</h4>
         </div>
 
         <div class="row g-3">
             <div class="col-12 col-md-4">
-                <label class="form-label small fw-bold text-dark" for="superviseur">Superviseur</label>
+                <label class="form-label small fw-bold text-dark" for="superviseur">@Loc["AdmPerim.SuperviseurLabel"]</label>
                 <select id="superviseur" class="form-select" @bind="_superviseur" @bind:after="PreremplirAsync">
-                    <option value="">— choisir —</option>
+                    <option value="">@Loc["AdmComp.ChooseOption"]</option>
                     @foreach (var agent in _vue.Agents)
                     {
                         <option value="@agent.Id">@agent.Nom</option>
                     }
                 </select>
                 <div class="form-text small">
-                    Choisir un superviseur déjà administré recharge son périmètre actuel : la
-                    définition <strong>remplace</strong> l'ancienne, elle ne s'y ajoute pas.
+                    @((MarkupString)Loc["AdmPerim.SuperviseurHint"].Value)
                 </div>
             </div>
 
             <div class="col-12 col-md-8">
-                <span class="form-label small fw-bold text-dark d-block">Files couvertes</span>
+                <span class="form-label small fw-bold text-dark d-block">@Loc["AdmPerim.FilesLabel"]</span>
                 @if (_vue.Files.Count == 0)
                 {
-                    <div class="text-muted small">Aucune file n'est encore administrée.</div>
+                    <div class="text-muted small">@Loc["AdmPerim.NoFiles"]</div>
                 }
                 else
                 {
@@ -92,16 +94,14 @@ else if (_vue is not null)
                         }
                     </div>
                     <div class="form-text small">
-                        Ne cocher <strong>aucune</strong> file donne un périmètre global : le superviseur
-                        voit toutes les files. C'est ce que signifie une liste vide dans le domaine —
-                        autant que ce soit dit ici plutôt que découvert en production.
+                        @((MarkupString)Loc["AdmPerim.FilesHint"].Value)
                     </div>
                 }
             </div>
 
             <div class="col-12">
                 <button class="btn btn-primary px-4 py-2 fw-semibold rounded-3 shadow-sm" @onclick="DefinirAsync">
-                    Enregistrer le périmètre
+                    @Loc["AdmPerim.Save"]
                 </button>
             </div>
         </div>
@@ -111,10 +111,9 @@ else if (_vue is not null)
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm">
             <div class="fs-1 mb-3">👁️</div>
-            <h4 class="fw-bold text-dark mb-2">Aucun périmètre administré</h4>
+            <h4 class="fw-bold text-dark mb-2">@Loc["AdmPerim.EmptyTitle"]</h4>
             <p class="text-muted mb-0">
-                Tant qu'aucun périmètre n'est défini, l'écran de supervision refuse l'accès :
-                le socle n'accorde jamais « tout » par défaut.
+                @Loc["AdmPerim.EmptyDesc"]
             </p>
         </div>
     }
@@ -122,16 +121,16 @@ else if (_vue is not null)
     {
         <div class="cit-card border-0 shadow-sm overflow-hidden">
             <div class="p-3 bg-light border-bottom">
-                <span class="fw-bold text-dark small">Périmètres administrés (@_vue.Perimetres.Count)</span>
+                <span class="fw-bold text-dark small">@Loc["AdmPerim.ListTitle", _vue.Perimetres.Count]</span>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <caption class="visually-hidden">Périmètres de supervision administrés</caption>
+                    <caption class="visually-hidden">@Loc["AdmPerim.TableCaption"]</caption>
                     <thead class="table-light">
                         <tr>
-                            <th scope="col" class="ps-4">Superviseur</th>
-                            <th scope="col">Files couvertes</th>
-                            <th scope="col" class="text-end pe-4">Actions</th>
+                            <th scope="col" class="ps-4">@Loc["AdmPerim.ColSuperviseur"]</th>
+                            <th scope="col">@Loc["AdmPerim.ColFiles"]</th>
+                            <th scope="col" class="text-end pe-4">@Loc["AdmPieceC.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -142,7 +141,7 @@ else if (_vue is not null)
                                 <td>
                                     @if (p.ToutesLesFiles)
                                     {
-                                        <span class="badge bg-warning bg-opacity-25 text-dark">Toutes les files</span>
+                                        <span class="badge bg-warning bg-opacity-25 text-dark">@Loc["AdmPerim.AllFiles"]</span>
                                     }
                                     else
                                     {
@@ -155,7 +154,7 @@ else if (_vue is not null)
                                 <td class="text-end pe-4">
                                     <button class="btn btn-outline-primary btn-sm rounded-pill px-3"
                                             @onclick="() => ModifierAsync(p)">
-                                        Modifier
+                                        @Loc["AdmPerim.Edit"]
                                     </button>
                                 </td>
                             </tr>
@@ -172,7 +171,7 @@ else if (_vue is not null)
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des périmètres de supervision pour accéder à cette interface.";
+    private string _messageRefus = string.Empty;
     private string? _erreur;
 
     private string _superviseur = string.Empty;
@@ -180,6 +179,7 @@ else if (_vue is not null)
 
     protected override async Task OnInitializedAsync()
     {
+        _messageRefus = Loc["AdmPerim.Refuse"].Value;
         var contexte = await ContexteService.ObtenirContexteAsync();
         _appelantId = contexte.UtilisateurId;
         _refuse = !contexte.Permissions.Contains(
@@ -275,7 +275,7 @@ else if (_vue is not null)
 
         if (!Guid.TryParse(_superviseur, out var superviseurId))
         {
-            _erreur = "Choisissez le superviseur dont vous définissez le périmètre.";
+            _erreur = Loc["AdmPerim.ErrorChoose"].Value;
             return;
         }
 
