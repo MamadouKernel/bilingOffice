@@ -1,33 +1,36 @@
-﻿@page "/administration/audit"
+@page "/administration/audit"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Journal d'audit — CIT</PageTitle>
+<PageTitle>@Loc["AdmAudit.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>🛡️</span> Journal d'audit de sécurité
+            <span>🛡️</span> @Loc["AdmAudit.Title"]
         </h1>
-        <div class="cit-page-subtitle">Registre d'imputabilité immuable, distinct de l'historique métier — réservé à l'administrateur technique</div>
+        <div class="cit-page-subtitle">@Loc["AdmAudit.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
         <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+            @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement du journal d'audit..." />
+    <IndicateurChargement Message="@Loc["AdmAudit.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -42,25 +45,25 @@ else
 
     @if (_page is null || _page.Entrees.Count == 0)
     {
-        <EtatVide Titre="Aucun événement audité" Description="Le journal d'audit ne contient encore aucune entrée." Icone="🛡️" />
+        <EtatVide Titre="@Loc["AdmAudit.EmptyTitle"]" Description="@Loc["AdmAudit.EmptyDesc"]" Icone="🛡️" />
     }
     else
     {
         <div class="cit-card p-0 overflow-hidden mb-4">
             <div class="p-3 bg-light border-bottom">
                 <h6 class="fw-bold text-dark mb-0">
-                    Événements audités &mdash;
-                    <span class="fw-normal">@_page.PremierRang à @_page.DernierRang sur @_page.Total</span>
+                    @Loc["AdmAudit.EventsHeader"] &mdash;
+                    <span class="fw-normal">@_page.PremierRang @Loc["AdmAudit.RangeTo"] @_page.DernierRang @Loc["AdmAudit.RangeOf"] @_page.Total</span>
                 </h6>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Date et heure (UTC)</th>
-                            <th>Auteur</th>
-                            <th>Action</th>
-                            <th>Élément concerné</th>
+                            <th>@Loc["AdmAudit.ColDateTime"]</th>
+                            <th>@Loc["AdmAudit.ColAuthor"]</th>
+                            <th>@Loc["AdmAudit.ColAction"]</th>
+                            <th>@Loc["AdmAudit.ColElement"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +82,7 @@ else
                                         }
                                         @if (entree.AuteurIntrouvable)
                                         {
-                                            <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size:.65rem;">compte supprimé</span>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size:.65rem;">@Loc["AdmAudit.DeletedAccount"]</span>
                                         }
                                     </div>
                                     @if (entree.AuteurId is Guid auteurId)
@@ -89,7 +92,7 @@ else
                                         {
                                             <div class="text-muted" style="font-size:.72rem;">@entree.AuteurEmail</div>
                                         }
-                                        <div class="text-muted font-monospace" style="font-size:.65rem;" title="Identifiant stable de l'auteur">@auteurId</div>
+                                        <div class="text-muted font-monospace" style="font-size:.65rem;" title="@Loc["AdmAudit.StableIdTitle"]">@auteurId</div>
                                     }
                                 </td>
                                 <td><span class="badge bg-secondary-subtle text-secondary">@entree.Action</span></td>
@@ -105,21 +108,21 @@ else
             @if (_page.NombrePages > 1)
             {
                 <nav class="p-3 border-top d-flex align-items-center justify-content-between gap-2"
-                     aria-label="Pagination du journal d'audit">
+                     aria-label="@Loc["AdmAudit.PaginationAria"]">
                     <button type="button" class="btn btn-outline-secondary btn-sm"
                             disabled="@(!_page.APagePrecedente || _chargement)"
                             @onclick="PagePrecedenteAsync">
-                        &larr; Page précédente
+                        @Loc["AdmAudit.PrevPage"]
                     </button>
 
                     <span class="small text-muted" aria-live="polite">
-                        Page @_page.Page sur @_page.NombrePages
+                        @Loc["AdmAudit.PageXofY", _page.Page, _page.NombrePages]
                     </span>
 
                     <button type="button" class="btn btn-outline-secondary btn-sm"
                             disabled="@(!_page.APageSuivante || _chargement)"
                             @onclick="PageSuivanteAsync">
-                        Page suivante &rarr;
+                        @Loc["AdmAudit.NextPage"]
                     </button>
                 </nav>
             }
@@ -171,7 +174,7 @@ else
             if (contexte is null || !contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour consulter le journal d'audit.";
+                _messageNonAutorise = Loc["AdmAudit.LoginRequired"].Value;
                 return;
             }
 

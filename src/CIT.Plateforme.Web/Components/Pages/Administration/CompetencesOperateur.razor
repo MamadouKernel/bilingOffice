@@ -1,38 +1,40 @@
-﻿@page "/administration/competences-operateur"
+@page "/administration/competences-operateur"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Affectation
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Compétences des opérateurs — CIT</PageTitle>
+<PageTitle>@Loc["AdmComp.PageTitle"]</PageTitle>
 
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>🎯</span> Affectation
+            <span>🎯</span> @Loc["AdmComp.Pill"]
         </div>
-        <h1 class="cit-page-title fw-bold text-dark mb-1">Compétences des opérateurs</h1>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["AdmComp.Title"]</h1>
         <div class="cit-page-subtitle text-muted">
-            Les compétences sur lesquelles s'appuie la stratégie de distribution automatique par
-            compétence (AFF-06).
+            @Loc["AdmComp.Subtitle"]
         </div>
     </div>
     <div>
         <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+            @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des compétences..." />
+    <IndicateurChargement Message="@Loc["AdmComp.Loading"]" />
 }
 else if (_refuse)
 {
@@ -50,9 +52,9 @@ else if (_vue is not null)
     <div class="cit-card p-4 mb-4 border-0 shadow-sm">
         <div class="row g-3 align-items-end">
             <div class="col-12 col-md-5">
-                <label class="form-label small fw-bold text-dark" for="operateur">Opérateur</label>
+                <label class="form-label small fw-bold text-dark" for="operateur">@Loc["AdmComp.OperatorLabel"]</label>
                 <select id="operateur" class="form-select" @bind="_operateur" @bind:after="ChargerAsync">
-                    <option value="">— choisir —</option>
+                    <option value="">@Loc["AdmComp.ChooseOption"]</option>
                     @foreach (var op in _vue.Operateurs)
                     {
                         <option value="@op.Id">@op.Nom</option>
@@ -60,9 +62,9 @@ else if (_vue is not null)
                 </select>
             </div>
             <div class="col-12 col-md-5">
-                <label class="form-label small fw-bold text-dark" for="code">Compétence à attribuer</label>
+                <label class="form-label small fw-bold text-dark" for="code">@Loc["AdmComp.SkillLabel"]</label>
                 <input id="code" class="form-control" @bind="_code" list="codes-employes"
-                       placeholder="code administré, ex. manifeste" />
+                       placeholder="@Loc["AdmComp.SkillPlaceholder"]" />
                 @* Aucun catalogue n'est codé en dur (Principe VI, PC-12) : la liste ne propose que
                    les codes que l'administration a elle-même déjà employés. *@
                 <datalist id="codes-employes">
@@ -75,7 +77,7 @@ else if (_vue is not null)
             <div class="col-12 col-md-2 d-grid">
                 <button class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" @onclick="AttribuerAsync"
                         disabled="@(string.IsNullOrWhiteSpace(_operateur) || string.IsNullOrWhiteSpace(_code))">
-                    Attribuer
+                    @Loc["AdmComp.AssignBtn"]
                 </button>
             </div>
         </div>
@@ -85,18 +87,17 @@ else if (_vue is not null)
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm">
             <div class="fs-1 mb-3">🎯</div>
-            <h4 class="fw-bold text-dark mb-2">Choisissez un opérateur</h4>
-            <p class="text-muted mb-0">Ses compétences s'afficheront ici.</p>
+            <h4 class="fw-bold text-dark mb-2">@Loc["AdmComp.ChooseOpTitle"]</h4>
+            <p class="text-muted mb-0">@Loc["AdmComp.ChooseOpDesc"]</p>
         </div>
     }
     else if (_vue.Codes.Count == 0)
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm">
             <div class="fs-1 mb-3">🎯</div>
-            <h4 class="fw-bold text-dark mb-2">Aucune compétence attribuée</h4>
+            <h4 class="fw-bold text-dark mb-2">@Loc["AdmComp.NoSkillTitle"]</h4>
             <p class="text-muted mb-0">
-                La distribution par compétence ne retiendra jamais cet opérateur tant qu'il n'en a
-                aucune.
+                @Loc["AdmComp.NoSkillDesc"]
             </p>
         </div>
     }
@@ -104,15 +105,15 @@ else if (_vue is not null)
     {
         <div class="cit-card border-0 shadow-sm overflow-hidden">
             <div class="p-3 bg-light border-bottom">
-                <span class="fw-bold text-dark small">Compétences attribuées (@_vue.Codes.Count)</span>
+                <span class="fw-bold text-dark small">@Loc["AdmComp.AssignedTitle", _vue.Codes.Count]</span>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <caption class="visually-hidden">Compétences attribuées à l'opérateur sélectionné</caption>
+                    <caption class="visually-hidden">@Loc["AdmComp.TableCaption"]</caption>
                     <thead class="table-light">
                         <tr>
-                            <th scope="col" class="ps-4">Code de compétence</th>
-                            <th scope="col" class="text-end pe-4">Actions</th>
+                            <th scope="col" class="ps-4">@Loc["AdmComp.ColSkillCode"]</th>
+                            <th scope="col" class="text-end pe-4">@Loc["AdmComp.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,7 +126,7 @@ else if (_vue is not null)
                                 <td class="text-end pe-4">
                                     <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                             @onclick="() => RetirerAsync(codeAttribue)">
-                                        Retirer
+                                        @Loc["AdmComp.Remove"]
                                     </button>
                                 </td>
                             </tr>
@@ -142,7 +143,7 @@ else if (_vue is not null)
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission de gestion des compétences pour accéder à cette interface.";
+    private string _messageRefus = string.Empty;
     private string? _erreur;
 
     private string _operateur = string.Empty;
@@ -150,6 +151,7 @@ else if (_vue is not null)
 
     protected override async Task OnInitializedAsync()
     {
+        _messageRefus = Loc["AdmComp.Refuse"].Value;
         var contexte = await ContexteService.ObtenirContexteAsync();
         _appelantId = contexte.UtilisateurId;
         _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.CompetenceGerer);
@@ -198,7 +200,7 @@ else if (_vue is not null)
 
         if (!Guid.TryParse(_operateur, out var operateurId))
         {
-            _erreur = "Choisissez l'opérateur à qui attribuer la compétence.";
+            _erreur = Loc["AdmComp.SelectOpError"].Value;
             return;
         }
 
