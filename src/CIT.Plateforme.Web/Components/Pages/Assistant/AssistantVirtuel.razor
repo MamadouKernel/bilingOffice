@@ -4,23 +4,25 @@
 @using CIT.Plateforme.Application.Assistant
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Assistant virtuel — CIT</PageTitle>
+<PageTitle>@Loc["Asst.PageTitle"]</PageTitle>
 
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>💬</span> Assistance • IA-01 à IA-06
+            <span>💬</span> @Loc["Asst.Pill"]
         </div>
-        <h1 class="cit-page-title fw-bold text-dark mb-1">Assistant virtuel</h1>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["Asst.Title"]</h1>
         <div class="cit-page-subtitle text-muted">
-            Posez vos questions de premier niveau. Si l'assistant ne sait pas répondre, vous pouvez
-            transmettre l'échange à un opérateur — il lui sera remis en entier.
+            @Loc["Asst.Subtitle"]
         </div>
     </div>
 </div>
@@ -28,11 +30,11 @@
 <div style="max-width: 900px;">
     @if (_chargement)
     {
-        <IndicateurChargement Message="Ouverture de l'assistant..." />
+        <IndicateurChargement Message="@Loc["Asst.Loading"]" />
     }
     else if (_nonAutorise)
     {
-        <PermissionDenied Message="Vous devez être connecté pour utiliser l'assistant." />
+        <PermissionDenied Message="@Loc["Asst.NonAutorise"]" />
     }
     else
     {
@@ -46,8 +48,8 @@
         <div class="cit-card mb-3">
             @if (_conversation is null || _conversation.Messages.Count == 0)
             {
-                <EtatVide Titre="Aucun échange pour l'instant" Icone="💬"
-                          Message="Posez votre première question : suivi d'une demande, pièces à fournir, délais, simulation tarifaire, annulation…" />
+                <EtatVide Titre="@Loc["Asst.EmptyTitle"]" Icone="💬"
+                          Message="@Loc["Asst.EmptyMsg"]" />
             }
             else
             {
@@ -71,10 +73,10 @@
         {
             <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info-emphasis rounded-3 p-3">
                 <span class="me-2">👤</span>
-                Cet échange a été transmis à un opérateur. La suite se poursuit dans le ticket
+                @Loc["Asst.EscaladeInfoBefore"]
                 @if (_conversation.TicketId is Guid t)
                 {
-                    <a href="@($"/tickets/{t}")" class="fw-semibold">concerné</a>
+                    <a href="@($"/tickets/{t}")" class="fw-semibold">@Loc["Asst.EscaladeInfoLink"]</a>
                 }
                 .
             </div>
@@ -85,18 +87,18 @@
             {
                 <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning-emphasis rounded-3 p-3 mb-3">
                     <div class="fw-semibold mb-2">
-                        <span class="me-2">🙋</span> L'assistant n'a pas su répondre.
+                        <span class="me-2">🙋</span> @Loc["Asst.EscaladeNoResponse"]
                     </div>
                     <div class="row g-2 align-items-end">
                         <div class="col-md-8">
-                            <label for="ticket-escalade" class="form-label small fw-semibold">Ticket auquel rattacher l'échange</label>
+                            <label for="ticket-escalade" class="form-label small fw-semibold">@Loc["Asst.LblTicketEscalade"]</label>
                             <input id="ticket-escalade" class="form-control form-control-sm font-monospace"
-                                   placeholder="Identifiant du ticket" @bind="_ticketEscalade" />
+                                   placeholder="@Loc["Asst.PlaceholderTicket"]" @bind="_ticketEscalade" />
                         </div>
                         <div class="col-md-4">
                             <button class="btn btn-warning btn-sm w-100 fw-semibold"
                                     @onclick="EscaladerAsync" disabled="@_envoi">
-                                Transmettre à un opérateur
+                                @Loc["Asst.BtnTransmettre"]
                             </button>
                         </div>
                     </div>
@@ -106,15 +108,15 @@
             <div class="cit-card">
                 <div class="row g-2 align-items-end">
                     <div class="col-md-10">
-                        <label for="question" class="form-label small fw-semibold text-dark">Votre question</label>
+                        <label for="question" class="form-label small fw-semibold text-dark">@Loc["Asst.LblQuestion"]</label>
                         <input id="question" class="form-control" @bind="_question" @bind:event="oninput"
                                @onkeydown="@(async e => { if (e.Key == "Enter") await PoserAsync(); })"
-                               placeholder="Ex. Où en est ma demande d'import ?" />
+                               placeholder="@Loc["Asst.PlaceholderQuestion"]" />
                     </div>
                     <div class="col-md-2">
                         <button class="btn btn-primary w-100 fw-semibold" @onclick="PoserAsync"
                                 disabled="@(_envoi || string.IsNullOrWhiteSpace(_question))">
-                            Envoyer
+                            @Loc["Asst.BtnEnvoyer"]
                         </button>
                     </div>
                 </div>
@@ -191,7 +193,7 @@
 
         if (!Guid.TryParse(_ticketEscalade, out var ticketId))
         {
-            _erreur = "Identifiant de ticket invalide.";
+            _erreur = Loc["Asst.ErrTicketInvalide"].Value;
             return;
         }
 
@@ -202,7 +204,7 @@
             var commande = scope.ServiceProvider.GetRequiredService<EscaladerAssistantVersOperateurCommand>();
             await commande.ExecuterAsync(
                 _utilisateurId, _conversation!.Id, ticketId,
-                _conversation.MotifEscaladeRecommandee ?? "Demande transmise par l'usager.");
+                _conversation.MotifEscaladeRecommandee ?? Loc["Asst.MotifDefaut"].Value);
 
             var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
             _conversation = await query.ExecuterAsync(_utilisateurId);
@@ -210,7 +212,7 @@
         }
         catch (AccesRefuseException)
         {
-            _erreur = "Ce ticket ne relève pas de votre périmètre.";
+            _erreur = Loc["Asst.ErrPerimetreTicket"].Value;
         }
         catch (Exception ex)
         {

@@ -9,8 +9,11 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Supervision
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ListerFilesQuery ListerFiles
 @inject VueChargeQuery VueCharge
@@ -22,23 +25,23 @@
 @inject ReouvrirTicketCommand Reouvrir
 @inject DeclarerFinalisationPresentielleCommand DeclarerFinalisationPresentielle
 
-<PageTitle>Actions sur le ticket — CIT</PageTitle>
+<PageTitle>@Loc["TicketAct.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>⚙️</span> Actions opérationnelles sur le ticket
+            <span>⚙️</span> @Loc["TicketAct.Title"]
         </h1>
-        <div class="cit-page-subtitle">Transfert, réaffectation et cycle de vie (US2)</div>
+        <div class="cit-page-subtitle">@Loc["TicketAct.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
-        <a href="@($"/tickets/{TicketId}")" class="btn btn-outline-secondary btn-sm">← Revenir à la fiche</a>
+        <a href="@($"/tickets/{TicketId}")" class="btn btn-outline-secondary btn-sm">@Loc["TicketAct.BtnRevenir"]</a>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des actions disponibles..." />
+    <IndicateurChargement Message="@Loc["TicketAct.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -54,16 +57,16 @@ else
     <div class="row g-4 mb-4">
         <div class="col-12 col-lg-6">
             <div class="cit-card h-100">
-                <h6 class="fw-bold text-dark mb-3">🔄 Transférer vers une autre file</h6>
+                <h6 class="fw-bold text-dark mb-3">@Loc["TicketAct.TransfertTitle"]</h6>
                 @if (_files is null || _files.Count == 0)
                 {
-                    <p class="text-muted small mb-0">Vous n'êtes pas habilité à transférer ce ticket, ou aucune file n'est disponible.</p>
+                    <p class="text-muted small mb-0">@Loc["TicketAct.TransfertUnavailable"]</p>
                 }
                 else
                 {
                     <div class="row g-2">
                         <div class="col-12">
-                            <label class="form-label small fw-semibold text-dark" for="file-cible">File de destination</label>
+                            <label class="form-label small fw-semibold text-dark" for="file-cible">@Loc["TicketAct.LblFileDest"]</label>
                             <select id="file-cible" class="form-select form-select-sm" @bind="_fileCible">
                                 @foreach (var file in _files)
                                 {
@@ -72,10 +75,10 @@ else
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold text-dark" for="motif-transfert">Motif du transfert (obligatoire)</label>
+                            <label class="form-label small fw-semibold text-dark" for="motif-transfert">@Loc["TicketAct.LblMotifTransfert"]</label>
                             <input id="motif-transfert" class="form-control form-control-sm" @bind="motifTransfert" />
                         </div>
-                        <div class="col-12 text-end"><button class="btn btn-primary btn-sm" @onclick="TransfererAsync">Transférer</button></div>
+                        <div class="col-12 text-end"><button class="btn btn-primary btn-sm" @onclick="TransfererAsync">@Loc["TicketAct.BtnTransferer"]</button></div>
                     </div>
                 }
             </div>
@@ -83,27 +86,27 @@ else
 
         <div class="col-12 col-lg-6">
             <div class="cit-card h-100">
-                <h6 class="fw-bold text-dark mb-3">👤 Réaffecter un opérateur</h6>
+                <h6 class="fw-bold text-dark mb-3">@Loc["TicketAct.ReaffTitle"]</h6>
                 @if (_operateurs is null || _operateurs.Count == 0)
                 {
-                    <p class="text-muted small mb-0">Vous n'êtes pas habilité à réaffecter ce ticket, ou aucun opérateur n'est enregistré.</p>
+                    <p class="text-muted small mb-0">@Loc["TicketAct.ReaffUnavailable"]</p>
                 }
                 else
                 {
                     <div class="row g-2">
                         <div class="col-12">
-                            <label class="form-label small fw-semibold text-dark" for="operateur">Nouvel opérateur en charge</label>
+                            <label class="form-label small fw-semibold text-dark" for="operateur">@Loc["TicketAct.LblNouvelOp"]</label>
                             <select id="operateur" class="form-select form-select-sm" @bind="_nouvelOperateur">
                                 @foreach (var operateur in _operateurs)
                                 {
                                     <option value="@operateur.OperateurId">
-                                        @(string.IsNullOrWhiteSpace(operateur.NomOperateur) ? "Opérateur non identifié" : operateur.NomOperateur)
-                                        (@operateur.TicketsEnCours en cours)
+                                        @(string.IsNullOrWhiteSpace(operateur.NomOperateur) ? Loc["TicketAct.OperateurNonId"].Value : operateur.NomOperateur)
+                                        @Loc["TicketAct.EnCoursSuffix", operateur.TicketsEnCours]
                                     </option>
                                 }
                             </select>
                         </div>
-                        <div class="col-12 text-end pt-2"><button class="btn btn-secondary btn-sm" @onclick="ReaffecterAsync">Réaffecter</button></div>
+                        <div class="col-12 text-end pt-2"><button class="btn btn-secondary btn-sm" @onclick="ReaffecterAsync">@Loc["TicketAct.BtnReaffecter"]</button></div>
                     </div>
                 }
             </div>
@@ -111,15 +114,15 @@ else
 
         <div class="col-12 col-lg-6">
             <div class="cit-card h-100">
-                <h6 class="fw-bold text-dark mb-3">⏳ Gestion de l'attente client</h6>
+                <h6 class="fw-bold text-dark mb-3">@Loc["TicketAct.AttenteTitle"]</h6>
                 <div class="row g-2">
                     <div class="col-12">
-                        <label class="form-label small fw-semibold text-dark" for="motif-attente">Complément demandé au client</label>
+                        <label class="form-label small fw-semibold text-dark" for="motif-attente">@Loc["TicketAct.LblComplement"]</label>
                         <input id="motif-attente" class="form-control form-control-sm" @bind="motifAttente" />
                     </div>
                     <div class="col-12 d-flex justify-content-end gap-2 pt-2">
-                        <button class="btn btn-warning btn-sm" @onclick="MettreEnAttenteAsync">Demander un complément</button>
-                        <button class="btn btn-outline-secondary btn-sm" @onclick="RependreAsync">Reprendre après réponse</button>
+                        <button class="btn btn-warning btn-sm" @onclick="MettreEnAttenteAsync">@Loc["TicketAct.BtnDemanderComplement"]</button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="RependreAsync">@Loc["TicketAct.BtnReprendre"]</button>
                     </div>
                 </div>
             </div>
@@ -127,16 +130,16 @@ else
 
         <div class="col-12 col-lg-6">
             <div class="cit-card h-100">
-                <h6 class="fw-bold text-dark mb-3">🔄 Cycle de vie & clôture</h6>
+                <h6 class="fw-bold text-dark mb-3">@Loc["TicketAct.CycleTitle"]</h6>
                 <div class="row g-2">
                     <div class="col-12">
-                        <label class="form-label small fw-semibold text-dark" for="motif-cycle">Motif de l'action</label>
+                        <label class="form-label small fw-semibold text-dark" for="motif-cycle">@Loc["TicketAct.LblMotifAction"]</label>
                         <input id="motif-cycle" class="form-control form-control-sm" @bind="motifCycleDeVie" />
                     </div>
                     <div class="col-12 d-flex justify-content-end gap-2 pt-2 flex-wrap">
-                        <button class="btn btn-outline-danger btn-sm" @onclick="DemanderAnnulation">Annuler</button>
-                        <button class="btn btn-success btn-sm" @onclick="DemanderCloture">Clôturer</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick="RouvrirAsync">Rouvrir</button>
+                        <button class="btn btn-outline-danger btn-sm" @onclick="DemanderAnnulation">@Loc["TicketAct.BtnAnnuler"]</button>
+                        <button class="btn btn-success btn-sm" @onclick="DemanderCloture">@Loc["TicketAct.BtnCloturer"]</button>
+                        <button class="btn btn-outline-primary btn-sm" @onclick="RouvrirAsync">@Loc["TicketAct.BtnRouvrir"]</button>
                     </div>
                 </div>
             </div>
@@ -144,12 +147,12 @@ else
 
         <div class="col-12">
             <div class="cit-card bg-light">
-                <h6 class="fw-bold text-dark mb-2">🏛️ Bascule présentielle — Billing Office IMPORT</h6>
+                <h6 class="fw-bold text-dark mb-2">@Loc["TicketAct.PresentielTitle"]</h6>
                 <p class="text-muted small mb-3">
-                    Réservé aux tickets IMPORT validés par le Pilote Manifeste. Aucun mécanisme de rendez-vous automatique.
+                    @Loc["TicketAct.PresentielDesc"]
                 </p>
                 <div>
-                    <button class="btn btn-outline-primary btn-sm" @onclick="DeclarerFinalisationPresentielleAsync">Déclarer la finalisation au Billing Office</button>
+                    <button class="btn btn-outline-primary btn-sm" @onclick="DeclarerFinalisationPresentielleAsync">@Loc["TicketAct.BtnDeclarerPresentiel"]</button>
                 </div>
             </div>
         </div>
@@ -165,7 +168,7 @@ else
                     Titre="@_confirmationTitre"
                     Message="@_confirmationMessage"
                     BoutonConfirmerLibelle="@_confirmationLibelle"
-                    BoutonAnnulerLibelle="Retour"
+                    BoutonAnnulerLibelle="@Loc["TicketAct.ModaleRetour"].Value"
                     BoutonConfirmerClass="@_confirmationClass"
                     Desactive="_confirmationEnCours"
                     OnConfirmer="ConfirmerActionAsync"
@@ -214,7 +217,7 @@ else
             if (contexte is null || !contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour agir sur ce ticket.";
+                _messageNonAutorise = Loc["TicketAct.LoginRequis"].Value;
                 return;
             }
 
@@ -250,36 +253,36 @@ else
 
     private async Task MettreEnAttenteAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await AttenteClient.MettreEnAttenteAsync(_initiateurId, TicketId, motifAttente),
-        "Ticket mis en attente client.");
+        Loc["TicketAct.SuccessAttente"].Value);
 
     private async Task RependreAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await AttenteClient.RependreApresReponseAsync(TicketId),
-        "Traitement repris après réponse client.");
+        Loc["TicketAct.SuccessReprise"].Value);
 
     // REMÉDIATION P1-01 : l'écran passait ici `etapeBloquanteAtteinte: false` en dur, ce qui
     // désactivait la garde CYC-01 côté serveur. La décision appartient désormais à la commande,
     // qui la prend seule — l'interface n'a plus rien à en dire.
     private async Task AnnulerAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Annuler.AnnulerLibrementAsync(_initiateurId, TicketId, motifCycleDeVie),
-        "Ticket annulé.");
+        Loc["TicketAct.SuccessAnnule"].Value);
 
     private async Task ClorerAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Cloturer.ExecuterAsync(_initiateurId, TicketId),
-        "Ticket clôturé et archivé automatiquement.");
+        Loc["TicketAct.SuccessCloture"].Value);
 
     // AM-03 — les deux actions irréversibles ouvrent d'abord la modale ; l'exécution réelle
     // (AnnulerAsync / ClorerAsync) reste inchangée et n'est déclenchée qu'après confirmation.
     private void DemanderAnnulation() => DemanderConfirmation(
-        "Annuler ce ticket",
-        "L'annulation clôt le ticket sans le traiter. Cette action est irréversible. Confirmez-vous ?",
-        "Oui, annuler le ticket",
+        Loc["TicketAct.ConfAnnulerTitre"].Value,
+        Loc["TicketAct.ConfAnnulerMsg"].Value,
+        Loc["TicketAct.ConfAnnulerBtn"].Value,
         "btn-danger",
         AnnulerAsync);
 
     private void DemanderCloture() => DemanderConfirmation(
-        "Clôturer ce ticket",
-        "La clôture archive le ticket automatiquement. Confirmez-vous la clôture ?",
-        "Oui, clôturer",
+        Loc["TicketAct.ConfCloturerTitre"].Value,
+        Loc["TicketAct.ConfCloturerMsg"].Value,
+        Loc["TicketAct.ConfCloturerBtn"].Value,
         "btn-success",
         ClorerAsync);
 
@@ -329,19 +332,19 @@ else
 
     private async Task RouvrirAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Reouvrir.RouvrirAsync(_initiateurId, TicketId, motifCycleDeVie),
-        "Ticket rouvert.");
+        Loc["TicketAct.SuccessRouvert"].Value);
 
     private async Task DeclarerFinalisationPresentielleAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await DeclarerFinalisationPresentielle.ExecuterAsync(_initiateurId, TicketId),
-        "Bascule présentielle déclarée.");
+        Loc["TicketAct.SuccessPresentiel"].Value);
 
     private async Task TransfererAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Transferer.ExecuterAsync(_initiateurId, TicketId, _fileCible, motifTransfert),
-        "Ticket transféré.");
+        Loc["TicketAct.SuccessTransfert"].Value);
 
     private async Task ReaffecterAsync() => await ExecuterAvecGestionErreurAsync(
         async () => await Reaffecter.ExecuterAsync(_initiateurId, TicketId, _nouvelOperateur),
-        "Ticket réaffecté.");
+        Loc["TicketAct.SuccessReaffecte"].Value);
 
     private async Task ExecuterAvecGestionErreurAsync(Func<Task> action, string messageSucces)
     {

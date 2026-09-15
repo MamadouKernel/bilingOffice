@@ -6,40 +6,43 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject RechercherGuichetQuery RechercheQuery
 @inject ConsulterDossierGuichetQuery ConsulterDossierQuery
 @inject RegulariserModeDegradeCommand RegulariserCommand
 @inject NavigationManager Navigation
 
-<PageTitle>Guichet — Recherche & Continuité de Service</PageTitle>
+<PageTitle>@Loc["GuiRech.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>🏛️</span> Guichet Billing Office — Continuité de Service
+            <span>🏛️</span> @Loc["GuiRech.Title"]
         </h1>
         <div class="cit-page-subtitle">
-            Recherche rapide multicritère & Reprise de dossier sans ressaisie
+            @Loc["GuiRech.Subtitle"]
         </div>
     </div>
     <div class="d-flex gap-2">
         <a href="/guichet/agenda" class="btn btn-outline-primary">
-            📅 Agenda des Rendez-vous
+            @Loc["GuiRech.LinkAgenda"]
         </a>
     </div>
 </div>
 
 @if (_chargementInitial)
 {
-    <IndicateurChargement Message="Vérification des habilitations..." />
+    <IndicateurChargement Message="@Loc["Gui.CheckingPerm"]" />
 }
 else if (!_estHabilite)
 {
     <div class="alert alert-danger" role="alert">
-        <strong>Accès refusé :</strong> Vous devez disposer de l'habilitation <code>GuichetRecherche</code> pour accéder au guichet présentiel.
+        @((MarkupString)Loc["GuiRech.AccessDenied"].Value)
     </div>
 }
 else
@@ -63,20 +66,20 @@ else
     @* Zone de recherche rapide (CON-02) *@
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body">
-            <h5 class="card-title text-primary mb-3">🔍 Recherche Multicritère Rapide</h5>
+            <h5 class="card-title text-primary mb-3">@Loc["GuiRech.SearchTitle"]</h5>
             <div class="row g-3">
                 <div class="col-md-7">
-                    <label for="numero-de-ticket-bl" class="form-label fw-bold">Numéro de Ticket, BL, Booking ou Dossier</label>
-                    <input id="numero-de-ticket-bl" type="text" class="form-control form-control-lg" placeholder="Ex: COSU1234567, CIT-IMP-2026-..., DOS-..."
+                    <label for="numero-de-ticket-bl" class="form-label fw-bold">@Loc["GuiRech.LblTerme"]</label>
+                    <input id="numero-de-ticket-bl" type="text" class="form-control form-control-lg" placeholder="@Loc["GuiRech.PlaceholderTerme"]"
                            @bind="_termeRecherche" @bind:event="oninput" @onkeyup="GererToucheRecherche" />
                 </div>
                 <div class="col-md-3">
-                    <label for="module" class="form-label fw-bold">Module</label>
+                    <label for="module" class="form-label fw-bold">@Loc["GuiRech.LblModule"]</label>
                     <select id="module" class="form-select form-select-lg" @bind="_moduleFiltre">
-                        <option value="">Tous les modules</option>
-                        <option value="BillingImport">Billing Import</option>
-                        <option value="BillingExport">Billing Export</option>
-                        <option value="Enrolement">Enrôlement Gate</option>
+                        <option value="">@Loc["GuiRech.ModuleAll"]</option>
+                        <option value="BillingImport">@Loc["GuiRech.ModuleImport"]</option>
+                        <option value="BillingExport">@Loc["GuiRech.ModuleExport"]</option>
+                        <option value="Enrolement">@Loc["GuiRech.ModuleEnrolement"]</option>
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
@@ -87,7 +90,7 @@ else
                         }
                         else
                         {
-                            <span>Rechercher</span>
+                            <span>@Loc["GuiRech.BtnRechercher"]</span>
                         }
                     </button>
                 </div>
@@ -101,52 +104,52 @@ else
         <div class="card shadow border-primary mb-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                    📂 Dossier Guichet — @_dossierConsulte.NumeroTicket (@_dossierConsulte.Module)
+                    @Loc["GuiRech.DossierTitle", _dossierConsulte.NumeroTicket, _dossierConsulte.Module]
                 </h5>
-                <button class="btn btn-sm btn-light" @onclick="FermerDossier">✕ Fermer la vue détaillée</button>
+                <button class="btn btn-sm btn-light" @onclick="FermerDossier">@Loc["GuiRech.BtnFermerVue"]</button>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <div class="text-muted small">Numéro Dossier</div>
+                        <div class="text-muted small">@Loc["GuiRech.LblNumeroDossier"]</div>
                         <div class="fw-bold fs-5">@_dossierConsulte.NumeroDossier</div>
                     </div>
                     <div class="col-md-4">
-                        <div class="text-muted small">Société / Client</div>
+                        <div class="text-muted small">@Loc["GuiRech.LblSociete"]</div>
                         <div class="fw-bold fs-5">@_dossierConsulte.ClientNom</div>
                     </div>
                     <div class="col-md-4">
-                        <div class="text-muted small">Référence Métier (BL / Booking)</div>
+                        <div class="text-muted small">@Loc["GuiRech.LblRefMetier"]</div>
                         <div class="fw-bold fs-5 text-primary">@_dossierConsulte.ReferenceBlOuBooking</div>
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <div class="text-muted small">Statut Ticket</div>
+                        <div class="text-muted small">@Loc["GuiRech.LblStatutTicket"]</div>
                         <span class="badge bg-info text-dark">@_dossierConsulte.Statut</span>
                     </div>
                     <div class="col-md-8">
-                        <div class="text-muted small">Rendez-vous Actif</div>
+                        <div class="text-muted small">@Loc["GuiRech.LblRdvActif"]</div>
                         @if (_dossierConsulte.RendezVousActif is not null)
                         {
                             <span class="badge bg-success">
-                                📅 Le @_dossierConsulte.RendezVousActif.Date.ToString("dd/MM/yyyy") à @_dossierConsulte.RendezVousActif.HeureDebut.ToString(@"hh\:mm") (@_dossierConsulte.RendezVousActif.Motif)
+                                @Loc["GuiRech.RdvActifBadge", _dossierConsulte.RendezVousActif.Date.ToString("dd/MM/yyyy"), _dossierConsulte.RendezVousActif.HeureDebut.ToString(@"hh\:mm"), _dossierConsulte.RendezVousActif.Motif]
                             </span>
                         }
                         else
                         {
-                            <span class="text-muted">Aucun rendez-vous actif.</span>
+                            <span class="text-muted">@Loc["GuiRech.AucunRdvActif"]</span>
                         }
                     </div>
                 </div>
 
                 <hr />
 
-                <h6>📑 Pièces et Documents Déposés (Zéro Ressaisie)</h6>
+                <h6>@Loc["GuiRech.PiecesTitle"]</h6>
                 @if (_dossierConsulte.Documents.Count == 0)
                 {
-                    <p class="text-muted fst-italic">Aucun document joint à ce dossier.</p>
+                    <p class="text-muted fst-italic">@Loc["GuiRech.AucunDoc"]</p>
                 }
                 else
                 {
@@ -156,7 +159,7 @@ else
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>@doc.NomFichier</strong>
-                                    <span class="text-muted small ms-2">(Déposé le @doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm"))</span>
+                                    <span class="text-muted small ms-2">@Loc["GuiRech.DocDepose", doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")]</span>
                                 </div>
                                 <span class="badge bg-secondary">@doc.TypeContenu</span>
                             </li>
@@ -167,18 +170,18 @@ else
                 @* Régularisation mode dégradé (ERR-04 / C10-11) *@
                 <div class="card bg-light mt-3 border-warning">
                     <div class="card-body">
-                        <h6 class="card-title text-warning-emphasis">⚠️ Régularisation d'une Opération Physique (Mode Dégradé)</h6>
+                        <h6 class="card-title text-warning-emphasis">@Loc["GuiRech.DegradeTitle"]</h6>
                         <p class="card-text small text-muted">
-                            Si cette opération a été traitée physiquement au guichet pendant une panne informatique, saisissez la régularisation :
+                            @Loc["GuiRech.DegradeDesc"]
                         </p>
                         <div class="row g-2">
                             <div class="col-md-4">
-                                <label for="date-et-heure-de" class="form-label small">Date et heure de l'opération physique</label>
+                                <label for="date-et-heure-de" class="form-label small">@Loc["GuiRech.LblDateOp"]</label>
                                 <input id="date-et-heure-de" type="datetime-local" class="form-control form-control-sm" @bind="_dateOperationDegrade" />
                             </div>
                             <div class="col-md-6">
-                                <label for="description-de-l-operation" class="form-label small">Description de l'opération physique effectuée</label>
-                                <input id="description-de-l-operation" type="text" class="form-control form-control-sm" placeholder="Ex: Encaissement chèque au guichet n°3" @bind="_descriptionDegrade" />
+                                <label for="description-de-l-operation" class="form-label small">@Loc["GuiRech.LblDescOp"]</label>
+                                <input id="description-de-l-operation" type="text" class="form-control form-control-sm" placeholder="@Loc["GuiRech.PlaceholderDescOp"]" @bind="_descriptionDegrade" />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button class="btn btn-warning btn-sm w-100" @onclick="RegulariserModeDegradeAsync" disabled="@_enRegularisation">
@@ -188,7 +191,7 @@ else
                                     }
                                     else
                                     {
-                                        <span>Régulariser</span>
+                                        <span>@Loc["GuiRech.BtnRegulariser"]</span>
                                     }
                                 </button>
                             </div>
@@ -204,13 +207,13 @@ else
     {
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Résultats de la recherche (@_resultats.Count)</h5>
+                <h5 class="mb-0">@Loc["GuiRech.ResultsTitle", _resultats.Count]</h5>
             </div>
             <div class="card-body p-0">
                 @if (_resultats.Count == 0)
                 {
                     <div class="p-4 text-center text-muted">
-                        Aucun dossier ou ticket ne correspond aux critères de recherche.
+                        @Loc["GuiRech.NoResults"]
                     </div>
                 }
                 else
@@ -219,14 +222,14 @@ else
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Ticket</th>
-                                    <th>Dossier</th>
-                                    <th>Module</th>
-                                    <th>Client / Société</th>
-                                    <th>BL / Booking</th>
-                                    <th>Statut</th>
-                                    <th>RDV Actif</th>
-                                    <th>Actions</th>
+                                    <th>@Loc["GuiRech.ColTicket"]</th>
+                                    <th>@Loc["GuiRech.ColDossier"]</th>
+                                    <th>@Loc["GuiRech.ColModule"]</th>
+                                    <th>@Loc["GuiRech.ColClient"]</th>
+                                    <th>@Loc["GuiRech.ColBlBooking"]</th>
+                                    <th>@Loc["GuiRech.ColStatut"]</th>
+                                    <th>@Loc["GuiRech.ColRdvActif"]</th>
+                                    <th>@Loc["GuiRech.ColActions"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -242,16 +245,16 @@ else
                                         <td>
                                             @if (r.PossedeRendezVousActif)
                                             {
-                                                <span class="badge bg-success">Oui 📅</span>
+                                                <span class="badge bg-success">@Loc["GuiRech.BadgeOui"]</span>
                                             }
                                             else
                                             {
-                                                <span class="text-muted">Non</span>
+                                                <span class="text-muted">@Loc["GuiRech.BadgeNon"]</span>
                                             }
                                         </td>
                                         <td>
                                             <button class="btn btn-sm btn-outline-primary" @onclick="() => ConsulterDossierAsync(r.TicketId)">
-                                                Ouvrir Guichet 📂
+                                                @Loc["GuiRech.BtnOuvrirGuichet"]
                                             </button>
                                         </td>
                                     </tr>
@@ -351,7 +354,7 @@ else
         if (_dossierConsulte is null) return;
         if (string.IsNullOrWhiteSpace(_descriptionDegrade))
         {
-            _messageErreur = "Veuillez décrire l'opération effectuée en mode dégradé.";
+            _messageErreur = Loc["GuiRech.ErrDescDegrade"].Value;
             return;
         }
 
@@ -366,7 +369,7 @@ else
                 _dateOperationDegrade.ToUniversalTime(),
                 _descriptionDegrade
             ));
-            _messageSucces = "Régularisation enregistrée avec succès dans l'historique et le journal d'audit.";
+            _messageSucces = Loc["GuiRech.SuccessRegul"].Value;
             _descriptionDegrade = string.Empty;
         }
         catch (Exception ex)
