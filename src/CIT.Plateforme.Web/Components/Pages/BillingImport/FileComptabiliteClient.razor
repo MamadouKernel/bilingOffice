@@ -7,29 +7,32 @@
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConfirmerLettrageCommand ConfirmerLettrage
 @inject ConsulterFileBillingImportQuery ConsulterFile
 
-<PageTitle>File Comptabilité Client — CIT</PageTitle>
+<PageTitle>@Loc["FileCompta.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>💼</span> File Comptabilité Client
+            <span>💼</span> @Loc["FileCompta.Title"]
         </h1>
-        <div class="cit-page-subtitle">Rapprochement et confirmation du lettrage des comptes clients Deposit</div>
+        <div class="cit-page-subtitle">@Loc["FileCompta.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
-        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">Mon tableau de bord</a>
+        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des dossiers en attente de lettrage comptable..." />
+    <IndicateurChargement Message="@Loc["FileCompta.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -44,8 +47,8 @@ else
 
     @if (_tickets.Count == 0)
     {
-        <EtatVide Titre="Aucun compte en attente de lettrage"
-                  Description="Tous les dossiers Deposit ont été lettrés."
+        <EtatVide Titre="@Loc["FileCompta.EmptyTitle"]"
+                  Description="@Loc["FileCompta.EmptyDesc"]"
                   Icone="💰" />
     }
     else
@@ -55,11 +58,11 @@ else
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>N° Ticket</th>
-                            <th>Numéro BL</th>
-                            <th>Statut</th>
-                            <th>Arrivée en file</th>
-                            <th class="text-end">Action Comptabilité</th>
+                            <th>@Loc["AvoirExoList.ColTicket"]</th>
+                            <th>@Loc["File.ColBl"]</th>
+                            <th>@Loc["Societe.ColStatus"]</th>
+                            <th>@Loc["File.ColArrival"]</th>
+                            <th class="text-end">@Loc["FileCompta.ColAction"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,11 +86,11 @@ else
                                 </td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
-                                            🔍 Fiche
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
+                                            @Loc["File.Sheet"]
                                         </a>
                                         <button class="btn btn-outline-success" @onclick="() => ConfirmerAsync(t.Id)">
-                                            ✅ Confirmer le lettrage
+                                            @Loc["FileCompta.Confirm"]
                                         </button>
                                     </div>
                                 </td>
@@ -119,7 +122,7 @@ else
             if (!contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette file.";
+                _messageNonAutorise = Loc["File.LoginRequired"].Value;
                 return;
             }
 
@@ -167,7 +170,7 @@ else
         try
         {
             await ConfirmerLettrage.ConfirmerAsync(_agentId, ticketId);
-            _message = "Lettrage confirmé avec succès — ticket transféré au Contrôle Documentaire.";
+            _message = Loc["FileCompta.Confirmed"].Value;
             _erreur = false;
             await ChargerAsync();
         }

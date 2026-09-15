@@ -7,31 +7,34 @@
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ValiderTicketImportCommand Valider
 @inject RejeterTicketImportCommand Rejeter
 @inject GestionComplementManifesteCommand Complement
 @inject ConsulterFileBillingImportQuery ConsulterFile
 
-<PageTitle>File Pilote Manifeste — CIT</PageTitle>
+<PageTitle>@Loc["FileManif.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>📜</span> File Pilote Manifeste
+            <span>📜</span> @Loc["FileManif.Title"]
         </h1>
-        <div class="cit-page-subtitle">Contrôle initial de conformité des connaissements (BL) et recevabilité manifeste</div>
+        <div class="cit-page-subtitle">@Loc["FileManif.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">🔄 Actualiser la file</button>
-        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">Mon tableau de bord</a>
+        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des tickets de la file Manifeste..." />
+    <IndicateurChargement Message="@Loc["FileManif.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -51,8 +54,8 @@ else
 
     @if (_tickets.Count == 0)
     {
-        <EtatVide Titre="Aucun ticket en instance"
-                  Description="Tous les dossiers de la file Pilote Manifeste ont été instruits ou pris en charge."
+        <EtatVide Titre="@Loc["FileManif.EmptyTitle"]"
+                  Description="@Loc["FileManif.EmptyDesc"]"
                   Icone="📋" />
     }
     else
@@ -62,11 +65,11 @@ else
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>N° Ticket</th>
-                            <th>Numéro BL</th>
-                            <th>Statut</th>
-                            <th>Arrivée en file</th>
-                            <th class="text-end">Actions d'instruction</th>
+                            <th>@Loc["AvoirExoList.ColTicket"]</th>
+                            <th>@Loc["File.ColBl"]</th>
+                            <th>@Loc["Societe.ColStatus"]</th>
+                            <th>@Loc["File.ColArrival"]</th>
+                            <th class="text-end">@Loc["FileIes.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +86,7 @@ else
                                     <span class="fw-bold text-dark font-monospace">@t.NumeroBl</span>
                                     @if (t.DeclarationPresentielle)
                                     {
-                                        <span class="badge bg-dark ms-1 small">Présentiel</span>
+                                        <span class="badge bg-dark ms-1 small">@Loc["FileManif.BadgePresentiel"]</span>
                                     }
                                 </td>
                                 <td>
@@ -94,17 +97,17 @@ else
                                 </td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="Consulter la fiche">
-                                            🔍 Fiche
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
+                                            @Loc["File.Sheet"]
                                         </a>
-                                        <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="Valider le BL">
-                                            ✅ Valider
+                                        <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="@Loc["FileManif.ValidateTitle"]">
+                                            @Loc["FileManif.Validate"]
                                         </button>
-                                        <button class="btn btn-outline-warning" @onclick="() => DemanderComplementAsync(t.Id)" title="Demander un complément">
-                                            ⏳ Complément
+                                        <button class="btn btn-outline-warning" @onclick="() => DemanderComplementAsync(t.Id)" title="@Loc["FileManif.ComplementTitle"]">
+                                            @Loc["FileManif.Complement"]
                                         </button>
-                                        <button class="btn btn-outline-danger" @onclick="() => OuvrirModaleRejet(t.Id)" title="Rejeter la demande">
-                                            ❌ Rejeter
+                                        <button class="btn btn-outline-danger" @onclick="() => OuvrirModaleRejet(t.Id)" title="@Loc["FileManif.RejectTitle"]">
+                                            @Loc["FileManif.Reject"]
                                         </button>
                                     </div>
                                 </td>
@@ -114,12 +117,12 @@ else
                                 <tr class="table-danger">
                                     <td colspan="5" class="p-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <input class="form-control form-control-sm" placeholder="Motif obligatoire de rejet du manifeste..." @bind="_motifRejet" />
+                                            <input class="form-control form-control-sm" placeholder="@Loc["FileManif.RejectPlaceholder"]" @bind="_motifRejet" />
                                             <button class="btn btn-danger btn-sm text-nowrap" @onclick="() => ConfirmerRejetAsync(t.Id)" disabled="@string.IsNullOrWhiteSpace(_motifRejet)">
-                                                Confirmer le rejet
+                                                @Loc["FileManif.ConfirmReject"]
                                             </button>
                                             <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerRejet">
-                                                Annuler
+                                                @Loc["Common.Cancel"]
                                             </button>
                                         </div>
                                     </td>
@@ -160,7 +163,7 @@ else
             if (!contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour accéder à cette file.";
+                _messageNonAutorise = Loc["File.LoginRequired"].Value;
                 return;
             }
 
@@ -218,10 +221,10 @@ else
     }
 
     private Task ValiderAsync(Guid ticketId) =>
-        ExecuterActionAsync(() => Valider.ExecuterAsync(_agentId, ticketId), "BL validé avec succès. Le ticket poursuit son workflow.");
+        ExecuterActionAsync(() => Valider.ExecuterAsync(_agentId, ticketId), Loc["FileManif.MsgValidated"].Value);
 
     private Task DemanderComplementAsync(Guid ticketId) =>
-        ExecuterActionAsync(() => Complement.DemanderComplementAsync(_agentId, ticketId, "Complément d'information demandé"), "Complément notifié au client.");
+        ExecuterActionAsync(() => Complement.DemanderComplementAsync(_agentId, ticketId, Loc["Ticket.HoldReason"].Value), Loc["FileManif.MsgComplement"].Value);
 
     private void OuvrirModaleRejet(Guid ticketId)
     {
@@ -244,6 +247,6 @@ else
             await Rejeter.ExecuterAsync(_agentId, ticketId, _motifRejet);
             _ticketEnRejet = null;
             _motifRejet = string.Empty;
-        }, "Ticket rejeté conformément au motif indiqué.");
+        }, Loc["FileManif.MsgRejected"].Value);
     }
 }

@@ -7,29 +7,32 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Documents
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterDocumentsTicketClotureQuery ConsulterDocuments
 @inject NavigationManager Navigation
 
-<PageTitle>Consultation des pièces délivrées — CIT</PageTitle>
+<PageTitle>@Loc["FileClot.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>📑</span> Pièces et délivrance (Ticket clôturé)
+            <span>📑</span> @Loc["FileClot.Title"]
         </h1>
-        <div class="cit-page-subtitle">Téléchargement sécurisé des factures, BS et bons à délivrer (BADT)</div>
+        <div class="cit-page-subtitle">@Loc["FileClot.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
-        <a href="/client/demandes" class="btn btn-outline-secondary btn-sm">← Retour à mes demandes</a>
+        <a href="/client/demandes" class="btn btn-outline-secondary btn-sm">@Loc["FileClot.BackToRequests"]</a>
     </div>
 </div>
 
 <div style="max-width: 900px;">
     @if (_chargement)
     {
-        <IndicateurChargement Message="Récupération des documents délivrés..." />
+        <IndicateurChargement Message="@Loc["FileClot.Loading"]" />
     }
     else if (_nonAutorise)
     {
@@ -43,8 +46,8 @@
     {
         @if (_documents.Count == 0)
         {
-            <EtatVide Titre="Aucun document rattaché"
-                      Description="Ce ticket ne contient aucun document archivé pour le moment."
+            <EtatVide Titre="@Loc["FileClot.EmptyTitle"]"
+                      Description="@Loc["FileClot.EmptyDesc"]"
                       Icone="📂" />
         }
         else
@@ -54,10 +57,10 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Nom du fichier</th>
-                                <th>Taille</th>
-                                <th>Date de délivrance (UTC)</th>
-                                <th class="text-end">Action</th>
+                                <th>@Loc["Ticket.ColFileName"]</th>
+                                <th>@Loc["Ticket.ColSize"]</th>
+                                <th>@Loc["FileClot.ColDeliveryDate"]</th>
+                                <th class="text-end">@Loc["SimHist.ColAction"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,11 +70,11 @@
                                     <td>
                                         <span class="fw-bold text-dark">📄 @document.NomFichier</span>
                                     </td>
-                                    <td class="small text-muted font-monospace">@((document.TailleOctets / 1024.0).ToString("0.0")) Ko</td>
+                                    <td class="small text-muted font-monospace">@((document.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
                                     <td class="small text-muted font-monospace">@document.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-primary" @onclick="() => Telecharger(document)">
-                                            ⬇ Télécharger
+                                            @Loc["FileClot.Download"]
                                         </button>
                                     </td>
                                 </tr>
@@ -103,7 +106,7 @@
             if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Vous devez être authentifié et rattaché à une entreprise pour consulter ces documents.";
+                _messageNonAutorise = Loc["FileClot.LoginRequired"].Value;
                 return;
             }
 
