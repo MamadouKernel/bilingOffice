@@ -8,7 +8,8 @@ using Xunit;
 
 namespace CIT.Plateforme.Application.Tests.Affectation;
 
-/// <summary>[TEST-SPEC] Exigence CDC: AFF-07 → US9 → scénario d'acceptation 4 de US9 → Test.</summary>
+/// <summary>[TEST-SPEC] Exigences CDC : AFF-03, AFF-04, AFF-05, AFF-07 — stratégie d'affectation
+/// paramétrable (US9, scénario d'acceptation 4). (Traçabilité §6 docs/88.)</summary>
 public sealed class StrategieAffectationParametrableTests
 {
     [Fact]

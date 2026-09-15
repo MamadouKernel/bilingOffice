@@ -8,6 +8,8 @@ using A = CIT.Plateforme.Domain.Tarification.ParametrageInitialAnnexeA;
 
 namespace CIT.Plateforme.Application.Tests.Tarification;
 
+/// <summary>[TEST-SPEC] Exigences CDC : famille SIM (SIM-01 à SIM-11) — moteur de simulation
+/// tarifaire proforma contrôlé au franc près contre l'annexe A8. (Traçabilité §6 docs/88.)</summary>
 public sealed class CalculerSimulationProformaQueryTests
 {
     [Fact]

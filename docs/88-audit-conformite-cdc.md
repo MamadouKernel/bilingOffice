@@ -22,10 +22,13 @@
 >    `SLA-05` → `/administration/parametres-sla`, `ALE-03` → `/administration/regles-escalade`,
 >    `SOC-07` → `/administration/pieces-exigees-etape` existent bien.
 >
-> **Résidus réels au 15/09** (vérifiés dans le code) : axe **« par étape »** de `COM-03` non
-> explicite (porté par `FileId`) ; `COM-01`/`ENR-04`/`IA-01..07` bloqués fournisseur ;
-> `NFR-05/06/08/09`, `SEC-09`, `PC-13` = infrastructure/DSI. Étiquetage des 19 tests (§6) non
-> encore fait.
+> **Résidus réels au 15/09** (vérifiés dans le code). **COM-03 est conforme** : `RegleDiffusion`
+> porte `Module` + `FileId` et `SApplique(module, fileId)` est appliquée à la distribution
+> (`DistribuerNotificationsUseCase`) — l'étape est l'axe `FileId`, exactement la convention qui a
+> fermé `SLA-01`. Ne subsistent, **hors code** : `COM-01`/`ENR-04`/`IA-01..07` (fournisseurs non
+> arbitrés) et `NFR-05/06/08/09`, `SEC-09`, `PC-13` (infrastructure/DSI). L'« étiquetage des 19
+> tests » (§6) est une commodité de traçabilité **sans impact fonctionnel** (les comportements
+> sont testés ; seul le code d'exigence manque en en-tête).
 >
 > **Correction du 15/09 (soir).** Les deux écrans d'administration manquants sont **livrés** :
 > `/administration/priorites` (Niveaux de priorité, PRI-01/§17.3) et

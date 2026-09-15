@@ -7,6 +7,8 @@ using Xunit;
 
 namespace CIT.Plateforme.Application.Tests.Formulaires;
 
+/// <summary>[TEST-SPEC] Exigence CDC : ERR-01 — sauvegarde et reprise des brouillons de saisie
+/// (aucune perte de données en cas d'interruption). (Traçabilité §6 docs/88.)</summary>
 public sealed class ErrCert01BrouillonsTests
 {
     private readonly Mock<IBrouillonRepository> _brouillons = new();
