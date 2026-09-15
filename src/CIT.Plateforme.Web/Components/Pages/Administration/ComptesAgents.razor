@@ -1,4 +1,4 @@
-﻿@page "/administration/comptes-agents"
+@page "/administration/comptes-agents"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -6,42 +6,45 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Comptes agents & Habilitations — CIT</PageTitle>
+<PageTitle>@Loc["AdmCompte.PageTitle"]</PageTitle>
 
 <!-- En-tête de page -->
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>🛡️</span> Administration des Rôles &amp; Habilitations
+            <span>🛡️</span> @Loc["AdmCompte.Pill"]
         </div>
         <h1 class="cit-page-title fw-bold text-dark mb-1">
-            Gestion des Comptes Collaborateurs
+            @Loc["AdmCompte.Title"]
         </h1>
         <div class="cit-page-subtitle text-muted">
-            Gestion du cycle de vie des agents internes CIT, répartition granulaire des droits d'exploitation et contrôle d'accès.
+            @Loc["AdmCompte.Subtitle"]
         </div>
     </div>
     <div class="d-flex align-items-center gap-2">
         <button class="btn btn-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2"
                 @onclick="() => _afficherFormulaireCreation = !_afficherFormulaireCreation">
-            <span>@(_afficherFormulaireCreation ? "✕ Masquer" : "➕ Nouveau collaborateur")</span>
+            <span>@(_afficherFormulaireCreation ? Loc["AdmCompte.HideForm"].Value : Loc["AdmCompte.NewCollab"].Value)</span>
         </button>
         <button class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2"
                 @onclick="ChargerAsync" disabled="@_chargement">
-            <span>🔄</span> Actualiser
+            <span>🔄</span> @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des comptes collaborateurs et vérification des habilitations..." />
+    <IndicateurChargement Message="@Loc["AdmCompte.Loading"]" />
 }
 else if (_refuse)
 {
@@ -70,7 +73,7 @@ else
                 <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
                     <div class="cit-stat-icon bg-primary bg-opacity-10 text-primary">👥</div>
                     <div>
-                        <div class="text-muted small fw-semibold">Collaborateurs Internes</div>
+                        <div class="text-muted small fw-semibold">@Loc["AdmCompte.KpiInternal"]</div>
                         <div class="fs-4 fw-bold text-dark">@_comptes.Count</div>
                     </div>
                 </div>
@@ -79,7 +82,7 @@ else
                 <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
                     <div class="cit-stat-icon bg-success bg-opacity-10 text-success">🟢</div>
                     <div>
-                        <div class="text-muted small fw-semibold">Comptes Opérationnels</div>
+                        <div class="text-muted small fw-semibold">@Loc["AdmCompte.KpiOperational"]</div>
                         <div class="fs-4 fw-bold text-dark">@_comptes.Count(c => c.EstActif) <span class="text-muted fs-6 fw-normal">/ @_comptes.Count</span></div>
                     </div>
                 </div>
@@ -88,7 +91,7 @@ else
                 <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
                     <div class="cit-stat-icon bg-warning bg-opacity-10 text-warning">⭐</div>
                     <div>
-                        <div class="text-muted small fw-semibold">Super-Administrateurs</div>
+                        <div class="text-muted small fw-semibold">@Loc["AdmCompte.KpiSuperAdmin"]</div>
                         <div class="fs-4 fw-bold text-dark">@_comptes.Count(c => c.Permissions.Count >= _permissionsDisponibles.Count)</div>
                     </div>
                 </div>
@@ -103,35 +106,35 @@ else
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="fs-4">➕</span>
-                    <h4 class="fw-bold text-dark mb-0 fs-5">Créer un nouveau compte collaborateur CIT</h4>
+                    <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["AdmCompte.CreateTitle"]</h4>
                 </div>
                 <button type="button" class="btn-close" @onclick="() => _afficherFormulaireCreation = false"></button>
             </div>
 
             <div class="row g-3 align-items-end">
                 <div class="col-12 col-md-4">
-                    <label class="form-label small fw-bold text-dark" for="email">Adresse e-mail professionnelle</label>
-                    <input id="email" type="email" class="form-control" placeholder="agent@cotedivoireterminal.com" @bind="_email" />
+                    <label class="form-label small fw-bold text-dark" for="email">@Loc["AdmCompte.EmailLabel"]</label>
+                    <input id="email" type="email" class="form-control" placeholder="@Loc["AdmCompte.EmailPlaceholder"]" @bind="_email" />
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-dark" for="nom">Nom et prénoms affichés</label>
-                    <input id="nom" type="text" class="form-control" placeholder="Mamadou KONATE" @bind="_nomAffiche" />
+                    <label class="form-label small fw-bold text-dark" for="nom">@Loc["AdmCompte.NameLabel"]</label>
+                    <input id="nom" type="text" class="form-control" placeholder="@Loc["AdmCompte.NamePlaceholder"]" @bind="_nomAffiche" />
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-dark" for="mdp">Mot de passe temporaire</label>
+                    <label class="form-label small fw-bold text-dark" for="mdp">@Loc["AdmCompte.PwdLabel"]</label>
                     <ChampMotDePasse>
-                        <input id="mdp" type="password" class="form-control" placeholder="Minimum 10 caractères" @bind="_motDePasse" />
+                        <input id="mdp" type="password" class="form-control" placeholder="@Loc["AdmCompte.PwdPlaceholder"]" @bind="_motDePasse" />
                     </ChampMotDePasse>
                 </div>
                 <div class="col-12 col-md-2">
                     <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
                             @onclick="CreerAsync" disabled="@(string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche) || string.IsNullOrWhiteSpace(_motDePasse))">
-                        <span>✨</span> Créer
+                        <span>✨</span> @Loc["AdmCompte.CreateBtn"]
                     </button>
                 </div>
             </div>
             <div class="form-text text-muted mt-2 small">
-                🔒 Le compte sera créé à l'état actif. Vous pourrez ensuite lui attribuer ses habilitations métier.
+                🔒 @Loc["AdmCompte.CreateHint"]
             </div>
         </div>
     }
@@ -141,8 +144,8 @@ else
         <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
             <span class="text-muted" aria-hidden="true">🔍</span>
             <input type="text" class="form-control form-control-sm border-0 bg-light"
-                   aria-label="Rechercher un compte par nom ou e-mail"
-                   placeholder="Rechercher par nom, e-mail..."
+                   aria-label="@Loc["AdmCompte.SearchAria"]"
+                   placeholder="@Loc["AdmCompte.SearchPlaceholder"]"
                    @bind="_recherche" @bind:event="oninput" />
             @if (!string.IsNullOrWhiteSpace(_recherche))
             {
@@ -151,18 +154,18 @@ else
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <span class="small text-muted fw-semibold me-1">Statut :</span>
+            <span class="small text-muted fw-semibold me-1">@Loc["AdmCompte.StatusLabel"]</span>
             <button class="btn btn-sm rounded-pill px-3 @(_filtreStatut == "Tous" ? "btn-dark fw-bold" : "btn-light text-muted")"
                     @onclick='() => _filtreStatut = "Tous"'>
-                Tous (@(_comptes?.Count ?? 0))
+                @Loc["AdmCompte.FilterAll", (_comptes?.Count ?? 0)]
             </button>
             <button class="btn btn-sm rounded-pill px-3 @(_filtreStatut == "Actifs" ? "btn-success fw-bold" : "btn-light text-muted")"
                     @onclick='() => _filtreStatut = "Actifs"'>
-                Actifs (@(_comptes?.Count(c => c.EstActif) ?? 0))
+                @Loc["AdmCompte.FilterActive", (_comptes?.Count(c => c.EstActif) ?? 0)]
             </button>
             <button class="btn btn-sm rounded-pill px-3 @(_filtreStatut == "Inactifs" ? "btn-danger fw-bold" : "btn-light text-muted")"
                     @onclick='() => _filtreStatut = "Inactifs"'>
-                Désactivés (@(_comptes?.Count(c => !c.EstActif) ?? 0))
+                @Loc["AdmCompte.FilterInactive", (_comptes?.Count(c => !c.EstActif) ?? 0)]
             </button>
         </div>
     </div>
@@ -172,16 +175,16 @@ else
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
             <div class="fs-1 mb-3">👥</div>
-            <h4 class="fw-bold text-dark mb-2">Aucun compte agent enregistré</h4>
-            <p class="text-muted mb-0">Utilisez le bouton ci-dessus pour créer le premier collaborateur interne.</p>
+            <h4 class="fw-bold text-dark mb-2">@Loc["AdmCompte.EmptyTitle"]</h4>
+            <p class="text-muted mb-0">@Loc["AdmCompte.EmptyDesc"]</p>
         </div>
     }
     else if (!ComptesFiltres.Any())
     {
         <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
             <div class="fs-2 mb-2">🔎</div>
-            <h5 class="fw-bold text-dark mb-1">Aucun collaborateur ne correspond à vos filtres</h5>
-            <p class="text-muted small mb-0">Modifiez votre recherche ou réinitialisez les filtres.</p>
+            <h5 class="fw-bold text-dark mb-1">@Loc["AdmCompte.NoMatchTitle"]</h5>
+            <p class="text-muted small mb-0">@Loc["AdmCompte.NoMatchDesc"]</p>
         </div>
     }
     else
@@ -191,10 +194,10 @@ else
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-muted small border-bottom">
                         <tr>
-                            <th class="ps-4 py-3" style="min-width: 280px;">Collaborateur</th>
-                            <th class="py-3" style="min-width: 120px;">État</th>
-                            <th class="py-3" style="min-width: 380px;">Profil &amp; Habilitations Accordées</th>
-                            <th class="text-end pe-4 py-3" style="min-width: 220px;">Actions</th>
+                            <th class="ps-4 py-3" style="min-width: 280px;">@Loc["AdmCompte.ColCollab"]</th>
+                            <th class="py-3" style="min-width: 120px;">@Loc["AdmCompte.ColState"]</th>
+                            <th class="py-3" style="min-width: 380px;">@Loc["AdmCompte.ColProfile"]</th>
+                            <th class="text-end pe-4 py-3" style="min-width: 220px;">@Loc["AdmPieceC.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -219,13 +222,13 @@ else
                                     @if (compte.EstActif)
                                     {
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill d-inline-flex align-items-center">
-                                            <span class="pulse-dot"></span> Actif
+                                            <span class="pulse-dot"></span> @Loc["AdmCompte.StateActive"]
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill">
-                                            Inactif
+                                            @Loc["AdmCompte.StateInactive"]
                                         </span>
                                     }
                                 </td>
@@ -237,22 +240,22 @@ else
                                         <div class="d-flex flex-column gap-1">
                                             <div class="d-inline-flex align-items-center gap-2">
                                                 <span class="badge cit-superadmin-badge py-2 px-3 rounded-pill">
-                                                    ⭐ Super-Administrateur · Accès Intégral (@compte.Permissions.Count)
+                                                    @Loc["AdmCompte.SuperAdminBadge", compte.Permissions.Count]
                                                 </span>
                                             </div>
                                             <div class="d-flex flex-wrap gap-1 mt-1">
-                                                <span class="badge bg-light text-muted border small px-2 py-1">📦 Import (8)</span>
-                                                <span class="badge bg-light text-muted border small px-2 py-1">📤 Export (8)</span>
-                                                <span class="badge bg-light text-muted border small px-2 py-1">🎫 Tickets (12)</span>
-                                                <span class="badge bg-light text-muted border small px-2 py-1">📊 Supervision</span>
-                                                <span class="badge bg-light text-muted border small px-2 py-1">🛡️ Sécurité</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">@Loc["AdmCompte.ChipImport"]</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">@Loc["AdmCompte.ChipExport"]</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">@Loc["AdmCompte.ChipTickets"]</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">@Loc["AdmCompte.ChipSupervision"]</span>
+                                                <span class="badge bg-light text-muted border small px-2 py-1">@Loc["AdmCompte.ChipSecurity"]</span>
                                             </div>
                                         </div>
                                     }
                                     else if (compte.Permissions.Count == 0)
                                     {
                                         <div class="text-muted small fst-italic">
-                                            <span>🔒</span> Aucune habilitation accordée — compte inopérant
+                                            <span>🔒</span> @Loc["AdmCompte.NoHabilitation"]
                                         </div>
                                     }
                                     else
@@ -265,7 +268,7 @@ else
                                                 </span>
                                             }
                                             <span class="badge bg-light text-secondary border px-2 py-1 rounded-pill small fw-semibold">
-                                                Total : @compte.Permissions.Count
+                                                @Loc["AdmCompte.TotalBadge", compte.Permissions.Count]
                                             </span>
                                         </div>
                                     }
@@ -276,25 +279,25 @@ else
                                     <div class="d-inline-flex gap-2 align-items-center">
                                         <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm d-inline-flex align-items-center gap-1"
                                                 @onclick="() => OuvrirModalPermissions(compte)">
-                                            <span>🔑</span> Gérer les accès (@compte.Permissions.Count)
+                                            <span>🔑</span> @Loc["AdmCompte.ManageAccess", compte.Permissions.Count]
                                         </button>
 
                                         @if (compte.EstActif)
                                         {
                                             <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                                    title="Désactiver ce compte (maintient l'historique et l'auditabilité)"
+                                                    title="@Loc["AdmCompte.DeactivateTitle"]"
                                                     disabled="@_enCours"
                                                     @onclick="() => DemanderConfirmationDesactivation(compte)">
-                                                Désactiver
+                                                @Loc["Common.Deactivate"]
                                             </button>
                                         }
                                         else
                                         {
                                             <button class="btn btn-outline-success btn-sm rounded-pill px-3"
-                                                    title="Réactiver ce compte"
+                                                    title="@Loc["AdmCompte.ReactivateTitle"]"
                                                     disabled="@_enCours"
                                                     @onclick="() => BasculerActivationAsync(compte.Id, true)">
-                                                Réactiver
+                                                @Loc["Common.Reactivate"]
                                             </button>
                                         }
                                     </div>
@@ -321,7 +324,7 @@ else
                             @ObtenirInitiales(_agentEnEdition.NomAffiche)
                         </div>
                         <div>
-                            <h5 class="modal-title fw-bold text-dark mb-0">Habilitations de @_agentEnEdition.NomAffiche</h5>
+                            <h5 class="modal-title fw-bold text-dark mb-0">@Loc["AdmCompte.ModalTitle", _agentEnEdition.NomAffiche]</h5>
                             <div class="small text-muted font-monospace">@_agentEnEdition.Email</div>
                         </div>
                     </div>
@@ -333,9 +336,9 @@ else
                     <!-- Barre d'outils du modal : résumé et actions de masse -->
                     <div class="p-3 bg-light rounded-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 border">
                         <div>
-                            <span class="small fw-bold text-dark">Habilitations actives :</span>
+                            <span class="small fw-bold text-dark">@Loc["AdmCompte.ActiveHabilitations"]</span>
                             <span class="badge @(_agentEnEdition.Permissions.Count >= _permissionsDisponibles.Count ? "cit-superadmin-badge" : "bg-primary text-white") ms-1 px-3 py-1 rounded-pill">
-                                @_agentEnEdition.Permissions.Count / @_permissionsDisponibles.Count accordées
+                                @Loc["AdmCompte.GrantedBadge", _agentEnEdition.Permissions.Count, _permissionsDisponibles.Count]
                             </span>
                         </div>
                         @* UX-P0 (UI-01) : ces deux actions mutent une soixantaine de permissions.
@@ -345,12 +348,12 @@ else
                             <button class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3"
                                     disabled="@_enCours"
                                     @onclick="() => DemanderConfirmationAccorderTout(_agentEnEdition)">
-                                <span aria-hidden="true">⭐</span> Tout accorder (SuperAdmin)
+                                <span aria-hidden="true">⭐</span> @Loc["AdmCompte.GrantAll"]
                             </button>
                             <button class="btn btn-sm btn-outline-danger fw-semibold rounded-pill px-3"
                                     disabled="@_enCours"
                                     @onclick="() => DemanderConfirmationRetirerTout(_agentEnEdition)">
-                                <span aria-hidden="true">🗑️</span> Tout révoquer
+                                <span aria-hidden="true">🗑️</span> @Loc["AdmCompte.RevokeAll"]
                             </button>
                         </div>
                     </div>
@@ -360,7 +363,7 @@ else
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0">🔍</span>
                             <input type="text" class="form-control border-start-0"
-                                   placeholder="Filtrer une permission par libellé ou code technique..."
+                                   placeholder="@Loc["AdmCompte.FilterPermPlaceholder"]"
                                    @bind="_filtreModalPermission" @bind:event="oninput" />
                             @if (!string.IsNullOrWhiteSpace(_filtreModalPermission))
                             {
@@ -388,7 +391,7 @@ else
                                 <div>
                                     <button class="btn btn-sm btn-link text-decoration-none p-0 small fw-bold"
                                             @onclick="() => BasculerGroupeAsync(_agentEnEdition.Id, groupe, !toutActif)">
-                                        @(toutActif ? "Tout décocher" : "Tout cocher")
+                                        @(toutActif ? Loc["AdmCompte.GroupUncheckAll"].Value : Loc["AdmCompte.GroupCheckAll"].Value)
                                     </button>
                                 </div>
                             </div>
@@ -419,10 +422,10 @@ else
                 <!-- Footer de la modale -->
                 <div class="modal-footer border-top px-4 py-3 bg-light" style="border-radius: 0 0 1.25rem 1.25rem;">
                     <div class="small text-muted me-auto">
-                        ℹ️ Les modifications d'habilitation prennent effet immédiatement et sont auditées.
+                        ℹ️ @Loc["AdmCompte.ModalFooterInfo"]
                     </div>
                     <button type="button" class="btn btn-primary px-4 fw-semibold rounded-pill" @onclick="FermerModalPermissions">
-                        Terminer
+                        @Loc["AdmCompte.FinishBtn"]
                     </button>
                 </div>
             </div>
@@ -435,9 +438,9 @@ else
 <ModaleConfirmation EstOuvert="@(_confirmation is not null)"
                     Titre="@(_confirmation?.Titre ?? string.Empty)"
                     Message="@(_confirmation?.Message ?? string.Empty)"
-                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? "Confirmer")"
+                    BoutonConfirmerLibelle="@(_confirmation?.LibelleConfirmer ?? Loc["AdmCompte.ConfDeactBtn"].Value)"
                     BoutonConfirmerClass="@(_confirmation?.ClasseConfirmer ?? "btn-danger")"
-                    BoutonAnnulerLibelle="Annuler"
+                    BoutonAnnulerLibelle="@Loc["AdmCompte.Cancel"]"
                     Desactive="@_enCours"
                     OnConfirmer="@(async () => { if (_confirmation is not null) await _confirmation.Action(); })"
                     OnAnnuler="AnnulerConfirmation" />
@@ -454,7 +457,7 @@ else
     private Guid _appelantId;
     private bool _chargement = true;
     private bool _refuse;
-    private string _messageRefus = "Vous devez disposer de la permission d'administration des comptes pour accéder à cette interface.";
+    private string _messageRefus = string.Empty;
     private string? _erreur;
     private string? _succes;
 
@@ -496,6 +499,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _messageRefus = Loc["AdmCompte.Refuse"].Value;
         var contexte = await ContexteService.ObtenirContexteAsync();
         _appelantId = contexte.UtilisateurId;
         await ChargerAsync();
@@ -592,7 +596,7 @@ else
         _nomAffiche = string.Empty;
         _motDePasse = string.Empty;
         _afficherFormulaireCreation = false;
-    }, "Compte agent créé avec succès.");
+    }, Loc["AdmCompte.SuccessCreate"].Value);
 
     /// <summary>
     /// UX-P1 (UI-03) — la désactivation ferme l'accès d'un agent : elle se confirme. La
@@ -601,15 +605,13 @@ else
     private void DemanderConfirmationDesactivation(CompteAgentVue cible)
     {
         var soiMeme = cible.Id == _appelantId
-            ? " Vous ne pouvez pas désactiver votre propre compte : l'opération sera refusée."
+            ? Loc["AdmCompte.ConfDeactSelf"].Value
             : string.Empty;
 
         _confirmation = new ConfirmationEnAttente(
-            "Désactiver ce compte",
-            $"{cible.NomAffiche} ({cible.Email}) ne pourra plus se connecter, et ses sessions "
-            + "ouvertes seront invalidées. Ses habilitations et tout son historique sont conservés — "
-            + "le compte pourra être réactivé." + soiMeme,
-            "Désactiver le compte",
+            Loc["AdmCompte.ConfDeactTitle"].Value,
+            Loc["AdmCompte.ConfDeactMsg", cible.NomAffiche, cible.Email].Value + soiMeme,
+            Loc["AdmCompte.ConfDeactBtn"].Value,
             "btn-danger",
             async () =>
             {
@@ -624,7 +626,7 @@ else
             var definirActivation = sp.GetRequiredService<DefinirActivationCompteCommand>();
             return definirActivation.ExecuterAsync(_appelantId, cibleId, actif);
         },
-        actif ? "Compte réactivé avec succès." : "Compte désactivé — son historique et ses actions passées sont conservés.");
+        actif ? Loc["AdmCompte.SuccessReactivate"].Value : Loc["AdmCompte.SuccessDeactivate"].Value);
 
     private async Task BasculerPermissionAsync(Guid cibleId, string permissionCode, bool accorder)
     {
@@ -655,7 +657,7 @@ else
         }
         catch (Exception ex)
         {
-            AfficherToast("danger", "Modification refusée", MessagesUtilisateur.Pour(ex));
+            AfficherToast("danger", Loc["AdmCompte.ToastModifRefused"].Value, MessagesUtilisateur.Pour(ex));
         }
         finally
         {
@@ -670,17 +672,14 @@ else
         var manquantes = _permissionsDisponibles.Except(cible.Permissions).Count();
         if (manquantes == 0)
         {
-            AfficherToast("info", "Aucun changement", $"{cible.NomAffiche} détient déjà toutes les permissions.");
+            AfficherToast("info", Loc["AdmCompte.NoChangeTitle"].Value, Loc["AdmCompte.NoChangeAllGranted", cible.NomAffiche].Value);
             return;
         }
 
         _confirmation = new ConfirmationEnAttente(
-            "Accorder toutes les permissions",
-            $"{cible.NomAffiche} ({cible.Email}) recevra {manquantes} permission(s) supplémentaire(s), "
-            + $"soit l'intégralité des {_permissionsDisponibles.Count} permissions de la plateforme — "
-            + "administration des comptes, tarification et journal d'audit compris. "
-            + "Chaque attribution est tracée dans le journal d'audit.",
-            "Accorder les permissions",
+            Loc["AdmCompte.ConfGrantTitle"].Value,
+            Loc["AdmCompte.ConfGrantMsg", cible.NomAffiche, cible.Email, manquantes, _permissionsDisponibles.Count].Value,
+            Loc["AdmCompte.ConfGrantBtn"].Value,
             "btn-warning",
             () => ExecuterAccorderToutAsync(cible.Id));
     }
@@ -689,19 +688,18 @@ else
     {
         if (cible.Permissions.Count == 0)
         {
-            AfficherToast("info", "Aucun changement", $"{cible.NomAffiche} ne détient aucune permission.");
+            AfficherToast("info", Loc["AdmCompte.NoChangeTitle"].Value, Loc["AdmCompte.NoChangeNone", cible.NomAffiche].Value);
             return;
         }
 
         var avertissementAutoRetrait = cible.Id == _appelantId
-            ? " Vous vous appliquez cette action à vous-même : la permission d'administration des comptes vous sera CONSERVÉE, afin de ne pas vous fermer l'accès."
+            ? Loc["AdmCompte.ConfRevokeSelf"].Value
             : string.Empty;
 
         _confirmation = new ConfirmationEnAttente(
-            "Révoquer toutes les permissions",
-            $"{cible.NomAffiche} ({cible.Email}) perdra ses {cible.Permissions.Count} permission(s) et "
-            + "ne pourra plus accéder aux écrans correspondants." + avertissementAutoRetrait,
-            "Révoquer les permissions",
+            Loc["AdmCompte.ConfRevokeTitle"].Value,
+            Loc["AdmCompte.ConfRevokeMsg", cible.NomAffiche, cible.Email, cible.Permissions.Count].Value + avertissementAutoRetrait,
+            Loc["AdmCompte.ConfRevokeBtn"].Value,
             "btn-danger",
             () => ExecuterRetirerToutAsync(cible.Id));
     }
@@ -709,15 +707,14 @@ else
     private async Task ExecuterAccorderToutAsync(Guid cibleId) =>
         await ExecuterEnMasseAsync(
             (commande, ct) => commande.AccorderToutesAsync(_appelantId, cibleId, ct),
-            resultat => $"{resultat.PermissionsAppliquees} permission(s) accordée(s).");
+            resultat => Loc["AdmCompte.ResultGranted", resultat.PermissionsAppliquees].Value);
 
     private async Task ExecuterRetirerToutAsync(Guid cibleId) =>
         await ExecuterEnMasseAsync(
             (commande, ct) => commande.RetirerToutesAsync(_appelantId, cibleId, ct),
             resultat => resultat.PermissionsConservees.Count == 0
-                ? $"{resultat.PermissionsAppliquees} permission(s) révoquée(s)."
-                : $"{resultat.PermissionsAppliquees} permission(s) révoquée(s). "
-                  + $"Conservée(s) pour ne pas vous fermer l'accès : {string.Join(", ", resultat.PermissionsConservees)}.");
+                ? Loc["AdmCompte.ResultRevoked", resultat.PermissionsAppliquees].Value
+                : Loc["AdmCompte.ResultRevokedKept", resultat.PermissionsAppliquees, string.Join(", ", resultat.PermissionsConservees)].Value);
 
     /// <summary>
     /// Exécute une opération de masse : verrou d'action, appel de la commande applicative — qui
@@ -740,7 +737,7 @@ else
             var resultat = await operation(commande, CancellationToken.None);
 
             _confirmation = null;
-            AfficherToast("success", "Opération effectuée", message(resultat));
+            AfficherToast("success", Loc["AdmCompte.ToastDone"].Value, message(resultat));
             await ChargerAsync();
         }
         catch (AccesRefuseException ex)
@@ -752,7 +749,7 @@ else
         catch (Exception ex)
         {
             _confirmation = null;
-            AfficherToast("danger", "Opération refusée", MessagesUtilisateur.Pour(ex));
+            AfficherToast("danger", Loc["AdmCompte.ToastRefused"].Value, MessagesUtilisateur.Pour(ex));
         }
         finally
         {
@@ -811,77 +808,78 @@ else
     private sealed record GroupePermissions(string Nom, string Icone, IReadOnlyList<ElementPermission> Permissions);
     private sealed record ResumeCategorie(string Nom, string Icone, int Nombre);
 
-    private static readonly IReadOnlyList<GroupePermissions> TousLesGroupes =
+    // Instance (et non statique) : les libellés sont localisés via Loc injecté.
+    private IReadOnlyList<GroupePermissions> TousLesGroupes =>
     [
-        new GroupePermissions("Billing Import", "📦", [
-            new ElementPermission(Permission.BillingImportSoumettre, "Soumission de dossier Import"),
-            new ElementPermission(Permission.BillingImportManifesteInstruire, "Instruction du Manifeste Import"),
-            new ElementPermission(Permission.BillingImportFacturationEditer, "Édition de la Facturation Import"),
-            new ElementPermission(Permission.BillingImportPaiementValider, "Validation des Paiements Import"),
-            new ElementPermission(Permission.BillingImportComptabiliteConfirmerLettrage, "Confirmation du Lettrage Comptable"),
-            new ElementPermission(Permission.BillingImportControleDocumentaireTraiter, "Contrôle Documentaire (BS/BADT)"),
-            new ElementPermission(Permission.BillingImportIesManifesteInstruire, "Instruction Manifeste (Client IES)"),
-            new ElementPermission(Permission.BillingImportIesControleDocumentaireInstruire, "Contrôle Documentaire (Client IES)"),
+        new GroupePermissions(Loc["AdmCompte.G.Import"].Value, "📦", [
+            new ElementPermission(Permission.BillingImportSoumettre, Loc["AdmCompte.P.BiSoumettre"].Value),
+            new ElementPermission(Permission.BillingImportManifesteInstruire, Loc["AdmCompte.P.BiManifeste"].Value),
+            new ElementPermission(Permission.BillingImportFacturationEditer, Loc["AdmCompte.P.BiFacturation"].Value),
+            new ElementPermission(Permission.BillingImportPaiementValider, Loc["AdmCompte.P.BiPaiement"].Value),
+            new ElementPermission(Permission.BillingImportComptabiliteConfirmerLettrage, Loc["AdmCompte.P.BiLettrage"].Value),
+            new ElementPermission(Permission.BillingImportControleDocumentaireTraiter, Loc["AdmCompte.P.BiControleDoc"].Value),
+            new ElementPermission(Permission.BillingImportIesManifesteInstruire, Loc["AdmCompte.P.BiIesManifeste"].Value),
+            new ElementPermission(Permission.BillingImportIesControleDocumentaireInstruire, Loc["AdmCompte.P.BiIesControleDoc"].Value),
         ]),
-        new GroupePermissions("Billing Export", "📤", [
-            new ElementPermission(Permission.BillingExportSoumettre, "Soumission de dossier Export"),
-            new ElementPermission(Permission.BillingExportBackOfficeInstruire, "Instruction Back-Office Export"),
-            new ElementPermission(Permission.BillingExportFacturationEditer, "Édition de la Facturation Export"),
-            new ElementPermission(Permission.BillingExportPaiementValider, "Validation des Paiements Export"),
-            new ElementPermission(Permission.BillingExportComptabiliteConfirmerLettrage, "Confirmation du Lettrage Comptable Export"),
-            new ElementPermission(Permission.BillingExportControleDocumentaireTraiter, "Contrôle Documentaire (BEE)"),
-            new ElementPermission(Permission.BillingExportIesBackOfficeInstruire, "Instruction Back-Office (Client IES)"),
-            new ElementPermission(Permission.BillingExportIesControleDocumentaireInstruire, "Contrôle Documentaire (Client IES)"),
+        new GroupePermissions(Loc["AdmCompte.G.Export"].Value, "📤", [
+            new ElementPermission(Permission.BillingExportSoumettre, Loc["AdmCompte.P.BeSoumettre"].Value),
+            new ElementPermission(Permission.BillingExportBackOfficeInstruire, Loc["AdmCompte.P.BeBackOffice"].Value),
+            new ElementPermission(Permission.BillingExportFacturationEditer, Loc["AdmCompte.P.BeFacturation"].Value),
+            new ElementPermission(Permission.BillingExportPaiementValider, Loc["AdmCompte.P.BePaiement"].Value),
+            new ElementPermission(Permission.BillingExportComptabiliteConfirmerLettrage, Loc["AdmCompte.P.BeLettrage"].Value),
+            new ElementPermission(Permission.BillingExportControleDocumentaireTraiter, Loc["AdmCompte.P.BeControleDoc"].Value),
+            new ElementPermission(Permission.BillingExportIesBackOfficeInstruire, Loc["AdmCompte.P.BeIesBackOffice"].Value),
+            new ElementPermission(Permission.BillingExportIesControleDocumentaireInstruire, Loc["AdmCompte.P.BeIesControleDoc"].Value),
         ]),
-        new GroupePermissions("Socle & Traitement Tickets", "🎫", [
-            new ElementPermission(Permission.TicketCreer, "Créer un nouveau ticket"),
-            new ElementPermission(Permission.TicketPrendreEnCharge, "Prendre en charge un ticket en file"),
-            new ElementPermission(Permission.TicketAffecterManuellement, "Affectation manuelle à un opérateur"),
-            new ElementPermission(Permission.TicketReaffecter, "Réaffecter à un autre opérateur"),
-            new ElementPermission(Permission.TicketTransferer, "Transférer vers une autre file"),
-            new ElementPermission(Permission.TicketAnnuler, "Annuler un ticket"),
-            new ElementPermission(Permission.TicketCloturer, "Clôturer un ticket"),
-            new ElementPermission(Permission.TicketClotureAbsenceReponse, "Clôture pour absence de réponse"),
-            new ElementPermission(Permission.TicketRouvrir, "Rouvrir un ticket clôturé"),
-            new ElementPermission(Permission.MessageNoteInterne, "Rédiger des notes internes protégées"),
-            new ElementPermission(Permission.DocumentDeposer, "Déposer des pièces jointes et documents"),
-            new ElementPermission(Permission.DocumentTelecharger, "Télécharger les documents des dossiers"),
+        new GroupePermissions(Loc["AdmCompte.G.Tickets"].Value, "🎫", [
+            new ElementPermission(Permission.TicketCreer, Loc["AdmCompte.P.TCreer"].Value),
+            new ElementPermission(Permission.TicketPrendreEnCharge, Loc["AdmCompte.P.TPrendre"].Value),
+            new ElementPermission(Permission.TicketAffecterManuellement, Loc["AdmCompte.P.TAffecter"].Value),
+            new ElementPermission(Permission.TicketReaffecter, Loc["AdmCompte.P.TReaffecter"].Value),
+            new ElementPermission(Permission.TicketTransferer, Loc["AdmCompte.P.TTransferer"].Value),
+            new ElementPermission(Permission.TicketAnnuler, Loc["AdmCompte.P.TAnnuler"].Value),
+            new ElementPermission(Permission.TicketCloturer, Loc["AdmCompte.P.TCloturer"].Value),
+            new ElementPermission(Permission.TicketClotureAbsenceReponse, Loc["AdmCompte.P.TClotureAbsence"].Value),
+            new ElementPermission(Permission.TicketRouvrir, Loc["AdmCompte.P.TRouvrir"].Value),
+            new ElementPermission(Permission.MessageNoteInterne, Loc["AdmCompte.P.MsgNote"].Value),
+            new ElementPermission(Permission.DocumentDeposer, Loc["AdmCompte.P.DocDeposer"].Value),
+            new ElementPermission(Permission.DocumentTelecharger, Loc["AdmCompte.P.DocTelecharger"].Value),
         ]),
-        new GroupePermissions("Tarification & Avoirs", "💰", [
-            new ElementPermission(Permission.TarificationAdministrer, "Administration des grilles et barèmes"),
-            new ElementPermission(Permission.AvoirExonerationInstruire, "Instruction des demandes d'Avoir/Exonération"),
-            new ElementPermission(Permission.AvoirExonerationDecider, "Décision finale Avoir/Exonération (accord/rejet)"),
+        new GroupePermissions(Loc["AdmCompte.G.Tarif"].Value, "💰", [
+            new ElementPermission(Permission.TarificationAdministrer, Loc["AdmCompte.P.TarifAdmin"].Value),
+            new ElementPermission(Permission.AvoirExonerationInstruire, Loc["AdmCompte.P.AvoirInstruire"].Value),
+            new ElementPermission(Permission.AvoirExonerationDecider, Loc["AdmCompte.P.AvoirDecider"].Value),
         ]),
-        new GroupePermissions("Réclamations (Customer Complaint)", "📢", [
-            new ElementPermission(Permission.ComplaintSoumettre, "Dépôt d'une réclamation"),
-            new ElementPermission(Permission.ComplaintInstruire, "Instruction et examen d'une réclamation"),
-            new ElementPermission(Permission.ComplaintRepondre, "Réponse formalisée et clôture réclamation"),
-            new ElementPermission(Permission.AdministrationCategoriesReclamation, "Paramétrage des catégories de réclamation"),
+        new GroupePermissions(Loc["AdmCompte.G.Complaints"].Value, "📢", [
+            new ElementPermission(Permission.ComplaintSoumettre, Loc["AdmCompte.P.ComplaintSoumettre"].Value),
+            new ElementPermission(Permission.ComplaintInstruire, Loc["AdmCompte.P.ComplaintInstruire"].Value),
+            new ElementPermission(Permission.ComplaintRepondre, Loc["AdmCompte.P.ComplaintRepondre"].Value),
+            new ElementPermission(Permission.AdministrationCategoriesReclamation, Loc["AdmCompte.P.ComplaintCategories"].Value),
         ]),
-        new GroupePermissions("Enrôlement & Guichet", "🚚", [
-            new ElementPermission(Permission.EnrolementSoumettre, "Soumission dossier transporteur/chauffeur"),
-            new ElementPermission(Permission.EnrolementInstruire, "Instruction Gate, badges et convocations"),
-            new ElementPermission(Permission.GuichetRecherche, "Recherche rapide au guichet physique"),
-            new ElementPermission(Permission.RendezVousGerer, "Gestion des créneaux de rendez-vous"),
+        new GroupePermissions(Loc["AdmCompte.G.Enrolement"].Value, "🚚", [
+            new ElementPermission(Permission.EnrolementSoumettre, Loc["AdmCompte.P.EnrolSoumettre"].Value),
+            new ElementPermission(Permission.EnrolementInstruire, Loc["AdmCompte.P.EnrolInstruire"].Value),
+            new ElementPermission(Permission.GuichetRecherche, Loc["AdmCompte.P.GuichetRecherche"].Value),
+            new ElementPermission(Permission.RendezVousGerer, Loc["AdmCompte.P.RdvGerer"].Value),
         ]),
-        new GroupePermissions("Supervision & Exploitation", "📊", [
-            new ElementPermission(Permission.SupervisionConsulter, "Consultation du tableau de bord de supervision"),
-            new ElementPermission(Permission.SupervisionAgir, "Actions de déblocage et interventions"),
-            new ElementPermission(Permission.ActionDeMasse, "Exécution d'actions de masse en file"),
-            new ElementPermission(Permission.PrioriteModifier, "Modification de la priorité d'un ticket"),
-            new ElementPermission(Permission.DisponibiliteGerer, "Gestion de la disponibilité des opérateurs"),
-            new ElementPermission(Permission.CompetenceGerer, "Administration des compétences opérateur"),
+        new GroupePermissions(Loc["AdmCompte.G.Supervision"].Value, "📊", [
+            new ElementPermission(Permission.SupervisionConsulter, Loc["AdmCompte.P.SupConsulter"].Value),
+            new ElementPermission(Permission.SupervisionAgir, Loc["AdmCompte.P.SupAgir"].Value),
+            new ElementPermission(Permission.ActionDeMasse, Loc["AdmCompte.P.ActionMasse"].Value),
+            new ElementPermission(Permission.PrioriteModifier, Loc["AdmCompte.P.PrioModifier"].Value),
+            new ElementPermission(Permission.DisponibiliteGerer, Loc["AdmCompte.P.DispoGerer"].Value),
+            new ElementPermission(Permission.CompetenceGerer, Loc["AdmCompte.P.CompetenceGerer"].Value),
         ]),
-        new GroupePermissions("Administration & Sécurité", "🛡️", [
-            new ElementPermission(Permission.AdministrationComptes, "Administration des comptes et rôles agents"),
-            new ElementPermission(Permission.CompteValider, "Validation et ouverture des comptes sociétés"),
-            new ElementPermission(Permission.CompteTypeModifier, "Modification du type de client entreprise"),
-            new ElementPermission(Permission.CompteGererCollaborateurs, "Gestion des collaborateurs d'entreprise"),
-            new ElementPermission(Permission.AdministrationFiles, "Configuration des files de traitement"),
-            new ElementPermission(Permission.AdministrationSla, "Paramétrage des objectifs et règles SLA"),
-            new ElementPermission(Permission.AdministrationPerimetresSupervision, "Définition des périmètres de supervision"),
-            new ElementPermission(Permission.AdministrationNotifications, "Modèles et diffusion des notifications"),
-            new ElementPermission(Permission.AuditConsulter, "Consultation du journal d'audit général"),
+        new GroupePermissions(Loc["AdmCompte.G.AdminSec"].Value, "🛡️", [
+            new ElementPermission(Permission.AdministrationComptes, Loc["AdmCompte.P.AdminComptes"].Value),
+            new ElementPermission(Permission.CompteValider, Loc["AdmCompte.P.CompteValider"].Value),
+            new ElementPermission(Permission.CompteTypeModifier, Loc["AdmCompte.P.CompteType"].Value),
+            new ElementPermission(Permission.CompteGererCollaborateurs, Loc["AdmCompte.P.CompteCollab"].Value),
+            new ElementPermission(Permission.AdministrationFiles, Loc["AdmCompte.P.AdminFiles"].Value),
+            new ElementPermission(Permission.AdministrationSla, Loc["AdmCompte.P.AdminSla"].Value),
+            new ElementPermission(Permission.AdministrationPerimetresSupervision, Loc["AdmCompte.P.AdminPerim"].Value),
+            new ElementPermission(Permission.AdministrationNotifications, Loc["AdmCompte.P.AdminNotif"].Value),
+            new ElementPermission(Permission.AuditConsulter, Loc["AdmCompte.P.AuditConsulter"].Value),
         ])
     ];
 
@@ -903,7 +901,7 @@ else
         }
     }
 
-    private static IEnumerable<ResumeCategorie> ObtenirCategoriesAgent(IReadOnlyList<string> permissionsAgent)
+    private IEnumerable<ResumeCategorie> ObtenirCategoriesAgent(IReadOnlyList<string> permissionsAgent)
     {
         var set = new HashSet<string>(permissionsAgent, StringComparer.Ordinal);
         foreach (var groupe in TousLesGroupes)
