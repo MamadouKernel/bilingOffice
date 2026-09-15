@@ -22,11 +22,19 @@
 >    `SLA-05` → `/administration/parametres-sla`, `ALE-03` → `/administration/regles-escalade`,
 >    `SOC-07` → `/administration/pieces-exigees-etape` existent bien.
 >
-> **Résidus réels au 15/09** (vérifiés dans le code) : écrans d'admin **« Libellés de statut »
-> (§11.4)** et **« Niveaux de priorité » (§17.3)** toujours absents ; axe **« par étape »** de
-> `COM-03` non explicite (porté par `FileId`) ; `COM-01`/`ENR-04`/`IA-01..07` bloqués
-> fournisseur ; `NFR-05/06/08/09`, `SEC-09`, `PC-13` = infrastructure/DSI. Étiquetage des 19
-> tests (§6) non encore fait.
+> **Résidus réels au 15/09** (vérifiés dans le code) : axe **« par étape »** de `COM-03` non
+> explicite (porté par `FileId`) ; `COM-01`/`ENR-04`/`IA-01..07` bloqués fournisseur ;
+> `NFR-05/06/08/09`, `SEC-09`, `PC-13` = infrastructure/DSI. Étiquetage des 19 tests (§6) non
+> encore fait.
+>
+> **Correction du 15/09 (soir).** Les deux écrans d'administration manquants sont **livrés** :
+> `/administration/priorites` (Niveaux de priorité, PRI-01/§17.3) et
+> `/administration/libelles-statut` (Libellés de statut FR/EN, §11.4/§9.10) — référentiels livrés
+> vides, permission `AdministrationFiles`, tracés au journal d'audit, ajoutés à la sidebar
+> (traduits FR/EN). Le §7 (« Référentiels sans écran d'administration ») ne conserve donc que
+> `SLA-05` déjà fermé et les cas hors code. De plus, le **téléchargement des documents déposés est
+> ajouté au dossier Guichet** (`RechercheGuichet`) via `TelechargerDocumentQuery` (contrôle
+> d'habilitation SEC-12 à chaque accès).
 
 ## Verdict en une phrase
 
