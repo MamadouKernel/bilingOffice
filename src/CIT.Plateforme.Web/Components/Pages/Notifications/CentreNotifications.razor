@@ -4,8 +4,11 @@
 @using CIT.Plateforme.Application.Notifications
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterMesNotificationsQuery ConsulterQuery
 @inject MarquerNotificationLueCommand MarquerLueCommand
@@ -22,18 +25,18 @@
    Aucun DbContext, aucun repository, aucun GUID saisi à la main : la page ne consomme que des
    cas d'usage de la couche Application, et l'identité vient TOUJOURS du contexte authentifié. *@
 
-<PageTitle>Mes notifications — CIT</PageTitle>
+<PageTitle>@Loc["NotifC.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>🔔</span> Mes notifications
+            <span>🔔</span> @Loc["NotifC.Title"]
         </h1>
         <div class="cit-page-subtitle">
-            Événements adressés à votre compte
+            @Loc["NotifC.Subtitle"]
             @if (_nonLues > 0)
             {
-                <span class="badge bg-primary rounded-pill ms-2">@_nonLues non lue@(_nonLues > 1 ? "s" : "")</span>
+                <span class="badge bg-primary rounded-pill ms-2">@Loc[_nonLues > 1 ? "NotifC.NonLuesMany" : "NotifC.NonLuesOne", _nonLues]</span>
             }
         </div>
     </div>
@@ -41,7 +44,7 @@
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de vos notifications..." />
+    <IndicateurChargement Message="@Loc["NotifC.Loading"]" />
 }
 else if (_erreur is not null)
 {
@@ -50,7 +53,7 @@ else if (_erreur is not null)
 else if (_notifications.Count == 0)
 {
     <div class="alert alert-secondary" role="alert">
-        Vous n'avez aucune notification pour le moment.
+        @Loc["NotifC.Empty"]
     </div>
 }
 else
@@ -64,11 +67,11 @@ else
                         <div class="d-flex align-items-center gap-2 mb-1">
                             @if (!notification.EstLue)
                             {
-                                <span class="badge bg-primary rounded-pill">Non lu</span>
+                                <span class="badge bg-primary rounded-pill">@Loc["NotifC.BadgeNonLu"]</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary-subtle text-secondary rounded-pill">Lu</span>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill">@Loc["NotifC.BadgeLu"]</span>
                             }
                             <span class="text-muted small">@notification.TypeEvenement</span>
                         </div>
@@ -85,14 +88,14 @@ else
                                reste arbitré par les contrôles d'identité et d'habilitation
                                existants — ce lien ne les contourne jamais. *@
                             <a href="@($"/tickets/{ticketId}")" class="btn btn-outline-primary btn-sm">
-                                Ouvrir le ticket
+                                @Loc["NotifC.OuvrirTicket"]
                             </a>
                         }
                         @if (!notification.EstLue)
                         {
                             <button type="button" class="btn btn-light btn-sm"
                                     @onclick="() => MarquerCommeLueAsync(notification.Id)">
-                                Marquer comme lu
+                                @Loc["NotifC.MarquerLu"]
                             </button>
                         }
                     </div>

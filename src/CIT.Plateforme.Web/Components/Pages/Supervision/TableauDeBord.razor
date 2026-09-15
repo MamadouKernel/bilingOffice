@@ -4,9 +4,12 @@
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Supervision
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject VueFilesQuery VueFiles
 @inject VueChargeQuery VueCharge
@@ -14,25 +17,25 @@
 @inject Microsoft.JSInterop.IJSRuntime Js
 @implements IAsyncDisposable
 
-<PageTitle>Supervision temps réel — CIT</PageTitle>
+<PageTitle>@Loc["Sup.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>👁️</span> Supervision temps réel
+            <span>👁️</span> @Loc["Sup.Title"]
         </h1>
-        <div class="cit-page-subtitle">Vue globale des files de traitement et suivi de la charge opérationnelle des agents</div>
+        <div class="cit-page-subtitle">@Loc["Sup.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
         <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
-            🔄 Actualiser
+            @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de votre vue de supervision..." />
+    <IndicateurChargement Message="@Loc["Sup.Loading"]" />
 }
 else if (_nonAutorise)
 {
@@ -51,10 +54,9 @@ else
        Le message dit ce que l'absence signifie et ce qu'il faut faire pour la lever. *@
     <div class="cit-card mb-4 p-5 text-center text-muted">
         <div class="fs-1 mb-2" aria-hidden="true">🗂️</div>
-        <div class="fw-semibold text-dark">Aucune file dans votre périmètre</div>
+        <div class="fw-semibold text-dark">@Loc["Sup.NoPerimTitle"]</div>
         <div class="small">
-            Votre périmètre de supervision ne couvre aucune file, ou aucune file n'est encore
-            administrée. Un administrateur fonctionnel peut l'ajuster.
+            @Loc["Sup.NoPerimDesc"]
         </div>
     </div>
 }
@@ -62,18 +64,18 @@ else if (vuesFiles is not null)
 {
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="p-3 bg-light border-bottom">
-            <h6 class="fw-bold text-dark mb-0">Files de mon périmètre de supervision</h6>
+            <h6 class="fw-bold text-dark mb-0">@Loc["Sup.FilesTitle"]</h6>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>File de traitement</th>
-                        <th class="text-end">Non affectés</th>
-                        <th class="text-end">En cours</th>
-                        <th class="text-end">Attente client</th>
-                        <th class="text-end fw-bold">Total actifs</th>
-                        <th class="text-end"><span class="visually-hidden">Export</span></th>
+                        <th>@Loc["Sup.ColFile"]</th>
+                        <th class="text-end">@Loc["Sup.ColNonAffectes"]</th>
+                        <th class="text-end">@Loc["Sup.ColEnCours"]</th>
+                        <th class="text-end">@Loc["Sup.ColAttenteClient"]</th>
+                        <th class="text-end fw-bold">@Loc["Sup.ColTotalActifs"]</th>
+                        <th class="text-end"><span class="visually-hidden">@Loc["Sup.ExportSr"]</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,7 +87,7 @@ else if (vuesFiles is not null)
                                    de ses tickets, seul endroit où le superviseur peut en désigner un. *@
                                 <button type="button" class="btn btn-link p-0 text-decoration-none fw-semibold text-start"
                                         @onclick="() => OuvrirFileAsync(vue.FileId, vue.Nom)">
-                                    @(string.IsNullOrWhiteSpace(vue.Nom) ? "File sans nom" : vue.Nom)
+                                    @(string.IsNullOrWhiteSpace(vue.Nom) ? Loc["Sup.FileSansNom"].Value : vue.Nom)
                                 </button>
                             </td>
                             <td class="text-end font-monospace @(vue.NonAffectes > 0 ? "text-warning fw-bold" : "text-muted")">@vue.NonAffectes</td>
@@ -97,7 +99,7 @@ else if (vuesFiles is not null)
                                 <button type="button" class="btn btn-sm btn-outline-secondary"
                                         @onclick="() => ExporterAsync(vue.FileId, vue.Nom)"
                                         disabled="@(_exportEnCours == vue.FileId)">
-                                    @(_exportEnCours == vue.FileId ? "Export..." : "Exporter CSV")
+                                    @(_exportEnCours == vue.FileId ? Loc["Sup.Exporting"] : Loc["Sup.ExportCsv"])
                                 </button>
                             </td>
                         </tr>
@@ -112,23 +114,23 @@ else if (vuesFiles is not null)
 {
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="p-3 bg-light border-bottom">
-            <h6 class="fw-bold text-dark mb-0">Charge par opérateur</h6>
+            <h6 class="fw-bold text-dark mb-0">@Loc["Sup.ChargeTitle"]</h6>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Opérateur</th>
-                        <th>Disponibilité</th>
-                        <th class="text-end">Tickets en cours</th>
-                        <th>Dernière activité</th>
+                        <th>@Loc["Sup.ColOperateur"]</th>
+                        <th>@Loc["Sup.ColDispo"]</th>
+                        <th class="text-end">@Loc["Sup.ColTicketsEnCours"]</th>
+                        <th>@Loc["Sup.ColDerniereActivite"]</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var vue in vuesCharge)
                     {
                         <tr>
-                            <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(vue.NomOperateur) ? "Opérateur non identifié" : vue.NomOperateur)</td>
+                            <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(vue.NomOperateur) ? Loc["Sup.OperateurNonId"].Value : vue.NomOperateur)</td>
                             <td>
                                 <span class="badge @(vue.Disponibilite.ToString() == "Disponible" ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning")">
                                     @vue.Disponibilite
@@ -148,8 +150,8 @@ else if (vuesFiles is not null)
 {
     <div class="cit-card mb-4 p-0 overflow-hidden">
         <div class="p-3 bg-light border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h6 class="fw-bold text-dark mb-0">Tickets de la file — @_nomFileOuverte</h6>
-            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="FermerFile">Fermer</button>
+            <h6 class="fw-bold text-dark mb-0">@Loc["Sup.TicketsFileTitle", _nomFileOuverte]</h6>
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="FermerFile">@Loc["Sup.Fermer"]</button>
         </div>
 
         @if (_erreurAction is not null)
@@ -164,8 +166,8 @@ else if (vuesFiles is not null)
         @if (_ticketsFile is null || _ticketsFile.Count == 0)
         {
             <div class="p-5 text-center text-muted">
-                <div class="fw-semibold text-dark">Aucun ticket actif dans cette file</div>
-                <div class="small">Rien à affecter ni à réorienter pour le moment.</div>
+                <div class="fw-semibold text-dark">@Loc["Sup.AucunTicketTitle"]</div>
+                <div class="small">@Loc["Sup.AucunTicketDesc"]</div>
             </div>
         }
         else
@@ -173,21 +175,21 @@ else if (vuesFiles is not null)
             <div class="p-3 border-bottom bg-body-tertiary">
                 <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-4">
-                        <label class="form-label small fw-bold text-dark" for="sup-operateur">Opérateur destinataire</label>
+                        <label class="form-label small fw-bold text-dark" for="sup-operateur">@Loc["Sup.OperateurDest"]</label>
                         <select id="sup-operateur" class="form-select form-select-sm" @bind="_operateurCible">
-                            <option value="">— choisir —</option>
+                            <option value="">@Loc["Sup.ChoisirOption"]</option>
                             @foreach (var op in vuesCharge ?? [])
                             {
                                 <option value="@op.OperateurId">
-                                    @(string.IsNullOrWhiteSpace(op.NomOperateur) ? op.OperateurId.ToString() : op.NomOperateur) — @op.TicketsEnCours en cours
+                                    @(string.IsNullOrWhiteSpace(op.NomOperateur) ? op.OperateurId.ToString() : op.NomOperateur) — @Loc["Sup.EnCoursSuffix", op.TicketsEnCours]
                                 </option>
                             }
                         </select>
                     </div>
                     <div class="col-12 col-md-3">
-                        <label class="form-label small fw-bold text-dark" for="sup-priorite">Nouvelle priorité</label>
+                        <label class="form-label small fw-bold text-dark" for="sup-priorite">@Loc["Sup.NouvellePriorite"]</label>
                         <select id="sup-priorite" class="form-select form-select-sm" @bind="_prioriteCible">
-                            <option value="">— choisir —</option>
+                            <option value="">@Loc["Sup.ChoisirOption"]</option>
                             @foreach (var niveau in _niveaux)
                             {
                                 <option value="@niveau.Id">@niveau.Libelle</option>
@@ -195,36 +197,34 @@ else if (vuesFiles is not null)
                         </select>
                     </div>
                     <div class="col-12 col-md-3">
-                        <label class="form-label small fw-bold text-dark" for="sup-motif">Motif</label>
+                        <label class="form-label small fw-bold text-dark" for="sup-motif">@Loc["Sup.Motif"]</label>
                         <input id="sup-motif" class="form-control form-control-sm" @bind="_motif"
-                               placeholder="obligatoire pour la priorité" />
+                               placeholder="@Loc["Sup.MotifPlaceholder"]" />
                     </div>
                     <div class="col-12 col-md-2 d-grid">
                         <button type="button" class="btn btn-sm btn-primary" @onclick="AppliquerEnMasseAsync"
                                 disabled="@(_selection.Count == 0)">
-                            Appliquer (@_selection.Count)
+                            @Loc["Sup.Appliquer", _selection.Count]
                         </button>
                     </div>
                 </div>
                 <div class="form-text small">
-                    L'action de masse est tracée <strong>ticket par ticket</strong> : une redistribution de
-                    25 tickets laisse 25 traces dans l'historique, pas une ligne globale, et un échec
-                    partiel n'annule pas les tickets déjà traités.
+                    @((MarkupString)Loc["Sup.MasseHint"].Value)
                 </div>
             </div>
 
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <caption class="visually-hidden">Tickets actifs de la file sélectionnée</caption>
+                    <caption class="visually-hidden">@Loc["Sup.TableCaption"]</caption>
                     <thead class="table-light">
                         <tr>
-                            <th scope="col"><span class="visually-hidden">Sélection</span></th>
-                            <th scope="col">Ticket</th>
-                            <th scope="col">Statut</th>
-                            <th scope="col">Opérateur</th>
-                            <th scope="col">Priorité</th>
-                            <th scope="col">En file depuis</th>
-                            <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                            <th scope="col"><span class="visually-hidden">@Loc["Sup.ColSelection"]</span></th>
+                            <th scope="col">@Loc["Sup.ColTicket"]</th>
+                            <th scope="col">@Loc["Sup.ColStatut"]</th>
+                            <th scope="col">@Loc["Sup.ColOperateur"]</th>
+                            <th scope="col">@Loc["Sup.ColPriorite"]</th>
+                            <th scope="col">@Loc["Sup.ColEnFileDepuis"]</th>
+                            <th scope="col" class="text-end"><span class="visually-hidden">@Loc["Sup.ColActions"]</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -233,7 +233,7 @@ else if (vuesFiles is not null)
                             <tr>
                                 <td>
                                     <input type="checkbox" class="form-check-input"
-                                           aria-label="@($"Sélectionner le ticket {ticket.Numero}")"
+                                           aria-label="@(Loc["Sup.SelectionnerTicket", ticket.Numero].Value)"
                                            checked="@_selection.Contains(ticket.TicketId)"
                                            @onchange="e => BasculerSelection(ticket.TicketId, (bool?)e.Value == true)" />
                                 </td>
@@ -241,13 +241,13 @@ else if (vuesFiles is not null)
                                     @ticket.Numero <span class="text-muted small fw-normal">@ticket.Module</span>
                                 </td>
                                 <td class="small">@ticket.Statut</td>
-                                <td class="small">@(string.IsNullOrWhiteSpace(ticket.OperateurAssigneNom) ? "Non affecté" : ticket.OperateurAssigneNom)</td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(ticket.OperateurAssigneNom) ? Loc["Sup.NonAffecte"].Value : ticket.OperateurAssigneNom)</td>
                                 <td class="small">@ticket.PrioriteLibelle</td>
                                 <td class="small text-muted font-monospace">@ticket.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm @(ticket.OperateurAssigneId is null ? "btn-outline-primary" : "btn-outline-secondary")"
                                             @onclick="() => AffecterAsync(ticket.TicketId, ticket.OperateurAssigneId is not null)">
-                                        @(ticket.OperateurAssigneId is null ? "Affecter" : "Réaffecter")
+                                        @(ticket.OperateurAssigneId is null ? Loc["Sup.Affecter"] : Loc["Sup.Reaffecter"])
                                     </button>
                                 </td>
                             </tr>
@@ -294,7 +294,7 @@ else if (vuesFiles is not null)
             if (contexte is null || !contexte.EstAuthentifie)
             {
                 _nonAutorise = true;
-                _messageNonAutorise = "Veuillez vous connecter pour accéder à la supervision.";
+                _messageNonAutorise = Loc["Sup.LoginRequis"].Value;
                 return;
             }
 
@@ -328,7 +328,7 @@ else if (vuesFiles is not null)
     private async Task OuvrirFileAsync(Guid fileId, string nom)
     {
         _fileOuverte = fileId;
-        _nomFileOuverte = string.IsNullOrWhiteSpace(nom) ? "File sans nom" : nom;
+        _nomFileOuverte = string.IsNullOrWhiteSpace(nom) ? Loc["Sup.FileSansNom"].Value : nom;
         _selection.Clear();
         _messageAction = null;
         _erreurAction = null;
@@ -425,7 +425,7 @@ else if (vuesFiles is not null)
 
         if (!Guid.TryParse(_operateurCible, out var operateurId))
         {
-            _erreurAction = "Choisissez l'opérateur destinataire avant d'affecter un ticket.";
+            _erreurAction = Loc["Sup.ErrChoisirOperateur"].Value;
             return;
         }
 
@@ -437,12 +437,12 @@ else if (vuesFiles is not null)
             if (dejaAffecte)
             {
                 await actions.ReaffecterAsync(_superviseurId, ticketId, operateurId);
-                _messageAction = "Ticket réaffecté.";
+                _messageAction = Loc["Sup.TicketReaffecte"].Value;
             }
             else
             {
                 await actions.AffecterTicketNonPrisEnChargeAsync(_superviseurId, ticketId, operateurId);
-                _messageAction = "Ticket affecté.";
+                _messageAction = Loc["Sup.TicketAffecte"].Value;
             }
 
             await ChargerAsync();
@@ -474,7 +474,7 @@ else if (vuesFiles is not null)
 
         if (!versPriorite && !versOperateur)
         {
-            _erreurAction = "Choisissez un opérateur destinataire ou une nouvelle priorité à appliquer.";
+            _erreurAction = Loc["Sup.ErrChoisirCible"].Value;
             return;
         }
 
@@ -482,7 +482,7 @@ else if (vuesFiles is not null)
         {
             // PRI-03 : la modification de priorité enregistre l'ancienne valeur, la nouvelle,
             // l'auteur, la date ET le motif. Sans motif, le changement serait inexplicable après coup.
-            _erreurAction = "Le motif est obligatoire pour modifier une priorité.";
+            _erreurAction = Loc["Sup.ErrMotifObligatoire"].Value;
             return;
         }
 
@@ -511,11 +511,11 @@ else if (vuesFiles is not null)
             var succes = resultats.Count(r => r.Succes);
             var echecs = resultats.Where(r => !r.Succes).ToList();
 
-            _messageAction = $"{succes} ticket(s) traité(s) sur {resultats.Count}.";
+            _messageAction = Loc["Sup.MasseResultat", succes, resultats.Count].Value;
             if (echecs.Count > 0)
             {
                 // Un échec partiel doit se lire, pas se deviner : on nomme le premier motif rencontré.
-                _erreurAction = $"{echecs.Count} ticket(s) en échec — {echecs[0].Erreur}";
+                _erreurAction = Loc["Sup.MasseEchecs", echecs.Count, echecs[0].Erreur ?? string.Empty].Value;
             }
 
             _selection.Clear();

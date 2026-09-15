@@ -5,8 +5,11 @@
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Notifications
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject AdministrerReglesDiffusionCommand ReglesCommand
 @inject AdministrerModelesNotificationCommand ModelesCommand
@@ -23,18 +26,18 @@
    Aucun contenu de modèle n'est imposé par la plateforme : les textes sont une donnée
    d'administration, à valider par le métier (CLAR-NOT-05). *@
 
-<PageTitle>Administration des notifications — CIT</PageTitle>
+<PageTitle>@Loc["NotifAdm.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
-        <h1 class="cit-page-title"><span>🛠️</span> Administration des notifications</h1>
-        <div class="cit-page-subtitle">Règles de diffusion (par événement et par canal) et modèles de messages</div>
+        <h1 class="cit-page-title"><span>🛠️</span> @Loc["NotifAdm.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["NotifAdm.Subtitle"]</div>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement du paramétrage..." />
+    <IndicateurChargement Message="@Loc["NotifAdm.Loading"]" />
 }
 else if (_erreur is not null)
 {
@@ -43,21 +46,19 @@ else if (_erreur is not null)
 else
 {
     <div class="alert alert-warning" role="alert">
-        Le jeu de règles initial couvre les seuls événements <strong>imposés par le CDC</strong>.
-        La liste complète des déclencheurs et de leurs canaux reste à valider par le métier
-        (point à clarifier) : les valeurs présentes ne sont pas contractuelles.
+        @((MarkupString)Loc["NotifAdm.Warning"].Value)
     </div>
 
-    <h3 class="h5 mt-4">Règles de diffusion</h3>
+    <h3 class="h5 mt-4">@Loc["NotifAdm.ReglesTitle"]</h3>
     <div class="table-responsive shadow-sm">
         <table class="table table-sm align-middle mb-0 bg-white">
             <thead class="table-light">
                 <tr>
-                    <th scope="col">Événement</th>
-                    <th scope="col">Canal</th>
-                    <th scope="col">Obligatoire</th>
-                    <th scope="col">Active</th>
-                    <th scope="col" class="text-end">Action</th>
+                    <th scope="col">@Loc["NotifAdm.ColEvenement"]</th>
+                    <th scope="col">@Loc["NotifAdm.ColCanal"]</th>
+                    <th scope="col">@Loc["NotifAdm.ColObligatoire"]</th>
+                    <th scope="col">@Loc["NotifAdm.ColActive"]</th>
+                    <th scope="col" class="text-end">@Loc["NotifAdm.ColAction"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -69,27 +70,27 @@ else
                         <td>
                             @if (regle.EstObligatoire)
                             {
-                                <span class="badge bg-danger-subtle text-danger">Obligatoire</span>
+                                <span class="badge bg-danger-subtle text-danger">@Loc["NotifAdm.BadgeObligatoire"]</span>
                             }
                             else
                             {
-                                <span class="text-muted small">Débrayable</span>
+                                <span class="text-muted small">@Loc["NotifAdm.BadgeDebrayable"]</span>
                             }
                         </td>
                         <td>
                             @if (regle.EstActif)
                             {
-                                <span class="badge bg-success-subtle text-success">Active</span>
+                                <span class="badge bg-success-subtle text-success">@Loc["NotifAdm.BadgeActive"]</span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary-subtle text-secondary">Inactive</span>
+                                <span class="badge bg-secondary-subtle text-secondary">@Loc["NotifAdm.BadgeInactive"]</span>
                             }
                         </td>
                         <td class="text-end">
                             <button type="button" class="btn btn-outline-secondary btn-sm"
                                     @onclick="() => BasculerRegleAsync(regle.Id, !regle.EstActif)">
-                                @(regle.EstActif ? "Désactiver" : "Activer")
+                                @(regle.EstActif ? Loc["NotifAdm.Desactiver"] : Loc["NotifAdm.Activer"])
                             </button>
                         </td>
                     </tr>
@@ -98,15 +99,15 @@ else
         </table>
     </div>
 
-    <h3 class="h5 mt-4">Modèles de messages</h3>
+    <h3 class="h5 mt-4">@Loc["NotifAdm.ModelesTitle"]</h3>
     <div class="table-responsive shadow-sm">
         <table class="table table-sm align-middle mb-0 bg-white">
             <thead class="table-light">
                 <tr>
-                    <th scope="col">Événement</th>
-                    <th scope="col">Canal</th>
-                    <th scope="col">Titre</th>
-                    <th scope="col">Actif</th>
+                    <th scope="col">@Loc["NotifAdm.ColEvenement"]</th>
+                    <th scope="col">@Loc["NotifAdm.ColCanal"]</th>
+                    <th scope="col">@Loc["NotifAdm.ColTitre"]</th>
+                    <th scope="col">@Loc["NotifAdm.ColActif"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -116,7 +117,7 @@ else
                         <td><code>@modele.TypeEvenement</code></td>
                         <td>@modele.Canal</td>
                         <td>@modele.GabaritTitre</td>
-                        <td>@(modele.EstActif ? "Oui" : "Non")</td>
+                        <td>@(modele.EstActif ? Loc["NotifAdm.Oui"] : Loc["NotifAdm.Non"])</td>
                     </tr>
                 }
             </tbody>
