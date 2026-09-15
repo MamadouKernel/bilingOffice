@@ -209,6 +209,25 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["FileIes.JoinAndClose"] = "🔗 Constater jointure & Clôturer",
         ["FileIes.BranchCompleted"] = "Branche {0} achevée avec succès.",
         ["FileIes.JoinDone"] = "Jointure constatée avec succès — Ticket IES clôturé.",
+        ["File.ColArrival"] = "Arrivée en file",
+        // File Facturation
+        ["FileFact.PageTitle"] = "File Facturation — CIT",
+        ["FileFact.Title"] = "File Facturation",
+        ["FileFact.Subtitle"] = "Édition des factures et aiguillage automatique selon le profil client (Normal, En Compte, Deposit)",
+        ["FileFact.Loading"] = "Chargement des tickets en attente de facturation...",
+        ["FileFact.EmptyTitle"] = "Aucun ticket à facturer",
+        ["FileFact.EmptyDesc"] = "Tous les connaissements validés ont déjà été facturés.",
+        ["FileFact.ColUploadInvoice"] = "Déposer facture",
+        ["FileFact.InvoiceIssued"] = "Facture éditée avec succès et ticket aiguillé vers l'étape suivante.",
+        // File Contrôle Documentaire
+        ["FileCtrl.PageTitle"] = "File Contrôle Documentaire — CIT",
+        ["FileCtrl.Title"] = "File Contrôle Documentaire",
+        ["FileCtrl.Subtitle"] = "Vérification des pièces de contrôle (BS/BADT) et clôture finale de délivrance",
+        ["FileCtrl.Loading"] = "Chargement des dossiers en attente de contrôle documentaire...",
+        ["FileCtrl.EmptyTitle"] = "Aucun dossier en instance documentaire",
+        ["FileCtrl.EmptyDesc"] = "Tous les dossiers ont été contrôlés et délivrés.",
+        ["FileCtrl.ColUpload"] = "Dépôt BS / BADT & Clôture",
+        ["FileCtrl.Closed"] = "Pièce de contrôle déposée avec succès — Ticket clôturé.",
 
         // Billing Export
         ["BillingExport.Title"] = "Demande de Facturation Export",
@@ -1473,6 +1492,25 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["FileIes.JoinAndClose"] = "🔗 Confirm junction & Close",
         ["FileIes.BranchCompleted"] = "Branch {0} completed successfully.",
         ["FileIes.JoinDone"] = "Junction confirmed successfully — IES ticket closed.",
+        ["File.ColArrival"] = "Queue arrival",
+        // Invoicing queue
+        ["FileFact.PageTitle"] = "Invoicing Queue — CIT",
+        ["FileFact.Title"] = "Invoicing Queue",
+        ["FileFact.Subtitle"] = "Invoice issuance and automatic routing based on the client profile (Normal, On Account, Deposit)",
+        ["FileFact.Loading"] = "Loading tickets awaiting invoicing...",
+        ["FileFact.EmptyTitle"] = "No ticket to invoice",
+        ["FileFact.EmptyDesc"] = "All validated bills of lading have already been invoiced.",
+        ["FileFact.ColUploadInvoice"] = "Upload invoice",
+        ["FileFact.InvoiceIssued"] = "Invoice issued successfully and ticket routed to the next step.",
+        // Document Control queue
+        ["FileCtrl.PageTitle"] = "Document Control Queue — CIT",
+        ["FileCtrl.Title"] = "Document Control Queue",
+        ["FileCtrl.Subtitle"] = "Verification of control documents (BS/BADT) and final delivery closure",
+        ["FileCtrl.Loading"] = "Loading files awaiting document control...",
+        ["FileCtrl.EmptyTitle"] = "No file pending document control",
+        ["FileCtrl.EmptyDesc"] = "All files have been checked and delivered.",
+        ["FileCtrl.ColUpload"] = "BS / BADT upload & Closure",
+        ["FileCtrl.Closed"] = "Control document uploaded successfully — Ticket closed.",
 
         // Billing Export
         ["BillingExport.Title"] = "Export Billing Application",
