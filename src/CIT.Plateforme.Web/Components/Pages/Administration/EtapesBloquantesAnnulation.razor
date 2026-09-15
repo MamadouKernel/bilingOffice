@@ -1,41 +1,43 @@
-﻿@page "/administration/etapes-bloquantes-annulation"
+@page "/administration/etapes-bloquantes-annulation"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
 @using CIT.Plateforme.Application.Abstractions
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 
-<PageTitle>Seuils d'annulation — CIT</PageTitle>
+<PageTitle>@Loc["AdmSeuil.PageTitle"]</PageTitle>
 
 <div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
     <div>
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
-            <span>🛑</span> Cycle de vie • CYC-01
+            <span>🛑</span> @Loc["AdmSeuil.Pill"]
         </div>
         <h1 class="cit-page-title fw-bold text-dark mb-1">
-            Seuils de fermeture de l'annulation directe
+            @Loc["AdmSeuil.Title"]
         </h1>
         <div class="cit-page-subtitle text-muted">
-            À partir du moment où un ticket a traversé l'une des files déclarées ici, le client ne peut
-            plus annuler directement : il lui reste la demande d'annulation, soumise à décision.
+            @Loc["AdmSeuil.Subtitle"]
         </div>
     </div>
     <div>
         <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
-            <span>🔄</span> Actualiser
+            @Loc["Common.Refresh"]
         </button>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement des seuils d'annulation..." />
+    <IndicateurChargement Message="@Loc["AdmSeuil.Loading"]" />
 }
 else if (_refuse)
 {
@@ -51,20 +53,20 @@ else
     }
 
     <div class="cit-card mb-4">
-        <h6 class="fw-bold text-dark mb-3">Déclarer une étape bloquante</h6>
+        <h6 class="fw-bold text-dark mb-3">@Loc["AdmSeuil.AddTitle"]</h6>
         <div class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label for="module" class="form-label small fw-semibold text-dark">Module</label>
-                <input id="module" class="form-control form-control-sm" placeholder="Ex. BillingImport" @bind="_module" />
+                <label for="module" class="form-label small fw-semibold text-dark">@Loc["AdmSeuil.ModuleLabel"]</label>
+                <input id="module" class="form-control form-control-sm" placeholder="@Loc["AdmSeuil.ModulePlaceholder"]" @bind="_module" />
             </div>
             <div class="col-md-2">
-                <label for="type-demande" class="form-label small fw-semibold text-dark">Type de demande</label>
-                <input id="type-demande" class="form-control form-control-sm" placeholder="Tous" @bind="_typeDemande" />
+                <label for="type-demande" class="form-label small fw-semibold text-dark">@Loc["AdmSeuil.TypeLabel"]</label>
+                <input id="type-demande" class="form-control form-control-sm" placeholder="@Loc["AdmSeuil.TypePlaceholder"]" @bind="_typeDemande" />
             </div>
             <div class="col-md-3">
-                <label for="file-bloquante" class="form-label small fw-semibold text-dark">File bloquante</label>
+                <label for="file-bloquante" class="form-label small fw-semibold text-dark">@Loc["AdmSeuil.FileLabel"]</label>
                 <select id="file-bloquante" class="form-select form-select-sm" @bind="_fileId">
-                    <option value="@Guid.Empty">— Choisir —</option>
+                    <option value="@Guid.Empty">@Loc["AdmSeuil.ChooseOption"]</option>
                     @foreach (var f in _files)
                     {
                         <option value="@f.Id">@f.Module — @f.Nom</option>
@@ -72,22 +74,22 @@ else
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="motif-blocage" class="form-label small fw-semibold text-dark">Motif communiqué au client</label>
-                <input id="motif-blocage" class="form-control form-control-sm" placeholder="Ex. la facture a été éditée" @bind="_motif" />
+                <label for="motif-blocage" class="form-label small fw-semibold text-dark">@Loc["AdmSeuil.MotifLabel"]</label>
+                <input id="motif-blocage" class="form-control form-control-sm" placeholder="@Loc["AdmSeuil.MotifPlaceholder"]" @bind="_motif" />
             </div>
             <div class="col-md-1">
-                <button class="btn btn-primary btn-sm w-100 fw-semibold" @onclick="DefinirAsync" disabled="@_enregistrement">Ajouter</button>
+                <button class="btn btn-primary btn-sm w-100 fw-semibold" @onclick="DefinirAsync" disabled="@_enregistrement">@Loc["Common.Add"]</button>
             </div>
         </div>
     </div>
 
     <div class="cit-card">
-        <h6 class="fw-bold text-dark mb-3">Seuils déclarés (@_seuils.Count)</h6>
+        <h6 class="fw-bold text-dark mb-3">@Loc["AdmSeuil.DeclaredTitle", _seuils.Count]</h6>
 
         @if (_seuils.Count == 0)
         {
-            <EtatVide Titre="Aucun seuil déclaré" Icone="🛑"
-                      Message="Tant qu'aucun seuil n'est déclaré, seule la survenue d'un état engageant — paiement confirmé ou document officiel produit — ferme l'annulation directe." />
+            <EtatVide Titre="@Loc["AdmSeuil.EmptyTitle"]" Icone="🛑"
+                      Message="@Loc["AdmSeuil.EmptyMsg"]" />
         }
         else
         {
@@ -95,11 +97,11 @@ else
                 <table class="table table-sm align-middle">
                     <thead>
                         <tr>
-                            <th>Module</th>
-                            <th>Type de demande</th>
-                            <th>File bloquante</th>
-                            <th>Motif</th>
-                            <th>État</th>
+                            <th>@Loc["AdmSeuil.ColModule"]</th>
+                            <th>@Loc["AdmSeuil.ColType"]</th>
+                            <th>@Loc["AdmSeuil.ColFile"]</th>
+                            <th>@Loc["AdmSeuil.ColMotif"]</th>
+                            <th>@Loc["AdmSeuil.ColState"]</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -108,23 +110,23 @@ else
                         {
                             <tr>
                                 <td class="fw-semibold">@s.Module</td>
-                                <td>@(s.TypeDemande ?? "Tous")</td>
+                                <td>@(s.TypeDemande ?? Loc["AdmSeuil.TypeAll"].Value)</td>
                                 <td>@s.FileNom</td>
                                 <td class="text-muted small">@s.Motif</td>
                                 <td>
                                     @if (s.EstActif)
                                     {
-                                        <span class="badge bg-success bg-opacity-10 text-success">Actif</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success">@Loc["AdmSeuil.StateActive"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">Inactif</span>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">@Loc["AdmSeuil.StateInactive"]</span>
                                     }
                                 </td>
                                 <td class="text-end">
                                     <button class="btn btn-outline-secondary btn-sm"
                                             @onclick="() => BasculerAsync(s.Id, !s.EstActif)" disabled="@_enregistrement">
-                                        @(s.EstActif ? "Désactiver" : "Activer")
+                                        @(s.EstActif ? Loc["Common.Deactivate"] : Loc["Common.Activate"])
                                     </button>
                                 </td>
                             </tr>
@@ -177,7 +179,7 @@ else
         catch (AccesRefuseException)
         {
             _refuse = true;
-            _messageRefus = "Vous ne disposez pas de l'habilitation d'administration des files.";
+            _messageRefus = Loc["AdmSeuil.Refuse"].Value;
         }
         finally
         {
