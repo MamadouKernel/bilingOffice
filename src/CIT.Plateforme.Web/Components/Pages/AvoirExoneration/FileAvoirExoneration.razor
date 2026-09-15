@@ -5,27 +5,30 @@
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterFileAvoirExonerationQuery ConsulterFile
 @inject PrendreEnChargeAvoirExoCommand PrendreEnCharge
 @inject NavigationManager Navigation
 
-<PageTitle>File Avoirs & Exonérations — CIT</PageTitle>
+<PageTitle>@Loc["AvoirFile.PageTitle"]</PageTitle>
 
 <div class="cit-page-header">
     <div>
         <h1 class="cit-page-title">
-            <span>⚖️</span> File Avoirs & Exonérations
+            <span>⚖️</span> @Loc["AvoirFile.Title"]
         </h1>
-        <div class="cit-page-subtitle">Instruction et décision formelle des contestations financières et demandes de dispense</div>
+        <div class="cit-page-subtitle">@Loc["AvoirFile.Subtitle"]</div>
     </div>
 </div>
 
 @if (_chargement)
 {
-    <IndicateurChargement Message="Chargement de la file de traitement..." />
+    <IndicateurChargement Message="@Loc["AvoirFile.Loading"]" />
 }
 else if (_erreur is not null)
 {
@@ -37,25 +40,25 @@ else
     <div class="cit-card mb-4 p-3 shadow-sm">
         <div class="row g-3 align-items-center">
             <div class="col-md-4">
-                <label for="type-de-demande" class="form-label small fw-semibold text-muted mb-1">Type de demande</label>
+                <label for="type-de-demande" class="form-label small fw-semibold text-muted mb-1">@Loc["AvoirFile.FilterType"]</label>
                 <select id="type-de-demande" class="form-select form-select-sm" @bind="_typeFiltre" @bind:after="ChargerFileAsync">
-                    <option value="">Tous les types</option>
-                    <option value="Avoir">Avoir (Trop-perçu / Litige)</option>
-                    <option value="Exoneration">Exonération (Magasinage / Stationnement)</option>
+                    <option value="">@Loc["AvoirFile.AllTypes"]</option>
+                    <option value="Avoir">@Loc["AvoirFile.TypeAvoir"]</option>
+                    <option value="Exoneration">@Loc["AvoirFile.TypeExo"]</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <label for="statut" class="form-label small fw-semibold text-muted mb-1">Statut</label>
+                <label for="statut" class="form-label small fw-semibold text-muted mb-1">@Loc["AvoirFile.FilterStatut"]</label>
                 <select id="statut" class="form-select form-select-sm" @bind="_statutFiltre" @bind:after="ChargerFileAsync">
-                    <option value="">Tous les statuts</option>
-                    <option value="EnAttenteDePriseEnCharge">En attente de prise en charge</option>
-                    <option value="EnCours">En cours d'instruction</option>
-                    <option value="EnAttenteClient">En attente client</option>
-                    <option value="Cloture">Clôturé</option>
+                    <option value="">@Loc["AvoirFile.AllStatuts"]</option>
+                    <option value="EnAttenteDePriseEnCharge">@Loc["AvoirFile.StAttentePEC"]</option>
+                    <option value="EnCours">@Loc["AvoirFile.StEnCours"]</option>
+                    <option value="EnAttenteClient">@Loc["AvoirFile.StAttenteClient"]</option>
+                    <option value="Cloture">@Loc["AvoirFile.StCloture"]</option>
                 </select>
             </div>
             <div class="col-md-4 text-md-end pt-md-4">
-                <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerFileAsync">🔄 Actualiser</button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerFileAsync">@Loc["Common.Refresh"]</button>
             </div>
         </div>
     </div>
@@ -64,8 +67,8 @@ else
     {
         <div class="cit-card p-5 text-center">
             <div class="display-4 text-muted mb-3">✅</div>
-            <h5 class="fw-bold text-dark mb-1">File vide</h5>
-            <p class="text-muted small mb-0">Aucun dossier ne correspond aux critères sélectionnés.</p>
+            <h5 class="fw-bold text-dark mb-1">@Loc["AvoirFile.EmptyTitle"]</h5>
+            <p class="text-muted small mb-0">@Loc["AvoirFile.EmptyDesc"]</p>
         </div>
     }
     else
@@ -75,14 +78,14 @@ else
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">N° Ticket</th>
-                            <th>Type</th>
-                            <th>Client</th>
-                            <th>Objet</th>
-                            <th>Montant contesté</th>
-                            <th>Statut</th>
-                            <th>Date d'arrivée</th>
-                            <th class="text-end pe-3">Actions</th>
+                            <th class="ps-3">@Loc["AvoirFile.ColNumero"]</th>
+                            <th>@Loc["AvoirFile.ColType"]</th>
+                            <th>@Loc["AvoirFile.ColClient"]</th>
+                            <th>@Loc["AvoirFile.ColObjet"]</th>
+                            <th>@Loc["AvoirFile.ColMontant"]</th>
+                            <th>@Loc["AvoirFile.ColStatut"]</th>
+                            <th>@Loc["AvoirFile.ColDateArrivee"]</th>
+                            <th class="text-end pe-3">@Loc["AvoirFile.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,11 +112,11 @@ else
                                         @if (t.Statut == "EnAttenteDePriseEnCharge")
                                         {
                                             <button class="btn btn-sm btn-outline-success" @onclick="() => PrendreEnChargeAsync(t.TicketId)">
-                                                Prendre en charge
+                                                @Loc["AvoirFile.BtnPrendreEnCharge"]
                                             </button>
                                         }
                                         <a href="/avoir-exoneration/fiche/@t.TicketId" class="btn btn-sm btn-outline-primary">
-                                            Ouvrir ➔
+                                            @Loc["AvoirFile.BtnOuvrir"]
                                         </a>
                                     </div>
                                 </td>
@@ -163,7 +166,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = $"Erreur lors du chargement de la file : {MessagesUtilisateur.Pour(ex)}";
+            _erreur = Loc["AvoirFile.ErrChargement", MessagesUtilisateur.Pour(ex)].Value;
         }
         finally
         {
