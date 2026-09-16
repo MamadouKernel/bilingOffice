@@ -18,6 +18,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Enrolement;
 // FEATURE 008 (Enrôlement Transporteurs) — T054-T055. C8-09 : isolation entre deux comptes.
 public sealed class MesEnrolementsTests : BunitContext
 {
+    public MesEnrolementsTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public void Transporteur_VoitUniquementSesPropresEnrolements()
     {

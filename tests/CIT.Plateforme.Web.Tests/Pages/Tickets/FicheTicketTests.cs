@@ -24,6 +24,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Tickets;
 
 public sealed class FicheTicketTests : BunitContext
 {
+    public FicheTicketTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public void FicheTicket_RenduComplet_AffichageDetailsEtChronologie()
     {

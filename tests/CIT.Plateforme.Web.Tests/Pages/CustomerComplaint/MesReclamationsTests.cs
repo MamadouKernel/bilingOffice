@@ -22,6 +22,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.CustomerComplaint;
 
 public sealed class MesReclamationsTests : BunitContext
 {
+    public MesReclamationsTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static (PlateformeDbContext Db, Guid ClientId, Guid SocieteId) ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>()

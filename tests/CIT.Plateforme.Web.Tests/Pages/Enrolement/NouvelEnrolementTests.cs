@@ -26,6 +26,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Enrolement;
 // FEATURE 008 (Enrôlement Transporteurs) — T052-T053. C8-01.
 public sealed class NouvelEnrolementTests : BunitContext
 {
+    public NouvelEnrolementTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static PlateformeDbContext ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;

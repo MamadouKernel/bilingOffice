@@ -19,6 +19,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Guichet;
 
 public sealed class MesRendezVousTests : BunitContext
 {
+    public MesRendezVousTests() => LocalisationDeTest.Enregistrer(Services);
+
     private sealed class FakeRendezVousRepository : IRendezVousRepository
     {
         public List<RendezVous> RendezVousList { get; } = [];

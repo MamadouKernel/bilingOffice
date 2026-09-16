@@ -43,6 +43,7 @@ public sealed class RecSce07CustomerComplaintE2ETests : BunitContext, IClassFixt
     public RecSce07CustomerComplaintE2ETests(PlateformeWebApplicationFactory factory)
     {
         _factory = factory;
+        LocalisationDeTest.Enregistrer(Services);
     }
 
     [Fact]

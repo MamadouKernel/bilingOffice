@@ -26,6 +26,8 @@ namespace CIT.Plateforme.Web.Tests.E2E;
 
 public sealed class ParcoursAgentE2ETests : BunitContext
 {
+    public ParcoursAgentE2ETests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public async Task ParcoursAgent_DashboardDisponibiliteEtFileManifeste()
     {

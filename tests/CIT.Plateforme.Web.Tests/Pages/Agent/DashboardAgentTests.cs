@@ -23,6 +23,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Agent;
 
 public sealed class DashboardAgentTests : BunitContext
 {
+    public DashboardAgentTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public void DashboardAgent_RenduComplet_FilesEtTickets()
     {

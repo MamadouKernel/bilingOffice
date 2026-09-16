@@ -25,6 +25,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.AvoirExoneration;
 
 public sealed class FicheAvoirExonerationTests : BunitContext
 {
+    public FicheAvoirExonerationTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static (PlateformeDbContext Db, Guid AgentId, Guid TicketId) ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>()

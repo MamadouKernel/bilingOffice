@@ -28,6 +28,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Enrolement;
 // complément) et vue Agent Gate (actions visibles uniquement si permission accordée).
 public sealed class FicheEnrolementTests : BunitContext
 {
+    public FicheEnrolementTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static PlateformeDbContext CreerContexte() =>
         new(new DbContextOptionsBuilder<PlateformeDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 

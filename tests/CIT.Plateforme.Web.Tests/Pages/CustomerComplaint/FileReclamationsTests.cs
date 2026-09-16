@@ -24,6 +24,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.CustomerComplaint;
 
 public sealed class FileReclamationsTests : BunitContext
 {
+    public FileReclamationsTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static (PlateformeDbContext Db, Guid AgentId, Guid FileId, Guid TicketId) ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>()

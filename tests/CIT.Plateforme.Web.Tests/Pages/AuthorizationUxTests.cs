@@ -40,6 +40,7 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
     public AuthorizationUxTests(PlateformeWebApplicationFactory factory)
     {
         _factory = factory;
+        LocalisationDeTest.Enregistrer(Services);
     }
 
     [Fact]

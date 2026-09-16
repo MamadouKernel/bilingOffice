@@ -224,6 +224,7 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             Permissions = [permission]
         };
         bunit.Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        LocalisationDeTest.Enregistrer(bunit.Services);
     }
 
     private static void RegistrerServicesFiche(BunitContext bunit, IServiceProvider sp)

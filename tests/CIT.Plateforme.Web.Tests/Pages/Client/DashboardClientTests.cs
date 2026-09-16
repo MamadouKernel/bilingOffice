@@ -21,6 +21,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Client;
 
 public sealed class DashboardClientTests : BunitContext
 {
+    public DashboardClientTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public void DashboardClient_RenduComplet_MetriquesEtActionsRequises()
     {

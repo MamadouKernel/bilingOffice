@@ -23,6 +23,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Notifications;
 // Rendu réel + interactions, patron F006/F008.
 public sealed class CentreNotificationsTests : BunitContext
 {
+    public CentreNotificationsTests() => LocalisationDeTest.Enregistrer(Services);
+
     private readonly DepotNotificationsEnMemoire _depot = new();
     private readonly FakeContexteUtilisateurWeb _contexte = new();
 

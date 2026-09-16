@@ -33,6 +33,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Tickets;
 /// </summary>
 public sealed class ReponseComplementDepuisFicheTicketTests : BunitContext
 {
+    public ReponseComplementDepuisFicheTicketTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public async Task Client_Repond_Depuis_FicheTicket_Publie_Le_Message_Et_Reprend_Le_Traitement()
     {

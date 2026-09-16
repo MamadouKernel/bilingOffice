@@ -29,6 +29,8 @@ namespace CIT.Plateforme.Web.Tests.E2E;
 
 public sealed class ParcoursClientE2ETests : BunitContext
 {
+    public ParcoursClientE2ETests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public async Task ParcoursClient_DeLaSoumissionAuSuiviFicheTicket()
     {

@@ -23,6 +23,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.AvoirExoneration;
 
 public sealed class FileAvoirExonerationTests : BunitContext
 {
+    public FileAvoirExonerationTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static (PlateformeDbContext Db, Guid AgentId) ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>()
@@ -95,7 +97,7 @@ public sealed class FileAvoirExonerationTests : BunitContext
 
         var cut = Render<FileAvoirExoneration>();
 
-        Assert.Contains("File Avoirs & Exonérations", cut.Markup);
+        Assert.Contains("File Avoirs &amp; Exonérations", cut.Markup);
         Assert.Contains("AVO-2026-00001", cut.Markup);
         Assert.Contains("Contestation litige SURESTARIES", cut.Markup);
         Assert.Contains("XOF", cut.Markup);

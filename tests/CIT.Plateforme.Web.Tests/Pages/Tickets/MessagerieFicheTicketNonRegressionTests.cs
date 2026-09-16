@@ -33,6 +33,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Tickets;
 /// </summary>
 public sealed class MessagerieFicheTicketNonRegressionTests : BunitContext
 {
+    public MessagerieFicheTicketNonRegressionTests() => LocalisationDeTest.Enregistrer(Services);
+
     private (PlateformeDbContext Db, TicketRepository TicketRepo, DossierRepository DossierRepo, MessageRepository MsgRepo, Guid ClientId, Guid SocId, Ticket Ticket)
         ConstruireTicket(string module, string numero)
     {

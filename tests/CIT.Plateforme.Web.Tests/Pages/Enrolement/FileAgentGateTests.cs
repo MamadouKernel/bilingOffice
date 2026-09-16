@@ -23,6 +23,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Enrolement;
 // FEATURE 008 (Enrôlement Transporteurs) — T058-T059. C8-02, C8-10, mirroring FileReclamationsTests.cs.
 public sealed class FileAgentGateTests : BunitContext
 {
+    public FileAgentGateTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static (PlateformeDbContext Db, Guid AgentId, Guid FileId, Guid TicketId) ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;

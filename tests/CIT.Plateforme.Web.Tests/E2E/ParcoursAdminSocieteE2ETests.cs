@@ -20,6 +20,8 @@ namespace CIT.Plateforme.Web.Tests.E2E;
 
 public sealed class ParcoursAdminSocieteE2ETests : BunitContext
 {
+    public ParcoursAdminSocieteE2ETests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public async Task ParcoursAdminSociete_GestionCollaborateursComplete()
     {

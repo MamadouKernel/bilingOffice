@@ -21,6 +21,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Dossiers;
 
 public sealed class FicheDossierTests : BunitContext
 {
+    public FicheDossierTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public void FicheDossier_RenduComplet_SyntheseEtTableauTickets()
     {

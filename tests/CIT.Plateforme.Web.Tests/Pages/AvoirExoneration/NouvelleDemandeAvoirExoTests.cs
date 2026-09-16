@@ -47,6 +47,8 @@ public sealed class FakeHorlogeAvoirExo : IHorloge
 
 public sealed class NouvelleDemandeAvoirExoTests : BunitContext
 {
+    public NouvelleDemandeAvoirExoTests() => LocalisationDeTest.Enregistrer(Services);
+
     private static (PlateformeDbContext Db, Guid ClientId, Guid SocieteId) ConstruireBase()
     {
         var options = new DbContextOptionsBuilder<PlateformeDbContext>()

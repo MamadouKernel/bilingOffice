@@ -20,6 +20,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Societe;
 
 public sealed class DashboardSocieteTests : BunitContext
 {
+    public DashboardSocieteTests() => LocalisationDeTest.Enregistrer(Services);
+
     [Fact]
     public void DashboardSociete_RenduComplet_MetriquesEtMembres()
     {

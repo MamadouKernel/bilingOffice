@@ -34,6 +34,8 @@ namespace CIT.Plateforme.Web.Tests.Pages.Tickets;
 /// </summary>
 public sealed class DetailTicketConfirmationTests : BunitContext
 {
+    public DetailTicketConfirmationTests() => LocalisationDeTest.Enregistrer(Services);
+
     private (PlateformeDbContext Db, Guid TicketId) Amorcer(Guid agentId)
     {
         var db = new PlateformeDbContext(
