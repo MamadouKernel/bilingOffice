@@ -151,23 +151,38 @@ public sealed partial class DevelopmentSeeder(
     /// </summary>
     private async Task SeedFilesAsync()
     {
+        // INCIDENT CORRIGÉ (constaté en recette manuelle) : ce seeder regroupait toutes les files
+        // Billing sous un module générique "Billing Office", alors que chaque commande de
+        // soumission (SoumettreDemandeImportCommand.Module = "BillingImport",
+        // SoumettreDemandeExportCommand.Module = "BillingExport") recherche sa file d'entrée par
+        // COUPLE (Module, Nom) exact. Résultat : la soumission d'un BL/booking échouait
+        // systématiquement en environnement fraîchement amorcé ("File « Pilote Manifeste »
+        // (module BillingImport) non paramétrée"). Chaque module Billing a donc besoin de son
+        // propre jeu de files, même quand le nom (« Facturation », « Contrôle Documentaire »...)
+        // est partagé entre Import et Export — ce sont deux files distinctes, pas une file
+        // mutualisée.
         var files = new[]
         {
-            (Nom: "Pilote Manifeste", Module: "Billing Office"),
-            (Nom: "Facturation", Module: "Billing Office"),
-            (Nom: "Validation Paiement", Module: "Billing Office"),
-            (Nom: "Contrôle Documentaire", Module: "Billing Office"),
-            (Nom: "Comptabilité Client", Module: "Billing Office"),
-            (Nom: "Back Office Export", Module: "Billing Office"),
-            (Nom: "IES", Module: "Billing Office"),
-            (Nom: "Support Opérationnel", Module: "Billing Office"),
+            (Nom: "Pilote Manifeste", Module: "BillingImport"),
+            (Nom: "Facturation", Module: "BillingImport"),
+            (Nom: "Validation Paiement", Module: "BillingImport"),
+            (Nom: "Contrôle Documentaire", Module: "BillingImport"),
+            (Nom: "Comptabilité Client", Module: "BillingImport"),
+            (Nom: "File IES", Module: "BillingImport"),
+            (Nom: "Back Office Export", Module: "BillingExport"),
+            (Nom: "Facturation", Module: "BillingExport"),
+            (Nom: "Validation Paiement", Module: "BillingExport"),
+            (Nom: "Contrôle Documentaire", Module: "BillingExport"),
+            (Nom: "Comptabilité Client", Module: "BillingExport"),
+            (Nom: "File IES", Module: "BillingExport"),
+            (Nom: "Support Opérationnel", Module: "CustomerComplaint"),
             (Nom: "Avoir & Exonération", Module: "AvoirExoneration"),
             (Nom: "Agent Gate", Module: "Enrolement")
         };
 
         foreach (var f in files)
         {
-            if (!await context.Files.AnyAsync(x => x.Nom == f.Nom))
+            if (!await context.Files.AnyAsync(x => x.Nom == f.Nom && x.Module == f.Module))
             {
                 context.Files.Add(FileDeTraitement.Creer(f.Module, f.Nom));
             }
