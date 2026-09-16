@@ -31,6 +31,7 @@ if (builder.Environment.IsEnvironment("UAT"))
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddSignalR();
+builder.Services.AddScoped<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel, SupervisionSignalRNotifier>();
 
 // Localisation bilingue (NFR-07) : fr-FR par défaut, en-US secondaire
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

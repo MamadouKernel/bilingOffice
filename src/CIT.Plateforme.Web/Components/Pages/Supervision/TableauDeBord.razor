@@ -7,6 +7,8 @@
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+@using CIT.Plateforme.Web.Hubs
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
@@ -15,6 +17,7 @@
 @inject VueChargeQuery VueCharge
 @inject IServiceScopeFactory ScopeFactory
 @inject Microsoft.JSInterop.IJSRuntime Js
+@inject NavigationManager Navigation
 @implements IAsyncDisposable
 
 <PageTitle>@Loc["Sup.PageTitle"]</PageTitle>
@@ -281,8 +284,40 @@ else if (vuesFiles is not null)
     private string? _messageAction;
     private string? _erreurAction;
     private Guid? _exportEnCours;
+    private HubConnection? _hubConnection;
 
-    protected override async Task OnInitializedAsync() => await ChargerAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await ChargerAsync();
+
+        // SOC-08 / SUP-01 / SUP-02 : abonnement au signal de rafraîchissement temps réel — le
+        // client relit toujours les vues via les cas d'usage Application, SignalR ne porte que
+        // le "quelque chose a changé".
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri(SupervisionHub.CheminHub))
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hubConnection.On(SupervisionSignalRNotifier.EvenementRafraichir, async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await ChargerAsync();
+                StateHasChanged();
+            });
+        });
+
+        try
+        {
+            await _hubConnection.StartAsync();
+        }
+        catch (Exception)
+        {
+            // Le tableau de bord reste utilisable avec le bouton "Rafraîchir" manuel si la
+            // connexion temps réel échoue (ex. proxy bloquant WebSocket) — dégradation silencieuse
+            // volontaire, sans bloquer la page.
+        }
+    }
 
     private async Task ChargerAsync()
     {
@@ -527,5 +562,11 @@ else if (vuesFiles is not null)
         }
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
 }

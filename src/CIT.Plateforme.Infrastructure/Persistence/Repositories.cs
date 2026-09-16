@@ -425,7 +425,7 @@ public sealed class AlerteRepository(PlateformeDbContext dbContext) : IAlerteRep
 /// du domaine — c'est ici, et seulement ici, que l'infrastructure de persistance transparaît dans
 /// une exception métier explicite (règle critique « prise en charge concurrente »).
 /// </summary>
-public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTravail
+public sealed class UniteDeTravail(PlateformeDbContext dbContext, Application.Abstractions.INotificateurTempsReel? notificateurTempsReel = null) : IUniteDeTravail
 {
     public async Task<int> EnregistrerAsync(CancellationToken ct = default)
     {
@@ -437,9 +437,10 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
         // placer ici plutôt que dans chaque cas d'usage garantit qu'aucun chemin ne l'oublie.
         SuiviPassagesEnFile.Synchroniser(dbContext, DateTime.UtcNow);
 
+        int resultat;
         try
         {
-            return await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+            resultat = await dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -461,6 +462,15 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext) : IUniteDeTrav
             var numeroBooking = ExtraireNumeroBookingEnEchec(ex);
             throw new Application.BillingExport.BookingDejaActifException(numeroBooking ?? "inconnu");
         }
+
+        // SOC-08 / SUP-01 / SUP-02 : signal de rafraîchissement temps réel, uniquement si des
+        // lignes ont réellement changé — évite de bruiter le tableau de bord sur une lecture pure.
+        if (resultat > 0 && notificateurTempsReel is not null)
+        {
+            await notificateurTempsReel.NotifierChangementAsync(ct).ConfigureAwait(false);
+        }
+
+        return resultat;
     }
 
     /// <summary>Détecte, sans dépendre du provider SQL exact, une violation de contrainte unique
