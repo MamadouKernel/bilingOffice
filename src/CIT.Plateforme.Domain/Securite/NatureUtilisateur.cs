@@ -106,6 +106,13 @@ public static class Permission
     public const string AdministrationNotifications = "administration.notifications";
 
     /// <summary>
+    /// IA-04 — base de connaissances de l'assistant conversationnel administrable sans
+    /// développement : les sujets, mots-clés et réponses de premier niveau (§16) sont un
+    /// référentiel géré ici plutôt qu'une table codée en dur.
+    /// </summary>
+    public const string AdministrationAssistant = "administration.assistant";
+
+    /// <summary>
     /// FEATURE 010 (CON-01, CON-02, research.md D11) — recherche rapide de ticket/dossier au guichet
     /// et reprise sans ressaisie par un agent habilité.
     /// </summary>

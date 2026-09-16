@@ -41,10 +41,17 @@ public sealed class AssistantApplicationTests
         var ticket = Ticket.Creer("BIL-IMP-IA0001", "BillingImport", "Import", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
         db.Dossiers.Add(dossier);
         db.Tickets.Add(ticket);
+
+        // IA-04 : la base de connaissances est administrable, plus une table codée en dur — les
+        // tests d'architecture la peuplent eux-mêmes avec un sujet reconnu et laissent
+        // volontairement le reste hors périmètre pour exercer l'escalade (IA-03).
+        db.SujetsAssistant.Add(CIT.Plateforme.Domain.Assistant.SujetAssistant.Definir(
+            "suivi,suivre,où en est,ou en est,statut,avancement,pièce,piece,bonjour,bonsoir",
+            "Vous pouvez suivre l'avancement de chacune de vos demandes depuis « Mes demandes ».", 1));
         db.SaveChanges();
 
         var poser = new PoserQuestionAssistantCommand(
-            conversations, new AssistantSimule(NullLogger<AssistantSimule>.Instance),
+            conversations, new AssistantSimule(new SujetAssistantRepository(db), NullLogger<AssistantSimule>.Instance),
             horloge, uniteDeTravail);
 
         var publier = new PublierMessageCommand(

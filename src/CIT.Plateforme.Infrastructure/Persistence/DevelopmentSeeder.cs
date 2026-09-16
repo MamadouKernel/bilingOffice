@@ -53,6 +53,7 @@ public sealed partial class DevelopmentSeeder(
         await SeedFilesAsync();
         await SeedCategoriesReclamationAsync();
         await SeedPiecesExigeesAsync();
+        await SeedSujetsAssistantAsync();
 
         await SeedAdminCitAsync(motDePasseComptesDemo!);
 
@@ -193,6 +194,65 @@ public sealed partial class DevelopmentSeeder(
     /// <summary>
     /// Initialise les catégories de réclamations standard reliées à la file Support Opérationnel.
     /// </summary>
+    /// <summary>
+    /// IA-04 — base de connaissances par défaut de l'assistant conversationnel simulé, migrée
+    /// depuis l'ancienne table C# codée en dur d'<c>AssistantSimule</c> : même contenu, désormais
+    /// administrable sans redéploiement depuis l'écran d'administration dédié.
+    /// </summary>
+    private async Task SeedSujetsAssistantAsync()
+    {
+        if (await context.SujetsAssistant.AnyAsync())
+        {
+            return;
+        }
+
+        var sujets = new (string MotsCles, string Reponse)[]
+        {
+            ("suivi,suivre,où en est,ou en est,statut,avancement",
+             "Vous pouvez suivre l'avancement de chacune de vos demandes depuis « Mes demandes ». "
+             + "Chaque ticket y affiche son statut, l'étape en cours et l'historique complet des échanges."),
+
+            ("pièce,piece,document,justificatif,joindre",
+             "Les pièces attendues dépendent du module et de l'étape en cours. Ouvrez le ticket concerné : "
+             + "l'onglet « Documents » liste précisément ce qui reste à fournir et vous permet de le déposer."),
+
+            ("délai,delai,combien de temps,sla,retard",
+             "Le délai de traitement dépend du type de demande et de l'étape. L'écran de suivi du ticket "
+             + "affiche le temps écoulé et l'échéance visée pour l'étape en cours."),
+
+            ("simulation,proforma,tarif,coût,cout,prix,devis",
+             "La simulation de proforma est accessible depuis « Simulation de proforma ». Renseignez le navire, "
+             + "les dates et les caractéristiques de chaque conteneur : le montant est calculé poste par poste. "
+             + "Le résultat est indicatif et n'engage pas CIT."),
+
+            ("annuler,annulation,renoncer",
+             "Tant qu'aucun traitement engageant n'a été produit, vous pouvez annuler votre demande depuis "
+             + "la fiche du ticket. Au-delà, l'annulation directe se ferme : vous pouvez alors soumettre une "
+             + "demande d'annulation, qui sera examinée par un agent."),
+
+            ("réclamation,reclamation,plainte,litige",
+             "Une réclamation se dépose depuis « Nouvelle réclamation ». Choisissez la catégorie qui correspond "
+             + "à votre situation : elle détermine le service qui l'instruira."),
+
+            ("enrôlement,enrolement,badge,chauffeur,transporteur",
+             "L'enrôlement d'un chauffeur se fait à distance depuis « Nouvel enrôlement ». Une présentation "
+             + "physique au Gate reste nécessaire pour la photo et la remise du badge."),
+
+            ("bonjour,bonsoir,salut,aide,aidez",
+             "Bonjour. Je peux vous renseigner sur le suivi de vos demandes, les pièces à fournir, les délais, "
+             + "la simulation de proforma, l'annulation d'une demande, les réclamations et l'enrôlement des "
+             + "chauffeurs. Que souhaitez-vous savoir ?"),
+        };
+
+        var ordre = 1;
+        foreach (var (motsCles, reponse) in sujets)
+        {
+            context.SujetsAssistant.Add(Domain.Assistant.SujetAssistant.Definir(motsCles, reponse, ordre++));
+        }
+
+        await context.SaveChangesAsync();
+    }
+
     private async Task SeedCategoriesReclamationAsync()
     {
         if (!await context.CategoriesReclamation.AnyAsync())

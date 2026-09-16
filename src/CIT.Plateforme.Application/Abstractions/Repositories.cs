@@ -1,4 +1,5 @@
 using CIT.Plateforme.Domain.Affectation;
+using CIT.Plateforme.Domain.Assistant;
 using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Messagerie;
@@ -7,6 +8,20 @@ using CIT.Plateforme.Domain.Supervision;
 using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.Abstractions;
+
+/// <summary>IA-04 — référentiel administrable des sujets de premier niveau de l'assistant.</summary>
+public interface ISujetAssistantRepository
+{
+    /// <summary><paramref name="activesUniquement"/> : l'assistant lui-même ne doit correspondre
+    /// qu'aux sujets en vigueur, tandis que l'écran de paramétrage doit voir aussi les désactivés,
+    /// faute de quoi ils seraient irrécupérables — même convention que
+    /// <see cref="IMotifTransfertRepository"/>.</summary>
+    Task<IReadOnlyList<SujetAssistant>> ListerAsync(bool activesUniquement, CancellationToken ct = default);
+
+    Task<SujetAssistant?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task AjouterAsync(SujetAssistant sujet, CancellationToken ct = default);
+}
 
 public interface ITicketRepository
 {

@@ -143,6 +143,34 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("MessagesAssistant", (string)null);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.SujetAssistant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MotsCles")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reponse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EstActif");
+
+                    b.ToTable("SujetsAssistant");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Audit.EntreeHistorique", b =>
                 {
                     b.Property<Guid>("Id")

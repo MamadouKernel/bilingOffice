@@ -84,6 +84,10 @@ public static class DependencyInjection
         // fournisseur est retenu, seule cette ligne change.
         services.AddScoped<Application.Abstractions.IAssistantConversationnel, Assistant.AssistantSimule>();
         services.AddScoped<Application.Abstractions.IConversationAssistantRepository, Persistence.ConversationAssistantRepository>();
+        // IA-04 - base de connaissances administrable de l'assistant conversationnel.
+        services.AddScoped<Application.Abstractions.ISujetAssistantRepository, Persistence.SujetAssistantRepository>();
+        services.AddScoped<Application.Administration.GererSujetsAssistantCommand>();
+        services.AddScoped<Application.Administration.ListerSujetsAssistantQuery>();
         services.AddScoped<Application.Assistant.PoserQuestionAssistantCommand>();
         services.AddScoped<Application.Assistant.EscaladerAssistantVersOperateurCommand>();
         services.AddScoped<Application.Assistant.ConsulterConversationAssistantQuery>();
