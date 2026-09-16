@@ -64,6 +64,24 @@ public sealed class ReouvertureTests
     }
 
     [Fact]
+    public async Task CYC_06_un_client_ne_peut_pas_rouvrir_directement_meme_avec_le_bon_ticket()
+    {
+        // Écart de re-vérification d'audit : le chemin agent était testé positivement
+        // (CLAR_02_reouverture_acceptee_pour_un_ticket_cloture) mais aucun test ne prouvait
+        // qu'un CLIENT appelant directement RouvrirAsync (plutôt que DemanderReouvertureAsync)
+        // se voit refuser l'accès — seule l'absence d'un tel bouton côté UI le suggérait.
+        var (dbContext, commande, ticket, clientId, _) = ConstruireContexte();
+        ticket.PrendreEnCharge(Guid.NewGuid(), DateTime.UtcNow);
+        ticket.Cloturer(MotifClotureType.Normale, DateTime.UtcNow);
+        await dbContext.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<AccesRefuseException>(() => commande.RouvrirAsync(clientId, ticket.Id, "Je rouvre moi-même"));
+
+        var apres = await dbContext.Tickets.FindAsync(ticket.Id);
+        Assert.Equal(StatutTicket.Cloture, apres!.Statut);
+    }
+
+    [Fact]
     public async Task CYC_07_le_client_ne_rouvre_jamais_directement_il_demande_seulement()
     {
         var (dbContext, commande, ticket, clientId, _) = ConstruireContexte();

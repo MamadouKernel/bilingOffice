@@ -9,6 +9,7 @@ using CIT.Plateforme.Application.Tickets;
 using CIT.Plateforme.Application.Web;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Files;
+using CIT.Plateforme.Domain.Messagerie;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 using CIT.Plateforme.Infrastructure.Identity;
@@ -128,5 +129,99 @@ public sealed class FicheTicketTests : BunitContext
         Assert.Contains("DOS-2026-888", cut.Markup);
         Assert.Contains("Pilote Manifeste", cut.Markup);
         Assert.Contains("TRANS-LOGISTICS", cut.Markup);
+    }
+
+    /// <summary>
+    /// MSG-03 — écart de re-vérification d'audit : le champ <c>Type</c> distinguant note interne
+    /// et message externe était vérifié en base (MSG-02/Repositories.cs), mais aucun test de
+    /// rendu ne prouvait la distinction VISUELLE (badge « Note interne ») exigée par MSG-03.
+    /// Rendu côté agent, seul public autorisé à voir les deux natures de message.
+    /// </summary>
+    [Fact]
+    public void FicheTicket_NoteInterne_EstVisuellementDistincteDuMessageClient()
+    {
+        var agentId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var socId = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+
+        var fakeContexte = new FakeContexteUtilisateurWeb();
+        fakeContexte.Contexte = fakeContexte.Contexte with
+        {
+            UtilisateurId = agentId,
+            EstAuthentifie = true,
+            EspaceActif = EspaceFonctionnel.Agent,
+            Permissions = [Permission.MessageNoteInterne, Permission.TicketPrendreEnCharge]
+        };
+        Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+
+        var options = new DbContextOptionsBuilder<PlateformeDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var db = new PlateformeDbContext(options);
+
+        var soc = SocieteCliente.Soumettre(clientId, "TRANS-LOGISTICS", TypeClient.Normal, DateTime.UtcNow);
+        typeof(SocieteCliente).GetProperty("Id")!.SetValue(soc, socId);
+        soc.Valider();
+        db.Societes.Add(soc);
+        db.Users.Add(new ApplicationUser { Id = agentId, UserName = "agent-test", NomAffiche = "Agent Test", Nature = NatureUtilisateur.Agent, EstActif = true });
+
+        var file = FileDeTraitement.Creer("IMPORT", "Pilote Manifeste");
+        typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
+        db.Files.Add(file);
+
+        var dossier = Dossier.Creer("DOS-2026-889", socId, DateTime.UtcNow, clientId);
+        var ticket = Ticket.Creer("TCK-2026-889", "IMPORT", "STANDARD", fileId, dossier.Id, DateTime.UtcNow, "BL-889");
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        db.SaveChanges();
+
+        db.Messages.Add(Message.Publier(ticket.Id, agentId, TypeMessage.Externe, "Message visible du client", DateTime.UtcNow));
+        db.Messages.Add(Message.Publier(ticket.Id, agentId, TypeMessage.NoteInterne, "Note réservée aux agents CIT", DateTime.UtcNow));
+        db.SaveChanges();
+
+        var ticketRepo = new TicketRepository(db);
+        var dossierRepo = new DossierRepository(db);
+        var fileRepo = new FileDeTraitementRepository(db);
+        var socRepo = new SocieteClienteRepository(db);
+        var userSocRepo = new UtilisateurSocieteRepository(db);
+        var userInfoRepo = new UtilisateurInfoRepository(db);
+        var histRepo = new HistoriqueTicketRepository(db);
+        var docRepo = new DocumentRepository(db);
+        var msgRepo = new MessageRepository(db);
+        var habRepo = new HabilitationRepository(db);
+        var catRepo = new CategorieReclamationRepository(db);
+
+        var query = new ObtenirFicheTicketQuery(
+            ticketRepo, dossierRepo, fileRepo, socRepo,
+            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
+        Services.AddSingleton(query);
+
+        var horloge = new HorlogeSysteme();
+        var journalisation = new JournalisationService(db, horloge);
+        var uow = new UniteDeTravail(db);
+        var autorisation = new AutorisationService(db);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
+
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(
+            CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.TicketPrendreEnCharge, fileId));
+        db.SaveChanges();
+
+        Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));
+        Services.AddSingleton(new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation));
+
+        var cut = Render<FicheTicket>(parameters => parameters.Add(p => p.Id, ticket.Id));
+
+        Assert.Contains("Message visible du client", cut.Markup);
+        Assert.Contains("Note réservée aux agents CIT", cut.Markup);
+        Assert.Contains("border-warning", cut.Markup);
+        Assert.Contains("bg-warning-subtle", cut.Markup);
     }
 }

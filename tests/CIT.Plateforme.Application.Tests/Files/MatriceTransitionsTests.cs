@@ -1,3 +1,4 @@
+using CIT.Plateforme.Application.Administration;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tests.Support;
 using CIT.Plateforme.Application.Tickets;
@@ -80,5 +81,59 @@ public sealed class MatriceTransitionsTests
 
         await Assert.ThrowsAsync<TransitionNonAutoriseeException>(() =>
             transferer.ExecuterAsync(agentId, ticket.Id, fileCible, "Motif non listé"));
+    }
+
+    /// <summary>
+    /// TRF-06 — écart de re-vérification d'audit : le respect de la matrice était bien testé
+    /// (refus si absente), mais aucun test ne bouclait l'exigence « paramétrable SANS
+    /// DÉVELOPPEMENT » : qu'une transition ajoutée par un administrateur via
+    /// <see cref="GererMatriceTransitionsCommand"/> est immédiatement honorée par
+    /// <see cref="TransfererTicketCommand"/>, sans redéploiement ni code en dur.
+    /// </summary>
+    [Fact]
+    public async Task Une_transition_ajoutee_par_lAdministration_est_immediatement_utilisable_pour_transferer()
+    {
+        await using var dbContext = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var journalisation = new JournalisationService(dbContext, horloge);
+        var uniteDeTravail = new UniteDeTravail(dbContext);
+        var autorisation = new AutorisationService(dbContext);
+        var ticketRepo = new TicketRepository(dbContext);
+        var transitionsRepo = new TransitionAutoriseeRepository(dbContext);
+        var filesRepo = new FileDeTraitementRepository(dbContext);
+
+        var administrateurId = Guid.NewGuid();
+        var agentId = Guid.NewGuid();
+        var fileSource = FileDeTraitement.Creer("BillingImport", "Contrôle BL");
+        var fileCible = FileDeTraitement.Creer("BillingImport", "Facturation");
+        dbContext.Files.Add(fileSource);
+        dbContext.Files.Add(fileCible);
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(
+            CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, administrateurId), Permission.AdministrationFiles));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(
+            CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileSource.Id));
+        var dossier = Domain.Tickets.Dossier.Creer("DOS-MTX-000003", Guid.NewGuid(), horloge.MaintenantUtc);
+        var ticket = Domain.Tickets.Ticket.Creer("TCK-MTX-000003", "BillingOffice", "Import", fileSource.Id, dossier.Id, horloge.MaintenantUtc);
+        dbContext.Dossiers.Add(dossier);
+        dbContext.Tickets.Add(ticket);
+        await dbContext.SaveChangesAsync();
+
+        var transferer = new TransfererTicketCommand(
+            ticketRepo, transitionsRepo, new MotifTransfertRepository(dbContext),
+            autorisation, journalisation, horloge, uniteDeTravail);
+
+        // Avant paramétrage : refusé, comme n'importe quelle transition non déclarée.
+        await Assert.ThrowsAsync<TransitionNonAutoriseeException>(() =>
+            transferer.ExecuterAsync(agentId, ticket.Id, fileCible.Id, "Mal orienté"));
+
+        // Un administrateur fonctionnel — sans toucher au code — déclare la transition.
+        var gererMatrice = new GererMatriceTransitionsCommand(transitionsRepo, filesRepo, autorisation, journalisation, uniteDeTravail);
+        await gererMatrice.DefinirTransitionAsync(administrateurId, fileSource.Id, fileCible.Id, ["Mal orienté"]);
+
+        // Le même transfert, désormais accepté sans aucun changement de code.
+        await transferer.ExecuterAsync(agentId, ticket.Id, fileCible.Id, "Mal orienté");
+
+        var apres = await ticketRepo.ObtenirParIdAsync(ticket.Id);
+        Assert.Equal(fileCible.Id, apres!.FileCouranteId);
     }
 }
