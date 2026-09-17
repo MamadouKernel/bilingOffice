@@ -91,8 +91,8 @@ public static class CatalogueNavigation
         ]),
         new("Facturation & Simulation", "📊",
         [
-            new("Demande IMPORT (BL)", "📥", "/billing-import/soumettre", [Permission.BillingImportSoumettre]),
-            new("Demande EXPORT (Booking)", "📤", "/billing-export/soumettre", [Permission.BillingExportSoumettre]),
+            new("Demande IMPORT (BL)", "📥", "/billing-import/soumettre", Aucune, ExigeRattachementSociete: true),
+            new("Demande EXPORT (Booking)", "📤", "/billing-export/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Demande Avoir / Exonération", "🏷️", "/avoir-exoneration/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Mes Avoirs & Exonérations", "📑", "/avoir-exoneration/mes-demandes", Aucune, ExigeRattachementSociete: true),
             new("Simulation de Proforma", "🧮", "/simulation/proforma", Aucune, ExigeRattachementSociete: true),
@@ -100,7 +100,7 @@ public static class CatalogueNavigation
         ]),
         new("Administration & Sécurité", "⚙️",
         [
-            new("Nouvelle réclamation", "📝", "/reclamations/soumettre", [Permission.ComplaintSoumettre]),
+            new("Nouvelle réclamation", "📝", "/reclamations/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Mes réclamations", "📋", "/reclamations/mes-reclamations", Aucune, ExigeRattachementSociete: true),
             new("Nouvel enrôlement", "🚚", "/enrolement/soumettre", [Permission.EnrolementSoumettre]),
             new("Mes enrôlements", "📋", "/enrolement/mes-enrolements", Aucune),
@@ -127,7 +127,7 @@ public static class CatalogueNavigation
         ]),
         new("Facturation & Simulation", "📊",
         [
-            new("Nouvelle demande EXPORT", "📤", "/billing-export/soumettre", [Permission.BillingExportSoumettre]),
+            new("Nouvelle demande EXPORT", "📤", "/billing-export/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Demande Avoir / Exonération", "🏷️", "/avoir-exoneration/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Mes Avoirs & Exonérations", "📑", "/avoir-exoneration/mes-demandes", Aucune, ExigeRattachementSociete: true),
             new("Simulation de Proforma", "🧮", "/simulation/proforma", Aucune, ExigeRattachementSociete: true),
