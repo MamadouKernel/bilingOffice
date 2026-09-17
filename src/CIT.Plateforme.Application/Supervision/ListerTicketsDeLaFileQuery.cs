@@ -63,14 +63,19 @@ public sealed class ListerTicketsDeLaFileQuery(
                 $"La file {fileId} ne figure pas dans le périmètre de supervision de {superviseurId}.");
         }
 
+        var niveaux = await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false);
+        var libelles = niveaux.ToDictionary(n => n.Id, n => n.Libelle);
+        var rangs = niveaux.ToDictionary(n => n.Id, n => n.Rang);
+
+        // PRI-02 : la priorité influence l'ordre du ticket dans la file — un ticket plus prioritaire
+        // (rang le plus élevé) passe devant, même arrivé après un ticket moins prioritaire. La date
+        // d'arrivée ne départage plus qu'à priorité égale (ou en l'absence de priorité, rang 0).
         var deLaFile = await tickets.ListerParFileAsync(fileId, ct).ConfigureAwait(false);
         var actifs = deLaFile
             .Where(t => t.Statut is not (StatutTicket.Cloture or StatutTicket.Annule))
-            .OrderBy(t => t.DateArriveeEnFileUtc)
+            .OrderByDescending(t => t.PrioriteId.HasValue && rangs.TryGetValue(t.PrioriteId.Value, out var rang) ? rang : 0)
+            .ThenBy(t => t.DateArriveeEnFileUtc)
             .ToList();
-
-        var niveaux = await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false);
-        var libelles = niveaux.ToDictionary(n => n.Id, n => n.Libelle);
 
         var vues = new List<TicketSupervise>(actifs.Count);
         foreach (var t in actifs)

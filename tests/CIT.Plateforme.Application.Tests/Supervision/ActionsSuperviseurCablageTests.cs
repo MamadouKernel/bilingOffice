@@ -76,6 +76,38 @@ public sealed class ActionsSuperviseurCablageTests
         Assert.Equal("TCK-001", vue.Tickets[0].Numero);
     }
 
+    /// <summary>
+    /// [TEST-SPEC] PRI-02 — la priorité influence l'ordre du ticket dans la file : un ticket
+    /// « Urgent » arrivé APRÈS un ticket « Standard » doit malgré tout apparaître avant lui.
+    /// </summary>
+    [Fact]
+    public async Task Un_ticket_plus_prioritaire_arrive_plus_tard_passe_avant_un_ticket_moins_prioritaire()
+    {
+        var (db, autorisation, superviseurId, dansLePerimetre, _) = await PreparerAsync();
+
+        var dossier = Dossier.Creer("DOS-003", Guid.NewGuid(), DateTime.UtcNow);
+        db.Dossiers.Add(dossier);
+
+        var standard = NiveauPriorite.Definir("Standard", rang: 1);
+        var urgent = NiveauPriorite.Definir("Urgent", rang: 10);
+        db.NiveauxPriorite.AddRange(standard, urgent);
+
+        var arriveTot = Ticket.Creer("TCK-020", "BillingImport", "Manifeste", dansLePerimetre.Id, dossier.Id, DateTime.UtcNow.AddMinutes(-30));
+        arriveTot.DefinirPriorite(standard.Id);
+
+        var arriveTard = Ticket.Creer("TCK-021", "BillingImport", "Manifeste", dansLePerimetre.Id, dossier.Id, DateTime.UtcNow);
+        arriveTard.DefinirPriorite(urgent.Id);
+
+        db.Tickets.AddRange(arriveTot, arriveTard);
+        await db.SaveChangesAsync();
+
+        var vue = await Lister(db, autorisation).ExecuterAsync(superviseurId, dansLePerimetre.Id);
+
+        Assert.Equal(2, vue.Tickets.Count);
+        Assert.Equal("TCK-021", vue.Tickets[0].Numero);
+        Assert.Equal("TCK-020", vue.Tickets[1].Numero);
+    }
+
     [Fact]
     public async Task Le_superviseur_ne_liste_pas_les_tickets_d_une_file_hors_de_son_perimetre()
     {
