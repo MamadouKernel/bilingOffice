@@ -33,6 +33,28 @@
     </div>
 </div>
 
+<div class="cit-card mb-3 p-3 d-flex flex-wrap align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
+        <label for="filtre-statut" class="form-label mb-0 small fw-semibold">@Loc["File.FilterStatus"]</label>
+        <select id="filtre-statut" class="form-select form-select-sm" style="width:auto" @bind="_filtreStatut" @bind:after="ChargerAsync">
+            <option value="">@Loc["File.FilterStatusAll"]</option>
+            @foreach (var statut in _statutsFiltrables)
+            {
+                <option value="@statut">@statut</option>
+            }
+        </select>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <label for="tri-file" class="form-label mb-0 small fw-semibold">@Loc["File.SortLabel"]</label>
+        <select id="tri-file" class="form-select form-select-sm" style="width:auto" @bind="_tri" @bind:after="ChargerAsync">
+            <option value="@TriFileTicket.DateArriveeCroissante">@Loc["File.SortArrivalAsc"]</option>
+            <option value="@TriFileTicket.DateArriveeDecroissante">@Loc["File.SortArrivalDesc"]</option>
+            <option value="@TriFileTicket.PrioriteDecroissante">@Loc["File.SortPriorityDesc"]</option>
+            <option value="@TriFileTicket.PrioriteCroissante">@Loc["File.SortPriorityAsc"]</option>
+        </select>
+    </div>
+</div>
+
 @if (_chargement)
 {
     <IndicateurChargement Message="@Loc["FileFact.Loading"]" />
@@ -119,6 +141,10 @@ else
     private List<Ticket> _tickets = [];
     private string? _message;
     private bool _erreur;
+    private string _filtreStatut = string.Empty;
+    private TriFileTicket _tri = TriFileTicket.DateArriveeCroissante;
+    private static readonly StatutTicket[] _statutsFiltrables =
+        [StatutTicket.EnAttenteDePriseEnCharge, StatutTicket.EnCours];
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,9 +178,10 @@ else
         _message = null;
         try
         {
+            StatutTicket? statut = Enum.TryParse<StatutTicket>(_filtreStatut, out var s) ? s : null;
             var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
-                _agentId, NomsFiles.Facturation, [Permission.BillingImportFacturationEditer]);
-            _tickets = [.. ticketsDeLaFile.Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+                _agentId, NomsFiles.Facturation, [Permission.BillingImportFacturationEditer], statut, _tri);
+            _tickets = [.. ticketsDeLaFile.Where(t => statut is not null || t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
             _erreur = false;
         }
         catch (AccesRefuseException ex)
