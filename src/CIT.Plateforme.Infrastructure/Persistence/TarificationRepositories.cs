@@ -190,4 +190,22 @@ public sealed class ReferentielsTarifairesRepository(PlateformeDbContext dbConte
         await dbContext.CategoriesMarchandise.AddAsync(categorie, ct);
         await dbContext.SaveChangesAsync(ct);
     }
+
+    public async Task<TypeConteneur?> ObtenirTypeParIdAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.TypesConteneur.SingleOrDefaultAsync(t => t.Id == id, ct);
+
+    public async Task<TailleConteneur?> ObtenirTailleParIdAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.TaillesConteneur.SingleOrDefaultAsync(t => t.Id == id, ct);
+
+    public async Task<CategorieMarchandise?> ObtenirCategorieParIdAsync(Guid id, CancellationToken ct = default) =>
+        await dbContext.CategoriesMarchandise.SingleOrDefaultAsync(c => c.Id == id, ct);
+
+    public Task EnregistrerTypeAsync(TypeConteneur type, CancellationToken ct = default) =>
+        dbContext.SaveChangesAsync(ct);
+
+    public Task EnregistrerTailleAsync(TailleConteneur taille, CancellationToken ct = default) =>
+        dbContext.SaveChangesAsync(ct);
+
+    public Task EnregistrerCategorieAsync(CategorieMarchandise categorie, CancellationToken ct = default) =>
+        dbContext.SaveChangesAsync(ct);
 }

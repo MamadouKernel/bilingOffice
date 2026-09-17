@@ -357,6 +357,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Tarification.ConsulterVersionsGrillesTarifairesQueryHandler>();
         services.AddScoped<Application.Tarification.ImporterGrilleTarifaireCsvCommandHandler>();
         services.AddScoped<Application.Tarification.ConsulterReferentielsTarifairesQueryHandler>();
+        services.AddScoped<Application.Tarification.AdministrerReferentielsConteneurCommandHandler>();
 
         // Seeder for Development Environment
         services.AddScoped<DevelopmentSeeder>();

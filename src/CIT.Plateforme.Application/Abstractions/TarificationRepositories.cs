@@ -59,4 +59,19 @@ public interface IReferentielsTarifairesRepository
     Task AjouterTypeAsync(TypeConteneur type, CancellationToken ct = default);
 
     Task AjouterCategorieAsync(CategorieMarchandise categorie, CancellationToken ct = default);
+
+    /// <summary>Chargements et enregistrements par identifiant — administration des référentiels
+    /// (renommage, activation/désactivation) sans passer par le chargement en lecture seule de
+    /// <see cref="ChargerAsync"/>.</summary>
+    Task<TypeConteneur?> ObtenirTypeParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<TailleConteneur?> ObtenirTailleParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<CategorieMarchandise?> ObtenirCategorieParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task EnregistrerTypeAsync(TypeConteneur type, CancellationToken ct = default);
+
+    Task EnregistrerTailleAsync(TailleConteneur taille, CancellationToken ct = default);
+
+    Task EnregistrerCategorieAsync(CategorieMarchandise categorie, CancellationToken ct = default);
 }

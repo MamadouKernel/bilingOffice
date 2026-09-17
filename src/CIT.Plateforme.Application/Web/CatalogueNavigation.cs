@@ -253,6 +253,7 @@ public static class CatalogueNavigation
         new("Facturation & Simulation", "📊",
         [
             new("Grilles tarifaires", "📊", "/admin/tarification", [Permission.TarificationAdministrer]),
+            new("Référentiels conteneur", "📦", "/admin/tarification/referentiels", [Permission.TarificationAdministrer]),
         ]),
         new("Administration & Sécurité", "⚙️",
         [

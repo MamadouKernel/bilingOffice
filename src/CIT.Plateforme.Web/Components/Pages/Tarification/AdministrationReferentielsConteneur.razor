@@ -1,0 +1,549 @@
+@page "/admin/tarification/referentiels"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Tarification
+@using CIT.Plateforme.Domain.Tarification.Referentiels
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IReferentielsTarifairesRepository Referentiels
+@inject AdministrerReferentielsConteneurCommandHandler Administrer
+
+<PageTitle>@Loc["RefConteneur.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title">
+            <span>📦</span> @Loc["RefConteneur.Title"]
+        </h1>
+        <div class="cit-page-subtitle">@Loc["RefConteneur.Subtitle"]</div>
+    </div>
+</div>
+
+<div style="max-width: 1100px;">
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["RefConteneur.Loading"]" />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_actionSuccess))
+    {
+        <div class="alert alert-success py-2 small mb-3" role="status">@_actionSuccess</div>
+    }
+
+    <div class="alert alert-info small mb-4">
+        @Loc["RefConteneur.NoteTarif"]
+    </div>
+
+    @* ---------- TYPES DE CONTENEUR ---------- *@
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0">@Loc["RefConteneur.TypesTitle"]</h6>
+            @if (!_formTypeOuvert)
+            {
+                <button class="btn btn-primary btn-sm fw-bold" @onclick="() => _formTypeOuvert = true">@Loc["RefConteneur.BtnNouveauType"]</button>
+            }
+        </div>
+        @if (_formTypeOuvert)
+        {
+            <div class="p-3 border-bottom">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblCode"]</label>
+                        <input class="form-control form-control-sm font-monospace" @bind="_nouveauTypeCode" placeholder="OPEN_TOP" maxlength="30" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblLibelle"]</label>
+                        <input class="form-control form-control-sm" @bind="_nouveauTypeLibelle" placeholder="Open Top" maxlength="100" />
+                    </div>
+                    <div class="col-md-3 form-check ms-2 mb-1">
+                        <input type="checkbox" class="form-check-input" id="nouveauTypeFrigo" @bind="_nouveauTypeFrigo" />
+                        <label class="form-check-label small" for="nouveauTypeFrigo">@Loc["RefConteneur.LblFrigo"]</label>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerTypeAsync" disabled="@(string.IsNullOrWhiteSpace(_nouveauTypeCode) || string.IsNullOrWhiteSpace(_nouveauTypeLibelle))">@Loc["RefConteneur.BtnCreer"]</button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => _formTypeOuvert = false">@Loc["RefConteneur.BtnAnnuler"]</button>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>@Loc["RefConteneur.ColCode"]</th>
+                        <th>@Loc["RefConteneur.ColLibelle"]</th>
+                        <th>@Loc["RefConteneur.ColFrigo"]</th>
+                        <th>@Loc["RefConteneur.ColStatut"]</th>
+                        <th class="text-end">@Loc["RefConteneur.ColActions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in _types)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary font-monospace">@t.Code</td>
+                            <td class="text-dark">
+                                @if (_typeEnEdition == t.Id)
+                                {
+                                    <input class="form-control form-control-sm" @bind="_libelleEnEdition" />
+                                }
+                                else
+                                {
+                                    @t.Libelle
+                                }
+                            </td>
+                            <td>
+                                @if (_typeEnEdition == t.Id)
+                                {
+                                    <input type="checkbox" class="form-check-input" @bind="_frigoEnEdition" />
+                                }
+                                else if (t.DeclencheBranchementFrigorifique)
+                                {
+                                    <span class="badge bg-info-subtle text-info-emphasis">@Loc["RefConteneur.BadgeFrigo"]</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @(t.Actif ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                    @(t.Actif ? Loc["RefConteneur.StActif"] : Loc["RefConteneur.StInactif"])
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                @if (_typeEnEdition == t.Id)
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-primary" @onclick="() => EnregistrerTypeAsync(t)">@Loc["RefConteneur.BtnEnregistrer"]</button>
+                                        <button class="btn btn-outline-secondary" @onclick="() => _typeEnEdition = null">@Loc["RefConteneur.BtnAnnuler"]</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" @onclick="() => CommencerEditionType(t)">@Loc["RefConteneur.BtnModifier"]</button>
+                                        @if (t.Actif)
+                                        {
+                                            <button class="btn btn-outline-secondary" @onclick="() => BasculerTypeAsync(t, false)">@Loc["RefConteneur.BtnDesactiver"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-success" @onclick="() => BasculerTypeAsync(t, true)">@Loc["RefConteneur.BtnActiver"]</button>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* ---------- TAILLES DE CONTENEUR ---------- *@
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0">@Loc["RefConteneur.TaillesTitle"]</h6>
+            @if (!_formTailleOuvert)
+            {
+                <button class="btn btn-primary btn-sm fw-bold" @onclick="() => _formTailleOuvert = true">@Loc["RefConteneur.BtnNouvelleTaille"]</button>
+            }
+        </div>
+        @if (_formTailleOuvert)
+        {
+            <div class="p-3 border-bottom">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblCode"]</label>
+                        <input class="form-control form-control-sm font-monospace" @bind="_nouvelleTailleCode" placeholder="45" maxlength="10" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblLibelle"]</label>
+                        <input class="form-control form-control-sm" @bind="_nouvelleTailleLibelle" placeholder="45 pieds" maxlength="50" />
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerTailleAsync" disabled="@(string.IsNullOrWhiteSpace(_nouvelleTailleCode) || string.IsNullOrWhiteSpace(_nouvelleTailleLibelle))">@Loc["RefConteneur.BtnCreer"]</button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => _formTailleOuvert = false">@Loc["RefConteneur.BtnAnnuler"]</button>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>@Loc["RefConteneur.ColCode"]</th>
+                        <th>@Loc["RefConteneur.ColLibelle"]</th>
+                        <th>@Loc["RefConteneur.ColStatut"]</th>
+                        <th class="text-end">@Loc["RefConteneur.ColActions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in _tailles)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary font-monospace">@t.Code</td>
+                            <td class="text-dark">
+                                @if (_tailleEnEdition == t.Id)
+                                {
+                                    <input class="form-control form-control-sm" @bind="_libelleEnEdition" />
+                                }
+                                else
+                                {
+                                    @t.Libelle
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @(t.Actif ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                    @(t.Actif ? Loc["RefConteneur.StActif"] : Loc["RefConteneur.StInactif"])
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                @if (_tailleEnEdition == t.Id)
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-primary" @onclick="() => EnregistrerTailleAsync(t)">@Loc["RefConteneur.BtnEnregistrer"]</button>
+                                        <button class="btn btn-outline-secondary" @onclick="() => _tailleEnEdition = null">@Loc["RefConteneur.BtnAnnuler"]</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" @onclick="() => CommencerEditionTaille(t)">@Loc["RefConteneur.BtnModifier"]</button>
+                                        @if (t.Actif)
+                                        {
+                                            <button class="btn btn-outline-secondary" @onclick="() => BasculerTailleAsync(t, false)">@Loc["RefConteneur.BtnDesactiver"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-success" @onclick="() => BasculerTailleAsync(t, true)">@Loc["RefConteneur.BtnActiver"]</button>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @* ---------- CATÉGORIES DE MARCHANDISE ---------- *@
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0">@Loc["RefConteneur.CategoriesTitle"]</h6>
+            @if (!_formCategorieOuvert)
+            {
+                <button class="btn btn-primary btn-sm fw-bold" @onclick="() => _formCategorieOuvert = true">@Loc["RefConteneur.BtnNouvelleCategorie"]</button>
+            }
+        </div>
+        @if (_formCategorieOuvert)
+        {
+            <div class="p-3 border-bottom">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblSens"]</label>
+                        <select class="form-select form-select-sm" @bind="_nouvelleCategorieSens">
+                            <option value="">@Loc["RefConteneur.ChooseSens"]</option>
+                            @foreach (var s in _sens)
+                            {
+                                <option value="@s.Code">@s.Libelle</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblCode"]</label>
+                        <input class="form-control form-control-sm font-monospace" @bind="_nouvelleCategorieCode" placeholder="C6" maxlength="20" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblLibelle"]</label>
+                        <input class="form-control form-control-sm" @bind="_nouvelleCategorieLibelle" placeholder="Catégorie 6 — import local" maxlength="150" />
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(string.IsNullOrWhiteSpace(_nouvelleCategorieSens) || string.IsNullOrWhiteSpace(_nouvelleCategorieCode) || string.IsNullOrWhiteSpace(_nouvelleCategorieLibelle))">@Loc["RefConteneur.BtnCreer"]</button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => _formCategorieOuvert = false">@Loc["RefConteneur.BtnAnnuler"]</button>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>@Loc["RefConteneur.ColSens"]</th>
+                        <th>@Loc["RefConteneur.ColCode"]</th>
+                        <th>@Loc["RefConteneur.ColLibelle"]</th>
+                        <th>@Loc["RefConteneur.ColStatut"]</th>
+                        <th class="text-end">@Loc["RefConteneur.ColActions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _categories)
+                    {
+                        <tr>
+                            <td class="small text-muted">@SensLibelle(c.SensOperationId)</td>
+                            <td class="fw-bold text-primary font-monospace">@c.Code</td>
+                            <td class="text-dark">
+                                @if (_categorieEnEdition == c.Id)
+                                {
+                                    <input class="form-control form-control-sm" @bind="_libelleEnEdition" />
+                                }
+                                else
+                                {
+                                    @c.Libelle
+                                }
+                            </td>
+                            <td>
+                                <span class="badge @(c.Actif ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                    @(c.Actif ? Loc["RefConteneur.StActif"] : Loc["RefConteneur.StInactif"])
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                @if (_categorieEnEdition == c.Id)
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-primary" @onclick="() => EnregistrerCategorieAsync(c)">@Loc["RefConteneur.BtnEnregistrer"]</button>
+                                        <button class="btn btn-outline-secondary" @onclick="() => _categorieEnEdition = null">@Loc["RefConteneur.BtnAnnuler"]</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" @onclick="() => CommencerEditionCategorie(c)">@Loc["RefConteneur.BtnModifier"]</button>
+                                        @if (c.Actif)
+                                        {
+                                            <button class="btn btn-outline-secondary" @onclick="() => BasculerCategorieAsync(c, false)">@Loc["RefConteneur.BtnDesactiver"]</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-success" @onclick="() => BasculerCategorieAsync(c, true)">@Loc["RefConteneur.BtnActiver"]</button>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _actionSuccess;
+    private Guid _agentId;
+
+    private IReadOnlyList<SensOperation> _sens = [];
+    private IReadOnlyList<TypeConteneur> _types = [];
+    private IReadOnlyList<TailleConteneur> _tailles = [];
+    private IReadOnlyList<CategorieMarchandise> _categories = [];
+
+    private string _libelleEnEdition = string.Empty;
+
+    private bool _formTypeOuvert;
+    private string _nouveauTypeCode = string.Empty;
+    private string _nouveauTypeLibelle = string.Empty;
+    private bool _nouveauTypeFrigo;
+    private Guid? _typeEnEdition;
+    private bool _frigoEnEdition;
+
+    private bool _formTailleOuvert;
+    private string _nouvelleTailleCode = string.Empty;
+    private string _nouvelleTailleLibelle = string.Empty;
+    private Guid? _tailleEnEdition;
+
+    private bool _formCategorieOuvert;
+    private string _nouvelleCategorieSens = string.Empty;
+    private string _nouvelleCategorieCode = string.Empty;
+    private string _nouvelleCategorieLibelle = string.Empty;
+    private Guid? _categorieEnEdition;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["RefConteneur.LoginRequis"].Value;
+                return;
+            }
+
+            _agentId = contexte.UtilisateurId;
+            await ChargerAsync();
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private string SensLibelle(Guid sensOperationId) =>
+        _sens.SingleOrDefault(s => s.Id == sensOperationId)?.Libelle ?? string.Empty;
+
+    private async Task ChargerAsync()
+    {
+        try
+        {
+            // Toujours les inactifs aussi : un administrateur doit pouvoir les réactiver, une
+            // simulation historique peut encore les référencer.
+            _sens = await Referentiels.ListerSensAsync(actifsSeulement: false);
+            _types = await Referentiels.ListerTypesAsync(actifsSeulement: false);
+            _tailles = await Referentiels.ListerTaillesAsync(actifsSeulement: false);
+            _categories = await Referentiels.ListerCategoriesAsync(sensOperationId: null, actifsSeulement: false);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+    }
+
+    // ---------- Types ----------
+
+    private void CommencerEditionType(TypeConteneur t)
+    {
+        _typeEnEdition = t.Id;
+        _libelleEnEdition = t.Libelle;
+        _frigoEnEdition = t.DeclencheBranchementFrigorifique;
+    }
+
+    private async Task CreerTypeAsync()
+    {
+        await ExecuterAsync(async () =>
+        {
+            await Administrer.CreerTypeAsync(new CreerTypeConteneurCommande(
+                _agentId, _nouveauTypeCode, _nouveauTypeLibelle, _nouveauTypeFrigo, (_types.Count + 1) * 10));
+            _formTypeOuvert = false;
+            _nouveauTypeCode = string.Empty;
+            _nouveauTypeLibelle = string.Empty;
+            _nouveauTypeFrigo = false;
+        }, Loc["RefConteneur.MsgTypeCree"].Value);
+    }
+
+    private async Task EnregistrerTypeAsync(TypeConteneur t)
+    {
+        await ExecuterAsync(async () =>
+        {
+            await Administrer.ModifierTypeAsync(new ModifierTypeConteneurCommande(_agentId, t.Id, _libelleEnEdition, _frigoEnEdition));
+            _typeEnEdition = null;
+        }, Loc["RefConteneur.MsgMaj"].Value);
+    }
+
+    private Task BasculerTypeAsync(TypeConteneur t, bool actif) =>
+        ExecuterAsync(
+            () => Administrer.BasculerActivationTypeAsync(new BasculerActivationTypeConteneurCommande(_agentId, t.Id, actif)),
+            actif ? Loc["RefConteneur.MsgActive"].Value : Loc["RefConteneur.MsgDesactive"].Value);
+
+    // ---------- Tailles ----------
+
+    private void CommencerEditionTaille(TailleConteneur t)
+    {
+        _tailleEnEdition = t.Id;
+        _libelleEnEdition = t.Libelle;
+    }
+
+    private async Task CreerTailleAsync()
+    {
+        await ExecuterAsync(async () =>
+        {
+            await Administrer.CreerTailleAsync(new CreerTailleConteneurCommande(
+                _agentId, _nouvelleTailleCode, _nouvelleTailleLibelle, (_tailles.Count + 1) * 10));
+            _formTailleOuvert = false;
+            _nouvelleTailleCode = string.Empty;
+            _nouvelleTailleLibelle = string.Empty;
+        }, Loc["RefConteneur.MsgTailleCreee"].Value);
+    }
+
+    private async Task EnregistrerTailleAsync(TailleConteneur t)
+    {
+        await ExecuterAsync(async () =>
+        {
+            await Administrer.ModifierTailleAsync(new ModifierTailleConteneurCommande(_agentId, t.Id, _libelleEnEdition));
+            _tailleEnEdition = null;
+        }, Loc["RefConteneur.MsgMaj"].Value);
+    }
+
+    private Task BasculerTailleAsync(TailleConteneur t, bool actif) =>
+        ExecuterAsync(
+            () => Administrer.BasculerActivationTailleAsync(new BasculerActivationTailleConteneurCommande(_agentId, t.Id, actif)),
+            actif ? Loc["RefConteneur.MsgActive"].Value : Loc["RefConteneur.MsgDesactive"].Value);
+
+    // ---------- Catégories ----------
+
+    private void CommencerEditionCategorie(CategorieMarchandise c)
+    {
+        _categorieEnEdition = c.Id;
+        _libelleEnEdition = c.Libelle;
+    }
+
+    private async Task CreerCategorieAsync()
+    {
+        await ExecuterAsync(async () =>
+        {
+            await Administrer.CreerCategorieAsync(new CreerCategorieMarchandiseCommande(
+                _agentId, _nouvelleCategorieSens, _nouvelleCategorieCode, _nouvelleCategorieLibelle));
+            _formCategorieOuvert = false;
+            _nouvelleCategorieSens = string.Empty;
+            _nouvelleCategorieCode = string.Empty;
+            _nouvelleCategorieLibelle = string.Empty;
+        }, Loc["RefConteneur.MsgCategorieCreee"].Value);
+    }
+
+    private async Task EnregistrerCategorieAsync(CategorieMarchandise c)
+    {
+        await ExecuterAsync(async () =>
+        {
+            await Administrer.ModifierCategorieAsync(new ModifierCategorieMarchandiseCommande(_agentId, c.Id, _libelleEnEdition));
+            _categorieEnEdition = null;
+        }, Loc["RefConteneur.MsgMaj"].Value);
+    }
+
+    private Task BasculerCategorieAsync(CategorieMarchandise c, bool actif) =>
+        ExecuterAsync(
+            () => Administrer.BasculerActivationCategorieAsync(new BasculerActivationCategorieMarchandiseCommande(_agentId, c.Id, actif)),
+            actif ? Loc["RefConteneur.MsgActive"].Value : Loc["RefConteneur.MsgDesactive"].Value);
+
+    // ---------- Commun ----------
+
+    private async Task ExecuterAsync(Func<Task> action, string messageSucces)
+    {
+        _erreur = null;
+        _actionSuccess = null;
+        try
+        {
+            await action();
+            _actionSuccess = messageSucces;
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+}
