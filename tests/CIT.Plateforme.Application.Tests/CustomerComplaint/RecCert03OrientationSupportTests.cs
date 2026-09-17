@@ -55,7 +55,7 @@ public sealed class RecCert03OrientationSupportTests
 
         // 1. Soumission d'une réclamation
         var commandeSoumettre = new SoumettreReclamationCommand(
-            ticketRepo, categorieRepo, dossierRepo, utilSocieteRepo, uniteDeTravail, horloge, numerotation, autorisation, journalisation);
+            ticketRepo, categorieRepo, dossierRepo, utilSocieteRepo, uniteDeTravail, horloge, numerotation, journalisation);
 
         var resultat = await commandeSoumettre.ExecuterAsync(
             clientAuteurId,

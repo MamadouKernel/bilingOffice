@@ -69,7 +69,9 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
         soc.Valider();
         db.Societes.Add(soc);
 
-        var userSoc = UtilisateurSociete.Rattacher(clientId, societeId, DateTime.UtcNow, false, true);
+        // droitSoumission=false : ENT-02, même contrôle que BillingImport/BillingExport — le
+        // droit de soumettre pour la société est individuel et porté par le rattachement.
+        var userSoc = UtilisateurSociete.Rattacher(clientId, societeId, DateTime.UtcNow, false, false);
         db.UtilisateursSociete.Add(userSoc);
 
         var file = await db.Files.FirstOrDefaultAsync(f => f.Nom == "Support Opérationnel");
@@ -81,7 +83,6 @@ public sealed class CustomerComplaintSecurityTests(PlateformeWebApplicationFacto
 
         var cat = CategorieReclamation.Creer($"SEC2_{Guid.NewGuid():N}"[..10], "Général", file.Id);
         db.Set<CategorieReclamation>().Add(cat);
-        // AUCUNE habilitation ComplaintSoumettre attribuée
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAsync<AccesRefuseException>(() =>

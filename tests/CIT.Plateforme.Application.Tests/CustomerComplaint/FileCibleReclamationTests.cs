@@ -316,7 +316,6 @@ public sealed class FileCibleReclamationTests
             uow,
             horloge,
             numerotation.Object,
-            autorisation,
             journalisation);
     }
 }

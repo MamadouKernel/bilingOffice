@@ -5,7 +5,6 @@ using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Tickets;
-using CIT.Plateforme.Domain.Securite;
 
 namespace CIT.Plateforme.Application.CustomerComplaint;
 
@@ -21,7 +20,6 @@ public sealed class SoumettreReclamationCommand(
     IUniteDeTravail uniteDeTravail,
     IHorloge horloge,
     IServiceNumerotation numerotation,
-    IAutorisationService autorisationService,
     IJournalisationService journalisationService)
 {
     /// <summary>
@@ -33,18 +31,17 @@ public sealed class SoumettreReclamationCommand(
 
     public async Task<SoumettreReclamationResultat> ExecuterAsync(Guid appelantId, SoumettreReclamationRequete requete, CancellationToken ct = default)
     {
-        // 1. Autorisation globale
-        var aLeDroit = await autorisationService.EstAutoriseAsync(appelantId, Permission.ComplaintSoumettre, null, ct).ConfigureAwait(false);
-        if (!aLeDroit)
-        {
-            throw new AccesRefuseException($"L'utilisateur {appelantId} ne possède pas la permission de soumettre une réclamation.");
-        }
-
-        // 2. Récupération et cloisonnement de la société (Vérification IDOR)
+        // 1. Autorisation (ENT-02, même contrôle que BillingImport/BillingExport) : le droit de
+        // soumettre pour une société est individuel et porté par le rattachement lui-même
+        // (rattachement.DroitSoumission), pas par une permission RBAC globale distincte — celle-ci
+        // (Permission.ComplaintSoumettre) n'était jamais accordée par le parcours réel de
+        // validation de compte, rendant la soumission de réclamation impossible en conditions
+        // réelles malgré une couverture de test qui la simulait toujours accordée (trouvé en test
+        // manuel en direct, pas par lecture de code ni par la suite automatisée).
         var rattachement = await utilisateurSocieteRepository.ObtenirParUtilisateurAsync(appelantId, ct).ConfigureAwait(false);
-        if (rattachement == null || !rattachement.EstActif)
+        if (rattachement == null || !rattachement.EstActif || !rattachement.DroitSoumission)
         {
-            throw new AccesRefuseException($"L'utilisateur {appelantId} n'est rattaché à aucune société active.");
+            throw new AccesRefuseException($"L'utilisateur {appelantId} n'est pas habilité à soumettre une réclamation (ENT-02).");
         }
 
         // Le rattachement certifié par le serveur DOIT correspondre à celui demandé (ou on force celui du serveur).

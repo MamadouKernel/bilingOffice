@@ -67,7 +67,7 @@ public sealed class NouvelleReclamationTests : BunitContext
 
         Services.AddSingleton(new ListerCategoriesReclamationQuery(catRepo));
         Services.AddSingleton(new SoumettreReclamationCommand(
-            ticketRepo, catRepo, dossierRepo, userSocRepo, uow, horloge, numerotation, autorisation, journalisation));
+            ticketRepo, catRepo, dossierRepo, userSocRepo, uow, horloge, numerotation, journalisation));
     }
 
     [Fact]

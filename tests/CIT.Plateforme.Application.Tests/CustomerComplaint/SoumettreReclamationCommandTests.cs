@@ -7,7 +7,6 @@ using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Reclamations;
 using CIT.Plateforme.Domain.Tickets;
-using CIT.Plateforme.Domain.Securite;
 using Moq;
 using Xunit;
 
@@ -22,7 +21,6 @@ public class SoumettreReclamationCommandTests
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
     private readonly Mock<IHorloge> _horloge = new();
     private readonly Mock<IServiceNumerotation> _numerotation = new();
-    private readonly Mock<IAutorisationService> _autorisation = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
 
     private readonly SoumettreReclamationCommand _command;
@@ -37,7 +35,6 @@ public class SoumettreReclamationCommandTests
             _uniteDeTravail.Object,
             _horloge.Object,
             _numerotation.Object,
-            _autorisation.Object,
             _journalisation.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 8, 30, 10, 0, 0, DateTimeKind.Utc));
@@ -55,13 +52,10 @@ public class SoumettreReclamationCommandTests
         var societeId = Guid.NewGuid();
         var categorieId = Guid.NewGuid();
         var categorie = CategorieReclamation.Creer("FACT", "Facturation", Guid.NewGuid());
-        
-        _autorisation.Setup(a => a.EstAutoriseAsync(userId, Permission.ComplaintSoumettre, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-            
+
         _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(UtilisateurSociete.Rattacher(userId, societeId, DateTime.UtcNow, droitSoumission: true));
-            
+
         _categorieRepo.Setup(r => r.ObtenirParIdAsync(categorieId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(categorie);
 
@@ -81,9 +75,9 @@ public class SoumettreReclamationCommandTests
             t.FileCouranteId == categorie.FileCibleDefautId &&
             t.Objet == "Facture erronée" &&
             t.Description == "Le montant facturé ne correspond pas au devis signé."), It.IsAny<CancellationToken>()), Times.Once);
-        
+
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
-        
+
         // H. Audit de création présent
         _journalisation.Verify(j => j.ConsignerHistoriqueAsync(It.IsAny<Guid>(), "TicketCree", "Réclamation soumise", userId, It.IsAny<CancellationToken>()), Times.Once);
         _journalisation.Verify(j => j.ConsignerAuditAsync(userId, "TicketCree", "Ticket", It.IsAny<Guid>(), null, null, It.IsAny<CancellationToken>()), Times.Once);
@@ -95,13 +89,10 @@ public class SoumettreReclamationCommandTests
         // Arrange
         var userId = Guid.NewGuid();
         var societeId = Guid.NewGuid();
-        
-        _autorisation.Setup(a => a.EstAutoriseAsync(userId, Permission.ComplaintSoumettre, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-            
+
         _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(UtilisateurSociete.Rattacher(userId, societeId, DateTime.UtcNow, droitSoumission: true));
-            
+
         _categorieRepo.Setup(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((CategorieReclamation?)null);
 
@@ -119,13 +110,10 @@ public class SoumettreReclamationCommandTests
         var societeId = Guid.NewGuid();
         var categorie = CategorieReclamation.Creer("FACT", "Facturation", null);
         categorie.Desactiver();
-        
-        _autorisation.Setup(a => a.EstAutoriseAsync(userId, Permission.ComplaintSoumettre, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-            
+
         _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(UtilisateurSociete.Rattacher(userId, societeId, DateTime.UtcNow, droitSoumission: true));
-            
+
         _categorieRepo.Setup(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(categorie);
 
@@ -143,14 +131,11 @@ public class SoumettreReclamationCommandTests
         var vraieSocieteId = Guid.NewGuid();
         var fausseSocieteId = Guid.NewGuid(); // L'attaquant essaie de soumettre pour fausseSocieteId
         var categorie = CategorieReclamation.Creer("FACT", "Facturation", Guid.NewGuid());
-        
-        _autorisation.Setup(a => a.EstAutoriseAsync(userId, Permission.ComplaintSoumettre, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-            
+
         // Le repository retourne le VRAI rattachement (vraieSocieteId)
         _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(UtilisateurSociete.Rattacher(userId, vraieSocieteId, DateTime.UtcNow, droitSoumission: true));
-            
+
         _categorieRepo.Setup(r => r.ObtenirParIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(categorie);
 
@@ -160,15 +145,39 @@ public class SoumettreReclamationCommandTests
         await Assert.ThrowsAsync<AccesRefuseException>(() => _command.ExecuterAsync(userId, request, CancellationToken.None));
     }
 
+    /// <summary>
+    /// RÉGRESSION DÉCOUVERTE EN TEST MANUEL EN DIRECT (pas par lecture de code) : la commande
+    /// vérifiait auparavant une permission RBAC (Permission.ComplaintSoumettre) qui n'était jamais
+    /// accordée par le parcours réel de validation de compte société — aucune société ne pouvait
+    /// donc jamais soumettre de réclamation en conditions réelles, malgré une suite de tests
+    /// entièrement verte (chaque test simulait la permission comme toujours accordée). Corrigé en
+    /// alignant sur ENT-02 : le droit de soumission est porté par le rattachement lui-même
+    /// (UtilisateurSociete.DroitSoumission), comme pour BillingImport/BillingExport.
+    /// </summary>
     [Fact]
-    public async Task Utilisateur_sans_permission_ComplaintSoumettre_retourne_AccesRefuse()
+    public async Task Utilisateur_sans_droit_de_soumission_retourne_AccesRefuse()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var societeId = Guid.NewGuid();
+
+        _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(UtilisateurSociete.Rattacher(userId, societeId, DateTime.UtcNow, droitSoumission: false));
+
+        var request = new SoumettreReclamationRequete(societeId, Guid.NewGuid(), "Objet", "Description");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<AccesRefuseException>(() => _command.ExecuterAsync(userId, request, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Utilisateur_sans_rattachement_actif_retourne_AccesRefuse()
     {
         // Arrange
         var userId = Guid.NewGuid();
 
-        // Permission refusée
-        _autorisation.Setup(a => a.EstAutoriseAsync(userId, Permission.ComplaintSoumettre, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UtilisateurSociete?)null);
 
         var request = new SoumettreReclamationRequete(Guid.NewGuid(), Guid.NewGuid(), "Objet", "Description");
 
@@ -191,9 +200,6 @@ public class SoumettreReclamationCommandTests
         var societeId = Guid.NewGuid();
         var categorieId = Guid.NewGuid();
         var categorie = CategorieReclamation.Creer("FACT", "Facturation", Guid.NewGuid());
-
-        _autorisation.Setup(a => a.EstAutoriseAsync(userId, Permission.ComplaintSoumettre, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
 
         _utilisateurSocieteRepo.Setup(r => r.ObtenirParUtilisateurAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(UtilisateurSociete.Rattacher(userId, societeId, DateTime.UtcNow, droitSoumission: true));
