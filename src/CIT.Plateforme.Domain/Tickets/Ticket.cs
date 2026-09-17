@@ -99,16 +99,59 @@ public sealed class Ticket
         DateArchivageUtc ??= maintenantUtc;
     }
 
+    /// <summary>Valeur de remplacement des champs texte à caractère personnel une fois le ticket
+    /// anonymisé (SEC-06, droit à l'effacement) — jamais une chaîne vide, pour rester distinguable
+    /// d'un champ simplement jamais renseigné.</summary>
+    public const string ValeurAnonymisee = "[Anonymisé]";
+
     /// <summary>
     /// Rétention (SEC-06) : le contenu est anonymisé. L'anonymisation n'EST PAS l'archivage — elle
     /// intervient bien après, et retire de la lisibilité là où l'archivage la préserve. La date
     /// d'archivage n'est donc pas écrasée ici ; elle est seulement renseignée si le ticket n'avait
     /// jamais été archivé (cas d'un ticket purgé sans être passé par la clôture).
+    ///
+    /// REMÉDIATION SEC-06 (droit à l'effacement) : marquer <see cref="EstAnonymise"/> sans jamais
+    /// vider aucun champ ne matérialisait rien — le drapeau existait, mais aucune donnée
+    /// personnelle n'était réellement effacée. Les champs texte libres susceptibles de porter des
+    /// données à caractère personnel (objet/description de réclamation, réponse formalisée,
+    /// commentaire d'évaluation, motif de rejet) sont désormais remplacés par
+    /// <see cref="ValeurAnonymisee"/> quand ils sont renseignés. Idempotent : ré-appeler sur un
+    /// ticket déjà anonymisé ne fait rien de plus.
     /// </summary>
     public void MarquerAnonymise(DateTime dateArchivageUtc)
     {
+        if (EstAnonymise)
+        {
+            return;
+        }
+
         EstAnonymise = true;
         DateArchivageUtc ??= dateArchivageUtc;
+
+        if (Objet is not null)
+        {
+            Objet = ValeurAnonymisee;
+        }
+
+        if (Description is not null)
+        {
+            Description = ValeurAnonymisee;
+        }
+
+        if (ReponseFormalisee is not null)
+        {
+            ReponseFormalisee = ValeurAnonymisee;
+        }
+
+        if (EvaluationCommentaire is not null)
+        {
+            EvaluationCommentaire = ValeurAnonymisee;
+        }
+
+        if (MotifRejetAvoirExo is not null)
+        {
+            MotifRejetAvoirExo = ValeurAnonymisee;
+        }
     }
 
     /// <summary>Jeton de concurrence optimiste EF Core (D3/D6) — garantit qu'une seule prise en

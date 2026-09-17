@@ -1,0 +1,203 @@
+@page "/comptes/mes-donnees"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Text.Json
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>@Loc["MesDonnees.PageTitle"]</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🔐</span> @Loc["MesDonnees.Pill"]
+        </div>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["MesDonnees.Title"]</h1>
+        <div class="cit-page-subtitle text-muted">@Loc["MesDonnees.Subtitle"]</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["MesDonnees.Loading"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
+            <span class="me-2 fs-5">⚠️</span> @_erreur
+        </div>
+    }
+
+    @if (_messageSucces is not null)
+    {
+        <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 mb-4 rounded-3 p-3 shadow-sm" role="alert">
+            @_messageSucces
+        </div>
+    }
+
+    <!-- 1. Export -->
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">📤</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["MesDonnees.ExportTitle"]</h4>
+        </div>
+        <p class="text-muted small">@Loc["MesDonnees.ExportDesc"]</p>
+        <button class="btn btn-primary fw-semibold rounded-3 shadow-sm" @onclick="ExporterAsync" disabled="@_exportEnCours">
+            @Loc["MesDonnees.ExportBtn"]
+        </button>
+
+        @if (_exportJson is not null)
+        {
+            <pre class="mt-3 p-3 bg-light rounded-3 small" style="max-height: 320px; overflow: auto;">@_exportJson</pre>
+        }
+    </div>
+
+    <!-- 2. Anonymisation -->
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">🗑️</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["MesDonnees.AnonymiserTitle"]</h4>
+        </div>
+        <p class="text-muted small">@Loc["MesDonnees.AnonymiserDesc"]</p>
+
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold text-dark" for="dossierNumero">@Loc["MesDonnees.DossierLabel"]</label>
+                <input id="dossierNumero" class="form-control" @bind="_numeroDossier" placeholder="@Loc["MesDonnees.DossierPlaceholder"]" />
+            </div>
+            <div class="col-12 col-md-3">
+                @if (!_confirmationDemandee)
+                {
+                    <button class="btn btn-outline-danger w-100 fw-semibold rounded-3" @onclick="DemanderConfirmation">
+                        @Loc["MesDonnees.AnonymiserBtn"]
+                    </button>
+                }
+            </div>
+        </div>
+
+        @if (_confirmationDemandee)
+        {
+            <div class="alert alert-warning border-0 mt-3 rounded-3 p-3 shadow-sm">
+                <div class="fw-bold mb-1">@Loc["MesDonnees.ConfirmTitle"]</div>
+                <div class="small mb-3">@Loc["MesDonnees.ConfirmDesc"]</div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-danger btn-sm fw-semibold" @onclick="AnonymiserAsync">@Loc["MesDonnees.ConfirmYes"]</button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => _confirmationDemandee = false">@Loc["MesDonnees.ConfirmNo"]</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+    private string? _messageSucces;
+    private bool _exportEnCours;
+    private string? _exportJson;
+    private string _numeroDossier = string.Empty;
+    private bool _confirmationDemandee;
+
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _messageRefus = Loc["MesDonnees.Refuse"].Value;
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.EstAuthentifie;
+        _chargement = false;
+    }
+
+    private void DemanderConfirmation()
+    {
+        _erreur = null;
+        _confirmationDemandee = true;
+    }
+
+    private async Task ExporterAsync()
+    {
+        _erreur = null;
+        _messageSucces = null;
+        _exportEnCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var exporter = scope.ServiceProvider.GetRequiredService<ExporterDonneesSocieteQuery>();
+            var resultat = await exporter.ExecuterAsync(_appelantId);
+            _exportJson = JsonSerializer.Serialize(resultat, JsonOptions);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _exportEnCours = false;
+        }
+    }
+
+    private async Task AnonymiserAsync()
+    {
+        _erreur = null;
+        _messageSucces = null;
+        _confirmationDemandee = false;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var dossiers = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.Abstractions.IDossierRepository>();
+            var utilisateursSociete = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.Abstractions.IUtilisateurSocieteRepository>();
+
+            var rattachement = await utilisateursSociete.ObtenirParUtilisateurAsync(_appelantId);
+            if (rattachement is null)
+            {
+                throw new AccesRefuseException(Loc["MesDonnees.Refuse"].Value);
+            }
+
+            var dossierTrouve = (await dossiers.ListerParSocieteAsync(rattachement.SocieteId))
+                .FirstOrDefault(d => string.Equals(d.Numero, _numeroDossier.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (dossierTrouve is null)
+            {
+                _erreur = MessagesUtilisateur.Pour(new InvalidOperationException($"Dossier '{_numeroDossier}' introuvable pour votre société."));
+                return;
+            }
+
+            var anonymiser = scope.ServiceProvider.GetRequiredService<AnonymiserDossierCommand>();
+            var nombre = await anonymiser.ExecuterAsync(_appelantId, dossierTrouve.Id);
+            _messageSucces = string.Format(Loc["MesDonnees.MsgAnonymise"].Value, nombre);
+            _numeroDossier = string.Empty;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+}

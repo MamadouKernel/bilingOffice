@@ -147,6 +147,11 @@ public static class DependencyInjection
         services.AddScoped<Application.Administration.GererNiveauxPrioriteCommand>();
         services.AddScoped<Application.Administration.ListerNiveauxPrioriteQuery>();
 
+        // SEC-06 - droits des personnes (acces/rectification/effacement) et SS 17.3 - consultation des archives.
+        services.AddScoped<Application.Securite.ExporterDonneesSocieteQuery>();
+        services.AddScoped<Application.Securite.AnonymiserDossierCommand>();
+        services.AddScoped<Application.Administration.ConsulterArchivesQuery>();
+
         // PRI-01 - referentiel des regles d'attribution automatique de priorite.
         services.AddScoped<Application.Abstractions.IReglePrioriteAutomatiqueRepository, Persistence.ReglePrioriteAutomatiqueRepository>();
         services.AddScoped<Application.Administration.GererReglesPrioriteAutomatiqueCommand>();
