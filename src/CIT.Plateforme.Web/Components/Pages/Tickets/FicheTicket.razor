@@ -227,6 +227,15 @@
                             <span class="text-muted">@Loc["Ticket.CurrentQueue"]</span>
                             <span class="badge bg-light text-dark border">@_fiche.FileNom</span>
                         </li>
+                        @if (!string.IsNullOrWhiteSpace(_fiche.LibellePaiementCdc))
+                        {
+                            @* IMP-13 : libellé littéral CDC du statut de paiement — affichage
+                               uniquement, dérivé de la file courante (voir LibellePaiementCdcHelper). *@
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">@Loc["Ticket.PaymentStatusLabel"]</span>
+                                <span class="fw-semibold">@_fiche.LibellePaiementCdc</span>
+                            </li>
+                        }
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">@Loc["Ticket.AssignedOperator"]</span>
                             <span class="fw-semibold text-primary">@(_fiche.OperateurAssigneNom ?? Loc["Ticket.Unassigned"].Value)</span>

@@ -234,7 +234,8 @@ public sealed class ObtenirFicheTicketQuery(
             EvaluationDateUtc: ticket.EvaluationDateUtc,
             PeutDemanderFacture: peutDemanderFacture,
             Liaisons: liaisons,
-            PeutLierTickets: peutLierTickets
+            PeutLierTickets: peutLierTickets,
+            LibellePaiementCdc: CIT.Plateforme.Application.BillingImport.LibellePaiementCdcHelper.PourFile(ticket.Module, fileNom)
         );
     }
 

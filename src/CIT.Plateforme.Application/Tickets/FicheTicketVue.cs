@@ -103,5 +103,10 @@ public sealed record FicheTicketVue(
 
     /// <summary>SOC-10 — seul un agent habilité sur la file crée une liaison ; le client la voit
     /// sans pouvoir la poser.</summary>
-    bool PeutLierTickets = false
+    bool PeutLierTickets = false,
+
+    /// <summary>IMP-13 — libellé littéral CDC du statut de paiement (« En attente paiement »,
+    /// « En attente validation paiement », « Payé confirmé »), affichage uniquement — dérivé de
+    /// la file courante, jamais une nouvelle donnée persistée. <c>null</c> hors cycle paiement.</summary>
+    string? LibellePaiementCdc = null
 );
