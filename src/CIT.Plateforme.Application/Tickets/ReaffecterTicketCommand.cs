@@ -21,6 +21,15 @@ public sealed class ReaffecterTicketCommand(
 
         await autorisation.ExigerAsync(initiateurId, Permission.TicketReaffecter, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
+        // TRF-04 (audit) : « un autre opérateur habilité » — le nouvel opérateur doit lui-même
+        // pouvoir traiter des tickets de cette file, sans quoi la réaffectation orpheline le
+        // ticket vers un compte qui ne le verra jamais dans son propre périmètre.
+        var cibleHabilitee = await autorisation.EstAutoriseAsync(nouvelOperateurId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        if (!cibleHabilitee)
+        {
+            throw new AccesRefuseException($"L'opérateur cible {nouvelOperateurId} n'est pas habilité sur la file {ticket.FileCouranteId} (TRF-04).");
+        }
+
         var ancienOperateur = ticket.OperateurAssigneId;
         ticket.Reaffecter(nouvelOperateurId, horloge.MaintenantUtc);
 

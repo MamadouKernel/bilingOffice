@@ -30,6 +30,8 @@ public sealed class RecSce11ReaffectationTests(PlateformeWebApplicationFactory f
 
         dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketPrendreEnCharge, fileId));
         dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketReaffecter, fileId));
+        // TRF-04 (audit) : le nouvel opérateur doit lui-même être habilité sur la file.
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurB), Permission.TicketPrendreEnCharge, fileId));
         await dbContext.SaveChangesAsync();
 
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));
@@ -72,5 +74,36 @@ public sealed class RecSce11ReaffectationTests(PlateformeWebApplicationFactory f
 
         await Assert.ThrowsAsync<CIT.Plateforme.Application.Securite.AccesRefuseException>(() =>
             reaffecter.ExecuterAsync(operateurSansDroit, ticket.Id, operateurB));
+    }
+
+    /// <summary>TRF-04 (audit) : « un autre opérateur habilité » — une cible non habilitée sur la
+    /// file est refusée, même si l'initiateur a bien le droit de réaffecter.</summary>
+    [Fact]
+    public async Task Reaffectation_vers_une_cible_non_habilitee_sur_la_file_est_refusee()
+    {
+        using var scope = factory.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var dbContext = services.GetRequiredService<PlateformeDbContext>();
+        var creerTicket = services.GetRequiredService<CreerTicketCommand>();
+        var prendreEnCharge = services.GetRequiredService<PrendreEnChargeCommand>();
+        var reaffecter = services.GetRequiredService<ReaffecterTicketCommand>();
+
+        var clientId = Guid.NewGuid();
+        var operateurA = Guid.NewGuid();
+        var cibleNonHabilitee = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketPrendreEnCharge, fileId));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketReaffecter, fileId));
+        await dbContext.SaveChangesAsync();
+
+        var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));
+        await prendreEnCharge.ExecuterAsync(operateurA, ticket.Id);
+
+        await Assert.ThrowsAsync<CIT.Plateforme.Application.Securite.AccesRefuseException>(() =>
+            reaffecter.ExecuterAsync(operateurA, ticket.Id, cibleNonHabilitee));
+
+        var ticketInchange = await dbContext.Tickets.FindAsync(ticket.Id);
+        Assert.Equal(operateurA, ticketInchange!.OperateurAssigneId);
     }
 }

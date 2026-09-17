@@ -42,6 +42,10 @@ public sealed class RecSce13SupervisionTests(PlateformeWebApplicationFactory fac
         var fileId = await gererFiles.CreerAsync(new CreerFileRequete(administrateurId, "BillingOffice", "Contrôle BL", Domain.Files.StrategieAffectation.PriseLibre));
         await gererPerimetres.DefinirAsync(administrateurId, superviseurId, [fileId]);
 
+        // TRF-04 (audit) : l'opérateur cible d'une affectation doit lui-même être habilité sur la file.
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurCibleId), Permission.TicketPrendreEnCharge, fileId));
+        await dbContext.SaveChangesAsync();
+
         var ticket = await creerTicket.ExecuterAsync(new CreerTicketRequete(clientId, "BillingOffice", "Import", fileId, null));
 
         // SUP-02 : vue temps réel par file (nombre de tickets non affectés).

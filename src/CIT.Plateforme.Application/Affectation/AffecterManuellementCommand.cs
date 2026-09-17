@@ -22,6 +22,14 @@ public sealed class AffecterManuellementCommand(
 
         await autorisation.ExigerAsync(initiateurId, Permission.TicketAffecterManuellement, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
+        // Même garde que la réaffectation (TRF-04, audit) : l'opérateur cible doit lui-même être
+        // habilité sur la file, faute de quoi il ne verrait jamais le ticket dans son périmètre.
+        var cibleHabilitee = await autorisation.EstAutoriseAsync(operateurCibleId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        if (!cibleHabilitee)
+        {
+            throw new AccesRefuseException($"L'opérateur cible {operateurCibleId} n'est pas habilité sur la file {ticket.FileCouranteId}.");
+        }
+
         ticket.AffecterManuellement(operateurCibleId, horloge.MaintenantUtc);
 
         await journalisation.ConsignerHistoriqueAsync(
