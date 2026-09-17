@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Bunit;
 using CIT.Plateforme.Application.Abstractions;
@@ -7,7 +8,9 @@ using CIT.Plateforme.Application.Messagerie;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tickets;
 using CIT.Plateforme.Application.Web;
+using CIT.Plateforme.Domain.Audit;
 using CIT.Plateforme.Domain.Comptes;
+using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Messagerie;
 using CIT.Plateforme.Domain.Securite;
@@ -223,5 +226,139 @@ public sealed class FicheTicketTests : BunitContext
         Assert.Contains("Note réservée aux agents CIT", cut.Markup);
         Assert.Contains("border-warning", cut.Markup);
         Assert.Contains("bg-warning-subtle", cut.Markup);
+    }
+
+    /// <summary>
+    /// SOC-02 — vérification de la "fiche consolidée" : un audit précédent n'avait pas pu confirmer
+    /// dans le temps imparti qu'un écran unique rassemble effectivement les données du ticket, ses
+    /// documents, son historique horodaté, ses échanges (externes ET notes internes) et ses tickets
+    /// liés (SOC-10). Toutes les briques existaient déjà, reliées par TicketId ; ce test ferme
+    /// l'écart de vérification en seedant les cinq briques et en les asserttant ensemble, en un seul
+    /// rendu de <see cref="FicheTicket"/>, plutôt qu'en cinq tests dispersés.
+    /// </summary>
+    [Fact]
+    public void FicheTicket_FicheConsolidee_RassembleDonneesDocumentsMessagesHistoriqueEtLiaisons()
+    {
+        var agentId = Guid.NewGuid();
+        var clientId = Guid.NewGuid();
+        var socId = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+
+        var fakeContexte = new FakeContexteUtilisateurWeb();
+        fakeContexte.Contexte = fakeContexte.Contexte with
+        {
+            UtilisateurId = agentId,
+            EstAuthentifie = true,
+            EspaceActif = EspaceFonctionnel.Agent,
+            Permissions = [Permission.MessageNoteInterne, Permission.TicketPrendreEnCharge]
+        };
+        Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+
+        var options = new DbContextOptionsBuilder<PlateformeDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var db = new PlateformeDbContext(options);
+
+        var soc = SocieteCliente.Soumettre(clientId, "TRANS-LOGISTICS", TypeClient.Normal, DateTime.UtcNow);
+        typeof(SocieteCliente).GetProperty("Id")!.SetValue(soc, socId);
+        soc.Valider();
+        db.Societes.Add(soc);
+        db.Users.Add(new ApplicationUser { Id = agentId, UserName = "agent-consolide", NomAffiche = "Agent Consolidé", Nature = NatureUtilisateur.Agent, EstActif = true });
+
+        var file = FileDeTraitement.Creer("IMPORT", "Pilote Manifeste");
+        typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
+        db.Files.Add(file);
+
+        var dossier = Dossier.Creer("DOS-2026-900", socId, DateTime.UtcNow, clientId);
+        var ticket = Ticket.Creer("TCK-2026-900", "IMPORT", "STANDARD", fileId, dossier.Id, DateTime.UtcNow, "BL-900");
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+
+        // Ticket lié (SOC-10) — dossier distinct, autre module, pour prouver que la liaison
+        // traverse les frontières de module.
+        var dossierLie = Dossier.Creer("DOS-2026-901", socId, DateTime.UtcNow, clientId);
+        var ticketLie = Ticket.Creer("TCK-2026-901", "CustomerComplaint", "STANDARD", fileId, dossierLie.Id, DateTime.UtcNow, null);
+        db.Dossiers.Add(dossierLie);
+        db.Tickets.Add(ticketLie);
+        db.SaveChanges();
+
+        // Documents (pièce jointe).
+        db.Documents.Add(Document.Deposer(ticket.Id, clientId, "connaissement-embarquement.pdf", "application/pdf", 245_760, "cle-stockage-1", DateTime.UtcNow));
+
+        // Messages : échange externe visible du client, et note interne réservée aux agents.
+        db.Messages.Add(Message.Publier(ticket.Id, clientId, TypeMessage.Externe, "Bonjour, où en est mon dossier ?", DateTime.UtcNow));
+        db.Messages.Add(Message.Publier(ticket.Id, agentId, TypeMessage.NoteInterne, "Vérifier la conformité du BL avant clôture", DateTime.UtcNow));
+
+        // Historique horodaté (chronologie).
+        db.HistoriqueTickets.Add(EntreeHistorique.Creer(ticket.Id, "Ticket créé", "Création automatique à la soumission", null, DateTime.UtcNow));
+        db.HistoriqueTickets.Add(EntreeHistorique.Creer(ticket.Id, "Pris en charge", "Affecté à l'agent", agentId, DateTime.UtcNow));
+
+        // Liaison entre tickets (SOC-10).
+        db.LiaisonsTicket.Add(LiaisonTicket.Creer(ticket.Id, ticketLie.Id, agentId, DateTime.UtcNow));
+
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(
+            CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.TicketPrendreEnCharge, fileId));
+
+        db.SaveChanges();
+
+        var ticketRepo = new TicketRepository(db);
+        var dossierRepo = new DossierRepository(db);
+        var fileRepo = new FileDeTraitementRepository(db);
+        var socRepo = new SocieteClienteRepository(db);
+        var userSocRepo = new UtilisateurSocieteRepository(db);
+        var userInfoRepo = new UtilisateurInfoRepository(db);
+        var histRepo = new HistoriqueTicketRepository(db);
+        var docRepo = new DocumentRepository(db);
+        var msgRepo = new MessageRepository(db);
+        var habRepo = new HabilitationRepository(db);
+        var catRepo = new CategorieReclamationRepository(db);
+
+        var query = new ObtenirFicheTicketQuery(
+            ticketRepo, dossierRepo, fileRepo, socRepo,
+            userInfoRepo, histRepo, docRepo, msgRepo, habRepo, catRepo, new LiaisonTicketRepository(db),
+            new CIT.Plateforme.Application.Securite.ControleAccesRessourceService(
+                new DossierRepository(db), new TicketRepository(db),
+                new UtilisateurSocieteRepository(db), new HabilitationRepository(db),
+                new PerimetreSupervisionRepository(db), new CIT.Plateforme.Application.Securite.GardeIdentiteService(new UtilisateurInfoRepository(db))));
+        Services.AddSingleton(query);
+
+        var horloge = new HorlogeSysteme();
+        var journalisation = new JournalisationService(db, horloge);
+        var uow = new UniteDeTravail(db);
+        var autorisation = new AutorisationService(db);
+        var cloisonnement = new CloisonnementService(ticketRepo, CIT.Plateforme.Web.Tests.Support.FabriqueSecurite.ControleAcces(db));
+
+        Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));
+        Services.AddSingleton(new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow));
+
+        var cut = Render<FicheTicket>(parameters => parameters.Add(p => p.Id, ticket.Id));
+
+        // Un seul bloc d'assertions couvrant les cinq briques de la fiche consolidée (SOC-02) :
+        // données du ticket, documents, échanges (externe + note interne), historique et liaisons.
+        // L'onglet Messages est actif par défaut : le message externe y est visible directement.
+        Assert.Contains("BL-900", cut.Markup);
+        Assert.Contains("DOS-2026-900", cut.Markup);
+        Assert.Contains("Bonjour, où en est mon dossier ?", cut.Markup);
+        Assert.Contains("Vérifier la conformité du BL avant clôture", cut.Markup);
+        Assert.Contains("bg-warning-subtle", cut.Markup); // badge visuel de la note interne (MSG-03)
+        Assert.Contains("TCK-2026-901", cut.Markup); // ticket lié (SOC-10), visible sans changer d'onglet
+
+        // Documents et chronologie sont sous onglets : on les active pour prouver qu'ils sont
+        // effectivement rendus par le composant, pas seulement présents dans la vue applicative
+        // (le compteur d'onglet, lui, est déjà visible sans changer d'onglet).
+        Assert.Contains("Documents (1)", cut.Markup);
+        Assert.Contains("Historique (2)", cut.Markup);
+
+        var ongletDocuments = cut.FindAll("button.nav-link").First(b => b.TextContent.Contains("Documents"));
+        ongletDocuments.Click();
+        Assert.Contains("connaissement-embarquement.pdf", cut.Markup);
+
+        var ongletChronologie = cut.FindAll("button.nav-link").First(b => b.TextContent.Contains("Historique"));
+        ongletChronologie.Click();
+        Assert.Contains("Ticket créé", cut.Markup);
+        Assert.Contains("Pris en charge", cut.Markup);
     }
 }
