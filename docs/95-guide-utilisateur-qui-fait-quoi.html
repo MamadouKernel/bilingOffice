@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Guide Utilisateur CIT</title>
+<meta name="description" content="Guide utilisateur complet de la Plateforme Digitale CIT, par rôle : création de compte, connexion, et qui fait quoi à quel moment.">
+<style>
+:root{
+  --bg:#f7f8fb; --surface:#ffffff; --text:#1c2230; --muted:#5b6472; --border:#e3e6ec;
+  --primary:#0b5fff; --primary-100:#eaf1ff; --ok:#1a8f5e; --ok-100:#e7f7ef; --ok-border:#bfe8d3;
+  --warn:#b7791f; --warn-100:#fff6e5; --warn-border:#f3ddab;
+  --stop:#c0392b; --stop-100:#fdecea; --stop-border:#f3c6c1;
+  --info:#2563eb; --info-100:#eef4ff; --info-border:#c9dcff;
+  --code-bg:#f0f2f6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1420; --surface:#161d2b; --text:#e7ebf3; --muted:#9aa5b6; --border:#2a3345;
+    --primary:#5b9dff; --primary-100:#152238; --ok:#3fcf8e; --ok-100:#0f2a1f; --ok-border:#1f5c3f;
+    --warn:#f0b04c; --warn-100:#2c2410; --warn-border:#5c4a1f;
+    --stop:#ff6b5e; --stop-100:#2c1512; --stop-border:#5c281f;
+    --info:#7fb0ff; --info-100:#101d33; --info-border:#243c66;
+    --code-bg:#1d2537;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1420; --surface:#161d2b; --text:#e7ebf3; --muted:#9aa5b6; --border:#2a3345;
+  --primary:#5b9dff; --primary-100:#152238; --ok:#3fcf8e; --ok-100:#0f2a1f; --ok-border:#1f5c3f;
+  --warn:#f0b04c; --warn-100:#2c2410; --warn-border:#5c4a1f;
+  --stop:#ff6b5e; --stop-100:#2c1512; --stop-border:#5c281f;
+  --info:#7fb0ff; --info-100:#101d33; --info-border:#243c66;
+  --code-bg:#1d2537;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6;}
+.wrap{max-width:1080px;margin:0 auto;padding:16px 16px 80px;}
+header.hero{padding:32px 0 20px;}
+header.hero h1{font-size:1.9rem;margin:0 0 8px;}
+header.hero p{color:var(--muted);margin:0;max-width:760px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
+.b-ok{background:var(--ok-100);color:var(--ok);border:1px solid var(--ok-border);}
+.b-warn{background:var(--warn-100);color:var(--warn);border:1px solid var(--warn-border);}
+.b-info{background:var(--info-100);color:var(--info);border:1px solid var(--info-border);}
+.callout{border-radius:12px;padding:16px 18px;margin:18px 0;border:1px solid var(--border);}
+.callout.ok{background:var(--ok-100);border-color:var(--ok-border);}
+.callout.warn{background:var(--warn-100);border-color:var(--warn-border);}
+.callout.info{background:var(--info-100);border-color:var(--info-border);}
+.callout p{margin:6px 0;}
+nav.toc{position:sticky;top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:20px 0;font-size:.88rem;}
+nav.toc strong{display:block;margin-bottom:8px;}
+nav.toc ul{columns:2;column-gap:24px;margin:0;padding-left:18px;}
+nav.toc a{color:var(--primary);text-decoration:none;}
+nav.toc a:hover{text-decoration:underline;}
+section{margin:36px 0;}
+h2{font-size:1.4rem;border-bottom:2px solid var(--border);padding-bottom:8px;margin-top:0;}
+h3{font-size:1.1rem;margin-top:28px;color:var(--primary);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin:14px 0;}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem;}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+th{background:var(--code-bg);font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+tr:last-child td{border-bottom:none;}
+code{background:var(--code-bg);padding:1px 6px;border-radius:5px;font-size:.85em;}
+.moment{font-weight:700;color:var(--primary);white-space:nowrap;}
+.who{font-weight:600;}
+.small{font-size:.85rem;color:var(--muted);}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;}
+@media (max-width:640px){nav.toc ul{columns:1;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="badge b-info">Guide utilisateur — Plateforme Digitale CIT</span>
+  <h1>Qui fait quoi, et à quel moment</h1>
+  <p>Ce guide couvre chaque rôle de la plateforme : comment le compte est créé, comment on se
+  connecte, et — pour chaque parcours métier — la séquence exacte des intervenants, telle que
+  décrite dans le cahier des charges. Les « moments » indiqués sont des <strong>déclencheurs
+  d'événement</strong> (« dès que… », « après que… »), pas des horaires d'horloge : le CDC laisse
+  volontairement les horaires de fonctionnement comme un paramètre à fixer par CIT (voir la note
+  en fin de document), et ce guide ne les invente pas.</p>
+</header>
+
+<div class="callout info">
+  <strong>Cette page répond aussi à : « tous les écrans existent-ils et fonctionnent-ils à
+  100% ? »</strong>
+  <p>Un audit statique complet vient d'être fait sur ce point précis (17/09/2026) : les 59 routes du
+  menu et l'ensemble des liens internes (<code>href</code>/<code>NavigateTo</code>) de tout le
+  projet Web ont été comparés aux écrans réellement déclarés (<code>@@page</code>). Résultat :
+  un seul lien mort trouvé — le bouton d'état vide de « Mes rendez-vous » pointait vers
+  <code>/client/mes-demandes</code> au lieu de <code>/client/demandes</code> — corrigé et poussé
+  (commit <code>baa9611</code>). En dehors de ce point précis, <strong>aucun écran manquant</strong>
+  n'a été trouvé : tout ce qui est proposé dans un menu mène à une page qui existe réellement.</p>
+  <p>Cela ne garantit pas à 100% que chaque écran fonctionne <em>correctement</em> dans tous les
+  cas — un audit d'existence d'écran (ils s'affichent tous) est différent d'un test fonctionnel
+  exhaustif de chaque bouton et de chaque combinaison de données, qui exigerait de se connecter
+  avec un compte de chaque rôle et de dérouler chaque scénario un par un. Le rapport d'audit complet
+  (<code>audit_report.html</code>, déjà partagé) documente l'état de conformité détaillé
+  fonctionnalité par fonctionnalité — ce guide-ci se concentre sur « qui fait quoi, à quel moment ».</p>
+</div>
+
+<nav class="toc">
+  <strong>Sommaire</strong>
+  <ul>
+    <li><a href="#roles">Vue d'ensemble des rôles</a></li>
+    <li><a href="#import">Parcours IMPORT (Billing Office)</a></li>
+    <li><a href="#export">Parcours EXPORT (Billing Office)</a></li>
+    <li><a href="#reclamation">Parcours Réclamation</a></li>
+    <li><a href="#enrolement">Parcours Enrôlement Transporteur</a></li>
+    <li><a href="#avoir">Parcours Avoir / Exonération</a></li>
+    <li><a href="#guichet">Parcours Guichet / Rendez-vous</a></li>
+    <li><a href="#supervision">Supervision — en continu</a></li>
+    <li><a href="#horaires">Note sur les horaires</a></li>
+  </ul>
+</nav>
+
+<section id="roles">
+<h2>1. Vue d'ensemble des rôles</h2>
+<div class="card">
+<table>
+<thead><tr><th>Rôle</th><th>Compte créé par</th><th>Connexion mène à</th><th>Rattaché à une société ?</th></tr></thead>
+<tbody>
+<tr><td>Visiteur anonyme</td><td>—</td><td>Page d'accueil publique</td><td>—</td></tr>
+<tr><td>Client (société)</td><td>Dossier validé par CIT</td><td><code>/client/dashboard</code></td><td>Oui</td></tr>
+<tr><td>Collaborateur d'entreprise</td><td>Invité par son administrateur de société</td><td><code>/client/dashboard</code></td><td>Oui</td></tr>
+<tr><td>Administrateur de société</td><td>1ᵉʳ compte du dossier validé</td><td><code>/societe/dashboard</code></td><td>Oui</td></tr>
+<tr><td>Transporteur / Chauffeur</td><td>Auto-inscription publique</td><td><code>/enrolement/mes-enrolements</code></td><td><strong>Non, jamais</strong></td></tr>
+<tr><td>Agent Billing Office / Guichet</td><td>Administrateur CIT</td><td><code>/agent/dashboard</code></td><td>Non</td></tr>
+<tr><td>Superviseur</td><td>Administrateur CIT</td><td><code>/supervision</code></td><td>Non</td></tr>
+<tr><td>Administration CIT</td><td>Un autre administrateur CIT</td><td><code>/comptes/valider</code></td><td>Non</td></tr>
+</tbody>
+</table>
+<p class="small">Détail complet de chaque rôle (menus, permissions) : <code>docs/94-parcours-par-role.md</code> dans le dépôt.</p>
+</div>
+</section>
+
+<section id="import">
+<h2>2. Parcours IMPORT — Billing Office</h2>
+
+<h3>Client normal</h3>
+<div class="card">
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Étape 1</td><td class="who">Client</td><td>Soumet jusqu'à 5 BL par demande, dépose déclaration douane + copie BL + pièces exigées. Un ticket indépendant est généré par BL, avec numéro de dossier commun.</td></tr>
+<tr><td class="moment">Immédiat après soumission</td><td class="who">Client</td><td>Reçoit ses numéros de ticket sur son profil et par e-mail.</td></tr>
+<tr><td class="moment">Dès l'arrivée en file</td><td class="who">Pilote Manifeste</td><td>Vérifie les documents : <strong>Validé</strong>, <strong>Rejeté</strong> (motif obligatoire) ou <strong>En attente de complément</strong>.</td></tr>
+<tr><td class="moment">Si complément demandé</td><td class="who">Client</td><td>Notifié, dépose les pièces manquantes ; le ticket revient chez le Pilote Manifeste.</td></tr>
+<tr><td class="moment">Après validation</td><td class="who">Client</td><td>Demande la facture depuis son ticket (déjà anticipée via la simulation de proforma).</td></tr>
+<tr><td class="moment">Dès la demande de facture</td><td class="who">Pilote Facturation Terre</td><td>Effectue ses contrôles (hors portail), édite la facture, la joint au ticket ; le client est notifié.</td></tr>
+<tr><td class="moment">Après réception facture</td><td class="who">Client</td><td>Paie (Wave ou banque agréée, hors portail), joint sa preuve de paiement au ticket.</td></tr>
+<tr><td class="moment">Après dépôt de la preuve</td><td class="who">Caisse / Finance</td><td>Valide la preuve de paiement en interne (statuts : En attente paiement → En attente validation paiement → Payé confirmé) avant transfert au Contrôle Documentaire.</td></tr>
+<tr><td class="moment">Après paiement confirmé</td><td class="who">Pilote Contrôle Documentaire</td><td>Vérifie le dossier, dépose Bon de Sortie + BADT, renvoie et clôture le ticket.</td></tr>
+<tr><td class="moment">Optionnel, après contrôle BL</td><td class="who">Client</td><td>Peut choisir de prendre rendez-vous pour finaliser physiquement au Billing Office plutôt qu'en ligne.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Client en compte</h3>
+<div class="card">
+<p>Identique au client normal jusqu'à l'édition de la facture. Ensuite :</p>
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Après édition de la facture</td><td class="who">Pilote Facturation</td><td>Transmet directement au Contrôle Documentaire, <strong>sans</strong> renvoyer le ticket au client pour paiement (réglé en fin de mois, hors portail).</td></tr>
+<tr><td class="moment">Après finalisation</td><td class="who">Client</td><td>Récupère son ticket clôturé avec facture, Bon de Sortie, BADT.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Client deposit</h3>
+<div class="card">
+<p>Identique au client normal jusqu'à l'édition de la facture. Ensuite :</p>
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Après édition de la facture</td><td class="who">Comptabilité Client</td><td>Lettrage (opéré dans IRIS, hors portail) ; confirme le lettrage dans le ticket.</td></tr>
+<tr><td class="moment">Après lettrage confirmé</td><td class="who">Pilote Contrôle Documentaire</td><td>Finalise, retourne le ticket au client avec ses documents.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Client IES</h3>
+<div class="card">
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Dès la création du ticket</td><td class="who">Pilote Manifeste + Pilote Contrôle Documentaire</td><td>Traitent le dossier <strong>en parallèle</strong>, chacun sur ses champs/actions propres.</td></tr>
+<tr><td class="moment">Quand les deux traitements sont finis</td><td class="who">Système</td><td>Jointure : le ticket n'est retourné au client qu'une fois les deux volets terminés.</td></tr>
+<tr><td class="moment">Après jointure</td><td class="who">Client</td><td>Poursuit facturation/paiement/documents sur la plateforme IES elle-même ; le ticket portail se clôture à la remise des documents.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="export">
+<h2>3. Parcours EXPORT — Billing Office</h2>
+<div class="card">
+<p>Même modèle que l'IMPORT, avec ces différences : l'objet traité est le <strong>booking</strong>
+(pas le BL), le contrôle initial est fait par le <strong>Back Office</strong> (pas le Pilote
+Manifeste), et le document final est le <strong>BEE</strong> (Bon d'Entrée Export) au lieu du Bon
+de Sortie/BADT. Les variantes normal / en compte / deposit / IES suivent la même logique de
+séquencement que pour l'IMPORT. Pour l'EXPORT IES, le Pilote Facturation crée d'abord un
+<em>Draft IN</em> (simulation d'entrée, hors portail) avant l'édition de la facture, et le document
+final déposé par le Contrôle Documentaire est le BEE.</p>
+</div>
+</section>
+
+<section id="reclamation">
+<h2>4. Parcours Réclamation</h2>
+<div class="card">
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Étape 1</td><td class="who">Client</td><td>Dépose une réclamation, avec catégorie, sur <code>/reclamations/soumettre</code>.</td></tr>
+<tr><td class="moment">Dès l'arrivée en file</td><td class="who">Agent (Support Opérationnel)</td><td>Instruit la réclamation sur <code>/reclamations/file</code>, répond ou demande un complément.</td></tr>
+<tr><td class="moment">Si en attente d'action client au-delà du délai paramétré</td><td class="who">Système</td><td>Émet des relances automatiques selon une cadence configurable ; au terme sans réponse, suggère une clôture pour « absence de réponse » — <strong>jamais automatique</strong>, un agent habilité doit valider.</td></tr>
+<tr><td class="moment">Décision finale</td><td class="who">Agent habilité</td><td>Clôture manuellement le ticket.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="enrolement">
+<h2>5. Parcours Enrôlement Transporteur</h2>
+<div class="card">
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Avant tout</td><td class="who">Transporteur / Chauffeur</td><td>S'auto-inscrit sur <code>/comptes/inscription-transporteur</code> — compte actif immédiatement, sans validation CIT.</td></tr>
+<tr><td class="moment">Après connexion</td><td class="who">Transporteur / Chauffeur</td><td>Dépose son dossier (permis, carte grise, immatriculation) sur <code>/enrolement/soumettre</code>.</td></tr>
+<tr><td class="moment">Dès l'arrivée en file</td><td class="who">Agent Gate</td><td>Instruit le dossier sur la File Agent Gate (<code>/enrolement/file-agent-gate</code>).</td></tr>
+<tr><td class="moment">À tout moment</td><td class="who">Transporteur / Chauffeur</td><td>Suit l'état de ses dossiers sur <code>/enrolement/mes-enrolements</code>.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="avoir">
+<h2>6. Parcours Avoir / Exonération</h2>
+<div class="card">
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Étape 1</td><td class="who">Client</td><td>Soumet une demande d'Avoir ou d'Exonération sur <code>/avoir-exoneration/soumettre</code> — deux workflows désormais distincts et paramétrables séparément (AVE-02).</td></tr>
+<tr><td class="moment">Dès l'arrivée en file</td><td class="who">Agent (Avoir ou Exonération, selon son habilitation)</td><td>Instruit la demande sur <code>/avoir-exoneration/file</code>.</td></tr>
+<tr><td class="moment">Après instruction</td><td class="who">Agent habilité à décider</td><td>Accorde ou rejette, motif obligatoire en cas de rejet.</td></tr>
+<tr><td class="moment">À tout moment</td><td class="who">Client</td><td>Suit ses demandes sur <code>/avoir-exoneration/mes-demandes</code>.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="guichet">
+<h2>7. Parcours Guichet / Rendez-vous</h2>
+<div class="card">
+<table>
+<thead><tr><th>Moment</th><th>Qui</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="moment">Depuis son dossier en cours</td><td class="who">Client</td><td>Peut choisir de prendre rendez-vous plutôt que de finaliser en ligne (bascule digital/présentiel tracée dans le ticket).</td></tr>
+<tr><td class="moment">Le jour du rendez-vous</td><td class="who">Agent Guichet</td><td>Constate la présence (Honoré / Non présenté) sur <code>/guichet/agenda</code>.</td></tr>
+<tr><td class="moment">À l'arrivée du client</td><td class="who">Agent Guichet</td><td>Recherche et reprend le dossier sans ressaisie sur <code>/guichet/recherche</code>.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="supervision">
+<h2>8. Supervision — en continu</h2>
+<div class="card">
+<p>Contrairement aux parcours ci-dessus (séquence d'étapes déclenchées par un événement), le rôle du
+superviseur est <strong>continu</strong> : vue temps réel des files et de la charge, alertes
+automatiques dès qu'un seuil est franchi.</p>
+<table>
+<thead><tr><th>Déclencheur</th><th>Ce qui se passe</th></tr></thead>
+<tbody>
+<tr><td>Un ticket atteint 50% du SLA de son étape</td><td>Seuil d'information.</td></tr>
+<tr><td>Un ticket atteint 80% du SLA</td><td>Seuil d'alerte.</td></tr>
+<tr><td>Un ticket dépasse 100% du SLA</td><td>Dépassement — peut déclencher une escalade (notification du superviseur, remontée de priorité, réaffectation) selon les règles paramétrées.</td></tr>
+<tr><td>Un ticket n'est pas pris en charge depuis X minutes</td><td>Alerte.</td></tr>
+<tr><td>Un ticket est sans activité depuis X minutes/heures</td><td>Alerte.</td></tr>
+<tr><td>Le backlog d'une file dépasse un seuil</td><td>Alerte.</td></tr>
+<tr><td>Un opérateur indisponible a des tickets affectés</td><td>Alerte.</td></tr>
+<tr><td>Le ticket est « En attente client »</td><td>Le SLA interne est suspendu — le temps d'attente client n'est jamais imputé à l'opérateur ni à la file.</td></tr>
+</tbody>
+</table>
+<p class="small">Les valeurs exactes (X minutes, seuils précis) sont paramétrables sans développement
+depuis <code>/administration/parametres-sla</code> et <code>/administration/regles-escalade</code> —
+aucune valeur n'est câblée en dur.</p>
+</div>
+</section>
+
+<section id="horaires">
+<h2>Note sur les horaires</h2>
+<div class="callout warn">
+<p><strong>Ce guide ne donne aucune heure d'horloge</strong> (ex. « 8h-17h ») parce que le CDC
+lui-même ne les fixe pas : les horaires de fonctionnement du Billing Office sont un paramètre à
+définir par CIT (décision D-05, documentée dans <code>docs/82-external-decisions-only.md</code> et
+<code>docs/92-decisions-a-prendre-pour-conformite-totale.md</code>), utilisés ensuite dans le calcul
+des SLA. Le CDC précise seulement qu'<strong>un client peut déposer un dossier hors heures
+ouvrées</strong>, et que le SLA de traitement démarre alors selon les règles propres à la file
+concernée — jamais avant l'ouverture. Une fois les horaires fixés par CIT, ils se configurent sans
+développement, exactement comme les SLA eux-mêmes.</p>
+</div>
+</section>
+
+<footer>
+  Guide généré le 17/09/2026 à partir de <code>docs/cdc_text.txt</code> et
+  <code>src/CIT.Plateforme.Application/Web/CatalogueNavigation.cs</code> — source unique de vérité
+  du menu et des permissions. Voir aussi <code>docs/94-parcours-par-role.md</code> (détail
+  permissions/menus par rôle) et le rapport d'audit de conformité complet.
+</footer>
+
+</div>
+</body>
+</html>
