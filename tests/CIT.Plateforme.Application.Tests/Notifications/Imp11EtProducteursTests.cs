@@ -165,9 +165,15 @@ public class Imp11EtProducteursTests
     public void AucunFournisseurExterneNEstReferenceDansLeCodeSource()
     {
         // spec.md §8, research.md D10, PC-16, Constitution Principe XI.
+        //
+        // DÉCISION D-07 TRANCHÉE (2026-09-17) : le commanditaire a choisi SMTP générique pour le
+        // canal Email (COM-01/ENR-04), en attendant le fournisseur définitif de la DSI/Finance —
+        // voir CanalEmailSmtp.cs. System.Net.Mail.SmtpClient (BCL, aucun SDK tiers) est donc retiré
+        // de cette liste. SMS et WhatsApp restent journalisés : aucune décision n'a été prise pour
+        // eux, la garde reste donc entière sur ces fournisseurs.
         string[] fournisseursInterdits =
         [
-            "Twilio", "SendGrid", "SmtpClient", "MailKit", "Azure.Communication",
+            "Twilio", "SendGrid", "MailKit", "Azure.Communication",
             "Infobip", "Vonage", "Nexmo", "Mailgun", "Amazon.SimpleEmail",
             "graph.facebook.com", "api.whatsapp.com",
         ];

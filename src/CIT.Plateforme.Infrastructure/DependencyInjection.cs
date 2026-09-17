@@ -397,9 +397,10 @@ public static class DependencyInjection
         // PC-16). SMS et WhatsApp sont servis de la même manière : leur branchement réel est
         // DIFFÉRÉ / AVANT PRODUCTION et ne bloque aucun Must de F009 (RSQ-04).
         // Le canal In-App n'a pas d'implémentation : la notification EST sa diffusion (D3).
-        services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalJournalise(
-            Domain.Notifications.CanalNotification.Email,
-            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalJournalise>>()));
+        // COM-01 / ENR-04 (decision D-07) : le canal Email utilise desormais un vrai transport
+        // SMTP, configure par Notifications:Smtp:* (aucun identifiant en dur). Sms et WhatsApp
+        // restent journalises, faute de fournisseur retenu par la DSI.
+        services.AddScoped<Application.Abstractions.ICanalNotification, Notifications.CanalEmailSmtp>();
         services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalJournalise(
             Domain.Notifications.CanalNotification.Sms,
             sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalJournalise>>()));
