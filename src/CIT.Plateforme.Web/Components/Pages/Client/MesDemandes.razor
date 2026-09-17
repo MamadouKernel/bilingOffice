@@ -31,6 +31,10 @@
                 @onclick="ExporterAsync" disabled="@_exportEnCours">
             @(_exportEnCours ? Loc["Demandes.Exporting"].Value : Loc["Demandes.Export"].Value)
         </button>
+        <button type="button" class="btn btn-outline-secondary shadow-sm"
+                @onclick="ExporterExcelAsync" disabled="@_exportExcelEnCours">
+            @(_exportExcelEnCours ? Loc["Demandes.Exporting"].Value : Loc["Demandes.ExportExcel"].Value)
+        </button>
         <a href="/billing-import/soumettre" class="btn btn-primary shadow-sm">
             <span>➕</span> @Loc["Demandes.NewRequest"]
         </a>
@@ -151,6 +155,7 @@ else if (_dashboard is not null)
     private Guid _utilisateurId;
     private Guid? _societeId;
     private bool _exportEnCours;
+    private bool _exportExcelEnCours;
     private string? _erreurExport;
 
     protected override async Task OnInitializedAsync()
@@ -214,6 +219,41 @@ else if (_dashboard is not null)
         finally
         {
             _exportEnCours = false;
+        }
+    }
+
+    /// <summary>
+    /// SOC-14 — variante Excel de l'export : mêmes contrôles de cloisonnement, format .xlsx.
+    /// </summary>
+    private async Task ExporterExcelAsync()
+    {
+        if (_societeId is not Guid societeId)
+        {
+            return;
+        }
+
+        _erreurExport = null;
+        _exportExcelEnCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var xlsx = await scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.Tickets.ExporterTicketsExcelQuery>()
+                .ExecuterPourClientAsync(_utilisateurId, societeId);
+
+            await Js.InvokeVoidAsync(
+                "telechargerFichier",
+                $"mes-demandes-{DateTime.UtcNow:yyyyMMdd-HHmm}.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                Convert.ToBase64String(xlsx));
+        }
+        catch (Exception ex)
+        {
+            _erreurExport = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _exportExcelEnCours = false;
         }
     }
 

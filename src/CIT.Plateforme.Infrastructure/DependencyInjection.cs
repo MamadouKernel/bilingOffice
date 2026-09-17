@@ -115,6 +115,7 @@ public static class DependencyInjection
         services.AddScoped<ConsulterFileQuery>();
         services.AddScoped<PriseLibreCommand>();
         services.AddScoped<ExporterTicketsCsvQuery>();
+        services.AddScoped<ExporterTicketsExcelQuery>();
 
         // FEATURE 013 (ERR-01, SIM-11, ENR-05) — Persistance, cohérence et cycle badge.
         services.AddScoped<IBrouillonRepository, BrouillonRepository>();
