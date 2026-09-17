@@ -207,6 +207,7 @@ public static class DependencyInjection
         services.AddScoped<ICompetenceOperateurRepository, CompetenceOperateurRepository>();
         services.AddScoped<Application.Affectation.ICandidatsAffectationProvider, CandidatsAffectationProvider>();
         services.AddScoped<Application.Affectation.GererDisponibiliteCommand>();
+        services.AddScoped<Application.Affectation.ReaffecterTousLesTicketsDUnOperateurCommand>();
         services.AddScoped<Application.Affectation.GererCompetencesOperateurCommand>();
         services.AddScoped<Application.Affectation.ListerCompetencesOperateurQuery>();
         services.AddScoped<Application.Affectation.DistributionAutomatiqueUseCase>();
