@@ -115,7 +115,7 @@ public sealed class FicheTicketTests : BunitContext
         // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : FicheTicket.razor injecte
         // désormais ces deux contrats pour afficher/clôturer/évaluer une réclamation.
         var clotureReclamation = new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow);
-        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation);
+        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow);
 
         Services.AddSingleton(prendreEnCharge);
         Services.AddSingleton(attenteClient);
@@ -215,7 +215,7 @@ public sealed class FicheTicketTests : BunitContext
         Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));
         Services.AddSingleton(new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow));
-        Services.AddSingleton(new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation));
+        Services.AddSingleton(new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow));
 
         var cut = Render<FicheTicket>(parameters => parameters.Add(p => p.Id, ticket.Id));
 

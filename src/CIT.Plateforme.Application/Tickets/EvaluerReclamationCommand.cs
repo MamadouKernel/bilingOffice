@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Comptes;
-using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.Tickets;
@@ -22,15 +21,16 @@ public sealed class EvaluerReclamationCommand(
     IUtilisateurSocieteRepository utilisateurSocieteRepository,
     IJournalisationService journalisationService,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail,
-    IAutorisationService autorisationService)
+    IUniteDeTravail uniteDeTravail)
 {
     public async Task ExecuterAsync(EvaluerReclamationRequete requete, CancellationToken ct = default)
     {
-        // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.4, use-cases.md C7-03) :
-        // Complaint.Repondre était documentée mais jamais vérifiée — seul le cloisonnement société
-        // était appliqué. Les deux contrôles sont désormais démontrés séparément (REC-REM-05→09).
-        await autorisationService.ExigerAsync(requete.ClientId, Permission.ComplaintRepondre, null, ct).ConfigureAwait(false);
+        // CORRIGÉ (audit, même défaut que SoumettreReclamationCommand/ENT-02) : cette action est un
+        // geste CLIENT — comme la soumission d'une réclamation, elle n'a jamais besoin d'une
+        // permission RBAC agent (ici Permission.ComplaintRepondre, qui n'est proposée que par
+        // l'écran d'administration des COMPTES AGENTS et n'est donc jamais accordée à un vrai
+        // compte société). Le contrôle d'accès légitime pour un geste client est le cloisonnement
+        // société ci-dessous (userSoc.SocieteId == dossier.ClientId), pas une RBAC agent.
 
         var ticket = await ticketRepository.ObtenirParIdAsync(requete.TicketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Le ticket {requete.TicketId} n'existe pas.");

@@ -19,7 +19,10 @@ public sealed class DerogationWorkflowService(
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
-    public const string PermissionDeroger = "workflow.deroger";
+    /// <summary>Corrigé (audit) : renvoie vers <see cref="Permission.TicketDeroger"/>, la seule
+    /// source de vérité — cette constante locale n'était jamais reprise dans <c>Permission.Tous</c>,
+    /// rendant la dérogation impossible à accorder en conditions réelles.</summary>
+    public const string PermissionDeroger = Permission.TicketDeroger;
 
     public async Task DerogerTransfertAsync(Guid initiateurId, Guid ticketId, Guid fileCibleId, string motif, CancellationToken ct = default)
     {

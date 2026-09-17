@@ -110,7 +110,7 @@ public sealed class MessagerieFicheTicketNonRegressionTests : BunitContext
         Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));
         Services.AddSingleton(new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow));
-        Services.AddSingleton(new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation));
+        Services.AddSingleton(new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow));
 
         return Render<FicheTicket>(p => p.Add(x => x.Id, ticketId));
     }

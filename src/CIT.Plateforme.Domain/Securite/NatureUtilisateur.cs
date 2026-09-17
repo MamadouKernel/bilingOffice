@@ -20,6 +20,15 @@ public static class Permission
     public const string TicketAffecterManuellement = "ticket.affecter_manuellement";
     public const string TicketReaffecter = "ticket.reaffecter";
     public const string TicketTransferer = "ticket.transferer";
+
+    /// <summary>
+    /// WKF-02 — dérogation exceptionnelle au workflow standard, motivée. Corrigé (audit) : cette
+    /// permission était définie localement dans DerogationWorkflowService (Application) sans
+    /// jamais figurer dans <see cref="Tous"/>, donc jamais accordable par l'écran d'administration
+    /// réel — aucun agent ne pouvait déroger en conditions réelles, seuls les tests l'accordaient
+    /// directement en base.
+    /// </summary>
+    public const string TicketDeroger = "workflow.deroger";
     public const string TicketAnnuler = "ticket.annuler";
     public const string TicketCloturer = "ticket.cloturer";
     public const string TicketClotureAbsenceReponse = "ticket.cloturer_absence_reponse";

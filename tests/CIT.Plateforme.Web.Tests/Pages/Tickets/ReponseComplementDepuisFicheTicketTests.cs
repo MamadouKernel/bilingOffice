@@ -117,7 +117,7 @@ public sealed class ReponseComplementDepuisFicheTicketTests : BunitContext
         var attenteClient = new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow);
         var publierMessage = new PublierMessageCommand(msgRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow);
         var clotureReclamation = new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow);
-        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation);
+        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow);
         var dashboardQuery = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
 
         Services.AddSingleton(ficheQuery);

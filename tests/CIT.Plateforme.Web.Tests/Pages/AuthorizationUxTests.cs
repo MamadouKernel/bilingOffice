@@ -252,7 +252,7 @@ public sealed class AuthorizationUxTests : BunitContext, IClassFixture<Plateform
         // REMÉDIATION POST-AUDIT (post-implementation-audit.md §2.1) : FicheTicket.razor injecte
         // désormais ces deux contrats pour afficher/clôturer/évaluer une réclamation.
         var clotureReclamation = new CloturerReclamationCommand(ticketRepo, autorisation, journalisation, horloge, uow);
-        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow, autorisation);
+        var evaluerReclamation = new EvaluerReclamationCommand(ticketRepo, dossierRepo, userSocRepo, journalisation, horloge, uow);
 
         Services.AddSingleton(queryTicket);
         Services.AddSingleton(prendreEnCharge);
