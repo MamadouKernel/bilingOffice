@@ -1,4 +1,5 @@
 using CIT.Plateforme.Application.BillingImport;
+using CIT.Plateforme.Application.Guichet;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tests.Support;
 using CIT.Plateforme.Domain.Comptes;
@@ -25,6 +26,12 @@ public sealed class DeclarationPresentielleTests
         Guid AgentId,
         Guid SocieteId,
         Guid AuteurId);
+
+    private sealed class DirectExecuteurTransactionnel : CIT.Plateforme.Application.Abstractions.IExecuteurTransactionnel
+    {
+        public Task<T> ExecuterAsync<T>(Func<CancellationToken, Task<T>> operation, CancellationToken ct = default)
+            => operation(ct);
+    }
 
     private static async Task<Contexte> ConstruireContexteAsync()
     {
@@ -59,8 +66,13 @@ public sealed class DeclarationPresentielleTests
         var valider = new ValiderTicketImportCommand(
             ticketRepository, dossierRepository, fileRepository, new SuiviBrancheIesRepository(dbContext),
             autorisation, journalisation, horloge, uniteDeTravail);
+        var rendezVousRepository = new CIT.Plateforme.Infrastructure.Persistence.RendezVousRepository(dbContext);
+        var reserverRendezVous = new ReserverRendezVousCommand(
+            rendezVousRepository, ticketRepository, dossierRepository, new DirectExecuteurTransactionnel(),
+            journalisation, uniteDeTravail, new ParametresRendezVous(), horloge);
+
         var declarer = new DeclarerFinalisationPresentielleCommand(
-            ticketRepository, fileRepository, cloisonnement, journalisation, uniteDeTravail);
+            ticketRepository, fileRepository, cloisonnement, journalisation, uniteDeTravail, reserverRendezVous);
 
         return new Contexte(dbContext, soumettre, valider, declarer, agentId, societe.Id, auteurId);
     }
@@ -103,5 +115,30 @@ public sealed class DeclarationPresentielleTests
 
         var tiersId = Guid.NewGuid();
         await Assert.ThrowsAsync<AccesRefuseException>(() => c.Declarer.ExecuterAsync(tiersId, ticketId));
+    }
+
+    [Fact]
+    public async Task Declaration_avec_creneau_cree_un_rendezvous_reel_lie_au_ticket()
+    {
+        // IMP-15 : « le ticket porte la trace de cette bascule » — désormais un véritable
+        // rendez-vous (F010/CON-03), pas seulement le drapeau DeclarationPresentielle.
+        var c = await ConstruireContexteAsync();
+        var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-PR4"]));
+        var ticketId = soumission.TicketsCrees[0].Id;
+        await c.Valider.ExecuterAsync(c.AgentId, ticketId);
+
+        var demain = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));
+        var creneau = new CreneauPresentielRequete(demain, new TimeSpan(9, 0, 0));
+
+        await c.Declarer.ExecuterAsync(c.AuteurId, ticketId, creneau);
+
+        var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
+        Assert.True(ticket!.DeclarationPresentielle);
+
+        var rdv = Assert.Single(c.DbContext.RendezVous);
+        Assert.Equal(ticketId, rdv.TicketId);
+        Assert.Equal(c.AuteurId, rdv.DemandeurId);
+        Assert.Equal(demain, rdv.Date);
+        Assert.Equal(new TimeSpan(9, 0, 0), rdv.HeureDebut);
     }
 }
