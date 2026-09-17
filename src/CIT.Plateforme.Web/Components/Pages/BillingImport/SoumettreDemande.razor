@@ -59,10 +59,19 @@
                     <label class="form-label fw-semibold text-dark" for="numeros-bl">@Loc["BillingImport.BlNumber"]</label>
                     <InputTextArea id="numeros-bl" class="form-control font-monospace" rows="6"
                                    placeholder="@Loc["BImp.BlPlaceholder"]"
-                                   @bind-Value="_modele.NumerosBl" />
+                                   @bind-Value="_modele.NumerosBl" @bind-Value:after="MettreAJourCompteurBl" />
                     <div class="form-text small text-muted">
                         @Loc["BImp.BlHint"]
                     </div>
+                    @* IMP-01 : « jusqu'à 5 BL par demande » — compteur visible et blocage avant
+                       même l'envoi au serveur (qui applique le même plafond, D-01-like). *@
+                    <div class="form-text small mt-1 @(_nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande ? "text-danger fw-bold" : "text-muted")">
+                        @_nombreBl / @SoumettreDemandeImportCommand.NombreMaxBlParDemande @Loc["BImp.BlCounterSuffix"]
+                    </div>
+                    @if (_nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande)
+                    {
+                        <div class="alert alert-danger mt-2 mb-0 py-2 small" role="alert">@Loc["BImp.BlLimitExceeded"]</div>
+                    }
                 </div>
 
                 <div class="mb-3">
@@ -76,7 +85,7 @@
 
                 <div class="d-flex justify-content-end gap-2 pt-2">
                     <a href="/client/dashboard" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
-                    <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBl) || _soumissionEnCours)">
+                    <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBl) || _soumissionEnCours || _nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande)">
                         @if (_soumissionEnCours)
                         {
                             <span>@Loc["BImp.Submitting"]</span>
@@ -216,6 +225,18 @@
     private SoumettreDemandeImportResultat? _resultat;
     private string? _erreur;
 
+    /// <summary>IMP-01 : compteur de BL affiché en direct, recalculé à chaque saisie et à la
+    /// restauration d'un brouillon — la même logique de découpage que la soumission serveur.</summary>
+    private int _nombreBl;
+
+    private void MettreAJourCompteurBl()
+    {
+        _nombreBl = _modele.NumerosBl
+            .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+    }
+
     // REMÉDIATION D-19 : le panneau de retour (succès, refus ou erreur) s'affichait sous le
     // formulaire, hors écran à faible hauteur. On déplace le focus dessus après la soumission :
     // le lecteur d'écran l'annonce, et le navigateur fait défiler la zone à l'écran.
@@ -302,6 +323,10 @@
         {
             _erreur = ex.Message;
         }
+        catch (CIT.Plateforme.Domain.Tickets.LimiteBlDepasseeException ex)
+        {
+            _erreur = ex.Message;
+        }
         catch (Exception ex)
         {
             _erreur = $"{Loc["BImp.SubmitErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
@@ -367,6 +392,7 @@
             {
                 _modele = restaure;
                 _brouillonRestaure = true;
+                MettreAJourCompteurBl();
             }
         }
         catch (System.Text.Json.JsonException)

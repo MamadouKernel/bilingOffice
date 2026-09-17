@@ -8,6 +8,19 @@ public enum StatutAnalyseAntivirus
 }
 
 /// <summary>
+/// IMP-01 : catégories de pièces nommées par le CDC pour le dépôt par BL du parcours Billing
+/// Import (« déclaration douane, copie du BL, autres pièces exigées »). Scopé au parcours Billing
+/// Import : <see cref="Document.Categorie"/> reste nullable et n'est renseigné que sur ce chemin,
+/// les autres dépôts de document (réclamations, enrôlement, etc.) laissent le champ à <c>null</c>.
+/// </summary>
+public enum CategorieDocumentBillingImport
+{
+    DeclarationDouane,
+    CopieDuBl,
+    AutresPieces,
+}
+
+/// <summary>
 /// Pièce attachée à un ticket (SOC-07). Le contenu binaire est stocké derrière
 /// <see cref="IStockageDocuments"/> (D9) — cette entité ne porte que les métadonnées.
 /// </summary>
@@ -31,9 +44,13 @@ public sealed class Document
 
     public DateTime DateDepotUtc { get; private set; }
 
+    /// <summary>IMP-01 : catégorie de la pièce, uniquement renseignée sur le parcours Billing
+    /// Import (dépôt par BL) — <c>null</c> pour tout autre dépôt de document.</summary>
+    public CategorieDocumentBillingImport? Categorie { get; private set; }
+
     private Document() { }
 
-    public static Document Deposer(Guid ticketId, Guid deposeParId, string nomFichier, string typeContenu, long tailleOctets, string cleStockage, DateTime maintenantUtc) => new()
+    public static Document Deposer(Guid ticketId, Guid deposeParId, string nomFichier, string typeContenu, long tailleOctets, string cleStockage, DateTime maintenantUtc, CategorieDocumentBillingImport? categorie = null) => new()
     {
         Id = Guid.NewGuid(),
         TicketId = ticketId,
@@ -43,6 +60,7 @@ public sealed class Document
         TailleOctets = tailleOctets,
         CleStockage = cleStockage,
         DateDepotUtc = maintenantUtc,
+        Categorie = categorie,
     };
 
     public void MarquerResultatAntivirus(StatutAnalyseAntivirus resultat)

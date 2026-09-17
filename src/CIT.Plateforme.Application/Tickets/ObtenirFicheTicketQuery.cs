@@ -104,7 +104,8 @@ public sealed class ObtenirFicheTicketQuery(
             TypeContenu: d.TypeContenu,
             TailleOctets: d.TailleOctets,
             DateDepotUtc: d.DateDepotUtc,
-            StatutAntivirus: d.StatutAntivirus
+            StatutAntivirus: d.StatutAntivirus,
+            Categorie: d.Categorie
         )).ToList();
 
         // 5. Messages / Échanges

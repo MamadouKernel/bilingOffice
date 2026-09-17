@@ -116,4 +116,52 @@ public sealed class DeposerDocumentAntivirusOrchestrationTests
         Assert.Equal(StatutAnalyseAntivirus.Infecte, doc.StatutAntivirus);
         Assert.False(doc.EstAccessible);
     }
+
+    [Fact]
+    public async Task Document_Depose_Avec_Categorie_Est_Persiste_Et_Retrouve_Avec_Sa_Categorie()
+    {
+        // IMP-01 : catégorie de pièce (parcours Billing Import) — persistée et relue telle quelle.
+        // Arrange
+        var db = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var uow = new UniteDeTravail(db);
+        var journal = new JournalisationService(db, horloge);
+        var docsRepo = new DocumentRepository(db);
+        var ticketsRepo = new TicketRepository(db);
+        var autorisation = new AutorisationService(db);
+        var cloisonnement = new CloisonnementService(ticketsRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(db));
+
+        var mockStockage = new Mock<IStockageDocuments>();
+        mockStockage.Setup(s => s.EnregistrerAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("cle-test-categorie");
+
+        var fakeAntivirus = new FakeAntivirus(StatutAnalyseAntivirus.Sain);
+
+        var agentId = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+        var clientProprietaire = Guid.NewGuid();
+        var dossier = Dossier.Creer("DOS-TEST-0002", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, clientProprietaire, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
+        var ticket = Ticket.Creer("TCK-TEST-0002", "BillingImport", "Import", fileId, dossier.Id, horloge.MaintenantUtc);
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.DocumentDeposer, fileId));
+        await db.SaveChangesAsync();
+
+        var cmd = new DeposerDocumentCommand(
+            docsRepo, ticketsRepo, mockStockage.Object, fakeAntivirus,
+            autorisation, cloisonnement, journal, horloge, uow);
+
+        var contenu = new MemoryStream(Encoding.ASCII.GetBytes("%PDF-1.4\nDeclaration douane"));
+
+        // Act
+        var doc = await cmd.DeposerPourAgentAsync(
+            agentId, ticket.Id, "declaration.pdf", "application/pdf", contenu, contenu.Length,
+            Regles, CategorieDocumentBillingImport.DeclarationDouane);
+
+        var relu = await docsRepo.ObtenirParIdAsync(doc.Id);
+
+        // Assert
+        Assert.NotNull(relu);
+        Assert.Equal(CategorieDocumentBillingImport.DeclarationDouane, relu!.Categorie);
+    }
 }

@@ -474,6 +474,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Categorie")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("CleStockage")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

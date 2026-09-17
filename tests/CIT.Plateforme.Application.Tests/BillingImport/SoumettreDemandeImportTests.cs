@@ -144,4 +144,48 @@ public sealed class SoumettreDemandeImportTests
         Assert.Single(resultat.BlRefuses);
         Assert.Equal("BL-MIX-001", resultat.BlRefuses[0].NumeroBl);
     }
+
+    [Fact]
+    public async Task Soumission_de_cinq_BL_est_acceptee()
+    {
+        // IMP-01 : « jusqu'à 5 BL par demande » — la limite elle-même est acceptée.
+        var (dbContext, soumettre) = ConstruireContexte();
+        var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "Informations", TypeClient.Normal, DateTime.UtcNow);
+        societe.Valider();
+        var auteurId = Guid.NewGuid();
+        dbContext.Societes.Add(societe);
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
+        await dbContext.SaveChangesAsync();
+
+        var cinqBl = new[] { "BL-LIM-001", "BL-LIM-002", "BL-LIM-003", "BL-LIM-004", "BL-LIM-005" };
+        var resultat = await soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societe.Id, auteurId, cinqBl));
+
+        Assert.NotNull(resultat.Dossier);
+        Assert.Equal(5, resultat.TicketsCrees.Count);
+    }
+
+    [Fact]
+    public async Task Soumission_de_six_BL_est_refusee_avec_LimiteBlDepasseeException()
+    {
+        // IMP-01 : « jusqu'à 5 BL par demande » — un BL de trop est refusé serveur, quelle que soit
+        // l'interface (D-10-like : jamais une confiance aveugle dans le client).
+        var (dbContext, soumettre) = ConstruireContexte();
+        var societe = SocieteCliente.Soumettre(Guid.NewGuid(), "Informations", TypeClient.Normal, DateTime.UtcNow);
+        societe.Valider();
+        var auteurId = Guid.NewGuid();
+        dbContext.Societes.Add(societe);
+        dbContext.UtilisateursSociete.Add(UtilisateurSociete.Rattacher(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, auteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), societe.Id, DateTime.UtcNow, droitSoumission: true));
+        await dbContext.SaveChangesAsync();
+
+        var sixBl = new[] { "BL-LIM-011", "BL-LIM-012", "BL-LIM-013", "BL-LIM-014", "BL-LIM-015", "BL-LIM-016" };
+
+        var exception = await Assert.ThrowsAsync<CIT.Plateforme.Domain.Tickets.LimiteBlDepasseeException>(
+            () => soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societe.Id, auteurId, sixBl)));
+
+        Assert.Equal(5, exception.Limite);
+        Assert.Equal(6, exception.NombreSoumis);
+        // Aucun dossier ni ticket n'a été créé pour une demande refusée d'emblée.
+        Assert.Empty(dbContext.Dossiers);
+        Assert.Empty(dbContext.Tickets);
+    }
 }

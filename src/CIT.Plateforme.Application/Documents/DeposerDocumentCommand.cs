@@ -34,28 +34,42 @@ public sealed class DeposerDocumentCommand(
     public async Task<Document> DeposerPourAgentAsync(
         Guid agentId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
         ReglesDepotDocument reglesEtape, CancellationToken ct = default)
+        => await DeposerPourAgentAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, null, ct).ConfigureAwait(false);
+
+    /// <summary>Dépôt par un agent habilité sur la file courante du ticket, avec catégorie
+    /// (IMP-01, parcours Billing Import).</summary>
+    public async Task<Document> DeposerPourAgentAsync(
+        Guid agentId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
+        ReglesDepotDocument reglesEtape, CategorieDocumentBillingImport? categorie, CancellationToken ct = default)
     {
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
         await autorisation.ExigerAsync(agentId, Permission.DocumentDeposer, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
-        return await DeposerValideAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
+        return await DeposerValideAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, categorie, ct).ConfigureAwait(false);
     }
 
     /// <summary>Dépôt par le client propriétaire du ticket.</summary>
     public async Task<Document> DeposerPourClientAsync(
         Guid clientId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
         ReglesDepotDocument reglesEtape, CancellationToken ct = default)
+        => await DeposerPourClientAsync(clientId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, null, ct).ConfigureAwait(false);
+
+    /// <summary>Dépôt par le client propriétaire du ticket, avec catégorie (IMP-01, parcours
+    /// Billing Import : « déclaration douane, copie du BL, autres pièces exigées »).</summary>
+    public async Task<Document> DeposerPourClientAsync(
+        Guid clientId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
+        ReglesDepotDocument reglesEtape, CategorieDocumentBillingImport? categorie, CancellationToken ct = default)
     {
         await cloisonnement.ExigerProprieteClientAsync(clientId, ticketId, ct).ConfigureAwait(false);
 
-        return await DeposerValideAsync(clientId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
+        return await DeposerValideAsync(clientId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, categorie, ct).ConfigureAwait(false);
     }
 
     private async Task<Document> DeposerValideAsync(
         Guid deposantId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
-        ReglesDepotDocument reglesEtape, CancellationToken ct)
+        ReglesDepotDocument reglesEtape, CategorieDocumentBillingImport? categorie, CancellationToken ct)
     {
         // SOC-07 : contrôle à l'upload, message d'erreur explicite en cas de non-conformité.
         if (!reglesEtape.Valide(nomFichier, tailleOctets, out var erreur))
@@ -71,7 +85,7 @@ public sealed class DeposerDocumentCommand(
             .CreerAsync(contenu, reglesEtape.TailleMaxOctets, ct).ConfigureAwait(false);
 
         var cle = await stockage.EnregistrerAsync(rejouable.Flux, nomFichier, ct).ConfigureAwait(false);
-        var document = Document.Deposer(ticketId, deposantId, nomFichier, typeContenu, tailleOctets, cle, horloge.MaintenantUtc);
+        var document = Document.Deposer(ticketId, deposantId, nomFichier, typeContenu, tailleOctets, cle, horloge.MaintenantUtc, categorie);
 
         // SEC-07 : analyse antivirale avant que le document soit accessible.
         rejouable.Rembobiner();

@@ -571,6 +571,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasIndex(d => d.TicketId);
             b.Property(d => d.NomFichier).IsRequired().HasMaxLength(260);
             b.Property(d => d.CleStockage).IsRequired();
+            // IMP-01 : catégorie de pièce, scopée au parcours Billing Import ; nullable partout
+            // ailleurs (réclamations, enrôlement, etc.).
+            b.Property(d => d.Categorie).HasConversion<string>().HasMaxLength(32);
         });
 
         // FEATURE 002 (research.md D2, D3, D6) : référentiel des comptes clients/sociétés.

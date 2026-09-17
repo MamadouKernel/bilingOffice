@@ -22,7 +22,10 @@ public sealed record DocumentItemVue(
     string TypeContenu,
     long TailleOctets,
     DateTime DateDepotUtc,
-    StatutAnalyseAntivirus StatutAntivirus
+    StatutAnalyseAntivirus StatutAntivirus,
+    /// <summary>IMP-01 : catégorie de la pièce sur le parcours Billing Import ; <c>null</c>
+    /// ailleurs.</summary>
+    CategorieDocumentBillingImport? Categorie = null
 );
 
 public sealed record MessageItemVue(

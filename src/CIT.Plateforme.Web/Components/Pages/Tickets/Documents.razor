@@ -61,6 +61,21 @@ else
 
     <div class="cit-card p-4 mb-4 border-0 shadow-sm">
         <h4 class="fw-bold text-dark fs-5 mb-3">@Loc["Docs.UploadTitle"]</h4>
+        @* IMP-01 : la catégorie de pièce n'a de sens que sur le parcours Billing Import — les
+           autres modules (réclamations, enrôlement, etc.) n'affichent pas le sélecteur. *@
+        @if (_moduleTicket is "BillingImport")
+        {
+            <div class="mb-2">
+                <label class="form-label small fw-semibold" for="categorie-document">@Loc["Docs.CategoryLabel"]</label>
+                <select id="categorie-document" class="form-select form-select-sm" style="max-width:320px"
+                        @bind="_categorieSelectionnee">
+                    <option value="">@Loc["Docs.CategoryNone"]</option>
+                    <option value="@CategorieDocumentBillingImport.DeclarationDouane">@Loc["Docs.CategoryDeclarationDouane"]</option>
+                    <option value="@CategorieDocumentBillingImport.CopieDuBl">@Loc["Docs.CategoryCopieDuBl"]</option>
+                    <option value="@CategorieDocumentBillingImport.AutresPieces">@Loc["Docs.CategoryAutresPieces"]</option>
+                </select>
+            </div>
+        }
         <InputFile OnChange="DeposerAsync" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.xlsx" />
         <div class="form-text small">
             @string.Format(Loc["Docs.UploadHint"].Value, _nomAffiche)
@@ -139,6 +154,8 @@ else
     private string? _message;
     private bool _erreur;
     private Guid? _telechargementEnCours;
+    private string? _moduleTicket;
+    private string _categorieSelectionnee = string.Empty;
 
     private const long TailleMax = ValidateurFichierDocument.TailleMaxDefaut;
     private static readonly string[] Extensions = [".pdf", ".jpg", ".jpeg", ".png", ".xlsx"];
@@ -179,6 +196,7 @@ else
                 .ExecuterAsync(_appelantId, TicketId);
 
             _documents = fiche.Documents;
+            _moduleTicket = fiche.Module;
             _refuse = false;
         }
         catch (AccesRefuseException ex)
@@ -258,21 +276,28 @@ else
             var deposer = scope.ServiceProvider.GetRequiredService<DeposerDocumentCommand>();
             var regles = new CIT.Plateforme.Domain.Documents.ReglesDepotDocument(Extensions, TailleMax);
 
+            // IMP-01 : catégorie applicable uniquement sur le parcours Billing Import — ailleurs,
+            // le sélecteur n'est pas affiché et la catégorie reste toujours null.
+            CategorieDocumentBillingImport? categorie = _moduleTicket is "BillingImport" && !string.IsNullOrEmpty(_categorieSelectionnee)
+                ? Enum.Parse<CategorieDocumentBillingImport>(_categorieSelectionnee)
+                : null;
+
             // L'identité vient du contexte authentifié, jamais d'un champ de saisie. La nature
             // décide de la voie : les deux commandes ne portent pas les mêmes habilitations.
             if (_estClient)
             {
                 await deposer.DeposerPourClientAsync(
-                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles);
+                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles, categorie);
             }
             else
             {
                 await deposer.DeposerPourAgentAsync(
-                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles);
+                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles, categorie);
             }
 
             _message = Loc["Docs.Deposited"].Value;
             _erreur = false;
+            _categorieSelectionnee = string.Empty;
             await ChargerAsync();
         }
         catch (AccesRefuseException ex)
