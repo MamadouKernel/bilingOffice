@@ -29,14 +29,14 @@ public sealed class SurveillerEcheancesUseCase(
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
-    public async Task<StatutSla?> TraiterTicketAsync(Guid ticketId, CancellationToken ct = default)
+    /// <summary>
+    /// SUP-01/SUP-02 — calcul du statut SLA d'un ticket, réutilisé tel quel par la supervision
+    /// (<see cref="VueFilesQuery"/>) : aucune réimplémentation du calcul temps ouvré / attente
+    /// client, seule <see cref="TraiterTicketAsync"/> ajoute par-dessus l'émission d'alertes et
+    /// l'escalade. Retourne <c>null</c> si aucun SLA n'est configuré (PC-12).
+    /// </summary>
+    public async Task<StatutSla?> DeterminerStatutSlaAsync(Ticket ticket, CancellationToken ct = default)
     {
-        var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false);
-        if (ticket is null || ticket.Statut is StatutTicket.Cloture or StatutTicket.Annule)
-        {
-            return null;
-        }
-
         var configuration = await parametresProvider.ObtenirPourAsync(ticket, ct).ConfigureAwait(false);
         if (configuration is null)
         {
@@ -68,7 +68,24 @@ public sealed class SurveillerEcheancesUseCase(
             dureeEffective = TimeSpan.Zero;
         }
 
-        var statut = EcheanceSla.DeterminerStatut(dureeEffective, parametresSla);
+        return EcheanceSla.DeterminerStatut(dureeEffective, parametresSla);
+    }
+
+    public async Task<StatutSla?> TraiterTicketAsync(Guid ticketId, CancellationToken ct = default)
+    {
+        var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false);
+        if (ticket is null || ticket.Statut is StatutTicket.Cloture or StatutTicket.Annule)
+        {
+            return null;
+        }
+
+        var statut = await DeterminerStatutSlaAsync(ticket, ct).ConfigureAwait(false);
+        if (statut is null)
+        {
+            return null;
+        }
+
+        var maintenant = horloge.MaintenantUtc;
 
         var typeAlerte = statut switch
         {

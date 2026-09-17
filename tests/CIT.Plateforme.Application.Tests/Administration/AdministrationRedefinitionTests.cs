@@ -59,8 +59,14 @@ public sealed class AdministrationRedefinitionTests
         Assert.Equal([secondeFile.Id], perimetre!.FilesCouvertes);
 
         // Et la supervision reste utilisable après la correction.
+        var surveillerEcheances = new SurveillerEcheancesUseCase(
+            new TicketRepository(dbContext), new PeriodeAttenteClientRepository(dbContext), new AlerteRepository(dbContext),
+            new CIT.Plateforme.Tests.Partages.ParametresSlaAbsentProvider(), new RegleEscaladeRepository(dbContext),
+            perimetres, journalisation, horloge, uniteDeTravail);
+
         var vueFiles = new VueFilesQuery(
-            new FileDeTraitementRepository(dbContext), new TicketRepository(dbContext), perimetres, autorisation);
+            new FileDeTraitementRepository(dbContext), new TicketRepository(dbContext), perimetres, autorisation,
+            surveillerEcheances, horloge);
         var vues = await vueFiles.ExecuterAsync(superviseurId);
 
         Assert.Single(vues);

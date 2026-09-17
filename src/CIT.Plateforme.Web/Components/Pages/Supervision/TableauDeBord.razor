@@ -78,6 +78,11 @@ else if (vuesFiles is not null)
                         <th class="text-end">@Loc["Sup.ColEnCours"]</th>
                         <th class="text-end">@Loc["Sup.ColAttenteClient"]</th>
                         <th class="text-end fw-bold">@Loc["Sup.ColTotalActifs"]</th>
+                        <th class="text-end">@Loc["Sup.ColProcheDepassement"]</th>
+                        <th class="text-end">@Loc["Sup.ColEnDepassement"]</th>
+                        <th class="text-end">@Loc["Sup.ColSansActivite"]</th>
+                        <th class="text-end">@Loc["Sup.ColAnciennete"]</th>
+                        <th class="text-end">@Loc["Sup.ColDelaiMoyen"]</th>
                         <th class="text-end"><span class="visually-hidden">@Loc["Sup.ExportSr"]</span></th>
                     </tr>
                 </thead>
@@ -97,6 +102,11 @@ else if (vuesFiles is not null)
                             <td class="text-end font-monospace text-primary fw-bold">@vue.EnCours</td>
                             <td class="text-end font-monospace text-muted">@vue.EnAttenteClient</td>
                             <td class="text-end font-monospace text-dark fw-bold">@vue.TotalActifs</td>
+                            <td class="text-end font-monospace @(vue.ProcheDepassementSla > 0 ? "text-warning fw-bold" : "text-muted")">@vue.ProcheDepassementSla</td>
+                            <td class="text-end font-monospace @(vue.EnDepassementSla > 0 ? "text-danger fw-bold" : "text-muted")">@vue.EnDepassementSla</td>
+                            <td class="text-end font-monospace @(vue.SansActivite > 0 ? "text-warning fw-bold" : "text-muted")">@vue.SansActivite</td>
+                            <td class="text-end small text-muted font-monospace">@FormaterDuree(vue.AncienneteTicketLePlusAncien)</td>
+                            <td class="text-end small text-muted font-monospace">@FormaterDuree(vue.DelaiMoyenTraitement)</td>
                             <td class="text-end">
                                 @* SOC-14 — export tabulaire de la file, sous le périmètre du superviseur. *@
                                 <button type="button" class="btn btn-sm btn-outline-secondary"
@@ -127,6 +137,7 @@ else if (vuesFiles is not null)
                         <th>@Loc["Sup.ColDispo"]</th>
                         <th class="text-end">@Loc["Sup.ColTicketsEnCours"]</th>
                         <th>@Loc["Sup.ColDerniereActivite"]</th>
+                        <th class="text-end"><span class="visually-hidden">@Loc["Sup.ColActions"]</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,10 +152,64 @@ else if (vuesFiles is not null)
                             </td>
                             <td class="text-end font-monospace fw-bold text-primary">@vue.TicketsEnCours</td>
                             <td class="small text-muted font-monospace">@vue.DerniereActiviteUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-end">
+                                @* DIS-02 — réaffectation en masse des tickets d'un opérateur absent/indisponible. *@
+                                @if (vue.Disponibilite != CIT.Plateforme.Domain.Affectation.StatutDisponibilite.Disponible && vue.TicketsEnCours > 0)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-warning"
+                                            @onclick="() => OuvrirReaffectationDeMasseAsync(vue.OperateurId, vue.NomOperateur)">
+                                        @Loc["Sup.ReaffecterEnMasse"]
+                                    </button>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+}
+
+@if (_operateurAbsentCible is not null)
+{
+    <div class="cit-card mb-4 p-3">
+        <h6 class="fw-bold text-dark mb-2">@Loc["Sup.ReaffecterEnMasseTitre", _nomOperateurAbsentCible]</h6>
+
+        @if (_erreurReaffectationMasse is not null)
+        {
+            <div class="alert alert-danger border-0 mb-2 rounded-3" role="alert">@_erreurReaffectationMasse</div>
+        }
+        @if (_messageReaffectationMasse is not null)
+        {
+            <div class="alert alert-success border-0 mb-2 rounded-3" role="status">@_messageReaffectationMasse</div>
+        }
+
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+                <label class="form-label small fw-bold text-dark" for="sup-cible-masse">@Loc["Sup.OperateurDest"]</label>
+                <select id="sup-cible-masse" class="form-select form-select-sm" @bind="_operateurCibleMasse">
+                    <option value="">@Loc["Sup.ChoisirOption"]</option>
+                    @foreach (var op in vuesCharge ?? [])
+                    {
+                        @if (op.OperateurId != _operateurAbsentCible)
+                        {
+                            <option value="@op.OperateurId">
+                                @(string.IsNullOrWhiteSpace(op.NomOperateur) ? op.OperateurId.ToString() : op.NomOperateur)
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-3 d-grid">
+                <button type="button" class="btn btn-sm btn-warning" @onclick="ReaffecterEnMasseAsync">
+                    @Loc["Sup.ConfirmerReaffectationMasse"]
+                </button>
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="FermerReaffectationDeMasse">
+                    @Loc["Sup.Fermer"]
+                </button>
+            </div>
         </div>
     </div>
 }
@@ -285,6 +350,13 @@ else if (vuesFiles is not null)
     private string? _erreurAction;
     private Guid? _exportEnCours;
     private HubConnection? _hubConnection;
+
+    // DIS-02 — réaffectation en masse des tickets d'un opérateur absent/indisponible.
+    private Guid? _operateurAbsentCible;
+    private string _nomOperateurAbsentCible = string.Empty;
+    private string _operateurCibleMasse = string.Empty;
+    private string? _messageReaffectationMasse;
+    private string? _erreurReaffectationMasse;
 
     protected override async Task OnInitializedAsync()
     {
@@ -559,6 +631,81 @@ else if (vuesFiles is not null)
         catch (Exception ex)
         {
             _erreurAction = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    /// <summary>SUP-02 — affichage lisible d'une ancienneté ou d'un délai moyen ; « — » quand la
+    /// file n'a aucun ticket actif plutôt qu'un zéro trompeur.</summary>
+    private static string FormaterDuree(TimeSpan? duree)
+    {
+        if (duree is not TimeSpan valeur)
+        {
+            return "—";
+        }
+
+        return valeur.TotalDays >= 1
+            ? $"{(int)valeur.TotalDays}j {valeur.Hours}h"
+            : $"{(int)valeur.TotalHours}h {valeur.Minutes}min";
+    }
+
+    /// <summary>DIS-02 — ouvre le panneau de réaffectation en masse pour un opérateur donné.</summary>
+    private Task OuvrirReaffectationDeMasseAsync(Guid operateurId, string nom)
+    {
+        _operateurAbsentCible = operateurId;
+        _nomOperateurAbsentCible = string.IsNullOrWhiteSpace(nom) ? operateurId.ToString() : nom;
+        _operateurCibleMasse = string.Empty;
+        _messageReaffectationMasse = null;
+        _erreurReaffectationMasse = null;
+        return Task.CompletedTask;
+    }
+
+    private void FermerReaffectationDeMasse()
+    {
+        _operateurAbsentCible = null;
+        _nomOperateurAbsentCible = string.Empty;
+        _operateurCibleMasse = string.Empty;
+        _messageReaffectationMasse = null;
+        _erreurReaffectationMasse = null;
+    }
+
+    /// <summary>
+    /// DIS-02 — « réaffecter ces tickets en masse ». Passe par
+    /// <see cref="ReaffecterTousLesTicketsDUnOperateurCommand"/>, qui applique le même contrôle
+    /// TRF-04 que la réaffectation individuelle, ticket par ticket : un échec partiel se lit
+    /// (compte de succès/échecs), il ne bloque pas les réaffectations valides.
+    /// </summary>
+    private async Task ReaffecterEnMasseAsync()
+    {
+        _messageReaffectationMasse = null;
+        _erreurReaffectationMasse = null;
+
+        if (_operateurAbsentCible is not Guid operateurAbsentId || !Guid.TryParse(_operateurCibleMasse, out var operateurCibleId))
+        {
+            _erreurReaffectationMasse = Loc["Sup.ErrChoisirOperateur"].Value;
+            return;
+        }
+
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.Affectation.ReaffecterTousLesTicketsDUnOperateurCommand>();
+
+            var resultats = await commande.ExecuterAsync(_superviseurId, operateurAbsentId, operateurCibleId);
+            var succes = resultats.Count(r => r.Succes);
+            var echecs = resultats.Where(r => !r.Succes).ToList();
+
+            _messageReaffectationMasse = Loc["Sup.MasseResultat", succes, resultats.Count].Value;
+            if (echecs.Count > 0)
+            {
+                _erreurReaffectationMasse = Loc["Sup.MasseEchecs", echecs.Count, echecs[0].Erreur ?? string.Empty].Value;
+            }
+
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreurReaffectationMasse = MessagesUtilisateur.Pour(ex);
         }
     }
 

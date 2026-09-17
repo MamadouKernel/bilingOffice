@@ -36,8 +36,14 @@ public sealed class PerimetreSupervisionTests
         var gererPerimetres = new GererPerimetresSupervisionCommand(new PerimetreSupervisionRepository(dbContext), autorisation, journalisation, uniteDeTravail);
         await gererPerimetres.DefinirAsync(administrateurId, superviseurId, [fileDansLePerimetre.Id]);
 
+        var surveillerEcheances = new SurveillerEcheancesUseCase(
+            new TicketRepository(dbContext), new PeriodeAttenteClientRepository(dbContext), new AlerteRepository(dbContext),
+            new CIT.Plateforme.Tests.Partages.ParametresSlaAbsentProvider(), new RegleEscaladeRepository(dbContext),
+            new PerimetreSupervisionRepository(dbContext), journalisation, horloge, uniteDeTravail);
+
         var vueFiles = new VueFilesQuery(
-            new FileDeTraitementRepository(dbContext), new TicketRepository(dbContext), new PerimetreSupervisionRepository(dbContext), autorisation);
+            new FileDeTraitementRepository(dbContext), new TicketRepository(dbContext), new PerimetreSupervisionRepository(dbContext), autorisation,
+            surveillerEcheances, horloge);
 
         var vues = await vueFiles.ExecuterAsync(superviseurId);
 
@@ -49,14 +55,23 @@ public sealed class PerimetreSupervisionTests
     public async Task Un_superviseur_sans_perimetre_defini_ne_voit_aucune_file()
     {
         var dbContext = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var journalisation = new JournalisationService(dbContext, horloge);
+        var uniteDeTravail = new UniteDeTravail(dbContext);
         var autorisation = new AutorisationService(dbContext);
         var superviseurId = Guid.NewGuid();
         dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
         dbContext.Files.Add(FileDeTraitement.Creer("BillingOffice", "Contrôle BL"));
         await dbContext.SaveChangesAsync();
 
+        var surveillerEcheances = new SurveillerEcheancesUseCase(
+            new TicketRepository(dbContext), new PeriodeAttenteClientRepository(dbContext), new AlerteRepository(dbContext),
+            new CIT.Plateforme.Tests.Partages.ParametresSlaAbsentProvider(), new RegleEscaladeRepository(dbContext),
+            new PerimetreSupervisionRepository(dbContext), journalisation, horloge, uniteDeTravail);
+
         var vueFiles = new VueFilesQuery(
-            new FileDeTraitementRepository(dbContext), new TicketRepository(dbContext), new PerimetreSupervisionRepository(dbContext), autorisation);
+            new FileDeTraitementRepository(dbContext), new TicketRepository(dbContext), new PerimetreSupervisionRepository(dbContext), autorisation,
+            surveillerEcheances, horloge);
 
         var vues = await vueFiles.ExecuterAsync(superviseurId);
 
