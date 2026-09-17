@@ -133,6 +133,12 @@ public static class DependencyInjection
         services.AddScoped<ITransitionAutoriseeRepository, TransitionAutoriseeRepository>();
         services.AddScoped<GererMatriceTransitionsCommand>();
 
+        // ENR-01 - referentiel des champs du formulaire d'enrolement.
+        services.AddScoped<Application.Abstractions.IChampFormulaireEnrolementRepository, Persistence.ChampFormulaireEnrolementRepository>();
+        services.AddScoped<Application.Abstractions.IValeurChampEnrolementRepository, Persistence.ValeurChampEnrolementRepository>();
+        services.AddScoped<Application.Administration.GererChampsFormulaireEnrolementCommand>();
+        services.AddScoped<Application.Administration.ListerChampsFormulaireEnrolementQuery>();
+
         // SS 9.10 / SS 17.3 - referentiel des motifs de transfert.
         services.AddScoped<Application.Abstractions.IMotifTransfertRepository, Persistence.MotifTransfertRepository>();
         services.AddScoped<Application.Administration.GererMotifsTransfertCommand>();

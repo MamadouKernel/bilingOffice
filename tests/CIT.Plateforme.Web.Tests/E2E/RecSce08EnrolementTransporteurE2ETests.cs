@@ -89,6 +89,7 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             RegistrerContexte(bunit, transporteur!.Id, NatureUtilisateur.Client, EspaceFonctionnel.Client, Permission.EnrolementSoumettre);
             bunit.Services.AddSingleton(spSoumission.GetRequiredService<SoumettreEnrolementCommand>());
             bunit.Services.AddSingleton(spSoumission.GetRequiredService<CIT.Plateforme.Application.Documents.DeposerDocumentCommand>());
+            bunit.Services.AddSingleton(spSoumission.GetRequiredService<CIT.Plateforme.Application.Administration.ListerChampsFormulaireEnrolementQuery>());
 
             var cutSoumission = bunit.Render<NouvelEnrolement>();
             cutSoumission.WaitForState(() => cutSoumission.Markup.Contains("Objet"), TimeSpan.FromSeconds(25));

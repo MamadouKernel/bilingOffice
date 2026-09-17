@@ -101,9 +101,12 @@ public sealed class ObtenirFicheEnrolementQueryTests
         var messageRepo = new MessageRepository(db);
         var habilitationRepo = new HabilitationRepository(db);
         var utilisateurInfoRepo = new UtilisateurInfoRepository(db);
+        var valeursChampRepo = new ValeurChampEnrolementRepository(db);
+        var champsFormulaireRepo = new ChampFormulaireEnrolementRepository(db);
 
         return new ObtenirFicheEnrolementQuery(
             ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
+            valeursChampRepo, champsFormulaireRepo,
             Support.FabriqueRequetes.ControleAcces(db));
     }
 }

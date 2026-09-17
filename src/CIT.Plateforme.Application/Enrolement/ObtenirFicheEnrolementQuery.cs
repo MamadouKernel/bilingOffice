@@ -42,7 +42,12 @@ public sealed record FicheEnrolementVue(
     bool PeutAjouterMessage,
     IReadOnlyList<ChronologieItemVue> Chronologie,
     IReadOnlyList<DocumentItemVue> Documents,
-    IReadOnlyList<MessageItemVue> Messages);
+    IReadOnlyList<MessageItemVue> Messages,
+    IReadOnlyList<ChampEnrolementRenseigneVue> ChampsRenseignes);
+
+/// <summary>ENR-01 (remédiation) — valeur d'un champ structuré du formulaire, telle que renseignée
+/// à la soumission, présentée avec son libellé courant.</summary>
+public sealed record ChampEnrolementRenseigneVue(string ChampCode, string Libelle, string Valeur);
 
 public sealed class ObtenirFicheEnrolementQuery(
     ITicketRepository ticketRepository,
@@ -53,6 +58,8 @@ public sealed class ObtenirFicheEnrolementQuery(
     IMessageRepository messageRepository,
     IHabilitationRepository habilitationRepository,
     IUtilisateurInfoRepository utilisateurInfoRepository,
+    IValeurChampEnrolementRepository valeursChamp,
+    IChampFormulaireEnrolementRepository champsFormulaire,
     ControleAccesRessourceService controleAcces)
 {
     public async Task<FicheEnrolementVue> ExecuterAsync(Guid appelantId, Guid ticketId, CancellationToken ct = default)
@@ -122,6 +129,16 @@ public sealed class ObtenirFicheEnrolementQuery(
             AuteurNom: h.AuteurId.HasValue && auteursInfo.TryGetValue(h.AuteurId.Value, out var a) ? (a.NomAffiche ?? a.Email) : "Système CIT",
             HorodatageUtc: h.HorodatageUtc)).ToList();
 
+        var valeursSoumises = await valeursChamp.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var champsReferentiel = await champsFormulaire.ListerAsync(activesUniquement: false, ct).ConfigureAwait(false);
+        var libellesParCode = champsReferentiel.ToDictionary(c => c.Code, c => c.Libelle, StringComparer.OrdinalIgnoreCase);
+        var champsRenseignes = valeursSoumises
+            .Select(v => new ChampEnrolementRenseigneVue(
+                v.ChampCode,
+                libellesParCode.TryGetValue(v.ChampCode, out var libelle) ? libelle : v.ChampCode,
+                v.Valeur))
+            .ToList();
+
         var docs = await documentRepository.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
         var documents = docs.Select(d => new DocumentItemVue(d.Id, d.NomFichier, d.TypeContenu, d.TailleOctets, d.DateDepotUtc, d.StatutAntivirus)).ToList();
 
@@ -170,6 +187,7 @@ public sealed class ObtenirFicheEnrolementQuery(
             PeutAjouterMessage: peutAjouterMessage,
             Chronologie: chronologie,
             Documents: documents,
-            Messages: messages);
+            Messages: messages,
+            ChampsRenseignes: champsRenseignes);
     }
 }

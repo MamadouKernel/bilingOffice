@@ -224,6 +224,7 @@ public static class CatalogueNavigation
             new("Disponibilité agents", "🟢", "/administration/disponibilite", [Permission.SupervisionConsulter]),
             new("Stratégie des files", "⚙️", "/administration/strategie-file", [Permission.AdministrationFiles]),
             new("Motifs de transfert", "🔀", "/administration/motifs-transfert", [Permission.AdministrationFiles]),
+            new("Champs d'enrôlement", "🚚", "/administration/champs-enrolement", [Permission.AdministrationChampsEnrolement]),
             new("Paramètres SLA", "⏱️", "/administration/parametres-sla", [Permission.AdministrationSla]),
             new("Règles d'escalade", "🚨", "/administration/regles-escalade", [Permission.AdministrationSla]),
             new("Niveaux de priorité", "🎚️", "/administration/priorites", [Permission.AdministrationFiles]),

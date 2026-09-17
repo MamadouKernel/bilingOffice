@@ -82,6 +82,12 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>SS 9.10 / SS 17.3 — referentiel administrable des motifs de transfert.</summary>
     public DbSet<MotifTransfert> MotifsTransfert => Set<MotifTransfert>();
 
+    /// <summary>ENR-01 — referentiel administrable des champs du formulaire d'enrolement.</summary>
+    public DbSet<Domain.Enrolement.ChampFormulaireEnrolement> ChampsFormulaireEnrolement => Set<Domain.Enrolement.ChampFormulaireEnrolement>();
+
+    /// <summary>ENR-01 — valeurs structurees soumises pour les champs du formulaire d'enrolement.</summary>
+    public DbSet<Domain.Enrolement.ValeurChampEnrolement> ValeursChampEnrolement => Set<Domain.Enrolement.ValeurChampEnrolement>();
+
     public DbSet<Domain.Tickets.ReglePrioriteAutomatique> ReglesPrioriteAutomatique => Set<Domain.Tickets.ReglePrioriteAutomatique>();
 
     /// <summary>IA-04 — base de connaissances administrable de l'assistant conversationnel.</summary>
@@ -625,6 +631,25 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // l'historique des transferts ambigu.
             b.HasIndex(m => m.Code).IsUnique();
             b.HasIndex(m => m.EstActif);
+        });
+
+        builder.Entity<Domain.Enrolement.ChampFormulaireEnrolement>(b =>
+        {
+            b.HasKey(c => c.Id);
+            b.Property(c => c.Code).IsRequired().HasMaxLength(64);
+            b.Property(c => c.Libelle).IsRequired().HasMaxLength(256);
+            // Le code identifie le champ de facon stable : deux definitions homonymes rendraient
+            // les valeurs soumises ambigues.
+            b.HasIndex(c => c.Code).IsUnique();
+            b.HasIndex(c => c.EstActif);
+        });
+
+        builder.Entity<Domain.Enrolement.ValeurChampEnrolement>(b =>
+        {
+            b.HasKey(v => v.Id);
+            b.Property(v => v.ChampCode).IsRequired().HasMaxLength(64);
+            b.Property(v => v.Valeur).IsRequired().HasMaxLength(2000);
+            b.HasIndex(v => v.TicketId);
         });
 
         builder.Entity<Domain.Tickets.ReglePrioriteAutomatique>(b =>

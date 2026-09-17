@@ -1,6 +1,7 @@
 using CIT.Plateforme.Domain.Affectation;
 using CIT.Plateforme.Domain.Assistant;
 using CIT.Plateforme.Domain.Documents;
+using CIT.Plateforme.Domain.Enrolement;
 using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Messagerie;
 using CIT.Plateforme.Domain.SuiviTemps;
@@ -8,6 +9,30 @@ using CIT.Plateforme.Domain.Supervision;
 using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.Abstractions;
+
+/// <summary>ENR-01 — référentiel administrable des champs du formulaire d'enrôlement.</summary>
+public interface IChampFormulaireEnrolementRepository
+{
+    /// <summary><paramref name="activesUniquement"/> : la soumission ne doit présenter que les
+    /// champs en vigueur, tandis que l'écran de paramétrage doit voir aussi les désactivés, faute de
+    /// quoi ils seraient irrécupérables — même convention que <see cref="IMotifTransfertRepository"/>.</summary>
+    Task<IReadOnlyList<ChampFormulaireEnrolement>> ListerAsync(bool activesUniquement, CancellationToken ct = default);
+
+    Task<ChampFormulaireEnrolement?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<bool> CodeExisteAsync(string code, CancellationToken ct = default);
+
+    Task AjouterAsync(ChampFormulaireEnrolement champ, CancellationToken ct = default);
+}
+
+/// <summary>ENR-01 — valeurs structurées soumises pour les champs du formulaire d'enrôlement,
+/// rattachées au ticket créé par la soumission.</summary>
+public interface IValeurChampEnrolementRepository
+{
+    Task AjouterAsync(ValeurChampEnrolement valeur, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ValeurChampEnrolement>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+}
 
 /// <summary>IA-04 — référentiel administrable des sujets de premier niveau de l'assistant.</summary>
 public interface ISujetAssistantRepository

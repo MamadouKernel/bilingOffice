@@ -105,6 +105,13 @@ public static class Permission
     public const string EnrolementInstruire = "enrolement.instruire";
 
     /// <summary>
+    /// ENR-01 (remédiation) — « la liste des informations et pièces est paramétrable » : gestion du
+    /// référentiel des champs structurés du formulaire d'enrôlement, réservée à l'administrateur
+    /// fonctionnel. Mirroring <see cref="AdministrationCategoriesReclamation"/>.
+    /// </summary>
+    public const string AdministrationChampsEnrolement = "administration.champs_enrolement";
+
+    /// <summary>
     /// FEATURE 009 (T026) — administration des modèles de messages (COM-03) et des règles de
     /// diffusion (NOT-02) par l'administrateur fonctionnel.
     ///

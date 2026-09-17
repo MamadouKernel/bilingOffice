@@ -563,6 +563,67 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("PiecesExigeesEtape", (string)null);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Enrolement.ChampFormulaireEnrolement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EstObligatoire")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("EstActif");
+
+                    b.ToTable("ChampsFormulaireEnrolement");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Enrolement.ValeurChampEnrolement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChampCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Valeur")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("ValeursChampEnrolement");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Files.FileDeTraitement", b =>
                 {
                     b.Property<Guid>("Id")

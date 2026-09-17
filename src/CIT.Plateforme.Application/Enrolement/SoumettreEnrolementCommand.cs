@@ -1,9 +1,14 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Domain.Enrolement;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.Enrolement;
+
+/// <summary>ENR-01 (remédiation) — valeur soumise pour un champ du référentiel
+/// <see cref="ChampFormulaireEnrolement"/>, identifié par son code stable.</summary>
+public sealed record ValeurChampEnrolementSoumission(string ChampCode, string Valeur);
 
 /// <summary>
 /// Contrat C8-01 — Soumettre un enrôlement. CDC : ENR-01.
@@ -12,8 +17,18 @@ namespace CIT.Plateforme.Application.Enrolement;
 /// <see cref="Dossier.ClientId"/> = <c>appelantId</c> directement, <see cref="Dossier.AuteurId"/>
 /// reste <c>null</c> (aucune société, aucune distinction auteur/propriétaire nécessaire).
 /// </para>
+/// <para>
+/// ENR-01 (remédiation) — « la liste des informations et pièces est paramétrable » : lorsque le
+/// référentiel <see cref="ChampFormulaireEnrolement"/> comporte des champs actifs, la soumission
+/// doit en outre fournir une valeur pour chacun des champs obligatoires. Tant que le référentiel
+/// est vide (état livré par défaut), seuls l'objet et la description libres sont exigés — la
+/// compatibilité ascendante est donc totale.
+/// </para>
 /// </summary>
-public sealed record SoumettreEnrolementRequete(string Objet, string Description);
+public sealed record SoumettreEnrolementRequete(
+    string Objet,
+    string Description,
+    IReadOnlyList<ValeurChampEnrolementSoumission>? Champs = null);
 
 public sealed record SoumettreEnrolementResultat(Guid TicketId, string NumeroTicket);
 
@@ -21,6 +36,8 @@ public sealed class SoumettreEnrolementCommand(
     ITicketRepository tickets,
     IDossierRepository dossiers,
     IFileDeTraitementRepository files,
+    IChampFormulaireEnrolementRepository champsFormulaire,
+    IValeurChampEnrolementRepository valeursChamp,
     IServiceNumerotation numerotation,
     IJournalisationService journalisation,
     IHorloge horloge,
@@ -51,6 +68,22 @@ public sealed class SoumettreEnrolementCommand(
             throw new ArgumentException("La description de l'enrôlement est obligatoire (ENR-01).", nameof(requete));
         }
 
+        // E. Validation des champs structurés paramétrables (ENR-01, remédiation). Tant que le
+        // référentiel est vide, aucune contrainte supplémentaire n'est ajoutée.
+        var champsActifs = await champsFormulaire.ListerAsync(activesUniquement: true, ct).ConfigureAwait(false);
+        var valeursSoumises = (requete.Champs ?? [])
+            .Where(v => !string.IsNullOrWhiteSpace(v.Valeur))
+            .ToDictionary(v => v.ChampCode, v => v.Valeur, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var champ in champsActifs.Where(c => c.EstObligatoire))
+        {
+            if (!valeursSoumises.ContainsKey(champ.Code))
+            {
+                throw new ArgumentException(
+                    $"Le champ « {champ.Libelle} » est obligatoire (ENR-01).", nameof(requete));
+            }
+        }
+
         // F. Résolution de la file "Agent Gate" — donnée paramétrée, jamais un identifiant codé en dur.
         var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
         var fileAgentGate = toutesLesFiles.SingleOrDefault(f => f.Module == Module && f.Nom == FileAgentGate)
@@ -68,6 +101,16 @@ public sealed class SoumettreEnrolementCommand(
         var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileAgentGate.Id, dossier.Id, maintenant);
         ticket.DefinirInformationsEnrolement(requete.Objet, requete.Description);
         await tickets.AjouterAsync(ticket, ct).ConfigureAwait(false);
+
+        // Persistance des champs structurés paramétrables (ENR-01, remédiation) — seuls les champs
+        // connus du référentiel actif sont retenus, un code inconnu n'est pas persisté.
+        foreach (var champ in champsActifs)
+        {
+            if (valeursSoumises.TryGetValue(champ.Code, out var valeur))
+            {
+                await valeursChamp.AjouterAsync(ValeurChampEnrolement.Creer(ticket.Id, champ.Code, valeur), ct).ConfigureAwait(false);
+            }
+        }
 
         // G. Audit.
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", "Enrôlement soumis", appelantId, ct).ConfigureAwait(false);

@@ -48,7 +48,10 @@ public sealed class NouvelEnrolementTests : BunitContext
         var uow = new UniteDeTravail(db);
         var numerotation = new FakeNumerotationService();
 
-        Services.AddSingleton(new SoumettreEnrolementCommand(ticketRepo, dossierRepo, fileRepo, numerotation, journalisation, horloge, autorisation, uow));
+        var champsFormulaireRepo = new ChampFormulaireEnrolementRepository(db);
+        var valeursChampRepo = new ValeurChampEnrolementRepository(db);
+        Services.AddSingleton(new SoumettreEnrolementCommand(ticketRepo, dossierRepo, fileRepo, champsFormulaireRepo, valeursChampRepo, numerotation, journalisation, horloge, autorisation, uow));
+        Services.AddSingleton(new CIT.Plateforme.Application.Administration.ListerChampsFormulaireEnrolementQuery(champsFormulaireRepo, autorisation));
 
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         Services.AddSingleton(new DeposerDocumentCommand(

@@ -50,7 +50,9 @@ public sealed class CycleCompletEnrolementIntegrationTests
         dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentGateId), Permission.EnrolementInstruire, fileAgentGate.Id));
         await dbContext.SaveChangesAsync();
 
-        var soumettre = new SoumettreEnrolementCommand(ticketRepo, dossierRepo, fileRepo, numerotation, journalisation, horloge, autorisation, uow);
+        var champsFormulaireRepo = new ChampFormulaireEnrolementRepository(dbContext);
+        var valeursChampRepo = new ValeurChampEnrolementRepository(dbContext);
+        var soumettre = new SoumettreEnrolementCommand(ticketRepo, dossierRepo, fileRepo, champsFormulaireRepo, valeursChampRepo, numerotation, journalisation, horloge, autorisation, uow);
         var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
         var attenteClient = new AttenteClientCommand(ticketRepo, periodeRepo, autorisation, journalisation, horloge, uow);
         var publierMessage = new PublierMessageCommand(messageRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow);

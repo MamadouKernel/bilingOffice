@@ -18,6 +18,8 @@ public class SoumettreEnrolementCommandTests
     private readonly Mock<ITicketRepository> _ticketRepo = new();
     private readonly Mock<IDossierRepository> _dossierRepo = new();
     private readonly Mock<IFileDeTraitementRepository> _fileRepo = new();
+    private readonly Mock<IChampFormulaireEnrolementRepository> _champsFormulaireRepo = new();
+    private readonly Mock<IValeurChampEnrolementRepository> _valeursChampRepo = new();
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
     private readonly Mock<IHorloge> _horloge = new();
     private readonly Mock<IServiceNumerotation> _numerotation = new();
@@ -33,12 +35,16 @@ public class SoumettreEnrolementCommandTests
             _ticketRepo.Object,
             _dossierRepo.Object,
             _fileRepo.Object,
+            _champsFormulaireRepo.Object,
+            _valeursChampRepo.Object,
             _numerotation.Object,
             _journalisation.Object,
             _horloge.Object,
             _autorisation.Object,
             _uniteDeTravail.Object);
 
+        _champsFormulaireRepo.Setup(c => c.ListerAsync(true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<CIT.Plateforme.Domain.Enrolement.ChampFormulaireEnrolement>());
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 8, 31, 10, 0, 0, DateTimeKind.Utc));
         _numerotation.Setup(n => n.ProchainNumeroTicketAsync("Enrolement", "Enrolement", It.IsAny<CancellationToken>()))
             .ReturnsAsync("TCK-ENR-001");

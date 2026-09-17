@@ -51,6 +51,7 @@ public sealed class FicheEnrolementTests : BunitContext
         var configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
 
         Services.AddSingleton(new ObtenirFicheEnrolementQuery(ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
+            new ValeurChampEnrolementRepository(db), new ChampFormulaireEnrolementRepository(db),
             Support.FabriqueSecurite.ControleAcces(db)));
         Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));

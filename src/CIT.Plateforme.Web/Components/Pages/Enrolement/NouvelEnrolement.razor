@@ -1,6 +1,7 @@
 ﻿@page "/enrolement/soumettre"
 @rendermode InteractiveServer
 @attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
 @using CIT.Plateforme.Application.Documents
 @using CIT.Plateforme.Application.Enrolement
 @using CIT.Plateforme.Domain.Documents
@@ -15,6 +16,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreEnrolementCommand SoumettreEnrolement
 @inject DeposerDocumentCommand DeposerDocument
+@inject ListerChampsFormulaireEnrolementQuery ListerChampsFormulaire
 
 <PageTitle>@Loc["Enrol.PageTitle"]</PageTitle>
 
@@ -80,6 +82,30 @@
                 <textarea id="description" class="form-control" rows="5" placeholder="@Loc["Enrol.DescPlaceholder"]" @bind="_description" @bind:event="oninput"></textarea>
             </div>
 
+            @if (_champsFormulaire.Count > 0)
+            {
+                <!-- ENR-01 (remédiation) : champs structurés paramétrables, rendus dynamiquement à
+                     partir du référentiel administrable — aucun champ n'est codé en dur ici. -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark mb-3">@Loc["Enrol.ChampsTitle"]</h6>
+                    @foreach (var champ in _champsFormulaire)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-dark" for="@("champ-" + champ.Code)">
+                                @champ.Libelle
+                                @if (champ.EstObligatoire)
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                            </label>
+                            <input id="@("champ-" + champ.Code)" class="form-control"
+                                   value="@ObtenirValeurChamp(champ.Code)"
+                                   @oninput="e => DefinirValeurChamp(champ.Code, e.Value?.ToString() ?? string.Empty)" />
+                        </div>
+                    }
+                </div>
+            }
+
             <div class="d-flex justify-content-end gap-2">
                 <a href="/enrolement/mes-enrolements" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
                 <button class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
@@ -104,11 +130,20 @@
     private Guid _utilisateurId;
     private string _objet = string.Empty;
     private string _description = string.Empty;
+    private IReadOnlyList<ChampFormulaireEnrolementVue> _champsFormulaire = [];
+    private readonly Dictionary<string, string> _valeursChamps = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly ReglesDepotDocument ReglesPieces = new(
         ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
 
-    private bool PeutSoumettre => !string.IsNullOrWhiteSpace(_objet) && !string.IsNullOrWhiteSpace(_description);
+    private bool PeutSoumettre =>
+        !string.IsNullOrWhiteSpace(_objet) &&
+        !string.IsNullOrWhiteSpace(_description) &&
+        _champsFormulaire.Where(c => c.EstObligatoire).All(c => !string.IsNullOrWhiteSpace(ObtenirValeurChamp(c.Code)));
+
+    private string ObtenirValeurChamp(string code) => _valeursChamps.TryGetValue(code, out var v) ? v : string.Empty;
+
+    private void DefinirValeurChamp(string code, string valeur) => _valeursChamps[code] = valeur;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,6 +166,7 @@
             }
 
             _utilisateurId = contexte.UtilisateurId;
+            _champsFormulaire = await ListerChampsFormulaire.ListerPourSoumissionAsync();
         }
         catch (Exception ex)
         {
@@ -153,7 +189,10 @@
         _erreur = null;
         try
         {
-            var resultat = await SoumettreEnrolement.ExecuterAsync(_utilisateurId, new SoumettreEnrolementRequete(_objet, _description));
+            var champsSoumis = _champsFormulaire
+                .Select(c => new ValeurChampEnrolementSoumission(c.Code, ObtenirValeurChamp(c.Code)))
+                .ToList();
+            var resultat = await SoumettreEnrolement.ExecuterAsync(_utilisateurId, new SoumettreEnrolementRequete(_objet, _description, champsSoumis));
 
             _ticketCreeId = resultat.TicketId;
             _ticketCreeNumero = resultat.NumeroTicket;

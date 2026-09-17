@@ -1,0 +1,249 @@
+@page "/administration/champs-enrolement"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>@Loc["AdmChampsEnrol.PageTitle"]</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>🚚</span> @Loc["AdmChampsEnrol.Pill"]
+        </div>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
+            @Loc["AdmChampsEnrol.Title"]
+        </h1>
+        <div class="cit-page-subtitle text-muted">
+            @Loc["AdmChampsEnrol.Subtitle"]
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            @Loc["Common.Refresh"]
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["AdmChampsEnrol.Loading"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
+            <span class="me-2 fs-5">⚠️</span> @_erreur
+        </div>
+    }
+
+    <!-- 1. Formulaire d'ajout d'un champ -->
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4">➕</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["AdmChampsEnrol.AddTitle"]</h4>
+        </div>
+
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-bold text-dark" for="code">@Loc["AdmChampsEnrol.CodeLabel"]</label>
+                <input id="code" class="form-control" @bind="_code" placeholder="@Loc["AdmChampsEnrol.CodePlaceholder"]" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold text-dark" for="libelle">@Loc["AdmChampsEnrol.LibelleLabel"]</label>
+                <input id="libelle" class="form-control" @bind="_libelle" placeholder="@Loc["AdmChampsEnrol.LibellePlaceholder"]" />
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="ordre">@Loc["AdmChampsEnrol.OrdreLabel"]</label>
+                <input id="ordre" type="number" class="form-control" @bind="_ordre" />
+            </div>
+            <div class="col-12 col-md-2 form-check ps-4">
+                <input id="obligatoire" type="checkbox" class="form-check-input" @bind="_estObligatoire" />
+                <label class="form-check-label small fw-bold text-dark" for="obligatoire">@Loc["AdmChampsEnrol.ObligatoireLabel"]</label>
+            </div>
+            <div class="col-12 col-md-1">
+                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                    @Loc["AdmChampsEnrol.AddBtn"]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Liste des champs existants -->
+    @if (_champs is null || _champs.Count == 0)
+    {
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+            <div class="fs-1 mb-3">🚚</div>
+            <h4 class="fw-bold text-dark mb-2">@Loc["AdmChampsEnrol.EmptyTitle"]</h4>
+            <p class="text-muted mb-0">@Loc["AdmChampsEnrol.EmptyDesc"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem; background-color: var(--surface);">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-dark small">@Loc["AdmChampsEnrol.ListTitle", _champs.Count]</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width: 80px;">@Loc["AdmChampsEnrol.ColOrdre"]</th>
+                            <th>@Loc["AdmChampsEnrol.ColCode"]</th>
+                            <th>@Loc["AdmChampsEnrol.ColLibelle"]</th>
+                            <th>@Loc["AdmChampsEnrol.ColObligatoire"]</th>
+                            <th>@Loc["AdmChampsEnrol.ColState"]</th>
+                            <th class="text-end pe-4">@Loc["AdmChampsEnrol.ColActions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var champ in _champs.OrderBy(c => c.Ordre))
+                        {
+                            <tr>
+                                <td class="ps-4 font-monospace fw-bold text-muted">#@champ.Ordre</td>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">
+                                        @champ.Code
+                                    </span>
+                                </td>
+                                <td class="fw-semibold text-dark">@champ.Libelle</td>
+                                <td>
+                                    @if (champ.EstObligatoire)
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill">@Loc["AdmChampsEnrol.Obligatoire"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1 rounded-pill">@Loc["AdmChampsEnrol.Facultatif"]</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(champ.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                        @(champ.EstActif ? Loc["AdmChampsEnrol.StateActive"] : Loc["AdmChampsEnrol.StateDisabled"])
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (champ.EstActif)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                @onclick="() => BasculerAsync(champ.Id, false)">
+                                            @Loc["AdmChampsEnrol.Deactivate"]
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                                @onclick="() => BasculerAsync(champ.Id, true)">
+                                            @Loc["AdmChampsEnrol.Reactivate"]
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<ChampFormulaireEnrolementVue>? _champs;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+
+    private string _code = string.Empty;
+    private string _libelle = string.Empty;
+    private int _ordre = 1;
+    private bool _estObligatoire;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _messageRefus = Loc["AdmChampsEnrol.Refuse"].Value;
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationChampsEnrolement);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+        else
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var listerChamps = scope.ServiceProvider.GetRequiredService<ListerChampsFormulaireEnrolementQuery>();
+            _champs = await listerChamps.ExecuterAsync(_appelantId);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async sp =>
+    {
+        var gererChamps = sp.GetRequiredService<GererChampsFormulaireEnrolementCommand>();
+        await gererChamps.DefinirAsync(_appelantId, _code, _libelle, _estObligatoire, _ordre);
+        _code = string.Empty;
+        _libelle = string.Empty;
+        _estObligatoire = false;
+        _ordre = (_champs?.Count ?? 0) + 1;
+    });
+
+    private Task BasculerAsync(Guid champId, bool actif) => ExecuterAsync(sp =>
+    {
+        var gererChamps = sp.GetRequiredService<GererChampsFormulaireEnrolementCommand>();
+        return gererChamps.DefinirActivationAsync(_appelantId, champId, actif);
+    });
+}
