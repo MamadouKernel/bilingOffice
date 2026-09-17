@@ -134,14 +134,24 @@ public static class Permission
     public const string RendezVousGerer = "rendezvous.gerer";
 
     /// <summary>
-    /// FEATURE 007 (AVE-02, research.md D9) — instruction et traitement des demandes Avoir & Exonération.
+    /// AVE-02 (remédiation) — « Chaque type de demande suit son propre workflow de validation, avec
+    /// étapes et intervenants paramétrables. » Avoir et Exonération sont désormais deux workflows
+    /// distincts et séparément paramétrables : chacun a sa propre permission d'instruction et sa
+    /// propre permission de décision, si bien qu'un agent peut être habilité sur l'un sans l'être sur
+    /// l'autre. Remplace les anciennes permissions uniques <c>avoirexoneration.instruire</c> et
+    /// <c>avoirexoneration.decider</c>, qui ne distinguaient pas les deux types de demande (aucun
+    /// autre code ne référence plus ces anciens libellés).
     /// </summary>
-    public const string AvoirExonerationInstruire = "avoirexoneration.instruire";
+    public const string AvoirInstruire = "avoirexoneration.avoir.instruire";
 
-    /// <summary>
-    /// FEATURE 007 (AVE-03, research.md D9) — enregistrement de la décision finale (accord / rejet motivé).
-    /// </summary>
-    public const string AvoirExonerationDecider = "avoirexoneration.decider";
+    /// <summary>AVE-02 (remédiation) — décision finale (accord / rejet motivé) sur une demande d'Avoir.</summary>
+    public const string AvoirDecider = "avoirexoneration.avoir.decider";
+
+    /// <summary>AVE-02 (remédiation) — instruction et traitement d'une demande d'Exonération.</summary>
+    public const string ExonerationInstruire = "avoirexoneration.exoneration.instruire";
+
+    /// <summary>AVE-02 (remédiation) — décision finale (accord / rejet motivé) sur une demande d'Exonération.</summary>
+    public const string ExonerationDecider = "avoirexoneration.exoneration.decider";
 
     /// <summary>
     /// CDC § 17.3 — « Administration : gestion des comptes clients (validation, typage) et des

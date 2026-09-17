@@ -102,7 +102,7 @@ public sealed class ConsulterAvoirExoTests
     public async Task ConsulterFile_AgentNonHabilite_LeveAccesRefuseException()
     {
         // Arrange (SEC-AVE-03)
-        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, null, It.IsAny<CancellationToken>()))
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirInstruire, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         var criteres = new CriteresFiltreFileAvoirExo(null, null, null);
@@ -124,7 +124,7 @@ public sealed class ConsulterAvoirExoTests
             .ReturnsAsync(ticket);
         _dossierRepo.Setup(d => d.ObtenirParIdAsync(ticket.DossierId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dossierAutre);
-        _autorisation.Setup(a => a.EstAutoriseAsync(_userId, Permission.AvoirExonerationInstruire, null, It.IsAny<CancellationToken>()))
+        _autorisation.Setup(a => a.EstAutoriseAsync(_userId, Permission.AvoirInstruire, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act & Assert

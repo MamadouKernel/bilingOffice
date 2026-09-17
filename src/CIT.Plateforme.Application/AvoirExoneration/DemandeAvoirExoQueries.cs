@@ -143,13 +143,22 @@ public sealed class ConsulterFileAvoirExonerationQuery
         CriteresFiltreFileAvoirExo criteres,
         CancellationToken ct = default)
     {
-        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, null, ct))
+        // AVE-02 (remédiation) — Avoir et Exonération sont des workflows distincts et séparément
+        // habilitables : un agent peut être instructeur de l'un sans l'être de l'autre. La file
+        // mêlant les deux types, chaque ticket est filtré selon la permission propre à son type ;
+        // un agent sans aucune des deux habilitations n'a accès à rien (SEC-AVE-03).
+        var autoriseAvoir = await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirInstruire, null, ct);
+        var autoriseExoneration = await _autorisation.EstAutoriseAsync(agentId, Permission.ExonerationInstruire, null, ct);
+        if (!autoriseAvoir && !autoriseExoneration)
         {
-            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise pour consulter la file (SEC-AVE-03).");
+            throw new AccesRefuseException("Permission d'instruction Avoir ou Exonération requise pour consulter la file (SEC-AVE-03).");
         }
 
         var tousLesTickets = await _ticketRepo.ListerTousAsync(ct);
-        var tickets = tousLesTickets.Where(t => t.Module == "AvoirExoneration").ToList();
+        var tickets = tousLesTickets
+            .Where(t => t.Module == "AvoirExoneration")
+            .Where(t => (t.TypeDemande == "Avoir" && autoriseAvoir) || (t.TypeDemande == "Exoneration" && autoriseExoneration))
+            .ToList();
 
         if (!string.IsNullOrWhiteSpace(criteres.TypeDemande))
         {
@@ -311,8 +320,9 @@ public sealed class ObtenirFicheAvoirExonerationQuery
         // seule ouvre les notes internes, plus bas. Elle est propre au module.
         // P3 — même portée de file que les commandes du module : un `null` n'aurait reconnu que les
         // habilitations non bornées, et aurait masqué les notes internes à l'instructeur de la file.
+        var permissionInstruireDuType = ticket.TypeDemande == "Avoir" ? Permission.AvoirInstruire : Permission.ExonerationInstruire;
         var estAgent = await _autorisation.EstAutoriseAsync(
-            demandeurId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, ct);
+            demandeurId, permissionInstruireDuType, ticket.FileCouranteId, ct);
 
         var societe = await _societeRepo.ObtenirParIdAsync(dossier.ClientId, ct);
         var documents = await _documentRepo.ListerParTicketAsync(ticket.Id, ct);

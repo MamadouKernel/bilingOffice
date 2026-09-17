@@ -847,8 +847,10 @@ else
         ]),
         new GroupePermissions(Loc["AdmCompte.G.Tarif"].Value, "💰", [
             new ElementPermission(Permission.TarificationAdministrer, Loc["AdmCompte.P.TarifAdmin"].Value),
-            new ElementPermission(Permission.AvoirExonerationInstruire, Loc["AdmCompte.P.AvoirInstruire"].Value),
-            new ElementPermission(Permission.AvoirExonerationDecider, Loc["AdmCompte.P.AvoirDecider"].Value),
+            new ElementPermission(Permission.AvoirInstruire, Loc["AdmCompte.P.AvoirInstruire"].Value),
+            new ElementPermission(Permission.AvoirDecider, Loc["AdmCompte.P.AvoirDecider"].Value),
+            new ElementPermission(Permission.ExonerationInstruire, Loc["AdmCompte.P.ExonerationInstruire"].Value),
+            new ElementPermission(Permission.ExonerationDecider, Loc["AdmCompte.P.ExonerationDecider"].Value),
         ]),
         new GroupePermissions(Loc["AdmCompte.G.Complaints"].Value, "📢", [
             new ElementPermission(Permission.ComplaintSoumettre, Loc["AdmCompte.P.ComplaintSoumettre"].Value),

@@ -294,10 +294,16 @@ else if (_fiche is not null)
                 return;
             }
 
+            _fiche = await ObtenirFiche.ExecuterAsync(contexte.UtilisateurId, TicketId);
+
+            // AVE-02 (remédiation) : la permission d'instruction est propre au type de demande
+            // (Avoir / Exonération) — désormais deux workflows séparément habilitables.
+            var permissionInstruireDuType = _fiche.TypeDemande == "Avoir"
+                ? Permission.AvoirInstruire
+                : Permission.ExonerationInstruire;
             _estAgent = contexte.Nature == NatureUtilisateur.Agent ||
                         contexte.EspaceActif == CIT.Plateforme.Application.Web.EspaceFonctionnel.Agent ||
-                        contexte.Permissions.Contains(Permission.AvoirExonerationInstruire);
-            _fiche = await ObtenirFiche.ExecuterAsync(contexte.UtilisateurId, TicketId);
+                        contexte.Permissions.Contains(permissionInstruireDuType);
             if (_fiche.MontantConteste.HasValue && !_montantAccordeSaisi.HasValue)
             {
                 _montantAccordeSaisi = _fiche.MontantConteste;

@@ -54,10 +54,13 @@ public sealed class AveSpecTests : IClassFixture<PlateformeWebApplicationFactory
             societeId, MaintenantUtc, false, true);
         db.UtilisateursSociete.Add(rattach);
 
-        // Habilitations agent
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationInstruire));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.AvoirExonerationInstruire));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.AvoirExonerationDecider));
+        // Habilitations agent (AVE-02 : Avoir et Exonération sont des permissions distinctes)
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.ExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.AvoirInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.ExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.AvoirDecider));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentDecideurId), Permission.ExonerationDecider));
 
         if (!await db.Files.AnyAsync(f => f.Module == "AvoirExoneration"))
         {

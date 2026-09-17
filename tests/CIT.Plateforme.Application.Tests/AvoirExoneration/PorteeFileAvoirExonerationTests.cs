@@ -66,11 +66,11 @@ public sealed class PorteeFileAvoirExonerationTests
 
         db.Habilitations.AddRange(
             // Borné à la file du module — le cas nominal d'un instructeur Avoir/Exonération.
-            HabilitationUtilisateur.Attribuer(agentBorne, Permission.AvoirExonerationInstruire, fileAve.Id),
+            HabilitationUtilisateur.Attribuer(agentBorne, Permission.AvoirInstruire, fileAve.Id),
             // Non borné — un superviseur transverse.
-            HabilitationUtilisateur.Attribuer(agentNonBorne, Permission.AvoirExonerationInstruire),
+            HabilitationUtilisateur.Attribuer(agentNonBorne, Permission.AvoirInstruire),
             // Borné à une AUTRE file — ne doit jamais instruire un avoir.
-            HabilitationUtilisateur.Attribuer(agentAutreFile, Permission.AvoirExonerationInstruire, fileAutre.Id));
+            HabilitationUtilisateur.Attribuer(agentAutreFile, Permission.AvoirInstruire, fileAutre.Id));
 
         var dossier = Dossier.Creer("DOS-AVE-0001", Guid.NewGuid(), DateTime.UtcNow);
         var ticket = Ticket.CreerDemandeAvoirExo(

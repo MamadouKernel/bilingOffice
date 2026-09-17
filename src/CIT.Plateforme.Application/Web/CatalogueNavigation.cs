@@ -200,7 +200,7 @@ public static class CatalogueNavigation
                 [Permission.BillingExportComptabiliteConfirmerLettrage],
                 SoumettreDemandeExportCommand.Module, NomsFilesExport.ComptabiliteClient),
             new("File Avoirs & Exonérations", "⚖️", "/avoir-exoneration/file",
-                [Permission.AvoirExonerationInstruire],
+                [Permission.AvoirInstruire, Permission.ExonerationInstruire],
                 ModuleAvoirExoneration, FileAvoirExoneration),
         ]),
         new("Administration & Sécurité", "⚙️",

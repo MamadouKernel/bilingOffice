@@ -122,8 +122,10 @@ public static class FixtureComptesDeTest
             (Permission.BillingExportFacturationEditer, "Facturation"),
             (Permission.GuichetRecherche, null),
             (Permission.RendezVousGerer, null),
-            (Permission.AvoirExonerationInstruire, "Avoir & Exonération"),
-            (Permission.AvoirExonerationDecider, null),
+            (Permission.AvoirInstruire, "Avoir & Exonération"),
+            (Permission.AvoirDecider, null),
+            (Permission.ExonerationInstruire, "Avoir & Exonération"),
+            (Permission.ExonerationDecider, null),
         ]);
 
     public static Task<ApplicationUser> CreerAdministrateurTarificationAsync(IServiceProvider sp) =>

@@ -51,7 +51,7 @@ public sealed class InstructionAvoirExoTests
         // P3 : le contrôle porte désormais la FILE du ticket, et non plus `null` — qui ne
         // reconnaissait que les habilitations non bornées. Le montage décrit donc un agent
         // habilité sur la file de CE ticket : l'assertion est plus précise, pas plus permissive.
-        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -75,7 +75,7 @@ public sealed class InstructionAvoirExoTests
         // P3 : le contrôle porte désormais la FILE du ticket, et non plus `null` — qui ne
         // reconnaissait que les habilitations non bornées. Le montage décrit donc un agent
         // habilité sur la file de CE ticket : l'assertion est plus précise, pas plus permissive.
-        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -85,5 +85,45 @@ public sealed class InstructionAvoirExoTests
         Assert.Equal(StatutTicket.EnAttenteClient, ticket.Statut);
         _journalisation.Verify(j => j.PublierEvenementAsync("AvoirComplementDemande", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>
+    /// AVE-02 (remédiation) : Avoir et Exonération suivent chacun leur propre workflow, avec leurs
+    /// propres intervenants habilités. Un agent habilité uniquement pour l'Avoir ne doit pas pouvoir
+    /// instruire une demande d'Exonération.
+    /// </summary>
+    [Fact]
+    public async Task PrendreEnCharge_HabiliteAvoirSeulement_RefuseSurExoneration()
+    {
+        // Arrange
+        var ticket = Ticket.CreerDemandeAvoirExo("EXO-001", "Exoneration", Guid.NewGuid(), Guid.NewGuid(), "Obj", "Desc", null, _maintenantUtc);
+        _ticketRepo.Setup(t => t.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ticket);
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.ExonerationInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<AccesRefuseException>(
+            () => _prendreEnChargeCommand.ExecuterAsync(_agentId, ticket.Id, CancellationToken.None));
+    }
+
+    /// <summary>Symétrique : un agent habilité uniquement pour l'Exonération ne peut pas instruire un Avoir.</summary>
+    [Fact]
+    public async Task PrendreEnCharge_HabiliteExonerationSeulement_RefuseSurAvoir()
+    {
+        // Arrange
+        var ticket = Ticket.CreerDemandeAvoirExo("AVO-002", "Avoir", Guid.NewGuid(), Guid.NewGuid(), "Obj", "Desc", 100m, _maintenantUtc);
+        _ticketRepo.Setup(t => t.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ticket);
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.ExonerationInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<AccesRefuseException>(
+            () => _prendreEnChargeCommand.ExecuterAsync(_agentId, ticket.Id, CancellationToken.None));
     }
 }

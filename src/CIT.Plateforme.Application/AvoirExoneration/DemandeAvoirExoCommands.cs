@@ -8,6 +8,20 @@ using CIT.Plateforme.Domain.Tickets;
 
 namespace CIT.Plateforme.Application.AvoirExoneration;
 
+/// <summary>
+/// AVE-02 (remédiation) — un type de demande (Avoir/Exonération) est associé à sa propre paire de
+/// permissions d'instruction/décision, ce qui fait de chaque type un workflow séparément
+/// paramétrable en habilitations, sans dupliquer la logique métier commune.
+/// </summary>
+internal static class PermissionsAvoirExoParType
+{
+    public static string Instruire(string typeDemande) =>
+        typeDemande == "Avoir" ? Permission.AvoirInstruire : Permission.ExonerationInstruire;
+
+    public static string Decider(string typeDemande) =>
+        typeDemande == "Avoir" ? Permission.AvoirDecider : Permission.ExonerationDecider;
+}
+
 public sealed record PieceJointeSoumission(
     string NomFichier,
     string TypeContenu,
@@ -228,9 +242,9 @@ public sealed class PrendreEnChargeAvoirExoCommand
         // module — le cas nominal — était donc refusé. Le contrôle porte désormais la file du
         // ticket : il admet l'instructeur borné, conserve le superviseur non borné, et continue
         // de refuser un agent d'une autre file (SEC-03).
-        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, ct))
+        if (!await _autorisation.EstAutoriseAsync(agentId, PermissionsAvoirExoParType.Instruire(ticket.TypeDemande), ticket.FileCouranteId, ct))
         {
-            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise pour prendre en charge (SEC-AVE-03).");
+            throw new AccesRefuseException($"Permission d'instruction du type '{ticket.TypeDemande}' requise pour prendre en charge (SEC-AVE-03).");
         }
 
         var maintenantUtc = _horloge.MaintenantUtc;
@@ -300,9 +314,9 @@ public sealed class DemanderComplementAvoirExoCommand
         // module — le cas nominal — était donc refusé. Le contrôle porte désormais la file du
         // ticket : il admet l'instructeur borné, conserve le superviseur non borné, et continue
         // de refuser un agent d'une autre file (SEC-03).
-        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationInstruire, ticket.FileCouranteId, ct))
+        if (!await _autorisation.EstAutoriseAsync(agentId, PermissionsAvoirExoParType.Instruire(ticket.TypeDemande), ticket.FileCouranteId, ct))
         {
-            throw new AccesRefuseException("Permission 'avoirexoneration.instruire' requise.");
+            throw new AccesRefuseException($"Permission d'instruction du type '{ticket.TypeDemande}' requise.");
         }
 
         var maintenantUtc = _horloge.MaintenantUtc;
@@ -378,11 +392,6 @@ public sealed class DeciderDemandeAvoirExoCommand
 
     public async Task ExecuterAsync(Guid agentId, DeciderDemandeAvoirExoRequete requete, CancellationToken ct = default)
     {
-        if (!await _autorisation.EstAutoriseAsync(agentId, Permission.AvoirExonerationDecider, null, ct))
-        {
-            throw new AccesRefuseException("Permission 'avoirexoneration.decider' requise pour statuer (SEC-AVE-04).");
-        }
-
         var ticket = await _ticketRepo.ObtenirParIdAsync(requete.TicketId, ct);
         if (ticket == null)
         {
@@ -392,6 +401,11 @@ public sealed class DeciderDemandeAvoirExoCommand
         if (ticket.Module != "AvoirExoneration")
         {
             throw new InvalidOperationException("Ce ticket n'appartient pas au module Avoir & Exonération (SEC-AVE-08).");
+        }
+
+        if (!await _autorisation.EstAutoriseAsync(agentId, PermissionsAvoirExoParType.Decider(ticket.TypeDemande), null, ct))
+        {
+            throw new AccesRefuseException($"Permission de décision du type '{ticket.TypeDemande}' requise pour statuer (SEC-AVE-04).");
         }
 
         var maintenantUtc = _horloge.MaintenantUtc;

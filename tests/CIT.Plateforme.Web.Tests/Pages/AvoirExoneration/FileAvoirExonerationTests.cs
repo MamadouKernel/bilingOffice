@@ -58,7 +58,7 @@ public sealed class FileAvoirExonerationTests : BunitContext
             maintenantUtc: DateTime.UtcNow);
         db.Tickets.Add(ticket);
 
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirInstruire));
         db.SaveChanges();
         return (db, agentId);
     }
@@ -91,7 +91,7 @@ public sealed class FileAvoirExonerationTests : BunitContext
             Nature = NatureUtilisateur.Agent,
             EstAuthentifie = true,
             EspaceActif = EspaceFonctionnel.Agent,
-            Permissions = new[] { Permission.AvoirExonerationInstruire }
+            Permissions = new[] { Permission.AvoirInstruire }
         };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
 

@@ -60,8 +60,8 @@ public sealed class FicheAvoirExonerationTests : BunitContext
             maintenantUtc: DateTime.UtcNow);
         db.Tickets.Add(ticket);
 
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationInstruire));
-        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirExonerationDecider));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirInstruire));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentId), Permission.AvoirDecider));
         db.SaveChanges();
         return (db, agentId, ticket.Id);
     }
@@ -108,7 +108,7 @@ public sealed class FicheAvoirExonerationTests : BunitContext
             Nature = NatureUtilisateur.Agent,
             EstAuthentifie = true,
             EspaceActif = EspaceFonctionnel.Agent,
-            Permissions = new[] { Permission.AvoirExonerationInstruire, Permission.AvoirExonerationDecider }
+            Permissions = new[] { Permission.AvoirInstruire, Permission.AvoirDecider }
         };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
 
