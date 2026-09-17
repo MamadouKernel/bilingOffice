@@ -1957,6 +1957,42 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("PeriodesAttenteClient");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.ReglePrioriteAutomatique", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PrioriteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TypeClient")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("TypeDemande")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EstActif");
+
+                    b.HasIndex("Ordre");
+
+                    b.ToTable("ReglesPrioriteAutomatique");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.SuiviBrancheIes", b =>
                 {
                     b.Property<Guid>("Id")

@@ -114,6 +114,19 @@ public interface IMotifTransfertRepository
     Task AjouterAsync(MotifTransfert motif, CancellationToken ct = default);
 }
 
+/// <summary>Port du referentiel des regles d'attribution automatique de priorite (PRI-01).</summary>
+public interface IReglePrioriteAutomatiqueRepository
+{
+    /// <summary><paramref name="activesUniquement"/> : l'evaluation a la creation du ticket ne
+    /// considere que les regles en vigueur, tandis que l'ecran de parametrage doit voir aussi les
+    /// desactivees, faute de quoi elles seraient irrecuperables.</summary>
+    Task<IReadOnlyList<ReglePrioriteAutomatique>> ListerAsync(bool activesUniquement, CancellationToken ct = default);
+
+    Task<ReglePrioriteAutomatique?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task AjouterAsync(ReglePrioriteAutomatique regle, CancellationToken ct = default);
+}
+
 /// <summary>Port du fil de messages/notes internes (SOC-05, MSG-01..05).</summary>
 public interface IMessageRepository
 {

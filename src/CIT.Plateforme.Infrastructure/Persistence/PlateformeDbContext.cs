@@ -82,6 +82,8 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>SS 9.10 / SS 17.3 — referentiel administrable des motifs de transfert.</summary>
     public DbSet<MotifTransfert> MotifsTransfert => Set<MotifTransfert>();
 
+    public DbSet<Domain.Tickets.ReglePrioriteAutomatique> ReglesPrioriteAutomatique => Set<Domain.Tickets.ReglePrioriteAutomatique>();
+
     /// <summary>IA-04 — base de connaissances administrable de l'assistant conversationnel.</summary>
     public DbSet<Domain.Assistant.SujetAssistant> SujetsAssistant => Set<Domain.Assistant.SujetAssistant>();
 
@@ -620,6 +622,16 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // l'historique des transferts ambigu.
             b.HasIndex(m => m.Code).IsUnique();
             b.HasIndex(m => m.EstActif);
+        });
+
+        builder.Entity<Domain.Tickets.ReglePrioriteAutomatique>(b =>
+        {
+            b.HasKey(r => r.Id);
+            b.Property(r => r.Module).HasMaxLength(128);
+            b.Property(r => r.TypeDemande).HasMaxLength(128);
+            b.Property(r => r.TypeClient).HasMaxLength(128);
+            b.HasIndex(r => r.EstActif);
+            b.HasIndex(r => r.Ordre);
         });
 
         builder.Entity<Domain.Assistant.SujetAssistant>(b =>

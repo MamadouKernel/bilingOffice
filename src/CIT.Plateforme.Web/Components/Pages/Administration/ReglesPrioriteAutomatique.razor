@@ -1,0 +1,265 @@
+@page "/administration/regles-priorite-automatique"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>@Loc["AdmReglePrio.PageTitle"]</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>⚡</span> @Loc["AdmReglePrio.Pill"]
+        </div>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">
+            @Loc["AdmReglePrio.Title"]
+        </h1>
+        <div class="cit-page-subtitle text-muted">
+            @Loc["AdmReglePrio.Subtitle"]
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            @Loc["Common.Refresh"]
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["AdmReglePrio.Loading"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
+            <span class="me-2 fs-5">⚠️</span> @_erreur
+        </div>
+    }
+
+    @if (_niveaux is null || _niveaux.Count == 0)
+    {
+        <div class="alert alert-warning border-0 mb-4 rounded-3 p-3">@Loc["AdmReglePrio.NoLevels"]</div>
+    }
+    else
+    {
+        <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="fs-4">➕</span>
+                <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["AdmReglePrio.AddTitle"]</h4>
+            </div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-2">
+                    <label class="form-label small fw-bold text-dark" for="module">@Loc["AdmReglePrio.ModuleLabel"]</label>
+                    <input id="module" class="form-control" @bind="_module" placeholder="@Loc["AdmReglePrio.AnyPlaceholder"]" />
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label small fw-bold text-dark" for="typeDemande">@Loc["AdmReglePrio.TypeDemandeLabel"]</label>
+                    <input id="typeDemande" class="form-control" @bind="_typeDemande" placeholder="@Loc["AdmReglePrio.AnyPlaceholder"]" />
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label small fw-bold text-dark" for="typeClient">@Loc["AdmReglePrio.TypeClientLabel"]</label>
+                    <input id="typeClient" class="form-control" @bind="_typeClient" placeholder="@Loc["AdmReglePrio.AnyPlaceholder"]" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small fw-bold text-dark" for="priorite">@Loc["AdmReglePrio.PrioriteLabel"]</label>
+                    <select id="priorite" class="form-select" @bind="_prioriteId">
+                        @foreach (var niveau in _niveaux)
+                        {
+                            <option value="@niveau.Id">@niveau.Libelle</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label small fw-bold text-dark" for="ordre">@Loc["AdmReglePrio.OrdreLabel"]</label>
+                    <input id="ordre" type="number" class="form-control" @bind="_ordre" />
+                </div>
+                <div class="col-12 col-md-1">
+                    <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                        @Loc["AdmReglePrio.AddBtn"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_regles is null || _regles.Count == 0)
+    {
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+            <div class="fs-1 mb-3">⚡</div>
+            <h4 class="fw-bold text-dark mb-2">@Loc["AdmReglePrio.EmptyTitle"]</h4>
+            <p class="text-muted mb-0">@Loc["AdmReglePrio.EmptyDesc"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem; background-color: var(--surface);">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-dark small">@Loc["AdmReglePrio.ListTitle", _regles.Count]</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width: 80px;">@Loc["AdmReglePrio.ColOrdre"]</th>
+                            <th>@Loc["AdmReglePrio.ModuleLabel"]</th>
+                            <th>@Loc["AdmReglePrio.TypeDemandeLabel"]</th>
+                            <th>@Loc["AdmReglePrio.TypeClientLabel"]</th>
+                            <th>@Loc["AdmReglePrio.PrioriteLabel"]</th>
+                            <th>@Loc["AdmMotif.ColState"]</th>
+                            <th class="text-end pe-4">@Loc["AdmMotif.ColActions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var regle in _regles.OrderBy(r => r.Ordre))
+                        {
+                            <tr>
+                                <td class="ps-4 font-monospace fw-bold text-muted">#@regle.Ordre</td>
+                                <td>@(regle.Module ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
+                                <td>@(regle.TypeDemande ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
+                                <td>@(regle.TypeClient ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
+                                <td>@LibellePriorite(regle.PrioriteId)</td>
+                                <td>
+                                    <span class="badge @(regle.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                        @(regle.EstActif ? Loc["AdmMotif.StateActive"] : Loc["AdmMotif.StateDisabled"])
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (regle.EstActif)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                @onclick="() => BasculerAsync(regle.Id, false)">
+                                            @Loc["AdmMotif.Deactivate"]
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                                @onclick="() => BasculerAsync(regle.Id, true)">
+                                            @Loc["AdmMotif.Reactivate"]
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<ReglePrioriteAutomatiqueVue>? _regles;
+    private IReadOnlyList<NiveauPrioriteVue>? _niveaux;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+
+    private string _module = string.Empty;
+    private string _typeDemande = string.Empty;
+    private string _typeClient = string.Empty;
+    private Guid _prioriteId;
+    private int _ordre = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _messageRefus = Loc["AdmReglePrio.Refuse"].Value;
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationFiles);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+        else
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var listerRegles = scope.ServiceProvider.GetRequiredService<ListerReglesPrioriteAutomatiqueQuery>();
+            var listerNiveaux = scope.ServiceProvider.GetRequiredService<ListerNiveauxPrioriteQuery>();
+            _regles = await listerRegles.ExecuterAsync(_appelantId);
+            _niveaux = await listerNiveaux.ExecuterAsync(_appelantId);
+            if (_prioriteId == Guid.Empty && _niveaux.Count > 0)
+            {
+                _prioriteId = _niveaux[0].Id;
+            }
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private string LibellePriorite(Guid prioriteId) =>
+        _niveaux?.FirstOrDefault(n => n.Id == prioriteId)?.Libelle ?? "—";
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
+            await ChargerAsync();
+        }
+        catch (CIT.Plateforme.Application.Securite.AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async sp =>
+    {
+        var gererRegles = sp.GetRequiredService<GererReglesPrioriteAutomatiqueCommand>();
+        await gererRegles.DefinirAsync(_appelantId, VideEnNull(_module), VideEnNull(_typeDemande), VideEnNull(_typeClient), _prioriteId, _ordre);
+        _module = string.Empty;
+        _typeDemande = string.Empty;
+        _typeClient = string.Empty;
+        _ordre = (_regles?.Count ?? 0) + 1;
+    });
+
+    private Task BasculerAsync(Guid regleId, bool actif) => ExecuterAsync(sp =>
+    {
+        var gererRegles = sp.GetRequiredService<GererReglesPrioriteAutomatiqueCommand>();
+        return gererRegles.DefinirActivationAsync(_appelantId, regleId, actif);
+    });
+
+    private static string? VideEnNull(string valeur) => string.IsNullOrWhiteSpace(valeur) ? null : valeur.Trim();
+}

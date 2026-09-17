@@ -139,6 +139,12 @@ public static class DependencyInjection
         services.AddScoped<Application.Administration.ListerMotifsTransfertQuery>();
         services.AddScoped<Application.Administration.GererNiveauxPrioriteCommand>();
         services.AddScoped<Application.Administration.ListerNiveauxPrioriteQuery>();
+
+        // PRI-01 - referentiel des regles d'attribution automatique de priorite.
+        services.AddScoped<Application.Abstractions.IReglePrioriteAutomatiqueRepository, Persistence.ReglePrioriteAutomatiqueRepository>();
+        services.AddScoped<Application.Administration.GererReglesPrioriteAutomatiqueCommand>();
+        services.AddScoped<Application.Administration.ListerReglesPrioriteAutomatiqueQuery>();
+        services.AddScoped<Application.Tickets.ResoudrePrioriteAutomatiqueService>();
         services.AddScoped<Application.Administration.GererLibellesStatutCommand>();
         services.AddScoped<Application.Administration.ListerLibellesStatutQuery>();
         services.AddScoped<TransfererTicketCommand>();

@@ -47,7 +47,8 @@ public sealed class SoumettreDemandeImportCommand(
     IJournalisationService journalisation,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail,
-    IPrioriteRepository? priorites = null)
+    IPrioriteRepository? priorites = null,
+    Tickets.ResoudrePrioriteAutomatiqueService? resoudrePriorite = null)
 {
     public const string Module = "BillingImport";
     public const string TypeDemande = "Import";
@@ -130,7 +131,18 @@ public sealed class SoumettreDemandeImportCommand(
             var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, TypeDemande, ct).ConfigureAwait(false);
             var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileManifeste.Id, dossier.Id, maintenant, numeroBl);
 
-            if (priorites is not null)
+            // PRI-01 : une règle administrable (module/type de demande/type de client) peut
+            // attribuer automatiquement une priorité. Aucune règle configurée → comportement
+            // inchangé (repli sur le niveau de plus faible rang, comme avant PRI-01).
+            var prioriteParRegle = resoudrePriorite is not null
+                ? await resoudrePriorite.ResoudreAsync(Module, TypeDemande, societe.Profil.ToString(), ct).ConfigureAwait(false)
+                : null;
+
+            if (prioriteParRegle is Guid idRegle)
+            {
+                ticket.DefinirPriorite(idRegle);
+            }
+            else if (priorites is not null)
             {
                 var niveaux = await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false);
                 var niveauDefaut = niveaux.OrderBy(n => n.Rang).FirstOrDefault();
