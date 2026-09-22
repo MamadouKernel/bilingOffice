@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Parcours des rôles — CIT</title>
+<meta name="description" content="Document présentant le parcours de chaque rôle de la Plateforme Digitale CIT : création de compte, connexion, actions possibles.">
+<style>
+:root{
+  --bg:#f7f8fb; --surface:#ffffff; --text:#1c2230; --muted:#5b6472; --border:#e3e6ec;
+  --primary:#0b5fff; --primary-100:#eaf1ff; --ok:#1a8f5e; --ok-100:#e7f7ef; --ok-border:#bfe8d3;
+  --warn:#b7791f; --warn-100:#fff6e5; --warn-border:#f3ddab;
+  --info:#2563eb; --info-100:#eef4ff; --info-border:#c9dcff;
+  --code-bg:#f0f2f6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1420; --surface:#161d2b; --text:#e7ebf3; --muted:#9aa5b6; --border:#2a3345;
+    --primary:#5b9dff; --primary-100:#152238; --ok:#3fcf8e; --ok-100:#0f2a1f; --ok-border:#1f5c3f;
+    --warn:#f0b04c; --warn-100:#2c2410; --warn-border:#5c4a1f;
+    --info:#7fb0ff; --info-100:#101d33; --info-border:#243c66;
+    --code-bg:#1d2537;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1420; --surface:#161d2b; --text:#e7ebf3; --muted:#9aa5b6; --border:#2a3345;
+  --primary:#5b9dff; --primary-100:#152238; --ok:#3fcf8e; --ok-100:#0f2a1f; --ok-border:#1f5c3f;
+  --warn:#f0b04c; --warn-100:#2c2410; --warn-border:#5c4a1f;
+  --info:#7fb0ff; --info-100:#101d33; --info-border:#243c66;
+  --code-bg:#1d2537;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6;}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 80px;}
+header.hero{padding:32px 0 20px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;}
+.b-info{background:var(--info-100);color:var(--info);border:1px solid var(--info-border);}
+header.hero h1{font-size:1.9rem;margin:10px 0 8px;}
+header.hero p{color:var(--muted);margin:0;max-width:800px;}
+nav.toc{position:sticky;top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:20px 0;font-size:.86rem;}
+nav.toc strong{display:block;margin-bottom:8px;}
+nav.toc ul{columns:2;column-gap:24px;margin:0;padding-left:18px;}
+nav.toc a{color:var(--primary);text-decoration:none;}
+nav.toc a:hover{text-decoration:underline;}
+.overview{width:100%;border-collapse:collapse;margin:16px 0 32px;font-size:.88rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.overview th,.overview td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);}
+.overview th{background:var(--code-bg);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+.overview tr:last-child td{border-bottom:none;}
+.role-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 26px;margin:22px 0;page-break-inside:avoid;}
+.role-head{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.role-num{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;flex-shrink:0;}
+.role-title{font-size:1.25rem;font-weight:700;margin:0;}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0;}
+.role-box{background:var(--code-bg);border-radius:10px;padding:12px 14px;font-size:.85rem;}
+.role-box .lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+.role-box code{background:transparent;padding:0;}
+ul.actions{margin:10px 0 0;padding-left:20px;font-size:.9rem;}
+ul.actions li{margin-bottom:5px;}
+.cannot{background:var(--warn-100);border:1px solid var(--warn-border);border-radius:10px;padding:10px 14px;font-size:.85rem;margin-top:12px;}
+code{background:var(--code-bg);padding:1px 6px;border-radius:5px;font-size:.88em;}
+.callout{border-radius:12px;padding:16px 18px;margin:18px 0;border:1px solid var(--border);}
+.callout.info{background:var(--info-100);border-color:var(--info-border);}
+.callout.ok{background:var(--ok-100);border-color:var(--ok-border);}
+h2.section{font-size:1.3rem;border-bottom:2px solid var(--border);padding-bottom:8px;margin:40px 0 8px;}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;}
+@media (max-width:640px){.role-grid{grid-template-columns:1fr;}nav.toc ul{columns:1;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="badge b-info">Document de référence — Plateforme Digitale CIT</span>
+  <h1>Parcours de tous les rôles</h1>
+  <p>Ce document présente, pour chaque profil d'utilisateur de la plateforme, comment son compte
+  est créé, comment il se connecte, et ce qu'il peut faire une fois connecté. Il est construit
+  directement à partir de la matrice de navigation du code
+  (<code>CatalogueNavigation.cs</code>) et du cahier des charges (§6 « Parties prenantes et
+  profils ») — rien n'est ici une supposition.</p>
+</header>
+
+<nav class="toc">
+  <strong>Sommaire</strong>
+  <ul>
+    <li><a href="#vue">Vue d'ensemble</a></li>
+    <li><a href="#r1">1. Visiteur anonyme</a></li>
+    <li><a href="#r2">2. Client (société)</a></li>
+    <li><a href="#r3">3. Collaborateur d'entreprise</a></li>
+    <li><a href="#r4">4. Administrateur de société</a></li>
+    <li><a href="#r5">5. Transporteur / Chauffeur</a></li>
+    <li><a href="#r6">6. Agent Billing Office / Guichet</a></li>
+    <li><a href="#r7">7. Superviseur</a></li>
+    <li><a href="#r8">8. Administration CIT</a></li>
+    <li><a href="#synthese">Ce qui distingue vraiment les rôles</a></li>
+  </ul>
+</nav>
+
+<section id="vue">
+<h2 class="section">Vue d'ensemble</h2>
+<table class="overview">
+<thead><tr><th>Rôle</th><th>Compte créé par</th><th>Connexion mène à</th><th>Rattaché à une société ?</th></tr></thead>
+<tbody>
+<tr><td>Visiteur anonyme</td><td>—</td><td>Page d'accueil publique</td><td>—</td></tr>
+<tr><td>Client (société)</td><td>Dossier société validé par CIT</td><td><code>/client/dashboard</code></td><td>Oui</td></tr>
+<tr><td>Collaborateur d'entreprise</td><td>Invité par l'administrateur de sa société</td><td><code>/client/dashboard</code></td><td>Oui</td></tr>
+<tr><td>Administrateur de société</td><td>1ᵉʳ compte du dossier société validé</td><td><code>/societe/dashboard</code></td><td>Oui</td></tr>
+<tr><td>Transporteur / Chauffeur</td><td>Auto-inscription publique</td><td><code>/enrolement/mes-enrolements</code></td><td><strong>Non, jamais</strong></td></tr>
+<tr><td>Agent (Billing Office / Guichet)</td><td>Créé par un administrateur CIT</td><td><code>/agent/dashboard</code></td><td>Non</td></tr>
+<tr><td>Superviseur</td><td>Créé par un administrateur CIT, permissions de supervision</td><td><code>/supervision</code></td><td>Non</td></tr>
+<tr><td>Administration CIT</td><td>Créé par un administrateur CIT, permission <code>CompteValider</code></td><td><code>/comptes/valider</code></td><td>Non</td></tr>
+</tbody>
+</table>
+</section>
+
+<div class="role-card" id="r1">
+  <div class="role-head"><div class="role-num">1</div><h3 class="role-title">Visiteur anonyme</h3></div>
+  <p><em>Compte : aucun.</em></p>
+  <ul class="actions">
+    <li>Simuler une proforma tarifaire sans créer de compte (<code>/simulation/proforma</code>) — le seul écran entièrement public de la plateforme.</li>
+    <li>Se connecter (<code>/comptes/connexion</code>) s'il a déjà un compte.</li>
+    <li>Créer un compte société (<code>/comptes/soumettre</code>).</li>
+    <li>S'inscrire comme transporteur/chauffeur (<code>/comptes/inscription-transporteur</code>).</li>
+  </ul>
+</div>
+
+<div class="role-card" id="r2">
+  <div class="role-head"><div class="role-num">2</div><h3 class="role-title">Client — société (demandeur validé)</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      1. Dépôt d'un dossier de société sur <code>/comptes/soumettre</code> (Raison Sociale, RCCM, Compte Contribuable, pièces).<br>
+      2. Validation par un administrateur CIT sur <code>/comptes/valider</code>.<br>
+      3. Le premier compte du dossier devient automatiquement administrateur de société.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      <code>/comptes/connexion</code> → redirection vers <code>/client/dashboard</code>.
+    </div>
+  </div>
+  <ul class="actions">
+    <li>Consulter son tableau de bord et le profil de sa société.</li>
+    <li>Suivre ses demandes (<code>/client/demandes</code>) et ses rendez-vous guichet.</li>
+    <li>Soumettre une demande IMPORT (BL) ou EXPORT (Booking), une demande d'Avoir/Exonération.</li>
+    <li>Simuler une proforma et consulter son historique de simulations.</li>
+    <li>Déposer une réclamation et suivre ses réclamations.</li>
+    <li>Gérer ses préférences de notification et activer la double authentification (2FA).</li>
+  </ul>
+</div>
+
+<div class="role-card" id="r3">
+  <div class="role-head"><div class="role-num">3</div><h3 class="role-title">Collaborateur d'entreprise</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      Invité par un administrateur de société depuis <code>/comptes/collaborateurs</code> — aucune auto-inscription possible pour ce profil.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      Redirection vers <code>/client/dashboard</code> — identique au Client.
+    </div>
+  </div>
+  <p>Mêmes actions que le Client (rôle 2) : un compte rattaché à la même société, sans les écrans de gestion de la société elle-même.</p>
+</div>
+
+<div class="role-card" id="r4">
+  <div class="role-head"><div class="role-num">4</div><h3 class="role-title">Administrateur de société</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      Automatique pour le 1ᵉʳ compte d'un dossier validé, ou désigné explicitement dans <code>/comptes/collaborateurs</code>.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      Redirection vers <code>/societe/dashboard</code>.
+    </div>
+  </div>
+  <p>En plus de tout ce que peut faire un Client :</p>
+  <ul class="actions">
+    <li>Gérer les collaborateurs de sa société (inviter, retirer, désigner un autre administrateur).</li>
+    <li>Consulter les demandes de toute la société, pas seulement les siennes (<code>/client/demandes?vue=societe</code>).</li>
+    <li>Gérer le profil de l'entreprise (<code>/comptes/profil</code>).</li>
+  </ul>
+</div>
+
+<div class="role-card" id="r5">
+  <div class="role-head"><div class="role-num">5</div><h3 class="role-title">Transporteur / Chauffeur</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      Auto-inscription publique sur <code>/comptes/inscription-transporteur</code>. <strong>Aucune validation CIT requise</strong> — actif dès la création, avec pour seul droit <code>Permission.EnrolementSoumettre</code>.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      Redirection vers <code>/enrolement/mes-enrolements</code> (corrigé le 17/09/2026).
+    </div>
+  </div>
+  <p><strong>Ce profil n'est structurellement rattaché à aucune société</strong> — c'est la
+  distinction du CDC entre un compte client (transactionnel, facturation) et un compte
+  transporteur/chauffeur (opérationnel, gate physique).</p>
+  <ul class="actions">
+    <li>Déposer un dossier d'enrôlement (permis, carte grise, immatriculation) sur <code>/enrolement/soumettre</code>.</li>
+    <li>Suivre ses dossiers d'enrôlement sur <code>/enrolement/mes-enrolements</code>.</li>
+    <li>Activer la double authentification (2FA).</li>
+  </ul>
+  <div class="cannot">
+    <strong>Ne peut PAS</strong> : soumettre une demande IMPORT/EXPORT, une demande d'Avoir/Exonération,
+    une réclamation, ni utiliser la simulation de proforma en tant que compte connecté — tous ces
+    écrans exigent une société rattachée, que ce profil n'a jamais. C'est voulu : le CDC ne prévoit
+    pas de facturation pour un compte transporteur.
+  </div>
+</div>
+
+<div class="role-card" id="r6">
+  <div class="role-head"><div class="role-num">6</div><h3 class="role-title">Agent (Billing Office / Guichet)</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      Exclusivement par un administrateur CIT sur <code>/administration/comptes-agents</code>. L'administrateur y attribue une ou plusieurs habilitations précises — jamais un « rôle » nommé.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      Redirection vers <code>/agent/dashboard</code>.
+    </div>
+  </div>
+  <p>Selon les habilitations reçues, un agent peut par exemple :</p>
+  <ul class="actions">
+    <li>Rechercher un dossier au Guichet Billing Office, gérer l'agenda de rendez-vous.</li>
+    <li>Instruire le Pilote Manifeste, le Contrôle Documentaire IMPORT.</li>
+    <li>Instruire le Back-Office ou le Contrôle Documentaire EXPORT.</li>
+    <li>Traiter les dossiers IES (Import/Export).</li>
+    <li>Instruire les réclamations, la file Agent Gate, ou les demandes d'Avoir/Exonération.</li>
+    <li>Éditer la facturation, valider les paiements en caisse, confirmer le lettrage comptable.</li>
+  </ul>
+  <div class="cannot">Un agent sans aucune habilitation ne voit qu'un tableau de bord vide — chaque lien du menu n'apparaît que si la permission correspondante est réellement détenue.</div>
+</div>
+
+<div class="role-card" id="r7">
+  <div class="role-head"><div class="role-num">7</div><h3 class="role-title">Superviseur</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      Par un administrateur CIT, avec <code>Permission.SupervisionConsulter</code> et, selon le périmètre, les permissions d'administration des files/SLA.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      Redirection vers <code>/supervision</code>.
+    </div>
+  </div>
+  <ul class="actions">
+    <li>Consulter la supervision en direct (tickets, charge par file, alertes SLA).</li>
+    <li>Consulter la disponibilité des agents.</li>
+    <li>Administrer la stratégie des files, motifs de transfert, champs d'enrôlement, paramètres SLA, règles d'escalade, priorités, libellés de statut, pièces exigées, matrice des transitions, périmètres de supervision, compétences des opérateurs.</li>
+    <li>Selon permissions reçues en plus : valider des demandes de compte société, consulter le journal d'audit technique.</li>
+  </ul>
+</div>
+
+<div class="role-card" id="r8">
+  <div class="role-head"><div class="role-num">8</div><h3 class="role-title">Administration CIT (administrateur fonctionnel)</h3></div>
+  <div class="role-grid">
+    <div class="role-box"><div class="lbl">Création du compte</div>
+      Par un autre administrateur CIT déjà en place, ou à l'amorçage initial de la plateforme.
+    </div>
+    <div class="role-box"><div class="lbl">Connexion</div>
+      Redirection vers <code>/comptes/valider</code>.
+    </div>
+  </div>
+  <ul class="actions">
+    <li>Instruire et valider les demandes de compte société.</li>
+    <li>Modifier le type de client d'une société (Normal, Grand Compte…).</li>
+    <li>Administrer les catégories de réclamation, les modèles/règles de notification.</li>
+    <li>Créer et administrer les comptes agents et leurs habilitations.</li>
+    <li>Administrer les pièces exigées à l'ouverture d'un compte.</li>
+    <li>Administrer les grilles tarifaires et les référentiels conteneur (types, tailles, catégories).</li>
+    <li>Consulter le journal d'audit.</li>
+  </ul>
+</div>
+
+<section id="synthese">
+<h2 class="section">Ce qui distingue vraiment les rôles</h2>
+<div class="callout info">
+<p>Le système ne connaît <strong>aucun rôle nommé en dur</strong> (choix documenté : « nommer un
+rôle serait décider à la place de la DSI »). Ce qu'un compte peut faire dépend de deux choses
+seulement, combinées :</p>
+<ul class="actions">
+  <li><strong>Le rattachement à une société</strong> (<code>SocieteId</code>) — porte les écrans transactionnels (BL/Booking, Avoir/Exonération, réclamations, proforma en tant que compte connecté). Le compte transporteur n'en a jamais, par construction.</li>
+  <li><strong>Les permissions individuellement attribuées</strong> (<code>Permission.*</code>) — portent chaque écran d'instruction, d'administration ou de supervision. Deux agents peuvent avoir des permissions totalement différentes, y compris à l'intérieur du même « espace fonctionnel ».</li>
+</ul>
+<p>L'« espace fonctionnel » ne sert qu'à choisir la destination après connexion et le jeu de menus
+proposé — jamais à accorder un droit : le contrôle serveur de chaque page applique toujours la
+même règle d'habilitation, qu'importe l'espace affiché.</p>
+</div>
+</section>
+
+<footer>
+  Document établi le 22/09/2026 à partir de <code>src/CIT.Plateforme.Application/Web/CatalogueNavigation.cs</code>
+  (source unique de vérité du menu et des permissions) et du CDC §6 « Parties prenantes et profils ».
+  Voir aussi le <code>Cahier de recette</code> (traçabilité complète des 188 exigences) et le
+  <code>Guide utilisateur</code> (qui fait quoi, à quel moment) pour les documents complémentaires.
+</footer>
+
+</div>
+</body>
+</html>
