@@ -12,6 +12,58 @@
 
 ---
 
+## Correspondance avec les questions fréquentes réelles
+
+CIT a fourni les **30 catégories réelles** de requêtes utilisateurs les plus fréquentes
+(`REQUETE VBS.xlsx`). Confirmé avec l'utilisateur : **VBS (rendez-vous camion) et OMNIO sont tous
+deux liés à Navis** — ce ne sont pas des systèmes indépendants à intégrer séparément. Le tableau
+ci-dessous fait correspondre chaque catégorie réelle à sa source, et a fait passer la liste de 8 à
+13 filtres.
+
+| Catégorie réelle (FAQ) | Source proposée | Filtre |
+|:---|:---|:---|
+| Statut conteneurs | Navis | #1 `UNIT_STATUS_BY_NUMBER` |
+| TC Introuvable | Navis | #1 |
+| Position Conteneurs | Navis | #1 / #7 |
+| TC inaccessible | Navis (hold) | #2 `UNIT_HOLDS_BY_NUMBER` |
+| Débarquement conteneur dangereux | Navis (statut + IMDG) | #1, colonnes étendues |
+| — (rattachement BL) | Navis | #3 `UNITS_BY_BL_NUMBER` |
+| Visibilité BL sur OMNIO | Navis (OMNIO reflète Navis) | #3 |
+| Nomination | Navis | #4 `UNITS_BY_BOOKING_NUMBER` |
+| Situation Navire CIT | Navis | #5 `VESSEL_VISIT_BY_VOYAGE` |
+| Attente au chargement | Navis (gate) | #6 `GATE_TRANSACTIONS_BY_UNIT` |
+| Embouteillage Sortie | Navis (gate), si tracé | #6 |
+| Assignation | Navis (gate/mission) | #6 ou #12 selon ce que couvre « Assignation » chez vous |
+| Prise de rendez-vous | Navis (VBS) | #9 `APPOINTMENT_STATUS` — **nouveau** |
+| Annulation rendez-vous | Navis (VBS) | #9 |
+| Demande de créneau disponible | Navis (VBS) | #9 |
+| Indisponibilité VBS | Navis (VBS) — si c'est un statut système consultable, sinon IT | #9, à confirmer |
+| Probleme VGM | Navis | #10 `UNIT_VGM_STATUS` — **nouveau** |
+| COPARN reçu/non reçu | Navis (EDI) | #11 `EDI_MESSAGE_STATUS` — **nouveau** |
+| Mission conteneurs | Navis (transport order) | #12 `TRANSPORT_ORDER_STATUS` — **nouveau** |
+| Annulation mission | Navis (transport order) | #12 |
+| Transfert conteneur HINO/CIT | Navis, si Navis trace le transfert inter-site | #13 `TERMINAL_TRANSFER_STATUS` — **nouveau** |
+| Creation Compte OMNIO | Ambigu — lié à Navis « d'une manière ou d'une autre » mais reste une **action** (créer un compte), pas une donnée à lire | ⚠️ à clarifier — voir note ci-dessous |
+| Activation compte OMNIO | Idem | ⚠️ à clarifier |
+| Anomalie OMNIO | Idem — probablement un incident technique | ⚠️ à clarifier |
+| Autorisation acces BL IES | Côté YABA (module IES, décision métier) | Hors Navis |
+| Actualisation BADT | Côté YABA (le BADT est déposé dans le ticket YABA, IMP-14) | Hors Navis |
+| BADT expiré | Côté YABA | Hors Navis |
+| Impression BEE | Côté YABA (le BEE est déposé dans le ticket YABA, EXP-03) | Hors Navis |
+| RTG en panne | Incident opérationnel/équipement — pas une question de statut conteneur | Hors périmètre chatbot, escalade humaine |
+| Probleme de reseau | Incident IT | Hors périmètre chatbot, escalade humaine |
+| Autre | — | Toujours escalade humaine (IA-03) |
+
+**Note sur les 3 lignes OMNIO marquées ⚠️** : la création/activation d'un compte est une
+**action d'écriture**, or l'Universal Query API est strictement lecture seule. Même si OMNIO est
+« lié à Navis », un filtre ne peut renvoyer que l'état d'un compte existant (ex. *le compte
+XXX est-il déjà activé ?*), jamais créer ou activer quoi que ce soit. Si vous voulez que le chatbot
+réponde à « comment créer mon compte OMNIO », ce sera une réponse **procédurale** fixe (base de
+connaissances IA-04), pas une donnée Navis — dites-moi si un filtre de *consultation de statut de
+compte* a un sens chez vous, et je l'ajoute en filtre #14.
+
+---
+
 ## Un compte de service par usage, pas un compte partagé
 
 **L'Universal Query API ne voit que les filtres créés par le compte qui les a enregistrés.**
@@ -54,8 +106,8 @@ privilège *Universal Query API Access*. Deux conséquences pratiques :
 |:---|:---|
 | **Écran N4** | Units (Yard / Equipment) |
 | **Paramètre** | Numéro de conteneur (`UNIT_NBR` ou équivalent — champ exact à confirmer selon votre version) |
-| **Colonnes à inclure** | Numéro conteneur, Statut/Category, Emplacement (bloc/rangée/niveau), Navire, Voyage, Sens (Import/Export), Date de déchargement (ou date de gate-in export), Ligne maritime |
-| **Répond à** | « Où est mon conteneur ABCU1234567 ? », « Mon conteneur est-il déchargé ? » |
+| **Colonnes à inclure** | Numéro conteneur, Statut/Category, Emplacement (bloc/rangée/niveau), Navire, Voyage, Sens (Import/Export), Date de déchargement (ou date de gate-in export), Ligne maritime, **Statut dangereux / classe IMDG** |
+| **Répond à** | « Où est mon conteneur ABCU1234567 ? », « Mon conteneur est-il déchargé ? », « Mon conteneur dangereux est-il débarqué ? » |
 | **Priorité** | **Haute** — c'est la question client la plus fréquente (IA-01, IA-02) |
 
 ### 2. `UNIT_HOLDS_BY_NUMBER` — Blocages (holds) actifs sur un conteneur
@@ -127,6 +179,57 @@ privilège *Universal Query API Access*. Deux conséquences pratiques :
 | **Colonnes à inclure** | Date d'entrée, Date du jour (ou date de calcul), Nombre de jours de séjour, Statut franchise (dans ou hors franchise si Navis le calcule) |
 | **Répond à** | « Depuis combien de temps mon conteneur est-il en cour ? » — utile en complément de la simulation de proforma YABA (SIM-01..11), qui calcule déjà le stationnement côté YABA mais sans connaître la date réelle de fin de séjour tant que le conteneur n'est pas sorti |
 | **Priorité** | Basse-Moyenne |
+
+### 9. `APPOINTMENT_STATUS` — Rendez-vous / créneaux camion (VBS)
+
+| | |
+|:---|:---|
+| **Écran N4** | Écran de rendez-vous/appointments du Gate (VBS) |
+| **Paramètre** | Numéro de conteneur, ou référence de rendez-vous, ou immatriculation camion selon ce qui est disponible |
+| **Colonnes à inclure** | Référence du rendez-vous, Créneau (date/heure), Statut (confirmé/annulé/réalisé), Type d'opération (pickup/drop-off), Conteneur associé |
+| **Répond à** | « Prise de rendez-vous », « Annulation rendez-vous », « Demande de créneau disponible », « Indisponibilité VBS » |
+| **Priorité** | **Haute** — 4 des 30 catégories réelles en dépendent directement |
+| **Point d'attention** | Le Gate API décrit des opérations dédiées (`create-appointment`, `cancel-appointment`, `request-pickup-appointments`) distinctes de l'Universal Query — vérifiez avec votre admin Navis si un filtre de **consultation** de créneaux existe sur une vue Table dédiée, ou si cette donnée n'est accessible que via le Gate API lui-même (auquel cas le connecteur devra utiliser ce second protocole, pas seulement `NavisUniversalQueryClient`). Je préciserai le client une fois cette réponse connue. |
+
+### 10. `UNIT_VGM_STATUS` — Statut VGM (poids brut vérifié)
+
+| | |
+|:---|:---|
+| **Écran N4** | Units, colonnes VGM |
+| **Paramètre** | Numéro de conteneur |
+| **Colonnes à inclure** | Numéro conteneur, VGM reçu (oui/non), Poids VGM, Date de réception, Méthode de pesée si tracée |
+| **Répond à** | « Problème VGM » |
+| **Priorité** | Moyenne |
+
+### 11. `EDI_MESSAGE_STATUS` — Statut des messages EDI (COPARN)
+
+| | |
+|:---|:---|
+| **Écran N4** | Vue des messages EDI entrants, si exposée en table (à confirmer avec votre admin Navis — l'existence de cette vue dépend de votre configuration EDI) |
+| **Paramètre** | Numéro de BL ou de booking |
+| **Colonnes à inclure** | Type de message (COPARN...), Date de réception, Statut (reçu/rejeté/en attente), Motif de rejet le cas échéant |
+| **Répond à** | « COPARN reçu/non reçu » |
+| **Priorité** | Moyenne |
+
+### 12. `TRANSPORT_ORDER_STATUS` — Statut d'une mission conteneur
+
+| | |
+|:---|:---|
+| **Écran N4** | Transport Order (voir Part 11 — ASC Automated Equipment Database Interface de la doc Navis) |
+| **Paramètre** | Numéro de conteneur, ou référence de mission |
+| **Colonnes à inclure** | Référence mission, Type (pickup/dropoff/move), Statut (en attente/en cours/terminée/annulée), Équipement assigné |
+| **Répond à** | « Mission conteneurs », « Annulation mission », « Assignation » |
+| **Priorité** | Moyenne |
+
+### 13. `TERMINAL_TRANSFER_STATUS` — Transfert inter-site (HINO/CIT)
+
+| | |
+|:---|:---|
+| **Écran N4** | À confirmer avec votre admin Navis — dépend de la manière dont le transfert HINO/CIT est modélisé dans votre instance (mouvement de cour, ou déplacement entre deux facilities/complexId distincts) |
+| **Paramètre** | Numéro de conteneur |
+| **Colonnes à inclure** | Statut du transfert, Site d'origine, Site de destination, Date |
+| **Répond à** | « Transfert conteneur HINO/CIT » |
+| **Priorité** | Basse-Moyenne — dépend de la fréquence réelle de ce cas |
 
 ---
 
