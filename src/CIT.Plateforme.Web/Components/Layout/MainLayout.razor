@@ -27,11 +27,13 @@
 
     <!-- Main Content Wrapper -->
     <div class="cit-main-wrapper flex-grow-1 d-flex flex-column min-w-0">
-        @if (_contexte?.EstAuthentifie == true)
-        {
-            <HeaderBar Contexte="@_contexte" />
-        }
-        
+        @* CORRECTIF — l'en-tête (langue, thème, marque) était masqué pour tout visiteur non
+           authentifié : la page d'accueil et les autres écrans publics (connexion, inscription,
+           simulation) n'offraient donc aucun moyen de changer de langue. HeaderBar gère déjà
+           correctement l'état anonyme (bouton de connexion à la place du menu utilisateur,
+           cloche de notifications masquée) — il n'y avait aucune raison de le masquer entièrement. *@
+        <HeaderBar Contexte="@_contexte" />
+
         <main id="cit-contenu-principal" tabindex="-1" class="cit-main-content @(_contexte?.EstAuthentifie != true ? "d-flex align-items-center justify-content-center" : "")">
             <div class="container-fluid p-0">
                 @Body
