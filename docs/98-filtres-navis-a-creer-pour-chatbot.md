@@ -3,8 +3,8 @@
 > **Document** : `docs/98-filtres-navis-a-creer-pour-chatbot.md`
 > **Établi le** : 2026-09-23
 > **Pour qui** : l'administrateur Navis N4 côté CIT — chaque ligne ci-dessous est un filtre à créer
-> et enregistrer dans l'UI N4 (avec le compte `n4api`), pour que l'Universal Query API puisse
-> l'exécuter à distance.
+> et enregistrer dans l'UI N4, avec un compte de service dédié au chatbot (voir « Un compte de
+> service par usage » ci-dessous), pour que l'Universal Query API puisse l'exécuter à distance.
 >
 > **Rappel du mécanisme** : l'API ne permet pas d'écrire une requête libre — elle exécute un filtre
 > **déjà enregistré** dans N4, identifié par son nom exact (`filtername=...`). Le connecteur YABA
@@ -12,10 +12,31 @@
 
 ---
 
+## Un compte de service par usage, pas un compte partagé
+
+**L'Universal Query API ne voit que les filtres créés par le compte qui les a enregistrés.**
+Un filtre créé par un utilisateur A est invisible d'un utilisateur B, même si B a aussi le
+privilège *Universal Query API Access*. Deux conséquences pratiques :
+
+- **Créer un compte de service dédié par intégration**, pas un unique `n4api` partagé entre tous
+  les usages présents et futurs. Concrètement pour CIT : un compte pour le chatbot (ex.
+  `n4api-chatbot`), distinct de tout compte déjà utilisé — ou à utiliser demain — pour un autre
+  usage (reporting, une autre intégration). C'est aussi une bonne pratique de sécurité : on peut
+  couper l'accès du chatbot sans toucher aux autres intégrations, et l'historique d'audit N4
+  distingue qui a fait quoi.
+- **Tous les filtres du chatbot doivent être créés avec ce même compte de service** — si un
+  administrateur les crée avec son propre compte personnel, le chatbot n'y aura jamais accès. Les
+  8 filtres ci-dessous doivent donc tous être enregistrés en étant connecté avec le compte de
+  service retenu, pas avec un compte nominatif.
+- Si vous prévoyez plusieurs personas/scopes côté chatbot à terme (par exemple un jeu de filtres
+  pour un usage donné et un jeu plus restreint pour un autre), la même logique s'applique : autant
+  de comptes de service que de périmètres de visibilité distincts souhaités.
+
 ## Comment créer un filtre (rappel express)
 
-1. Se connecter à N4 **avec le compte `n4api`** (celui qui portera le privilège *Universal Query
-   API Access - Allow* — l'API ne voit que les filtres créés par ce compte).
+1. Se connecter à N4 **avec le compte de service dédié au chatbot** (celui qui portera le
+   privilège *Universal Query API Access - Allow* — l'API ne voit que les filtres créés par ce
+   compte, voir ci-dessus).
 2. Ouvrir l'écran de liste correspondant (colonne « Écran N4 » ci-dessous).
 3. Ajouter les colonnes listées (colonne « Colonnes à inclure »).
 4. Définir un prédicat de recherche paramétré sur le champ indiqué (colonne « Paramètre »), en
