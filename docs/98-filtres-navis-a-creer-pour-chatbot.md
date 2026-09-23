@@ -12,55 +12,68 @@
 
 ---
 
-## Correspondance avec les questions fréquentes réelles
+## Correspondance avec les questions fréquentes réelles — lecture seule uniquement
 
 CIT a fourni les **30 catégories réelles** de requêtes utilisateurs les plus fréquentes
-(`REQUETE VBS.xlsx`). Confirmé avec l'utilisateur : **VBS (rendez-vous camion) et OMNIO sont tous
-deux liés à Navis** — ce ne sont pas des systèmes indépendants à intégrer séparément. Le tableau
-ci-dessous fait correspondre chaque catégorie réelle à sa source, et a fait passer la liste de 8 à
-13 filtres.
+(`REQUETE VBS.xlsx`). **Règle absolue : le chatbot ne fait que de la lecture.** Aucune requête,
+Navis ou OMNIO, n'écrit ni ne déclenche une action — c'est un principe de conception, pas une
+limite technique contournable. Le tableau ci-dessous indique, pour chaque catégorie réelle,
+l'**application** interrogée (`Navis` ou `OMNIO`), le **filtre**, et son **paramètre**. Les 3
+catégories qui ne peuvent être servies par aucune lecture (ni Navis, ni OMNIO) sont marquées
+**Aucune (lecture impossible)**.
 
-| Catégorie réelle (FAQ) | Source proposée | Filtre |
+| Catégorie réelle (FAQ) | Application | Filtre | Paramètre |
+|:---|:---|:---|:---|
+| Statut conteneurs | **Navis** | #1 `UNIT_STATUS_BY_NUMBER` | N° conteneur |
+| TC Introuvable | **Navis** | #1 `UNIT_STATUS_BY_NUMBER` | N° conteneur |
+| Position Conteneurs | **Navis** | #1 / #7 `UNIT_YARD_LOCATION` | N° conteneur |
+| TC inaccessible | **Navis** | #2 `UNIT_HOLDS_BY_NUMBER` | N° conteneur |
+| Débarquement conteneur dangereux | **Navis** | #1, colonnes IMDG | N° conteneur |
+| Visibilité BL sur OMNIO | **OMNIO** (lecture du reflet Navis côté OMNIO) — à défaut, **Navis** #3 directement | Équivalent lecture de `UNITS_BY_BL_NUMBER` côté OMNIO, si exposé | N° de BL |
+| Nomination | **Navis** | #4 `UNITS_BY_BOOKING_NUMBER` | N° de booking |
+| Situation Navire CIT | **Navis** | #5 `VESSEL_VISIT_BY_VOYAGE` | N° de voyage |
+| Attente au chargement | **Navis** | #6 `GATE_TRANSACTIONS_BY_UNIT` | N° conteneur |
+| Embouteillage Sortie | **Navis**, si tracé | #6 `GATE_TRANSACTIONS_BY_UNIT` | N° conteneur |
+| Assignation | **Navis** | #6 ou #12 `TRANSPORT_ORDER_STATUS` | N° conteneur / réf. mission |
+| Prise de rendez-vous | **Navis** (VBS) | #9 `APPOINTMENT_STATUS` | N° conteneur / réf. RDV |
+| Annulation rendez-vous | **Navis** (VBS) — *lecture du statut d'annulation, pas l'action d'annuler* | #9 `APPOINTMENT_STATUS` | Réf. RDV |
+| Demande de créneau disponible | **Navis** (VBS) — *lecture des créneaux disponibles, pas la réservation* | #9 `APPOINTMENT_STATUS` | Date / type d'opération |
+| Indisponibilité VBS | **Navis** (VBS), si statut système exposé en lecture — sinon incident IT | #9, à confirmer | — |
+| Problème VGM | **Navis** | #10 `UNIT_VGM_STATUS` | N° conteneur |
+| COPARN reçu/non reçu | **Navis** (EDI) | #11 `EDI_MESSAGE_STATUS` | N° de BL/booking |
+| Mission conteneurs | **Navis** | #12 `TRANSPORT_ORDER_STATUS` | N° conteneur / réf. mission |
+| Annulation mission | **Navis** — *lecture du statut annulé, pas l'action d'annuler* | #12 `TRANSPORT_ORDER_STATUS` | Réf. mission |
+| Transfert conteneur HINO/CIT | **Navis**, si tracé | #13 `TERMINAL_TRANSFER_STATUS` | N° conteneur |
+| Creation Compte OMNIO | **Aucune (lecture impossible)** | — | — |
+| Activation compte OMNIO | **Aucune (lecture impossible)** | — | — |
+| Anomalie OMNIO | **Aucune (lecture impossible)** | — | — |
+| Autorisation acces BL IES | Ni Navis ni OMNIO — **YABA** (module IES, décision métier) | — | — |
+| Actualisation BADT | **YABA** (déposé dans le ticket, IMP-14) | — | — |
+| BADT expiré | **YABA** | — | — |
+| Impression BEE | **YABA** (déposé dans le ticket, EXP-03) | — | — |
+| RTG en panne | Ni Navis ni OMNIO — incident opérationnel | Escalade humaine | — |
+| Probleme de reseau | Ni Navis ni OMNIO — incident IT | Escalade humaine | — |
+| Autre | — | Toujours escalade humaine (IA-03) | — |
+
+### Pourquoi les 3 catégories OMNIO sont marquées « Aucune (lecture impossible) »
+
+| Catégorie | Nature réelle | Pourquoi aucune lecture ne peut y répondre |
 |:---|:---|:---|
-| Statut conteneurs | Navis | #1 `UNIT_STATUS_BY_NUMBER` |
-| TC Introuvable | Navis | #1 |
-| Position Conteneurs | Navis | #1 / #7 |
-| TC inaccessible | Navis (hold) | #2 `UNIT_HOLDS_BY_NUMBER` |
-| Débarquement conteneur dangereux | Navis (statut + IMDG) | #1, colonnes étendues |
-| — (rattachement BL) | Navis | #3 `UNITS_BY_BL_NUMBER` |
-| Visibilité BL sur OMNIO | Navis (OMNIO reflète Navis) | #3 |
-| Nomination | Navis | #4 `UNITS_BY_BOOKING_NUMBER` |
-| Situation Navire CIT | Navis | #5 `VESSEL_VISIT_BY_VOYAGE` |
-| Attente au chargement | Navis (gate) | #6 `GATE_TRANSACTIONS_BY_UNIT` |
-| Embouteillage Sortie | Navis (gate), si tracé | #6 |
-| Assignation | Navis (gate/mission) | #6 ou #12 selon ce que couvre « Assignation » chez vous |
-| Prise de rendez-vous | Navis (VBS) | #9 `APPOINTMENT_STATUS` — **nouveau** |
-| Annulation rendez-vous | Navis (VBS) | #9 |
-| Demande de créneau disponible | Navis (VBS) | #9 |
-| Indisponibilité VBS | Navis (VBS) — si c'est un statut système consultable, sinon IT | #9, à confirmer |
-| Probleme VGM | Navis | #10 `UNIT_VGM_STATUS` — **nouveau** |
-| COPARN reçu/non reçu | Navis (EDI) | #11 `EDI_MESSAGE_STATUS` — **nouveau** |
-| Mission conteneurs | Navis (transport order) | #12 `TRANSPORT_ORDER_STATUS` — **nouveau** |
-| Annulation mission | Navis (transport order) | #12 |
-| Transfert conteneur HINO/CIT | Navis, si Navis trace le transfert inter-site | #13 `TERMINAL_TRANSFER_STATUS` — **nouveau** |
-| Creation Compte OMNIO | Ambigu — lié à Navis « d'une manière ou d'une autre » mais reste une **action** (créer un compte), pas une donnée à lire | ⚠️ à clarifier — voir note ci-dessous |
-| Activation compte OMNIO | Idem | ⚠️ à clarifier |
-| Anomalie OMNIO | Idem — probablement un incident technique | ⚠️ à clarifier |
-| Autorisation acces BL IES | Côté YABA (module IES, décision métier) | Hors Navis |
-| Actualisation BADT | Côté YABA (le BADT est déposé dans le ticket YABA, IMP-14) | Hors Navis |
-| BADT expiré | Côté YABA | Hors Navis |
-| Impression BEE | Côté YABA (le BEE est déposé dans le ticket YABA, EXP-03) | Hors Navis |
-| RTG en panne | Incident opérationnel/équipement — pas une question de statut conteneur | Hors périmètre chatbot, escalade humaine |
-| Probleme de reseau | Incident IT | Hors périmètre chatbot, escalade humaine |
-| Autre | — | Toujours escalade humaine (IA-03) |
+| Creation Compte OMNIO | **Action d'écriture** (créer un compte) | Le chatbot ne peut consulter que l'état d'un compte **déjà existant** — pas en créer un. |
+| Activation compte OMNIO | **Action d'écriture** (changer un état) | Même raison — activer modifie une donnée, ce n'est pas une lecture. |
+| Anomalie OMNIO | **Signalement d'incident**, pas une donnée interrogeable | Le client décrit un problème qu'aucune requête, même en lecture, ne peut « retourner » — il n'y a rien à lire, il y a quelque chose à corriger. |
 
-**Note sur les 3 lignes OMNIO marquées ⚠️** : la création/activation d'un compte est une
-**action d'écriture**, or l'Universal Query API est strictement lecture seule. Même si OMNIO est
-« lié à Navis », un filtre ne peut renvoyer que l'état d'un compte existant (ex. *le compte
-XXX est-il déjà activé ?*), jamais créer ou activer quoi que ce soit. Si vous voulez que le chatbot
-réponde à « comment créer mon compte OMNIO », ce sera une réponse **procédurale** fixe (base de
-connaissances IA-04), pas une donnée Navis — dites-moi si un filtre de *consultation de statut de
-compte* a un sens chez vous, et je l'ajoute en filtre #14.
+Ces trois-là ne deviennent pas des filtres, quelle que soit l'application visée : ce sont, par
+nature, des demandes qui appellent une **action** ou une **intervention humaine**, jamais une
+lecture. Le chatbot doit les détecter et escalader directement (IA-03, IA-06) — éventuellement
+avec une réponse procédurale de premier niveau si CIT le souhaite (« pour créer un compte OMNIO,
+voici la marche à suivre : … », gérée par la base de connaissances IA-04, pas par une requête).
+
+**Sur `Visibilité BL sur OMNIO`** : c'est la seule catégorie où OMNIO apparaît comme lecture
+possible — mais je n'ai aucune documentation sur l'API OMNIO (contrairement à Navis, dont j'ai les
+deux PDF). Je ne peux donc pas savoir si OMNIO expose sa propre requête en lecture seule, ou s'il
+faut simplement lire cette même donnée côté Navis (filtre #3, déjà prévu). **Si vous avez une doc
+API OMNIO équivalente aux PDF Navis, envoyez-la** — je ferai le même travail dessus.
 
 ---
 
