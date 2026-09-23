@@ -209,7 +209,7 @@ public sealed class AveSpecTests : IClassFixture<PlateformeWebApplicationFactory
         await demanderComplementCmd.ExecuterAsync(agentId, rep.TicketId, "Veuillez fournir le bon à délivrer.");
 
         var fiche = await obtenirFicheQuery.ExecuterAsync(clientId, rep.TicketId);
-        Assert.Equal(StatutTicket.EnAttenteClient.ToString(), fiche.Statut);
+        Assert.Equal(StatutTicket.EnAttenteClient, fiche.Statut);
     }
 
     [Fact]
@@ -240,8 +240,8 @@ public sealed class AveSpecTests : IClassFixture<PlateformeWebApplicationFactory
         await deciderCmd.ExecuterAsync(agentDecideurId, reqDecision);
 
         var fiche = await obtenirFicheQuery.ExecuterAsync(clientId, rep.TicketId);
-        Assert.Equal(StatutTicket.Cloture.ToString(), fiche.Statut);
-        Assert.Equal("Accorde", fiche.Decision);
+        Assert.Equal(StatutTicket.Cloture, fiche.Statut);
+        Assert.Equal(DecisionAvoirExo.Accorde, fiche.Decision);
         Assert.Equal(180000m, fiche.MontantAccorde);
         Assert.NotNull(fiche.DateDecisionUtc);
         Assert.Equal(agentDecideurId, fiche.DecideurId);
@@ -289,8 +289,8 @@ public sealed class AveSpecTests : IClassFixture<PlateformeWebApplicationFactory
         await deciderCmd.ExecuterAsync(agentDecideurId, reqValide);
 
         var fiche = await obtenirFicheQuery.ExecuterAsync(clientId, rep.TicketId);
-        Assert.Equal(StatutTicket.Cloture.ToString(), fiche.Statut);
-        Assert.Equal("Rejete", fiche.Decision);
+        Assert.Equal(StatutTicket.Cloture, fiche.Statut);
+        Assert.Equal(DecisionAvoirExo.Rejete, fiche.Decision);
         Assert.Equal("Délai légal de contestation dépassé (plus de 30 jours après facturation).", fiche.MotifRejet);
     }
 

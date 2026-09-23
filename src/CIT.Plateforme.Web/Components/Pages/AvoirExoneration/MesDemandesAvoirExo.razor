@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.AvoirExoneration
+@using CIT.Plateforme.Domain.AvoirExoneration
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
@@ -83,17 +84,17 @@ else
                                 }
                             </td>
                             <td>
-                                @if (d.Decision == "Accorde")
+                                @if (d.Decision == DecisionAvoirExo.Accorde)
                                 {
                                     <span class="badge bg-success">@string.Format(Loc["AvoirExoList.Granted"].Value, d.MontantAccorde?.ToString("N0") ?? "0")</span>
                                 }
-                                else if (d.Decision == "Rejete")
+                                else if (d.Decision == DecisionAvoirExo.Rejete)
                                 {
                                     <span class="badge bg-danger">@Loc["AvoirExoList.Rejected"]</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-secondary">@d.Statut</span>
+                                    <StatutBadge Statut="@d.Statut" />
                                 }
                             </td>
                             <td class="small text-muted">@d.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>

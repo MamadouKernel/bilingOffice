@@ -104,12 +104,12 @@ else
                                     @(t.MontantConteste.HasValue ? $"{t.MontantConteste.Value:N0} XOF" : "-")
                                 </td>
                                 <td>
-                                    <span class="badge @ObtenirBadgeStatut(t.Statut)">@t.Statut</span>
+                                    <StatutBadge Statut="@t.Statut" />
                                 </td>
                                 <td class="small text-muted">@t.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="text-end pe-3">
                                     <div class="d-flex justify-content-end gap-1">
-                                        @if (t.Statut == "EnAttenteDePriseEnCharge")
+                                        @if (t.Statut == StatutTicket.EnAttenteDePriseEnCharge)
                                         {
                                             <button class="btn btn-sm btn-outline-success" @onclick="() => PrendreEnChargeAsync(t.TicketId)">
                                                 @Loc["AvoirFile.BtnPrendreEnCharge"]
@@ -189,13 +189,4 @@ else
             _erreur = MessagesUtilisateur.Pour(ex);
         }
     }
-
-    private static string ObtenirBadgeStatut(string statut) => statut switch
-    {
-        "EnAttenteDePriseEnCharge" => "bg-secondary",
-        "EnCours" => "bg-primary",
-        "EnAttenteClient" => "bg-warning text-dark",
-        "Cloture" => "bg-success",
-        _ => "bg-dark"
-    };
 }

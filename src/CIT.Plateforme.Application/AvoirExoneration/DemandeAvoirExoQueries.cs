@@ -13,10 +13,10 @@ public sealed record DemandeAvoirExoResumeDto(
     string? NumeroDossier,
     string TypeDemande,
     string Objet,
-    string Statut,
+    StatutTicket Statut,
     decimal? MontantConteste,
     decimal? MontantAccorde,
-    string? Decision,
+    Domain.AvoirExoneration.DecisionAvoirExo? Decision,
     DateTime DateCreationUtc,
     DateTime DateDerniereActiviteUtc
 );
@@ -59,37 +59,16 @@ public sealed class ListerMesDemandesAvoirExonerationQuery
                     dossier.Numero,
                     t.TypeDemande,
                     t.Objet ?? string.Empty,
-                    FormaterStatut(t),
+                    t.Statut,
                     t.MontantConteste,
                     t.MontantAccorde,
-                    t.DecisionAvoirExo?.ToString(),
+                    t.DecisionAvoirExo,
                     t.DateCreationUtc,
                     t.DateDerniereActiviteUtc));
             }
         }
 
         return resultats.OrderByDescending(r => r.DateCreationUtc).ToList();
-    }
-
-    private static string FormaterStatut(Ticket t)
-    {
-        if (t.Statut == StatutTicket.Cloture)
-        {
-            return t.DecisionAvoirExo switch
-            {
-                Domain.AvoirExoneration.DecisionAvoirExo.Accorde => "Accordé",
-                Domain.AvoirExoneration.DecisionAvoirExo.Rejete => "Rejeté",
-                _ => "Clôturé"
-            };
-        }
-
-        return t.Statut switch
-        {
-            StatutTicket.EnAttenteDePriseEnCharge => "Créé",
-            StatutTicket.EnCours => "En cours",
-            StatutTicket.EnAttenteClient => "En attente client",
-            _ => t.Statut.ToString()
-        };
     }
 }
 
@@ -108,7 +87,7 @@ public sealed record TicketFileAvoirExoDto(
     string TypeDemande,
     string ClientNom,
     string Objet,
-    string Statut,
+    StatutTicket Statut,
     decimal? MontantConteste,
     DateTime DateCreationUtc,
     DateTime DateArriveeEnFileUtc,
@@ -183,7 +162,7 @@ public sealed class ConsulterFileAvoirExonerationQuery
                 ticket.TypeDemande,
                 societe?.InformationsDeclarees ?? "Client",
                 ticket.Objet ?? string.Empty,
-                ticket.Statut.ToString(),
+                ticket.Statut,
                 ticket.MontantConteste,
                 ticket.DateCreationUtc,
                 ticket.DateArriveeEnFileUtc,
@@ -235,8 +214,8 @@ public sealed record FicheAvoirExonerationDto(
     string Description,
     decimal? MontantConteste,
     decimal? MontantAccorde,
-    string Statut,
-    string? Decision,
+    StatutTicket Statut,
+    Domain.AvoirExoneration.DecisionAvoirExo? Decision,
     string? MotifRejet,
     DateTime? DateDecisionUtc,
     Guid? DecideurId,
@@ -362,8 +341,8 @@ public sealed class ObtenirFicheAvoirExonerationQuery
             ticket.Description ?? string.Empty,
             ticket.MontantConteste,
             ticket.MontantAccorde,
-            ticket.Statut.ToString(),
-            ticket.DecisionAvoirExo?.ToString(),
+            ticket.Statut,
+            ticket.DecisionAvoirExo,
             ticket.MotifRejetAvoirExo,
             ticket.DateDecisionAvoirExoUtc,
             ticket.DecideurAvoirExoId,

@@ -1850,6 +1850,10 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Statut.Ticket.Annule"] = "Annulé",
         ["Statut.Ticket.RejetManifeste"] = "Rejeté",
 
+        // Décision Avoir/Exonération — libellés de l'énum DecisionAvoirExo (AVE-03).
+        ["Decision.AvoirExo.Accorde"] = "Accordé",
+        ["Decision.AvoirExo.Rejete"] = "Rejeté",
+
         // Ticket & Dossier Details
         ["Ticket.DetailsTitle"] = "Détail de la démarche",
         ["Ticket.Reference"] = "Référence démarche",
@@ -1937,6 +1941,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["File Réclamations"] = "File Réclamations",
         ["Gestion collaborateurs"] = "Gestion collaborateurs",
         ["Grilles tarifaires"] = "Grilles tarifaires",
+        ["Référentiels conteneur"] = "Référentiels conteneur",
         ["Guichet Billing Office"] = "Guichet Billing Office",
         ["Historique simulations"] = "Historique simulations",
         ["Journal d'audit"] = "Journal d'audit",
@@ -4442,6 +4447,10 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Statut.Ticket.Annule"] = "Cancelled",
         ["Statut.Ticket.RejetManifeste"] = "Rejected",
 
+        // Avoir/Exoneration decision — DecisionAvoirExo enum labels (AVE-03).
+        ["Decision.AvoirExo.Accorde"] = "Granted",
+        ["Decision.AvoirExo.Rejete"] = "Rejected",
+
         // Ticket & Dossier Details
         ["Ticket.DetailsTitle"] = "Application Details",
         ["Ticket.Reference"] = "Application Reference",
@@ -4529,6 +4538,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["File Réclamations"] = "Complaints Queue",
         ["Gestion collaborateurs"] = "Collaborator Management",
         ["Grilles tarifaires"] = "Tariff Grids",
+        ["Référentiels conteneur"] = "Container referentials",
         ["Guichet Billing Office"] = "Billing Office Counter",
         ["Historique simulations"] = "Simulation History",
         ["Journal d'audit"] = "Audit Log",

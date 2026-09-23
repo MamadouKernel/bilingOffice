@@ -44,7 +44,7 @@ public sealed class MainLayoutIntegrationTests : BunitContext
             .Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "Contenu de test"))));
 
         Assert.Contains("Côte d'Ivoire Terminal", cut.Markup);
-        Assert.Contains("Plateforme Digitale", cut.Markup);
+        Assert.Contains("YABA", cut.Markup);
         Assert.Contains("TRANS-AFRIQUE", cut.Markup);
         Assert.Contains("Contenu de test", cut.Markup);
         Assert.Contains("/client/dashboard", cut.Markup);

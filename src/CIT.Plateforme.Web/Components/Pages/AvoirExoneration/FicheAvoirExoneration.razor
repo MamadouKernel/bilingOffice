@@ -4,6 +4,7 @@
 @using CIT.Plateforme.Application.AvoirExoneration
 @using CIT.Plateforme.Domain.AvoirExoneration
 @using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
@@ -37,7 +38,7 @@ else if (_fiche is not null)
                 <span class="badge @(_fiche.TypeDemande == "Avoir" ? "bg-info text-dark" : "bg-warning text-dark")">
                     @_fiche.TypeDemande
                 </span>
-                <span class="badge @ObtenirBadgeStatut(_fiche.Statut)">@_fiche.Statut</span>
+                <StatutBadge Statut="@_fiche.Statut" />
             </div>
             <h1 class="cit-page-title">
                 @Loc["FicheAvoirExo.FileHeaderPrefix"] @_fiche.NumeroTicket
@@ -65,7 +66,7 @@ else if (_fiche is not null)
     }
 
     <!-- Décision / Statut Alerte -->
-    @if (_fiche.Decision == "Accorde")
+    @if (_fiche.Decision == DecisionAvoirExo.Accorde)
     {
         <div class="alert alert-success d-flex align-items-center gap-3 mb-4 shadow-sm" role="status">
             <span class="fs-2">🎉</span>
@@ -79,7 +80,7 @@ else if (_fiche is not null)
             </div>
         </div>
     }
-    else if (_fiche.Decision == "Rejete")
+    else if (_fiche.Decision == DecisionAvoirExo.Rejete)
     {
         <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
             <span class="fs-2">❌</span>
@@ -184,12 +185,12 @@ else if (_fiche is not null)
 
         <!-- Colonne Actions (Agents CIT) -->
         <div class="col-lg-4">
-            @if (_estAgent && _fiche.Statut != "Cloture" && _fiche.Statut != "Annule")
+            @if (_estAgent && _fiche.Statut != StatutTicket.Cloture && _fiche.Statut != StatutTicket.Annule)
             {
                 <div class="cit-card mb-4 p-4 shadow-sm border-primary">
                     <h5 class="fw-bold text-primary mb-3 border-bottom pb-2">@Loc["FicheAvoirExo.AgentActionsTitle"]</h5>
 
-                    @if (_fiche.Statut == "EnAttenteDePriseEnCharge")
+                    @if (_fiche.Statut == StatutTicket.EnAttenteDePriseEnCharge)
                     {
                         <div class="mb-3">
                             <p class="small text-muted">@Loc["FicheAvoirExo.NotTakenYet"]</p>
@@ -408,13 +409,4 @@ else if (_fiche is not null)
             _actionEnCours = false;
         }
     }
-
-    private static string ObtenirBadgeStatut(string statut) => statut switch
-    {
-        "EnAttenteDePriseEnCharge" => "bg-secondary",
-        "EnCours" => "bg-primary",
-        "EnAttenteClient" => "bg-warning text-dark",
-        "Cloture" => "bg-success",
-        _ => "bg-dark"
-    };
 }
