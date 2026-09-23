@@ -4,14 +4,14 @@ using Microsoft.Extensions.Localization;
 namespace CIT.Plateforme.Web.Resources;
 
 /// <summary>
-/// Implémentation haute performance de localisation bilingue (Français / Anglais) pour CIT Digital Platform.
+/// Implémentation haute performance de localisation bilingue (Français / Anglais) pour YABA (Plateforme Digitale CIT).
 /// </summary>
 public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 {
     private static readonly Dictionary<string, string> FrenchDictionary = new(StringComparer.OrdinalIgnoreCase)
     {
         // Common
-        ["Common.AppTitle"] = "CIT Digital Platform",
+        ["Common.AppTitle"] = "YABA",
         ["Common.Save"] = "Enregistrer",
         ["Common.Cancel"] = "Annuler",
         ["Common.Back"] = "Retour",
@@ -1874,7 +1874,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Nav.NoAccessibleScreen"] = "Aucun écran n'est accessible avec vos habilitations actuelles. Rapprochez-vous de l'administrateur fonctionnel.",
         ["Header.NavMenuAria"] = "Menu de navigation",
         ["Header.Menu"] = "Menu",
-        ["Header.BrandSub"] = "Plateforme Digitale",
+        ["Header.BrandSub"] = "YABA",
         ["Header.ThemeToggleTitle"] = "Basculer le thème",
         ["Header.ThemeToggleAria"] = "Basculer entre le thème clair et sombre",
         ["Header.Notifications"] = "Notifications",
@@ -2603,7 +2603,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
     private static readonly Dictionary<string, string> EnglishDictionary = new(StringComparer.OrdinalIgnoreCase)
     {
         // Common
-        ["Common.AppTitle"] = "CIT Digital Platform",
+        ["Common.AppTitle"] = "YABA",
         ["Common.Save"] = "Save",
         ["Common.Cancel"] = "Cancel",
         ["Common.Back"] = "Back",
@@ -4466,7 +4466,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Nav.NoAccessibleScreen"] = "No screen is accessible with your current permissions. Please contact the functional administrator.",
         ["Header.NavMenuAria"] = "Navigation menu",
         ["Header.Menu"] = "Menu",
-        ["Header.BrandSub"] = "Digital Platform",
+        ["Header.BrandSub"] = "YABA",
         ["Header.ThemeToggleTitle"] = "Toggle theme",
         ["Header.ThemeToggleAria"] = "Toggle between light and dark theme",
         ["Header.Notifications"] = "Notifications",

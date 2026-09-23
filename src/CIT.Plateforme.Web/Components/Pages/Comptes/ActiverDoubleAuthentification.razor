@@ -186,7 +186,7 @@
 
         cleFormatee = FormaterCle(cleBrute!);
         var email = utilisateurCourant.Email ?? "utilisateur";
-        var issuer = "CIT Digital Platform";
+        var issuer = "YABA";
         var otpauthUri = $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(email)}?secret={cleBrute}&issuer={Uri.EscapeDataString(issuer)}&digits=6";
         
         // Rendu LOCAL du QR code. L'URI otpauth:// porte le secret TOTP partagé, qui EST le
