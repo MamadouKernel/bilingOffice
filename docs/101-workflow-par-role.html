@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Workflows par rôle — YABA</title>
+<meta name="description" content="Le workflow opérationnel de chaque rôle de la Plateforme YABA : déclencheur, actions, transition de statut, étape suivante.">
+<style>
+:root{
+  --bg:#f7f8fb; --surface:#ffffff; --text:#1c2230; --muted:#5b6472; --border:#e3e6ec;
+  --primary:#0b5fff; --primary-100:#eaf1ff; --navy:#1e2761; --ice:#cadcfc;
+  --ok:#1a8f5e; --ok-100:#e7f7ef; --ok-border:#bfe8d3;
+  --warn:#b7791f; --warn-100:#fff6e5; --warn-border:#f3ddab;
+  --stop:#c0392b; --stop-100:#fdecea; --stop-border:#f3c6c1;
+  --code-bg:#f0f2f6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1420; --surface:#161d2b; --text:#e7ebf3; --muted:#9aa5b6; --border:#2a3345;
+    --primary:#5b9dff; --primary-100:#152238; --navy:#c7d4ff; --ice:#7fa0e0;
+    --ok:#3fcf8e; --ok-100:#0f2a1f; --ok-border:#1f5c3f;
+    --warn:#f0b04c; --warn-100:#2c2410; --warn-border:#5c4a1f;
+    --stop:#ff6b5e; --stop-100:#2c1512; --stop-border:#5c281f;
+    --code-bg:#1d2537;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1420; --surface:#161d2b; --text:#e7ebf3; --muted:#9aa5b6; --border:#2a3345;
+  --primary:#5b9dff; --primary-100:#152238; --navy:#c7d4ff; --ice:#7fa0e0;
+  --ok:#3fcf8e; --ok-100:#0f2a1f; --ok-border:#1f5c3f;
+  --warn:#f0b04c; --warn-100:#2c2410; --warn-border:#5c4a1f;
+  --stop:#ff6b5e; --stop-100:#2c1512; --stop-border:#5c281f;
+  --code-bg:#1d2537;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6;}
+.wrap{max-width:1040px;margin:0 auto;padding:16px 16px 80px;}
+header.hero{padding:32px 0 18px;}
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;background:var(--primary-100);color:var(--primary);border:1px solid var(--ice);}
+header.hero h1{font-size:1.95rem;margin:12px 0 8px;}
+header.hero p{color:var(--muted);margin:0;max-width:820px;}
+nav.toc{position:sticky;top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:22px 0;font-size:.86rem;}
+nav.toc strong{display:block;margin-bottom:8px;}
+nav.toc ol{columns:2;column-gap:24px;margin:0;padding-left:20px;}
+nav.toc a{color:var(--primary);text-decoration:none;}
+nav.toc a:hover{text-decoration:underline;}
+h2.role{font-size:1.3rem;margin:36px 0 4px;padding-top:10px;border-top:2px solid var(--border);}
+.role-meta{color:var(--muted);font-size:.9rem;margin:0 0 12px;}
+.status-line{font-size:.82rem;color:var(--muted);}
+.status-line b{color:var(--text);}
+table.flow{width:100%;border-collapse:collapse;margin:10px 0 6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-size:.9rem;}
+table.flow th,table.flow td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+table.flow th{background:var(--code-bg);font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);}
+table.flow tr:last-child td{border-bottom:none;}
+.moment{font-weight:700;color:var(--primary);white-space:nowrap;}
+code{background:var(--code-bg);padding:1px 6px;border-radius:5px;font-size:.86em;}
+.callout{border-radius:12px;padding:16px 18px;margin:16px 0;border:1px solid var(--border);background:var(--primary-100);border-color:var(--ice);}
+.callout.warn{background:var(--warn-100);border-color:var(--warn-border);}
+.callout h3{margin:0 0 6px;font-size:1rem;}
+.statuts{background:var(--navy);color:#fff;border-radius:12px;padding:14px 18px;margin:10px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .statuts{background:#0c1330;}}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem;}
+@media (max-width:680px){nav.toc ol{columns:1;}table.flow, table.flow tbody, table.flow tr, table.flow td, table.flow th{display:block;}table.flow thead{display:none;}table.flow td{border:none;padding:3px 12px;}table.flow tr{border-bottom:2px solid var(--border);padding:8px 0;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="badge">Workflows opérationnels — Plateforme YABA</span>
+  <h1>Le workflow de chaque rôle</h1>
+  <p>Pour chaque rôle, ce document décrit le <strong>déclencheur</strong> (quand le rôle entre en jeu),
+  ses <strong>actions</strong>, la <strong>transition de statut</strong> du ticket qui en résulte, et
+  <strong>l'étape suivante</strong>. Tout est ancré sur le cahier des charges et sur le code réellement
+  livré. Principe fondateur : <strong>le ticket est le fil conducteur unique</strong> — il porte
+  documents, échanges, décisions, historique et documents finaux, du dépôt à l'archivage.</p>
+</header>
+
+<nav class="toc">
+  <strong>Sommaire</strong>
+  <ol>
+    <li><a href="#client">Client (normal / en compte / deposit / IES)</a></li>
+    <li><a href="#transporteur">Transporteur / Chauffeur</a></li>
+    <li><a href="#manifeste">Pilote Manifeste (Contrôle BL import)</a></li>
+    <li><a href="#backoffice">Back Office (Codification export)</a></li>
+    <li><a href="#facturation">Pilote Facturation Terre</a></li>
+    <li><a href="#caisse">Caisse / Finance (validation paiement)</a></li>
+    <li><a href="#comptable">Comptable Client (lettrage deposit)</a></li>
+    <li><a href="#controledoc">Pilote Contrôle Documentaire</a></li>
+    <li><a href="#support">Support Opérationnel (réclamations)</a></li>
+    <li><a href="#avoir">Agent Avoir / Exonération</a></li>
+    <li><a href="#gate">Agent Gate (enrôlement)</a></li>
+    <li><a href="#guichet">Agent Guichet (présentiel)</a></li>
+    <li><a href="#superviseur">Superviseur</a></li>
+    <li><a href="#adminfonc">Administrateur fonctionnel</a></li>
+    <li><a href="#admintech">Administrateur technique</a></li>
+  </ol>
+</nav>
+
+<div class="callout">
+  <h3>Le cycle de statut commun à tous les tickets</h3>
+  <div class="statuts">Créé → En cours de traitement → [En attente client ⇄ En cours] → Validé / Codifié → Facturé → En attente paiement → En attente validation paiement → Payé confirmé → Clôturé (archivé)</div>
+  <p style="margin:.4rem 0 0;font-size:.85rem;color:var(--muted)">Selon la branche, certains statuts sont sans objet (pas de paiement pour « en compte » et IES ; statut de lettrage pour « deposit »). L'archivage est automatique à la clôture : rien n'est jamais supprimé.</p>
+</div>
+
+<!-- 1. CLIENT -->
+<h2 class="role" id="client">1. Client <span style="font-weight:400;font-size:1rem;color:var(--muted)">(normal / en compte / deposit / IES)</span></h2>
+<p class="role-meta">Déclencheur : le client a un besoin de facturation import/export, une réclamation, un avoir/exonération, ou une simulation. Ne voit que ses propres tickets.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Avant tout (optionnel)</td><td>Simule une proforma pour anticiper les frais (par conteneur + total).</td><td>—</td></tr>
+<tr><td class="moment">Soumission</td><td>Dépose une demande IMPORT (jusqu'à 5 BL) ou EXPORT (bookings), avec les pièces par BL/booking. 1 ticket par BL/booking, regroupés en 1 dossier.</td><td><b>Créé</b> → arrive en file</td></tr>
+<tr><td class="moment">Si complément demandé</td><td>Est notifié, dépose les pièces manquantes dans le ticket.</td><td>En attente client → <b>En cours</b></td></tr>
+<tr><td class="moment">Après validation (client normal)</td><td>Demande la facture, puis paie hors portail (Wave/banque) et joint la preuve de paiement.</td><td>Facturé → En attente validation paiement</td></tr>
+<tr><td class="moment">À la fin</td><td>Récupère ses documents finaux (Bon de Sortie + BADT en import, BEE en export).</td><td><b>Clôturé</b></td></tr>
+<tr><td class="moment">À tout moment</td><td>Suit ses tickets, échange dans le fil, peut prendre rendez-vous pour finaliser en présentiel, ou annuler tant qu'aucun acte engageant n'est produit.</td><td>—</td></tr>
+</tbody>
+</table>
+<p class="status-line">Variantes : <b>en compte</b> = pas de paiement en ligne (règlement fin de mois) ; <b>deposit</b> = lettrage comptable après facturation ; <b>IES</b> = traitement parallèle puis finalisation sur la plateforme IES.</p>
+
+<!-- 2. TRANSPORTEUR -->
+<h2 class="role" id="transporteur">2. Transporteur / Chauffeur</h2>
+<p class="role-meta">Déclencheur : besoin d'un badge d'accès au terminal. Compte auto-créé, jamais rattaché à une société.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Inscription</td><td>S'auto-inscrit (actif immédiatement, sans validation CIT).</td><td>—</td></tr>
+<tr><td class="moment">Soumission</td><td>Dépose son dossier d'enrôlement à distance (permis, carte grise, immatriculation).</td><td><b>Créé</b> → file Agent Gate</td></tr>
+<tr><td class="moment">Si complément</td><td>Notifié (SMS/WhatsApp prioritaires), complète son dossier.</td><td>En attente client → En cours</td></tr>
+<tr><td class="moment">Convocation</td><td>Se déplace uniquement pour la photo et la remise du badge.</td><td><b>Clôturé</b> après remise</td></tr>
+<tr><td class="moment">À tout moment</td><td>Suit l'état de ses dossiers d'enrôlement.</td><td>—</td></tr>
+</tbody>
+</table>
+
+<!-- 3. MANIFESTE -->
+<h2 class="role" id="manifeste">3. Pilote Manifeste <span style="font-weight:400;font-size:1rem;color:var(--muted)">(Contrôle BL — Front Office import)</span></h2>
+<p class="role-meta">Déclencheur : un ticket IMPORT arrive dans sa file après soumission client.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Prise en charge</td><td>Accepte un ticket de sa file (horodatage arrivée / prise en charge enregistré).</td><td>En attente de prise en charge → <b>En cours</b></td></tr>
+<tr><td class="moment">Contrôle documentaire BL</td><td>Vérifie les pièces et prononce l'une des 3 issues : <b>Validé</b>, <b>Rejeté</b> (motif obligatoire), ou <b>En attente de complément</b>.</td><td>Validé / Rejeté / En attente client</td></tr>
+<tr><td class="moment">Après validation</td><td>Le ticket s'oriente automatiquement selon le type de client (facturation, etc.).</td><td><b>Validé</b> → file suivante</td></tr>
+</tbody>
+</table>
+<p class="status-line">Cas IES : travaille <b>en parallèle</b> du Contrôle Documentaire, chacun sur ses champs réservés ; le ticket n'avance qu'une fois les deux volets terminés (jointure).</p>
+
+<!-- 4. BACK OFFICE -->
+<h2 class="role" id="backoffice">4. Back Office <span style="font-weight:400;font-size:1rem;color:var(--muted)">(Codification export)</span></h2>
+<p class="role-meta">Déclencheur : un ticket EXPORT arrive dans sa file après soumission d'un booking.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Prise en charge</td><td>Accepte le ticket booking de sa file.</td><td>En attente de prise en charge → En cours</td></tr>
+<tr><td class="moment">Codification</td><td>Crée et codifie le booking dans IPAKI (hors portail), trace le résultat, et prononce : <b>Codifié</b>, <b>Rejeté</b> (motif), ou <b>En attente de complément</b>.</td><td>Codifié / Rejeté / En attente client</td></tr>
+<tr><td class="moment">Après codification</td><td>Le ticket suit les mêmes variantes par type de client que l'import.</td><td><b>Codifié</b> → file suivante</td></tr>
+</tbody>
+</table>
+
+<!-- 5. FACTURATION -->
+<h2 class="role" id="facturation">5. Pilote Facturation Terre</h2>
+<p class="role-meta">Déclencheur : un ticket validé/codifié arrive en file Facturation (ou le client a demandé sa facture).</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">EXPORT uniquement</td><td>Crée d'abord le Draft IN (simulation d'entrée plein export, hors portail) avant la facture.</td><td>En cours</td></tr>
+<tr><td class="moment">Édition</td><td>Effectue ses contrôles (IPAKI, hors portail), édite la facture et la joint au ticket ; le client est notifié.</td><td><b>Facturé</b></td></tr>
+<tr><td class="moment">Orientation</td><td>Client normal → renvoyé au client pour paiement. Client en compte → transmis directement au Contrôle Documentaire. Client deposit → transmis à la Comptabilité pour lettrage.</td><td>selon le type de client</td></tr>
+</tbody>
+</table>
+
+<!-- 6. CAISSE -->
+<h2 class="role" id="caisse">6. Caisse / Finance <span style="font-weight:400;font-size:1rem;color:var(--muted)">(validation paiement)</span></h2>
+<p class="role-meta">Déclencheur : un client normal a déposé sa preuve de paiement sur le ticket.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Réception preuve</td><td>Le ticket attend la validation interne du paiement.</td><td>En attente paiement → <b>En attente validation paiement</b></td></tr>
+<tr><td class="moment">Validation</td><td>Vérifie et valide la preuve de paiement en interne.</td><td><b>Payé confirmé</b> → Contrôle Documentaire</td></tr>
+</tbody>
+</table>
+
+<!-- 7. COMPTABLE -->
+<h2 class="role" id="comptable">7. Comptable Client <span style="font-weight:400;font-size:1rem;color:var(--muted)">(lettrage — clients deposit)</span></h2>
+<p class="role-meta">Déclencheur : un ticket deposit facturé arrive dans la file Comptabilité Client.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Lettrage</td><td>Effectue le lettrage dans IRIS (hors portail) et le confirme dans le ticket.</td><td>Lettrage confirmé</td></tr>
+<tr><td class="moment">Après lettrage</td><td>Le ticket passe au Contrôle Documentaire pour finalisation.</td><td>→ Contrôle Documentaire</td></tr>
+</tbody>
+</table>
+
+<!-- 8. CONTROLE DOC -->
+<h2 class="role" id="controledoc">8. Pilote Contrôle Documentaire</h2>
+<p class="role-meta">Déclencheur : le paiement est confirmé (normal), ou le ticket arrive directement (en compte), ou après lettrage (deposit).</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Vérification finale</td><td>Vérifie le dossier et réalise les opérations dans les systèmes (hors portail).</td><td>En cours</td></tr>
+<tr><td class="moment">Dépôt documents finaux</td><td>Dépose le Bon de Sortie + BADT (import) ou le BEE (export), renvoie au client.</td><td>Documents disponibles</td></tr>
+<tr><td class="moment">Clôture</td><td>Clôture le ticket ; archivage automatique, consultable en permanence.</td><td><b>Clôturé (archivé)</b></td></tr>
+</tbody>
+</table>
+
+<!-- 9. SUPPORT -->
+<h2 class="role" id="support">9. Support Opérationnel <span style="font-weight:400;font-size:1rem;color:var(--muted)">(Customer Complaint)</span></h2>
+<p class="role-meta">Déclencheur : un client soumet une réclamation ; elle est orientée automatiquement vers la file selon sa catégorie.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Prise en charge</td><td>Accepte le ticket de la file Support Opérationnel.</td><td>En attente de prise en charge → <b>En cours</b></td></tr>
+<tr><td class="moment">Instruction</td><td>Échange avec le client (message client vs note interne), demande un complément, joint des documents, oriente vers le service concerné.</td><td>En cours / En attente client</td></tr>
+<tr><td class="moment">Si sans réponse client</td><td>Relances automatiques puis suggestion de clôture pour « absence de réponse » — jamais automatique.</td><td>En attente client</td></tr>
+<tr><td class="moment">Clôture</td><td>Clôture avec une réponse formalisée conservée dans le ticket.</td><td><b>Clôturé (archivé)</b></td></tr>
+</tbody>
+</table>
+
+<!-- 10. AVOIR -->
+<h2 class="role" id="avoir">10. Agent Avoir / Exonération</h2>
+<p class="role-meta">Déclencheur : un client soumet une demande d'avoir ou d'exonération (deux workflows distincts, habilités séparément).</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Prise en charge</td><td>Accepte la demande de la file (selon son habilitation Avoir ou Exonération).</td><td>En attente de prise en charge → En cours</td></tr>
+<tr><td class="moment">Instruction</td><td>Instruit, demande un complément si besoin, échange dans le ticket.</td><td>En cours / En attente client</td></tr>
+<tr><td class="moment">Décision</td><td>Prononce <b>Accordé</b> (avec montant) ou <b>Rejeté</b> (motif obligatoire), dépose les documents, notifie le client.</td><td><b>Clôturé (archivé)</b></td></tr>
+</tbody>
+</table>
+
+<!-- 11. GATE -->
+<h2 class="role" id="gate">11. Agent Gate <span style="font-weight:400;font-size:1rem;color:var(--muted)">(enrôlement transporteurs)</span></h2>
+<p class="role-meta">Déclencheur : un transporteur soumet son dossier d'enrôlement.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">Prise en charge</td><td>Accepte le dossier de la file Agent Gate.</td><td>En attente de prise en charge → En cours</td></tr>
+<tr><td class="moment">Instruction</td><td>Vérifie les pièces, demande un complément si besoin, valide le dossier.</td><td>Validé / En attente client</td></tr>
+<tr><td class="moment">Convocation</td><td>Convoque le chauffeur pour la photo et la remise/impression du badge ; trace la réalisation.</td><td><b>Clôturé</b> après remise</td></tr>
+</tbody>
+</table>
+
+<!-- 12. GUICHET -->
+<h2 class="role" id="guichet">12. Agent Guichet <span style="font-weight:400;font-size:1rem;color:var(--muted)">(continuité présentiel)</span></h2>
+<p class="role-meta">Déclencheur : un client se présente physiquement, ou a pris rendez-vous depuis la plateforme.</p>
+<table class="flow">
+<thead><tr><th>Moment</th><th>Action</th><th>Statut résultant</th></tr></thead>
+<tbody>
+<tr><td class="moment">À l'arrivée</td><td>Recherche le ticket (numéro, client, BL/booking) et reprend le dossier <b>sans ressaisie</b>.</td><td>—</td></tr>
+<tr><td class="moment">Rendez-vous</td><td>Constate la présence (Honoré / Non présenté) sur l'agenda ; le rendez-vous donne accès au bureau de facturation.</td><td>Honoré / Non présenté</td></tr>
+</tbody>
+</table>
+
+<!-- 13. SUPERVISEUR -->
+<h2 class="role" id="superviseur">13. Superviseur</h2>
+<p class="role-meta">Déclencheur : rôle <b>continu</b> — pilotage temps réel de son périmètre, pas une étape de ticket. Finalité : pilotage de la charge, pas contrôle individuel.</p>
+<table class="flow">
+<thead><tr><th>Quand</th><th>Action</th><th>Effet</th></tr></thead>
+<tbody>
+<tr><td class="moment">En continu</td><td>Vue temps réel des tickets par état, backlog par file, ancienneté du plus ancien, charge et disponibilité des opérateurs.</td><td>Pilotage</td></tr>
+<tr><td class="moment">Sur alerte (SLA 50% / 80% / dépassement)</td><td>Reçoit les alertes (ticket non pris en charge, sans activité, SLA proche/dépassé, backlog excessif, opérateur absent avec tickets).</td><td>Escalade possible</td></tr>
+<tr><td class="moment">Intervention</td><td>Affecte un ticket non pris en charge, réaffecte, transfère de file, équilibre la charge, débloque un ticket, agit en masse (ex. réaffecter les tickets d'un absent).</td><td>Toute action tracée</td></tr>
+</tbody>
+</table>
+
+<!-- 14. ADMIN FONCTIONNEL -->
+<h2 class="role" id="adminfonc">14. Administrateur fonctionnel</h2>
+<p class="role-meta">Déclencheur : besoin de paramétrer la plateforme ou de gérer les comptes — sans développement.</p>
+<table class="flow">
+<thead><tr><th>Domaine</th><th>Action</th><th>Effet</th></tr></thead>
+<tbody>
+<tr><td class="moment">Comptes</td><td>Valide les demandes de compte société, type le client (normal/en compte/deposit/IES), crée et habilite les comptes agents.</td><td>Comptes actifs</td></tr>
+<tr><td class="moment">Workflow</td><td>Files et transitions (matrice), règles d'affectation, priorités, SLA et seuils d'alerte, escalades, motifs de transfert, statuts/libellés.</td><td>Configuration active</td></tr>
+<tr><td class="moment">Référentiels</td><td>Catégories de réclamation, pièces exigées par étape, modèles de notification, grilles tarifaires et référentiels conteneur, base de connaissances de l'assistant.</td><td>Configuration active</td></tr>
+<tr><td class="moment">Suivi</td><td>Consulte le journal d'audit et les archives.</td><td>—</td></tr>
+</tbody>
+</table>
+
+<!-- 15. ADMIN TECH -->
+<h2 class="role" id="admintech">15. Administrateur technique</h2>
+<p class="role-meta">Déclencheur : exploitation et sécurité de la plateforme.</p>
+<table class="flow">
+<thead><tr><th>Domaine</th><th>Action</th><th>Effet</th></tr></thead>
+<tbody>
+<tr><td class="moment">Sécurité</td><td>Configuration technique, habilitations par environnement, désactivation immédiate d'un compte agent (sans perte d'historique).</td><td>—</td></tr>
+<tr><td class="moment">Exploitation</td><td>Sauvegardes, restauration testée, supervision technique, journal d'audit inviolable.</td><td>—</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+  <h3>Deux mécanismes transverses qui traversent tous ces rôles</h3>
+  <p><b>Prise en charge</b> : un ticket arrivé en file est « en attente de prise en charge » tant qu'un opérateur ne l'a pas accepté ; le système distingue et mesure l'attente et le traitement à chaque étape.</p>
+  <p><b>Dérogation tracée</b> : le circuit nominal n'est pas rigide — un opérateur habilité peut transférer (vers une file autorisée par la matrice) ou réaffecter un ticket, avec motif obligatoire ; toute dérogation est tracée dans l'historique et le journal d'audit, et le client est notifié quand son parcours est impacté.</p>
+</div>
+
+<footer>
+  Document établi le 24/09/2026 à partir du cahier des charges (<code>docs/cdc_text.txt</code>, §6, §9, §11 à §13)
+  et des commandes réellement livrées (SoumettreReclamationCommand, ConsulterFileReclamationsQuery,
+  CloturerTicketCommand, TransfererTicketCommand…). Documents complémentaires : le Cahier de recette
+  (traçabilité des 188 exigences) et la Note service client (couverture du chatbot).
+</footer>
+
+</div>
+</body>
+</html>
