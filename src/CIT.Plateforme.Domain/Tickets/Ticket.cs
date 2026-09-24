@@ -6,7 +6,7 @@
 /// rattachement optionnel à un dossier (SOC-11). Le modèle conceptuel est celui de
 /// `data-model.md` ; ce type ne préjuge d'aucun schéma physique (Principe VIII).
 /// </summary>
-public sealed class Ticket
+public sealed partial class Ticket
 {
     public Guid Id { get; private set; }
 
