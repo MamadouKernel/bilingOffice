@@ -1,0 +1,202 @@
+@page "/enrolement/societe/retrait"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Enrolement
+@using CIT.Plateforme.Domain.Enrolement
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject SoumettreRetraitEnrolementSocieteCommand SoumettreRetraitSociete
+
+<PageTitle>@Loc["EnrolRet.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>🗑</span> @Loc["EnrolRet.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["EnrolRet.Subtitle"]</div>
+    </div>
+    <div class="mt-3 mt-md-0 d-flex gap-2">
+        <a href="/enrolement/societe/soumettre" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["EnrolRet.LinkAjout"]</a>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["Complaint.LoadingForm"]" />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else if (_resultat is not null)
+{
+    <div class="cit-card border-success p-4 mb-4" style="max-width: 760px;">
+        <div class="d-flex align-items-center gap-3 text-success mb-3">
+            <span class="fs-2">✅</span>
+            <div>
+                <h5 class="fw-bold mb-0">@Loc["EnrolRet.SuccessTitle"]</h5>
+                <div class="text-muted small">
+                    @Loc["EnrolSoc.SuccessDossier"] <strong class="font-monospace text-primary">@_resultat.NumeroDossier</strong>
+                    — @string.Format(Loc["EnrolSoc.SuccessTicketsCount"].Value, _resultat.Tickets.Count)
+                </div>
+            </div>
+        </div>
+        <a href="/enrolement/mes-enrolements" class="btn btn-primary fw-bold px-4">@Loc["EnrolSoc.ViewMyEnrollments"]</a>
+    </div>
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-4" role="alert">@_erreur</div>
+    }
+
+    <div class="cit-card mb-4 p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 160px;">@Loc["EnrolSoc.ColType"]</th>
+                        <th>@Loc["EnrolSoc.ColObjet"]</th>
+                        <th>@Loc["EnrolRet.MotifLabel"]</th>
+                        <th style="width: 100px;">@Loc["EnrolSoc.ColActions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ligne in _lignes)
+                    {
+                        <tr @key="ligne.Cle">
+                            <td>
+                                <select class="form-select form-select-sm" value="@ligne.Type"
+                                        @onchange="e => ligne.Type = Enum.Parse<TypeObjetEnrolement>(e.Value?.ToString() ?? nameof(TypeObjetEnrolement.Chauffeur))">
+                                    <option value="@nameof(TypeObjetEnrolement.Chauffeur)">@Loc["Enrol.Objet.Chauffeur"]</option>
+                                    <option value="@nameof(TypeObjetEnrolement.Camion)">@Loc["Enrol.Objet.Camion"]</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input class="form-control form-control-sm" @bind="ligne.Objet" @bind:event="oninput"
+                                       placeholder="@(ligne.Type == TypeObjetEnrolement.Camion ? Loc["EnrolSoc.ObjectPlaceholderCamion"].Value : Loc["EnrolSoc.ObjectPlaceholderChauffeur"].Value)" maxlength="200" />
+                            </td>
+                            <td>
+                                <input class="form-control form-control-sm" @bind="ligne.Motif" @bind:event="oninput"
+                                       placeholder="@Loc["EnrolRet.MotifPlaceholder"]" maxlength="500" />
+                            </td>
+                            <td>
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => RetirerLigne(ligne)" disabled="@(_lignes.Count == 1)">@Loc["EnrolSoc.RemoveObjectBtn"]</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="p-3 border-top">
+            <button class="btn btn-outline-primary btn-sm fw-semibold" @onclick="AjouterLigne">@Loc["EnrolSoc.AddObjectBtn"]</button>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-danger px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+            @(_envoiEnCours ? Loc["EnrolSoc.Sending"].Value : Loc["EnrolRet.Submit"].Value)
+        </button>
+    </div>
+}
+
+@code {
+    private sealed class LigneObjet
+    {
+        public Guid Cle { get; } = Guid.NewGuid();
+        public TypeObjetEnrolement Type { get; set; } = TypeObjetEnrolement.Chauffeur;
+        public string Objet { get; set; } = string.Empty;
+        public string Motif { get; set; } = string.Empty;
+    }
+
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private bool _envoiEnCours;
+    private SoumettreEnrolementSocieteResultat? _resultat;
+
+    private Guid _utilisateurId;
+    private Guid _societeId;
+    private readonly List<LigneObjet> _lignes = [new()];
+
+    private bool PeutSoumettre =>
+        _lignes.Count > 0 &&
+        _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet) && !string.IsNullOrWhiteSpace(l.Motif));
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["EnrolSoc.LoginRequired"].Value;
+                return;
+            }
+
+            if (contexte.DroitSoumission != true)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["EnrolSoc.NotAuthorized"].Value;
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+            _societeId = contexte.SocieteId.Value;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private void AjouterLigne() => _lignes.Add(new LigneObjet());
+
+    private void RetirerLigne(LigneObjet ligne)
+    {
+        if (_lignes.Count > 1)
+        {
+            _lignes.Remove(ligne);
+        }
+    }
+
+    private async Task SoumettreAsync()
+    {
+        if (!PeutSoumettre)
+        {
+            return;
+        }
+
+        _envoiEnCours = true;
+        _erreur = null;
+        try
+        {
+            var objets = _lignes
+                .Select(l => new ObjetEnrolementSoumission(l.Type, l.Objet.Trim(), l.Motif.Trim()))
+                .ToList();
+            _resultat = await SoumettreRetraitSociete.ExecuterAsync(
+                _utilisateurId,
+                new SoumettreRetraitEnrolementSocieteRequete(_societeId, objets));
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _envoiEnCours = false;
+        }
+    }
+}

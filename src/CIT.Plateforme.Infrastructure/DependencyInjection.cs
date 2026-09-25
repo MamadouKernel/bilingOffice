@@ -388,6 +388,9 @@ public static class DependencyInjection
 
         // FEATURE 008 — Enrôlement Transporteurs
         services.AddScoped<Application.Enrolement.SoumettreEnrolementCommand>();
+        // LOT 2 — Enrôlement société (ajout + retrait), soumission multi-objets groupée.
+        services.AddScoped<Application.Enrolement.SoumettreEnrolementSocieteCommand>();
+        services.AddScoped<Application.Enrolement.SoumettreRetraitEnrolementSocieteCommand>();
         services.AddScoped<Application.Enrolement.ListerMesEnrolementsQuery>();
         services.AddScoped<Application.Enrolement.ValiderEnrolementCommand>();
         services.AddScoped<Application.Enrolement.DeclencherConvocationCommand>();

@@ -75,6 +75,14 @@ public sealed partial class DevelopmentSeeder
         // ENR-05 (Could) : Rappels automatiques d'expiration de badge transporteur/chauffeur.
         ("RappelExpirationBadge", CanalNotification.InApp, false, "ENR-05 — rappel d'expiration de badge"),
         ("RappelExpirationBadge", CanalNotification.Email, false, "ENR-05 — rappel d'expiration de badge"),
+
+        // LOT 3 — ENR-03 : la remise du badge est constatée à la clôture (BadgeRemisEtDossierCloture,
+        // publié par ConstaterRemiseBadgeCommand). Le client du dossier (la société pour un
+        // enrôlement de flotte, le transporteur pour une auto-inscription) est averti par e-mail que
+        // ses cartes / BAT sont prêts à être retirés — parcours dématérialisé, le chauffeur ne se
+        // déplace pas.
+        ("BadgeRemisEtDossierCloture", CanalNotification.InApp, false, "ENR-03 — cartes/BAT prêts, retrait par la société"),
+        ("BadgeRemisEtDossierCloture", CanalNotification.Email, false, "ENR-03 — cartes/BAT prêts, retrait par la société"),
     ];
 
     private async Task SeedNotificationsAsync()

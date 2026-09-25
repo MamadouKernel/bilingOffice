@@ -5,6 +5,7 @@
 @using CIT.Plateforme.Application.Enrolement
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Domain.Enrolement
 @using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
@@ -64,6 +65,7 @@ else
                         <tr>
                             <th>@Loc["AgentGate.ColNumero"]</th>
                             <th>@Loc["AgentGate.ColObjet"]</th>
+                            <th>@Loc["AgentGate.ColType"]</th>
                             <th>@Loc["AgentGate.ColStatut"]</th>
                             <th>@Loc["AgentGate.ColArrivee"]</th>
                             <th class="text-end">@Loc["AgentGate.ColActions"]</th>
@@ -75,6 +77,17 @@ else
                             <tr>
                                 <td class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</td>
                                 <td class="fw-semibold text-dark">@(t.Objet ?? "—")</td>
+                                <td>
+                                    @if (t.ObjetEnrolement is not null)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary me-1">@Loc[$"Enrol.Objet.{t.ObjetEnrolement}"]</span>
+                                        <span class="badge @(t.SensEnrolement == SensEnrolement.Retrait ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success")">@Loc[$"Enrol.Sens.{t.SensEnrolement}"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                                 <td><StatutBadge Statut="@t.Statut" /></td>
                                 <td class="small text-muted font-monospace">@t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="text-end">

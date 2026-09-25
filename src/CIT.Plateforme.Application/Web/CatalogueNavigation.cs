@@ -103,6 +103,8 @@ public static class CatalogueNavigation
             new("Nouvelle réclamation", "📝", "/reclamations/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Mes réclamations", "📋", "/reclamations/mes-reclamations", Aucune, ExigeRattachementSociete: true),
             new("Nouvel enrôlement", "🚚", "/enrolement/soumettre", [Permission.EnrolementSoumettre]),
+            new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true),
+            new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true),
             new("Mes enrôlements", "📋", "/enrolement/mes-enrolements", Aucune),
             new("Préférences de notification", "🔔", "/notifications/preferences", Aucune),
             new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
