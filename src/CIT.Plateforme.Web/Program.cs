@@ -129,22 +129,48 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// APPLICATION AUTOMATIQUE DES MIGRATIONS EF CORE (création/mise à jour automatique des tables en base)
+// APPLICATION DES MIGRATIONS EF CORE AU DÉMARRAGE.
+//
+// F4 (audit sécurité) — l'auto-migration au démarrage est commode en Dev/UAT mais risquée en
+// production : avec plusieurs instances, elles courent pour migrer le même schéma, et une
+// modification de schéma s'applique alors sans étape de déploiement maîtrisée. Le comportement est
+// désormais PILOTÉ PAR CONFIGURATION (`Base:MigrationAutomatiqueAuDemarrage`) : la production peut
+// le désactiver et appliquer ses migrations via une étape de déploiement dédiée (bundle EF /
+// `dotnet ef database update`). Défaut : `true` — comportement historique inchangé tant que rien
+// n'est configuré, donc aucune régression pour les environnements existants.
+var migrationAutoAuDemarrage = builder.Configuration.GetValue("Base:MigrationAutomatiqueAuDemarrage", true);
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.PlateformeDbContext>();
     if (dbContext.Database.IsRelational())
     {
-        try
+        if (migrationAutoAuDemarrage)
         {
-            await dbContext.Database.MigrateAsync();
+            try
+            {
+                await dbContext.Database.MigrateAsync();
+            }
+            catch (Exception ex) when (app.Environment.IsDevelopment() && ex is Microsoft.Data.SqlClient.SqlException or InvalidOperationException)
+            {
+                // La base locale contenait des objets créés sans historique de migration EF Core (__EFMigrationsHistory).
+                // En développement, on réinitialise proprement la base avec l'intégralité des migrations ordonnées.
+                await dbContext.Database.EnsureDeletedAsync();
+                await dbContext.Database.MigrateAsync();
+            }
         }
-        catch (Exception ex) when (app.Environment.IsDevelopment() && ex is Microsoft.Data.SqlClient.SqlException or InvalidOperationException)
+        else
         {
-            // La base locale contenait des objets créés sans historique de migration EF Core (__EFMigrationsHistory).
-            // En développement, on réinitialise proprement la base avec l'intégralité des migrations ordonnées.
-            await dbContext.Database.EnsureDeletedAsync();
-            await dbContext.Database.MigrateAsync();
+            // Migration au démarrage désactivée : on n'applique RIEN, mais on signale clairement tout
+            // écart de schéma, pour que l'exploitation sache qu'une étape de migration reste due.
+            var enAttente = new List<string>(await dbContext.Database.GetPendingMigrationsAsync());
+            if (enAttente.Count > 0)
+            {
+                app.Logger.LogWarning(
+                    "Migration automatique au démarrage désactivée (Base:MigrationAutomatiqueAuDemarrage=false) : "
+                    + "{Nombre} migration(s) en attente NON appliquée(s) [{Migrations}]. "
+                    + "Appliquez-les via l'étape de déploiement avant d'exposer l'application.",
+                    enAttente.Count, string.Join(", ", enAttente));
+            }
         }
     }
 }
