@@ -254,6 +254,18 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
             b.Property(t => t.DecideurAvoirExoId);
 
+            // LOT 2 — Enrôlement société (research.md D6/CLAR-ENR-05). Deux dimensions typées,
+            // nullables (null hors enrôlement société) et stockées en chaîne comme les autres énums
+            // du ticket. Aucune entité carte/BAT : l'émission/révocation reste un événement physique
+            // constaté à la clôture.
+            b.Property(t => t.ObjetEnrolement)
+                .HasConversion<string>()
+                .HasMaxLength(32);
+
+            b.Property(t => t.SensEnrolement)
+                .HasConversion<string>()
+                .HasMaxLength(32);
+
             b.HasIndex(t => new { t.Module, t.TypeDemande, t.Statut })
                 .HasDatabaseName("IX_Tickets_Module_TypeDemande_Statut");
         });

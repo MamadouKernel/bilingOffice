@@ -2205,6 +2205,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<string>("Objet")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ObjetEnrolement")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<Guid?>("OperateurAssigneId")
                         .HasColumnType("uniqueidentifier");
 
@@ -2213,6 +2217,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ReponseFormalisee")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SensEnrolement")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<int>("Statut")
                         .HasColumnType("int");

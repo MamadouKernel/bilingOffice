@@ -92,12 +92,16 @@ public class Imp11EtProducteursTests
         //   doit être averti qu'un fil lui a été transmis)
         // → 26 fichiers producteurs.
         //
-        // CETTE GARDE A FAIT SON OFFICE, DEUX FOIS : elle a signalé l'ajout du 26e producteur au
-        // moment où il a été introduit, puis du 27e — EmettreDraftInExportCommand, remédiation
-        // post-audit final RG-EXP-03. Son objectif est inchangé : détecter tout producteur
-        // d'événement non délibéré. Seul l'inventaire attendu est mis à jour, et chaque nouveau
-        // producteur est nommé ci-dessous pour que sa disparition soit à son tour détectée.
-        Assert.Equal(27, fichiersProducteurs.Count);
+        // CETTE GARDE A FAIT SON OFFICE, PLUSIEURS FOIS : elle a signalé l'ajout du 26e producteur
+        // au moment où il a été introduit, puis du 27e — EmettreDraftInExportCommand, remédiation
+        // post-audit final RG-EXP-03 — puis des 28e et 29e (LOT 2, enrôlement société : les deux
+        // commandes de soumission par la société publient TicketCree, comme toute création de
+        // ticket). Son objectif est inchangé : détecter tout producteur d'événement non délibéré.
+        // Seul l'inventaire attendu est mis à jour, et chaque nouveau producteur est nommé ci-dessous
+        // pour que sa disparition soit à son tour détectée.
+        Assert.Equal(29, fichiersProducteurs.Count);
+        Assert.Contains("SoumettreEnrolementSocieteCommand.cs", fichiersProducteurs);
+        Assert.Contains("SoumettreRetraitEnrolementSocieteCommand.cs", fichiersProducteurs);
         Assert.Contains("EmettreDraftInExportCommand.cs", fichiersProducteurs);
         Assert.Contains("AssistantCommands.cs", fichiersProducteurs);
         Assert.Contains("ValiderDemandeCompteCommand.cs", fichiersProducteurs);
