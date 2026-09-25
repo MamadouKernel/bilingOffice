@@ -19,6 +19,15 @@ public static class ApiEndpoints
     {
         var api = app.MapGroup("/api/v1");
 
+        // DYN-1 (pentest dynamique) — l'antiforgery global de UseAntiforgery() bloquait les POST
+        // application/json de l'API (400 « incorrect Content-type »), la rendant inutilisable par un
+        // client programmatique. L'antiforgery protège les formulaires de navigateur contre le CSRF ;
+        // il n'a pas sa place sur une API REST authentifiée par cookie + RequireAuthorization. On le
+        // désactive donc au niveau du groupe : les GET n'en avaient pas besoin, et le POST de
+        // simulation est un calcul SANS effet de bord (aucun risque CSRF, réponse non lisible
+        // cross-origin). L'autorisation reste exigée sur chaque endpoint.
+        api.DisableAntiforgery();
+
         // C13-04 : GET /api/v1/tickets/{numero}
         api.MapGet("/tickets/{numero}", async (
             string numero,

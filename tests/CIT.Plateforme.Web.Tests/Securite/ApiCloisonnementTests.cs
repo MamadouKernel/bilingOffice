@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using CIT.Plateforme.Application.Comptes;
 using CIT.Plateforme.Application.Web;
@@ -353,6 +354,30 @@ public sealed class ApiCloisonnementTests(PlateformeWebApplicationFactory factor
         var reponse = await ClientPour(restreint).GetAsync($"/api/v1/dossiers/{d.DossierA}");
 
         Assert.Equal(HttpStatusCode.Forbidden, reponse.StatusCode);
+    }
+
+    // =====================================================================
+    // DYN-1 (pentest dynamique) — l'API JSON n'est plus bloquée par l'antiforgery :
+    // un POST application/json authentifié atteint le handler (validation métier),
+    // au lieu de recevoir « The request has an incorrect Content-type. ».
+    // =====================================================================
+    [Fact]
+    public async Task DYN01_Post_json_authentifie_nest_plus_bloque_par_antiforgery()
+    {
+        var d = await SemerAsync();
+        var client = ClientPour(Client(d.UtilisateurSocieteA, d.SocieteA));
+
+        var reponse = await client.PostAsync(
+            "/api/v1/simulations/calculer",
+            new StringContent("{}", Encoding.UTF8, "application/json"));
+
+        var corps = await reponse.Content.ReadAsStringAsync();
+
+        // Le handler est atteint : la requête échoue sur la VALIDATION MÉTIER (corps vide),
+        // pas sur l'antiforgery. La signature d'antiforgery ne doit plus apparaître.
+        Assert.DoesNotContain("incorrect Content-type", corps, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.BadRequest, reponse.StatusCode);
+        Assert.Contains("conteneur", corps, StringComparison.OrdinalIgnoreCase);
     }
 
     // ---------------------------------------------------------------------

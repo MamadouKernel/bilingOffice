@@ -232,7 +232,12 @@ using (var scope = app.Services.CreateScope())
 app.UseSecurityHeaders();
 app.UseMetrologiePerformance();
 app.UseMaintenanceMode();
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// DYN-3 (pentest dynamique) — la ré-exécution vers une page HTML « /not-found » ne concerne QUE la
+// surface d'interface : un client d'API doit recevoir le code de statut nu (401/403/404/405…), pas
+// une page HTML. On borne donc StatusCodePages aux chemins hors « /api ».
+app.UseWhen(
+    ctx => !ctx.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
+    branche => branche.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
 
 var locOptions = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value;
@@ -273,19 +278,18 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
     Predicate = check => check.Tags.Contains("ready"),
     ResponseWriter = async (context, report) =>
     {
+        // DYN-2 (pentest dynamique) — /ready est anonyme (sonde d'orchestration). On n'expose donc
+        // que les STATUTS (global + par composant), sans description ni durée : ces champs
+        // divulguaient à un visiteur non authentifié l'inventaire et l'état détaillé de
+        // l'infrastructure (base, stockage…). Le statut suffit à une sonde ; le diagnostic détaillé
+        // relève des journaux internes.
         context.Response.ContentType = "application/json; charset=utf-8";
         var json = System.Text.Json.JsonSerializer.Serialize(new
         {
             status = report.Status.ToString(),
-            totalDuration = report.TotalDuration.ToString(),
             entries = report.Entries.ToDictionary(
                 e => e.Key,
-                e => new
-                {
-                    status = e.Value.Status.ToString(),
-                    duration = e.Value.Duration.ToString(),
-                    description = e.Value.Description
-                })
+                e => new { status = e.Value.Status.ToString() })
         }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
         await context.Response.WriteAsync(json);
     }
