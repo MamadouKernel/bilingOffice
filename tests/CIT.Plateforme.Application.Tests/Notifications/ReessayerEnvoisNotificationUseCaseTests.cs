@@ -7,9 +7,10 @@ using Xunit;
 
 namespace CIT.Plateforme.Application.Tests.Notifications;
 
-// FEATURE 009 — T099 à T107, T197. CONTRAT C9-08 (ERR-02).
-// TEST-ERR-02 : 6 cas. AUCUNE valeur de reprise n'est affirmée en dur : les paramètres sont
-// injectés par la configuration de test (invariant I2, CLAR-NOT-02).
+// FEATURE 009 — CONTRAT C9-08 (ERR-02). Depuis le retrait de SMS/WhatsApp (2026-09-25), l'e-mail
+// est le seul canal d'ENVOI externe (l'In-App n'émet rien : la notification EST sa diffusion).
+// AUCUNE valeur de reprise n'est affirmée en dur : les paramètres sont injectés par la
+// configuration de test (invariant I2, CLAR-NOT-02).
 public class ReessayerEnvoisNotificationUseCaseTests
 {
     private readonly Mock<IEnvoiNotificationRepository> _envois = new();
@@ -57,47 +58,7 @@ public class ReessayerEnvoisNotificationUseCaseTests
         _envois.Setup(e => e.ListerAReessayerAsync(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(envois);
 
-    // ---- T099 : cas TEST-ERR-02-1 (isolation inter-canaux) ----
-
-    [Fact]
-    public async Task UnCanalEnEchec_NEmpechePasLesAutres()
-    {
-        var email = EnvoiNotification.Creer(_notification.Id, CanalNotification.Email);
-        var sms = EnvoiNotification.Creer(_notification.Id, CanalNotification.Sms);
-        var whatsApp = EnvoiNotification.Creer(_notification.Id, CanalNotification.WhatsApp);
-        AvecEnvois(email, sms, whatsApp);
-
-        await Creer([
-            new CanalDeTest(CanalNotification.Email, abouti: true),
-            new CanalDeTest(CanalNotification.Sms, abouti: false),
-            new CanalDeTest(CanalNotification.WhatsApp, abouti: true),
-        ]).ReessayerAsync();
-
-        Assert.Equal(StatutEnvoi.Envoye, email.Statut);
-        Assert.Equal(StatutEnvoi.Echec, sms.Statut);
-        Assert.Equal(StatutEnvoi.Envoye, whatsApp.Statut);
-    }
-
-    // ---- T100 : cas TEST-ERR-02-2 (statut d'envoi distinct par canal — CDC §20) ----
-
-    [Fact]
-    public async Task ChaqueCanal_PorteSonPropreStatutDEnvoi()
-    {
-        var email = EnvoiNotification.Creer(_notification.Id, CanalNotification.Email);
-        var sms = EnvoiNotification.Creer(_notification.Id, CanalNotification.Sms);
-        AvecEnvois(email, sms);
-
-        await Creer([
-            new CanalDeTest(CanalNotification.Email, abouti: true),
-            new CanalDeTest(CanalNotification.Sms, abouti: false),
-        ]).ReessayerAsync();
-
-        Assert.NotEqual(email.Statut, sms.Statut);
-        Assert.NotNull(sms.MotifEchec);
-        Assert.Null(email.MotifEchec);
-    }
-
-    // ---- T101 : cas TEST-ERR-02-3 (traçage sans contenu) ----
+    // ---- TEST-ERR-02-3 : traçage sans contenu ----
 
     [Fact]
     public async Task Echec_EstTraceSansLeContenuDuMessage()
@@ -114,7 +75,7 @@ public class ReessayerEnvoisNotificationUseCaseTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    // ---- T102 : cas TEST-ERR-02-4 (nouvelle tentative automatique) ----
+    // ---- TEST-ERR-02-4 : nouvelle tentative automatique ----
 
     [Fact]
     public async Task Reprise_EngageUneNouvelleTentativeSansActionHumaine()
@@ -136,8 +97,6 @@ public class ReessayerEnvoisNotificationUseCaseTests
     [Fact]
     public async Task AuPlafondConfigure_LEnvoiNEstPlusSelectionneEtResteEnEchec()
     {
-        // Le plafond est LU DEPUIS LA CONFIGURATION injectée : le test n'affirme aucune valeur
-        // en dur, il vérifie que la valeur configurée est bien celle transmise au dépôt.
         var parametres = new ParametresReessaiNotification(NombreTentativesMax: 5, DelaiEntreTentatives: TimeSpan.FromMinutes(7));
         AvecEnvois();
 
@@ -182,20 +141,20 @@ public class ReessayerEnvoisNotificationUseCaseTests
         Assert.Contains("DelaiEntreTentatives", exception.Message, StringComparison.Ordinal);
     }
 
-    // ---- T104 : cas TEST-ERR-02-6 (aucun fallback) ----
+    // ---- TEST-ERR-02-6 : aucun fallback — un échec e-mail ne bascule sur aucun autre canal ----
 
     [Fact]
-    public async Task EchecEmail_NeDeclencheJamaisUnAutreCanal()
+    public async Task EchecEmail_ResteSurLeCanalEmailSansBascule()
     {
         var email = EnvoiNotification.Creer(_notification.Id, CanalNotification.Email);
         AvecEnvois(email);
-        var canalSms = new CanalDeTest(CanalNotification.Sms, abouti: true);
+        var canalEmail = new CanalDeTest(CanalNotification.Email, abouti: false);
 
-        await Creer([new CanalDeTest(CanalNotification.Email, abouti: false), canalSms]).ReessayerAsync();
+        await Creer([canalEmail]).ReessayerAsync();
 
-        // Aucune substitution : le canal SMS n'a jamais été sollicité.
-        Assert.Equal(0, canalSms.Appels);
+        Assert.Equal(1, canalEmail.Appels);
         Assert.Equal(CanalNotification.Email, email.Canal);
+        Assert.Equal(StatutEnvoi.Echec, email.Statut);
     }
 
     // ---- CLAR-COM-04 : coordonnée absente → NonDelivrable, distinct d'un échec ----
@@ -203,28 +162,29 @@ public class ReessayerEnvoisNotificationUseCaseTests
     [Fact]
     public async Task CoordonneeAbsente_MarqueNonDelivrableEtNonEchec()
     {
+        // Profil sans adresse e-mail : le canal e-mail n'est pas servable.
         _utilisateurs.Setup(u => u.ObtenirProfilAsync(DestinataireId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ProfilUtilisateur(DestinataireId, "client@test.local", "Client", null, true, NatureUtilisateur.Client));
-        var sms = EnvoiNotification.Creer(_notification.Id, CanalNotification.Sms);
-        AvecEnvois(sms);
+            .ReturnsAsync(new ProfilUtilisateur(DestinataireId, null!, "Client", null, true, NatureUtilisateur.Client));
+        var email = EnvoiNotification.Creer(_notification.Id, CanalNotification.Email);
+        AvecEnvois(email);
 
-        await Creer([new CanalDeTest(CanalNotification.Sms, abouti: true)]).ReessayerAsync();
+        await Creer([new CanalDeTest(CanalNotification.Email, abouti: true)]).ReessayerAsync();
 
-        Assert.Equal(StatutEnvoi.NonDelivrable, sms.Statut);
-        Assert.NotEqual(StatutEnvoi.Echec, sms.Statut);
+        Assert.Equal(StatutEnvoi.NonDelivrable, email.Statut);
+        Assert.NotEqual(StatutEnvoi.Echec, email.Statut);
     }
 
     [Fact]
     public async Task CanalNonConfigure_MarqueNonDelivrableSansFaireEchouerLesAutres()
     {
-        // PC-16 : un canal mobile non souscrit ne rend aucun Must de F009 inatteignable.
+        // Un canal dont aucune implémentation d'envoi n'est enregistrée ne rend aucun Must
+        // inatteignable : l'envoi correspondant est marqué NonDelivrable.
         var email = EnvoiNotification.Creer(_notification.Id, CanalNotification.Email);
-        var whatsApp = EnvoiNotification.Creer(_notification.Id, CanalNotification.WhatsApp);
-        AvecEnvois(email, whatsApp);
+        AvecEnvois(email);
 
-        await Creer([new CanalDeTest(CanalNotification.Email, abouti: true)]).ReessayerAsync();
+        // Aucun canal enregistré du tout.
+        await Creer([]).ReessayerAsync();
 
-        Assert.Equal(StatutEnvoi.Envoye, email.Statut);
-        Assert.Equal(StatutEnvoi.NonDelivrable, whatsApp.Statut);
+        Assert.Equal(StatutEnvoi.NonDelivrable, email.Statut);
     }
 }

@@ -155,7 +155,7 @@ public class PreferenceCanalUtilisateurTests
     [Fact]
     public void DesactiverPuisActiver_BasculeLEtat()
     {
-        var preference = PreferenceCanalUtilisateur.Creer(Guid.NewGuid(), CanalNotification.Sms);
+        var preference = PreferenceCanalUtilisateur.Creer(Guid.NewGuid(), CanalNotification.Email);
 
         preference.Desactiver();
         Assert.False(preference.EstActif);
@@ -168,15 +168,16 @@ public class PreferenceCanalUtilisateurTests
 public class CanalNotificationTests
 {
     [Fact]
-    public void CanalNotification_NeDefinitQueLesQuatreCanauxDuCdc()
+    public void CanalNotification_NeDefinitQueInAppEtEmail()
     {
-        // spec.md §9 : ni push mobile, ni courrier, ni voix, ni webhook.
+        // Décision produit (2026-09-25) : SMS et WhatsApp RETIRÉS. Seuls In-App et Email subsistent.
+        // Aucun autre canal (ni SMS, ni WhatsApp, ni push mobile, ni courrier, ni voix, ni webhook).
         var noms = Enum.GetNames<CanalNotification>();
 
-        Assert.Equal(4, noms.Length);
+        Assert.Equal(2, noms.Length);
         Assert.Contains("InApp", noms);
         Assert.Contains("Email", noms);
-        Assert.Contains("Sms", noms);
-        Assert.Contains("WhatsApp", noms);
+        Assert.DoesNotContain("Sms", noms);
+        Assert.DoesNotContain("WhatsApp", noms);
     }
 }

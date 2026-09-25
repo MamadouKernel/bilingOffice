@@ -1059,10 +1059,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["NotifPref.Loading"] = "Chargement de vos préférences...",
         ["NotifPref.Info"] = "Le centre de notifications du portail reste toujours actif. Certaines notifications sont <strong>obligatoires</strong> et vous seront transmises même si vous désactivez le canal correspondant.",
         ["NotifPref.CanalEmail"] = "E-mail",
-        ["NotifPref.CanalSms"] = "SMS",
-        ["NotifPref.CanalWhatsApp"] = "WhatsApp",
         ["NotifPref.DescEmail"] = "Notifications envoyées à l'adresse de votre compte.",
-        ["NotifPref.DescMobile"] = "Canal mobile — nécessite un numéro de téléphone renseigné sur votre profil.",
 
         // LOT 6b — Guichet (commun)
         ["Gui.CheckingPerm"] = "Vérification des habilitations...",
@@ -3704,10 +3701,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["NotifPref.Loading"] = "Loading your preferences...",
         ["NotifPref.Info"] = "The portal notification centre always stays active. Some notifications are <strong>mandatory</strong> and will be delivered to you even if you disable the corresponding channel.",
         ["NotifPref.CanalEmail"] = "Email",
-        ["NotifPref.CanalSms"] = "SMS",
-        ["NotifPref.CanalWhatsApp"] = "WhatsApp",
         ["NotifPref.DescEmail"] = "Notifications sent to your account address.",
-        ["NotifPref.DescMobile"] = "Mobile channel — requires a phone number set on your profile.",
 
         // LOT 6b — Counter (common)
         ["Gui.CheckingPerm"] = "Checking permissions...",

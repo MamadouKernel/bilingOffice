@@ -71,7 +71,7 @@ else
 @code {
     /// <summary>Le canal In-App est volontairement absent : il n'est pas débrayable.</summary>
     private static readonly CanalNotification[] CanauxDebrayables =
-        [CanalNotification.Email, CanalNotification.Sms, CanalNotification.WhatsApp];
+        [CanalNotification.Email];
 
     private IReadOnlyList<PreferenceCanalUtilisateur> _preferences = [];
     private bool _chargement = true;
@@ -119,17 +119,12 @@ else
     private string Libelle(CanalNotification canal) => canal switch
     {
         CanalNotification.Email => Loc["NotifPref.CanalEmail"].Value,
-        CanalNotification.Sms => Loc["NotifPref.CanalSms"].Value,
-        CanalNotification.WhatsApp => Loc["NotifPref.CanalWhatsApp"].Value,
         _ => canal.ToString(),
     };
 
     private string Description(CanalNotification canal) => canal switch
     {
         CanalNotification.Email => Loc["NotifPref.DescEmail"].Value,
-        // PC-16 : les canaux mobiles supposent une souscription non encore réalisée. Le
-        // paramétrage reste possible dès maintenant, sans bloquer le portail ni l'e-mail.
-        CanalNotification.Sms or CanalNotification.WhatsApp => Loc["NotifPref.DescMobile"].Value,
         _ => string.Empty,
     };
 }

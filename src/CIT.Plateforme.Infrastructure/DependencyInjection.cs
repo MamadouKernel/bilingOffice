@@ -420,28 +420,13 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurCollaborateurMentionne>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurDemandeurCompte>();
 
-        // Canaux externes — implémentation JOURNALISÉE, AUCUN FOURNISSEUR (research.md D10,
-        // PC-16). SMS et WhatsApp sont servis de la même manière : leur branchement réel est
-        // DIFFÉRÉ / AVANT PRODUCTION et ne bloque aucun Must de F009 (RSQ-04).
-        // Le canal In-App n'a pas d'implémentation : la notification EST sa diffusion (D3).
-        // COM-01 / ENR-04 (decision D-07) : les 3 canaux utilisent desormais un vrai transport
-        // configurable (SMTP pour Email, HTTP generique pour Sms/WhatsApp), aucun identifiant en
-        // dur. Tant que la configuration reste vide (valeurs de test livrees par defaut), l'envoi
-        // echoue proprement (ERR-02) sans bloquer le reste du systeme.
+        // Canaux de diffusion. Décision produit (2026-09-25) : SMS et WhatsApp ont été RETIRÉS —
+        // seuls In-App et Email subsistent. Le canal In-App n'a pas d'implémentation d'envoi : la
+        // notification EST sa diffusion (D3). L'Email utilise un transport SMTP configurable
+        // (COM-01 / ENR-04, decision D-07), aucun identifiant en dur ; configuration vide → l'envoi
+        // échoue proprement (ERR-02) sans bloquer le reste du système.
         services.AddHttpClient();
         services.AddScoped<Application.Abstractions.ICanalNotification, Notifications.CanalEmailSmtp>();
-        services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalHttpGenerique(
-            Domain.Notifications.CanalNotification.Sms,
-            "Notifications:Sms",
-            sp.GetRequiredService<IConfiguration>(),
-            sp.GetRequiredService<IHttpClientFactory>(),
-            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalHttpGenerique>>()));
-        services.AddScoped<Application.Abstractions.ICanalNotification>(sp => new Notifications.CanalHttpGenerique(
-            Domain.Notifications.CanalNotification.WhatsApp,
-            "Notifications:WhatsApp",
-            sp.GetRequiredService<IConfiguration>(),
-            sp.GetRequiredService<IHttpClientFactory>(),
-            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Notifications.CanalHttpGenerique>>()));
 
         // Paramètres de reprise ERR-02 — lus EXCLUSIVEMENT depuis la configuration, sans aucune
         // valeur par défaut. L'absence de configuration fait échouer le démarrage de façon

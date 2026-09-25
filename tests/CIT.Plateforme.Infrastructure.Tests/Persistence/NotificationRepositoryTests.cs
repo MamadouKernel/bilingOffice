@@ -112,10 +112,10 @@ public sealed class NotificationRepositoryTests
         await using var contexte = BaseDeTestSql.CreerContexte();
         var utilisateurId = Guid.NewGuid();
 
-        contexte.PreferencesCanalUtilisateur.Add(PreferenceCanalUtilisateur.Creer(utilisateurId, CanalNotification.Sms));
+        contexte.PreferencesCanalUtilisateur.Add(PreferenceCanalUtilisateur.Creer(utilisateurId, CanalNotification.Email));
         await contexte.SaveChangesAsync();
 
-        contexte.PreferencesCanalUtilisateur.Add(PreferenceCanalUtilisateur.Creer(utilisateurId, CanalNotification.Sms));
+        contexte.PreferencesCanalUtilisateur.Add(PreferenceCanalUtilisateur.Creer(utilisateurId, CanalNotification.Email));
 
         await Assert.ThrowsAsync<DbUpdateException>(() => contexte.SaveChangesAsync());
     }
@@ -192,7 +192,7 @@ public sealed class NotificationRepositoryTests
         var sousLePlafond = EnvoiNotification.Creer(notification.Id, CanalNotification.Email);
         sousLePlafond.EnregistrerEchec("échec 1", Maintenant.AddHours(-2));
 
-        var auPlafond = EnvoiNotification.Creer(notification.Id, CanalNotification.Sms);
+        var auPlafond = EnvoiNotification.Creer(notification.Id, CanalNotification.Email);
         auPlafond.EnregistrerEchec("échec 1", Maintenant.AddHours(-2));
         auPlafond.EnregistrerEchec("échec 2", Maintenant.AddHours(-1));
 

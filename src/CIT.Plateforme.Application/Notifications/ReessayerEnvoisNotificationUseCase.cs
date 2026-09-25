@@ -149,9 +149,6 @@ public sealed class ReessayerEnvoisNotificationUseCase(
         return canal switch
         {
             CanalNotification.Email => profil.Email,
-            // CLAR-COM-04 : le téléphone n'existe que sur le profil utilisateur, facultatif et
-            // non vérifié. Son absence rend le canal non servable — jamais une erreur.
-            CanalNotification.Sms or CanalNotification.WhatsApp => profil.Telephone,
             _ => null,
         };
     }

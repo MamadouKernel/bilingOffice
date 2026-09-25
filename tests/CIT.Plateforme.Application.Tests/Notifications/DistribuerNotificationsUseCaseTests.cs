@@ -185,16 +185,18 @@ public class DistribuerNotificationsUseCaseTests
     [Fact]
     public async Task ReglesMultiCanaux_CreentUnEnvoiParCanalExterne()
     {
+        // Depuis le retrait de SMS/WhatsApp, l'e-mail est le seul canal EXTERNE (l'In-App n'émet
+        // aucun envoi : la notification EST sa diffusion).
         AvecRegles(
             RegleDiffusion.Creer(Type, CanalNotification.InApp, false),
-            RegleDiffusion.Creer(Type, CanalNotification.Email, false),
-            RegleDiffusion.Creer(Type, CanalNotification.Sms, false));
+            RegleDiffusion.Creer(Type, CanalNotification.Email, false));
 
         await Creer().DistribuerUnEvenementAsync(EvenementId, Type, Charge);
 
-        Assert.Equal(2, _envoisAjoutes.Count);
+        Assert.Single(_envoisAjoutes);
         Assert.All(_envoisAjoutes, e => Assert.Equal(StatutEnvoi.EnAttente, e.Statut));
         Assert.DoesNotContain(_envoisAjoutes, e => e.Canal == CanalNotification.InApp);
+        Assert.Contains(_envoisAjoutes, e => e.Canal == CanalNotification.Email);
     }
 
     // ---- T057 / T193 : idempotence (scénario B, cas TEST-MSG-04-8 générique) ----
