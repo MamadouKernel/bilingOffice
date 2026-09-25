@@ -12,7 +12,7 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
-@inject IReferentielsTarifairesRepository Referentiels
+@inject ConsulterReferentielsConteneurQuery ConsulterReferentiels
 @inject AdministrerReferentielsConteneurCommandHandler Administrer
 
 <PageTitle>@Loc["RefConteneur.PageTitle"]</PageTitle>
@@ -405,12 +405,14 @@ else
     {
         try
         {
-            // Toujours les inactifs aussi : un administrateur doit pouvoir les réactiver, une
-            // simulation historique peut encore les référencer.
-            _sens = await Referentiels.ListerSensAsync(actifsSeulement: false);
-            _types = await Referentiels.ListerTypesAsync(actifsSeulement: false);
-            _tailles = await Referentiels.ListerTaillesAsync(actifsSeulement: false);
-            _categories = await Referentiels.ListerCategoriesAsync(sensOperationId: null, actifsSeulement: false);
+            // F3 — lecture via un cas d'usage cloisonné (contrôle d'habilitation TarificationAdministrer)
+            // plutôt que par accès repository direct. Les inactifs sont inclus : un administrateur doit
+            // pouvoir les réactiver, une simulation historique peut encore les référencer.
+            var vue = await ConsulterReferentiels.ExecuterAsync(_agentId);
+            _sens = vue.Sens;
+            _types = vue.Types;
+            _tailles = vue.Tailles;
+            _categories = vue.Categories;
         }
         catch (AccesRefuseException ex)
         {
