@@ -27,6 +27,15 @@ if (builder.Environment.IsEnvironment("UAT"))
     builder.Configuration.AddUserSecrets<Program>(optional: true);
 }
 
+// RECETTE — les static web assets (CSS scopé, blazor.web.js) ne sont chargés par défaut qu'en
+// Development. La recette navigateur passe par l'environnement UAT, qui doit rendre l'interface
+// stylée et interactive : on active donc explicitement les static web assets hors Production.
+// La Production sert ses assets depuis la sortie publiée et n'est jamais concernée.
+if (!builder.Environment.IsProduction())
+{
+    builder.WebHost.UseStaticWebAssets();
+}
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
