@@ -91,8 +91,15 @@ public sealed class EndpointsRecetteUatIntegrationTests(PlateformeWebApplication
         var reponse = await Client().GetAsync("/uat/session/uat.superviseur@local.test");
 
         Assert.Equal(HttpStatusCode.NotFound, reponse.StatusCode);
-        Assert.False(reponse.Headers.Contains("Set-Cookie"),
-            "Aucun cookie d'authentification ne doit être posé hors périmètre UAT.");
+
+        // L'inertie se mesure à l'absence de SESSION ouverte : aucun cookie d'AUTHENTIFICATION ne
+        // doit être posé. On cible le cookie Identity précis plutôt que tout Set-Cookie : un cookie
+        // bénin (culture, antiforgery) peut légitimement accompagner une réponse 404, sans qu'aucune
+        // session n'ait été créée — la politique refuse AVANT tout SignInAsync.
+        var cookies = reponse.Headers.TryGetValues("Set-Cookie", out var valeurs)
+            ? valeurs
+            : Array.Empty<string>();
+        Assert.DoesNotContain(cookies, c => c.Contains(".AspNetCore.Identity.Application", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

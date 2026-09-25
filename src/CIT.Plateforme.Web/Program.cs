@@ -273,8 +273,22 @@ app.MapPost("/comptes/deconnexion", async (
     SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,
     UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
     CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery,
     HttpContext contexteHttp) =>
 {
+    // SEC (CSRF) — la déconnexion est une action POST sensible sans champ de formulaire : la
+    // validation antiforgery automatique de UseAntiforgery ne s'y applique donc pas. On l'exige
+    // explicitement, sans quoi un POST forgé cross-site (qui porte le cookie de la victime, donc
+    // « authentifié ») pourrait la déconnecter. Le formulaire porte désormais <AntiforgeryToken />.
+    try
+    {
+        await antiforgery.ValidateRequestAsync(contexteHttp);
+    }
+    catch (Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException)
+    {
+        return Results.BadRequest();
+    }
+
     // P2-03 (RG-SEC-03) : la déconnexion est consignée AVANT d'être effectuée — après, l'identité
     // n'est plus lisible dans le principal.
     var identifiant = userManager.GetUserId(contexteHttp.User);
@@ -340,7 +354,18 @@ app.MapPost("/culture/set", ([Microsoft.AspNetCore.Mvc.FromForm] string culture,
             });
     }
 
-    var target = string.IsNullOrWhiteSpace(redirectUri) || !redirectUri.StartsWith("/") ? "/" : redirectUri;
+    // SEC — anti open-redirect : n'accepter qu'un chemin LOCAL. `StartsWith("/")` seul laissait
+    // passer les URL protocole-relatives (« //evil.com ») et « /\evil.com », que le navigateur
+    // résout vers un domaine externe. La cible doit commencer par un unique « / » non suivi d'un
+    // second séparateur.
+    static bool EstCheminLocal(string? uri) =>
+        !string.IsNullOrWhiteSpace(uri)
+        && uri.Length > 1
+        && uri[0] == '/'
+        && uri[1] != '/'
+        && uri[1] != '\\';
+
+    var target = EstCheminLocal(redirectUri) ? redirectUri! : "/";
     return Results.Redirect(target);
 });
 

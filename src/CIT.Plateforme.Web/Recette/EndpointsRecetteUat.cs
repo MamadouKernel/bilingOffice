@@ -69,8 +69,13 @@ public static class EndpointsRecetteUat
 
     public static void MapRecetteUat(WebApplication app)
     {
-        // BARRIÈRE 1 (ceinture) : en Production, l'endpoint n'existe tout simplement pas.
-        if (app.Environment.IsProduction())
+        // BARRIÈRE 1 (ceinture) — ALLOW-LIST : l'endpoint n'est monté QUE dans les environnements qui
+        // l'utilisent légitimement (Development pour la recette locale, UAT pour la recette). Tout
+        // autre environnement — Production, Staging, ou un EnvironmentName mal renseigné (« Prod »,
+        // « production ») — ne le monte pas du tout. C'est plus sûr qu'un deny-list « tout sauf
+        // Production », où une faute de frappe sur le nom d'environnement suffisait à l'exposer.
+        // Les barrières 2 à 4 (politique + domaine + accès) restent cumulatives par-dessus.
+        if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("UAT"))
         {
             return;
         }

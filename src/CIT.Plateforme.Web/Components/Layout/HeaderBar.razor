@@ -133,6 +133,7 @@
 
                     <!-- La déconnexion reste un POST : ne jamais la transformer en lien. -->
                     <form method="post" action="/comptes/deconnexion" class="m-0">
+                        <AntiforgeryToken />
                         <button type="submit" class="cit-user-dropdown-item danger w-100" role="menuitem">
                             <span>⏻</span> @Loc["Nav.Logout"]
                         </button>
