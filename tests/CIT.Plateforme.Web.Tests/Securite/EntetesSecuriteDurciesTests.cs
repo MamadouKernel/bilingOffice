@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -51,6 +53,38 @@ public sealed class EntetesSecuriteDurciesTests(PlateformeWebApplicationFactory 
         var csp = reponse.Headers.GetValues("Content-Security-Policy").First();
 
         Assert.DoesNotContain("unsafe-eval", csp, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// F2 (audit sécurité) — <c>script-src</c> ne porte plus <c>'unsafe-inline'</c> : il repose sur un
+    /// nonce par requête. Un script injecté par XSS, dépourvu du nonce imprévisible, est bloqué.
+    /// </summary>
+    [Fact]
+    public async Task La_politique_csp_script_src_repose_sur_un_nonce_sans_unsafe_inline()
+    {
+        using var client = Client();
+        var reponse = await client.GetAsync("/comptes/connexion");
+
+        var csp = reponse.Headers.GetValues("Content-Security-Policy").First();
+        var scriptSrc = csp.Split(';')
+            .Select(d => d.Trim())
+            .First(d => d.StartsWith("script-src", StringComparison.Ordinal));
+
+        Assert.DoesNotContain("unsafe-inline", scriptSrc, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("'nonce-", scriptSrc, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// F2 — chaque requête reçoit un nonce DISTINCT : un nonce figé serait devinable et réutilisable.
+    /// </summary>
+    [Fact]
+    public async Task Le_nonce_csp_change_a_chaque_requete()
+    {
+        using var client = Client();
+        var csp1 = (await client.GetAsync("/comptes/connexion")).Headers.GetValues("Content-Security-Policy").First();
+        var csp2 = (await client.GetAsync("/comptes/connexion")).Headers.GetValues("Content-Security-Policy").First();
+
+        Assert.NotEqual(csp1, csp2);
     }
 
     [Theory]

@@ -1,4 +1,5 @@
 @using System.Globalization
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor Http
 <!DOCTYPE html>
 <!-- NFR-01: lang="fr" par défaut -->
 <html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
@@ -15,7 +16,7 @@
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["CIT.Plateforme.Web.styles.css"]" />
-    <ImportMap />
+    <ImportMap nonce="@NonceScript" />
     <script src="js/theme-manager.js"></script>
     <HeadOutlet />
 </head>
@@ -35,3 +36,11 @@
 </body>
 
 </html>
+
+@code {
+    // F2 — nonce CSP de la requête, généré par SecurityHeadersMiddleware et posé sur l'<ImportMap>
+    // (seul script inline de la plateforme). Absent hors contexte HTTP (rendu de secours) : chaîne
+    // vide, sans incidence.
+    private string? NonceScript =>
+        Http.HttpContext?.Items[CIT.Plateforme.Web.Middlewares.SecurityHeadersMiddleware.CleNonceScript] as string;
+}

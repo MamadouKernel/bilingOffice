@@ -185,6 +185,11 @@ public sealed class SecResetDivulgationJetonTests
     {
         var normalise = Regex.Replace(corps, "value=\"[^\"]{20,}\"", "value=\"__OPAQUE__\"");
 
+        // F2 — le nonce CSP est aléatoire À CHAQUE REQUÊTE et ne dépend PAS du compte : il ne
+        // constitue donc pas un oracle d'énumération. Comme le jeton antiforgery, on le neutralise
+        // avant comparaison, sans quoi deux réponses par ailleurs identiques divergeraient à tort.
+        normalise = Regex.Replace(normalise, "nonce=\"[^\"]*\"", "nonce=\"__OPAQUE__\"");
+
         // Masque toute suite base64 longue — jeton antiforgery, état de formulaire Blazor : ces
         // valeurs changent à chaque requête sans rien dire du compte. Le masque ne couvre PAS les
         // GUID (le tiret n'appartient pas à l'alphabet base64), de sorte qu'un identifiant de

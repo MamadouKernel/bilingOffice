@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -19,15 +20,21 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
     /// dynamiquement. Le conserver revenait à désarmer la principale protection de la CSP contre
     /// l'injection de script, sans contrepartie — vérifié sans erreur console sur les parcours.
     ///
-    /// <c>'unsafe-inline'</c> est conservé : le balisage porte des styles et des scripts en ligne
-    /// (importmap, styles d'écran). Le retirer suppose de basculer sur des nonces — consigné
-    /// comme reste à traiter, car cela dépasse un durcissement à comportement constant.
+    /// F2 (audit sécurité) — <c>'unsafe-inline'</c> A ÉTÉ RETIRÉ de <c>script-src</c>, remplacé par
+    /// un <b>nonce par requête</b> : seul le script inline explicitement marqué du nonce s'exécute
+    /// (le seul de la plateforme est l'<c>&lt;ImportMap&gt;</c>, qui reçoit ce nonce dans App.razor).
+    /// Un script injecté par XSS, dépourvu du nonce imprévisible, est bloqué. Les scripts EXTERNES
+    /// (<c>src=…</c>) restent autorisés par <c>'self'</c> et n'ont pas besoin du nonce.
+    ///
+    /// <c>style-src</c> conserve <c>'unsafe-inline'</c> : les attributs <c>style="…"</c> en ligne
+    /// (Bootstrap, styles d'écran) ne PEUVENT PAS porter de nonce — c'est une limite de la CSP, pas
+    /// un choix, et le risque XSS d'un attribut de style est marginal.
     /// </summary>
-    private const string PolitiqueCsp =
+    private static string PolitiqueCsp(string nonceScript) =>
         "default-src 'self'; " +
         "img-src 'self' data:; " +
         "style-src 'self' 'unsafe-inline'; " +
-        "script-src 'self' 'unsafe-inline'; " +
+        $"script-src 'self' 'nonce-{nonceScript}'; " +
         "connect-src 'self' ws: wss:; " +
         "font-src 'self'; " +
         "base-uri 'self'; " +
@@ -35,12 +42,20 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         "object-src 'none'; " +
         "frame-ancestors 'self'";
 
+    /// <summary>Clé sous laquelle le nonce de la requête est exposé aux composants (App.razor).</summary>
+    public const string CleNonceScript = "csp-script-nonce";
+
     private const string PolitiquePermissions =
         "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), " +
         "microphone=(), payment=(), usb=()";
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // F2 — le nonce est généré EN FLUX (avant le rendu), pour que App.razor puisse le lire et
+        // le poser sur l'<ImportMap>. 16 octets aléatoires cryptographiques suffisent (imprévisible).
+        var nonceScript = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
+        context.Items[CleNonceScript] = nonceScript;
+
         // Les en-têtes sont posés À L'ÉMISSION de la réponse, et non à l'entrée du pipeline.
         //
         // POURQUOI : ce middleware est le premier du pipeline. L'infrastructure Blazor ajoute
@@ -58,7 +73,7 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
             entetes["X-Content-Type-Options"] = "nosniff";
             entetes["X-Frame-Options"] = "SAMEORIGIN";
             entetes["Referrer-Policy"] = "strict-origin-when-cross-origin";
-            entetes["Content-Security-Policy"] = PolitiqueCsp;
+            entetes["Content-Security-Policy"] = PolitiqueCsp(nonceScript);
             entetes["Permissions-Policy"] = PolitiquePermissions;
 
             // Pas de mise en cache des PAGES authentifiées : sans cela, une page portant des
