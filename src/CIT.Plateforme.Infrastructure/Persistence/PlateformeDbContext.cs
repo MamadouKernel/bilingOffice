@@ -650,6 +650,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasKey(c => c.Id);
             b.Property(c => c.Code).IsRequired().HasMaxLength(64);
             b.Property(c => c.Libelle).IsRequired().HasMaxLength(256);
+            // LOT 4 — type d'objet auquel le champ s'applique (null = tous), stocke en chaine comme
+            // les autres enums.
+            b.Property(c => c.TypeObjet).HasConversion<string>().HasMaxLength(32);
             // Le code identifie le champ de facon stable : deux definitions homonymes rendraient
             // les valeurs soumises ambigues.
             b.HasIndex(c => c.Code).IsUnique();

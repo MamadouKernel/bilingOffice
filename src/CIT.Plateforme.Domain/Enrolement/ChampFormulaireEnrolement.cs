@@ -31,9 +31,18 @@ public sealed class ChampFormulaireEnrolement
     /// code, et le journal d'audit est append-only (SEC-05).</summary>
     public bool EstActif { get; private set; }
 
+    /// <summary>
+    /// LOT 4 — Type d'objet auquel ce champ s'applique. <c>null</c> = applicable à tous les types
+    /// (comportement historique, rétro-compatible : tous les champs existants restent globaux). Une
+    /// valeur restreint le champ à un type précis — ex. « N° de permis » pour un
+    /// <see cref="TypeObjetEnrolement.Chauffeur"/>, « N° de carte grise » pour un
+    /// <see cref="TypeObjetEnrolement.Camion"/>.
+    /// </summary>
+    public TypeObjetEnrolement? TypeObjet { get; private set; }
+
     private ChampFormulaireEnrolement() { }
 
-    public static ChampFormulaireEnrolement Definir(string code, string libelle, bool estObligatoire, int ordre)
+    public static ChampFormulaireEnrolement Definir(string code, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -53,10 +62,11 @@ public sealed class ChampFormulaireEnrolement
             EstObligatoire = estObligatoire,
             EstActif = true,
             Ordre = ordre,
+            TypeObjet = typeObjet,
         };
     }
 
-    public void Modifier(string libelle, bool estObligatoire, int ordre)
+    public void Modifier(string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null)
     {
         if (string.IsNullOrWhiteSpace(libelle))
         {
@@ -66,7 +76,14 @@ public sealed class ChampFormulaireEnrolement
         Libelle = libelle.Trim();
         EstObligatoire = estObligatoire;
         Ordre = ordre;
+        TypeObjet = typeObjet;
     }
+
+    /// <summary>
+    /// LOT 4 — Indique si ce champ s'applique à un objet du type donné : un champ global
+    /// (<see cref="TypeObjet"/> nul) s'applique à tous ; un champ typé ne s'applique qu'à son type.
+    /// </summary>
+    public bool EstApplicableA(TypeObjetEnrolement type) => TypeObjet is null || TypeObjet == type;
 
     public void Activer() => EstActif = true;
 

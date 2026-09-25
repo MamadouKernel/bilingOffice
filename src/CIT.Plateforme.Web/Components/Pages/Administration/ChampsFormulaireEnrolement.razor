@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
 @using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Enrolement
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
@@ -63,15 +64,23 @@ else
                 <label class="form-label small fw-bold text-dark" for="code">@Loc["AdmChampsEnrol.CodeLabel"]</label>
                 <input id="code" class="form-control" @bind="_code" placeholder="@Loc["AdmChampsEnrol.CodePlaceholder"]" />
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
                 <label class="form-label small fw-bold text-dark" for="libelle">@Loc["AdmChampsEnrol.LibelleLabel"]</label>
                 <input id="libelle" class="form-control" @bind="_libelle" placeholder="@Loc["AdmChampsEnrol.LibellePlaceholder"]" />
             </div>
             <div class="col-12 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="type-objet">@Loc["AdmChampsEnrol.TypeObjetLabel"]</label>
+                <select id="type-objet" class="form-select" @bind="_typeObjetStr">
+                    <option value="">@Loc["AdmChampsEnrol.TypeTous"]</option>
+                    <option value="@nameof(TypeObjetEnrolement.Chauffeur)">@Loc["Enrol.Objet.Chauffeur"]</option>
+                    <option value="@nameof(TypeObjetEnrolement.Camion)">@Loc["Enrol.Objet.Camion"]</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-1">
                 <label class="form-label small fw-bold text-dark" for="ordre">@Loc["AdmChampsEnrol.OrdreLabel"]</label>
                 <input id="ordre" type="number" class="form-control" @bind="_ordre" />
             </div>
-            <div class="col-12 col-md-2 form-check ps-4">
+            <div class="col-6 col-md-2 form-check ps-4">
                 <input id="obligatoire" type="checkbox" class="form-check-input" @bind="_estObligatoire" />
                 <label class="form-check-label small fw-bold text-dark" for="obligatoire">@Loc["AdmChampsEnrol.ObligatoireLabel"]</label>
             </div>
@@ -105,6 +114,7 @@ else
                             <th class="ps-4" style="width: 80px;">@Loc["AdmChampsEnrol.ColOrdre"]</th>
                             <th>@Loc["AdmChampsEnrol.ColCode"]</th>
                             <th>@Loc["AdmChampsEnrol.ColLibelle"]</th>
+                            <th>@Loc["AdmChampsEnrol.ColTypeObjet"]</th>
                             <th>@Loc["AdmChampsEnrol.ColObligatoire"]</th>
                             <th>@Loc["AdmChampsEnrol.ColState"]</th>
                             <th class="text-end pe-4">@Loc["AdmChampsEnrol.ColActions"]</th>
@@ -121,6 +131,16 @@ else
                                     </span>
                                 </td>
                                 <td class="fw-semibold text-dark">@champ.Libelle</td>
+                                <td>
+                                    @if (champ.TypeObjet is null)
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1 rounded-pill">@Loc["AdmChampsEnrol.TypeTous"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill">@Loc[$"Enrol.Objet.{champ.TypeObjet}"]</span>
+                                    }
+                                </td>
                                 <td>
                                     @if (champ.EstObligatoire)
                                     {
@@ -173,6 +193,10 @@ else
     private string _libelle = string.Empty;
     private int _ordre = 1;
     private bool _estObligatoire;
+    private string _typeObjetStr = string.Empty;
+
+    private TypeObjetEnrolement? TypeObjetSelectionne =>
+        Enum.TryParse<TypeObjetEnrolement>(_typeObjetStr, out var t) ? t : null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -234,10 +258,11 @@ else
     private Task AjouterAsync() => ExecuterAsync(async sp =>
     {
         var gererChamps = sp.GetRequiredService<GererChampsFormulaireEnrolementCommand>();
-        await gererChamps.DefinirAsync(_appelantId, _code, _libelle, _estObligatoire, _ordre);
+        await gererChamps.DefinirAsync(_appelantId, _code, _libelle, _estObligatoire, _ordre, TypeObjetSelectionne);
         _code = string.Empty;
         _libelle = string.Empty;
         _estObligatoire = false;
+        _typeObjetStr = string.Empty;
         _ordre = (_champs?.Count ?? 0) + 1;
     });
 

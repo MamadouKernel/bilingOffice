@@ -166,7 +166,7 @@
             }
 
             _utilisateurId = contexte.UtilisateurId;
-            _champsFormulaire = await ListerChampsFormulaire.ListerPourSoumissionAsync();
+            _champsFormulaire = await ListerChampsFormulaire.ListerPourSoumissionAsync(CIT.Plateforme.Domain.Enrolement.TypeObjetEnrolement.Chauffeur);
         }
         catch (Exception ex)
         {

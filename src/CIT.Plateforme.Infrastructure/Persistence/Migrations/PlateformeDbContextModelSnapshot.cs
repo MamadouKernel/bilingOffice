@@ -588,6 +588,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<int>("Ordre")
                         .HasColumnType("int");
 
+                    b.Property<string>("TypeObjet")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")

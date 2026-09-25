@@ -82,6 +82,37 @@ public sealed class ChampsFormulaireEnrolementTests
     }
 
     [Fact]
+    public async Task Lot4_ChampObligatoireTypeCamion_NeBloquePasLAutoInscriptionChauffeur()
+    {
+        var (db, soumettre, _, transporteurId) = Preparer();
+
+        // Un champ obligatoire réservé au CAMION ne doit pas s'appliquer à l'auto-inscription
+        // individuelle (personne physique = chauffeur, research.md D1).
+        db.ChampsFormulaireEnrolement.Add(CIT.Plateforme.Domain.Enrolement.ChampFormulaireEnrolement.Definir(
+            "carte_grise", "N° carte grise", estObligatoire: true, ordre: 1, CIT.Plateforme.Domain.Enrolement.TypeObjetEnrolement.Camion));
+        await db.SaveChangesAsync();
+
+        var resultat = await soumettre.ExecuterAsync(transporteurId, new SoumettreEnrolementRequete("Enrôlement chauffeur", "Sans camion."));
+
+        Assert.NotEmpty(resultat.NumeroTicket);
+    }
+
+    [Fact]
+    public async Task Lot4_ChampObligatoireTypeChauffeur_BloqueLAutoInscriptionChauffeur()
+    {
+        var (db, soumettre, _, transporteurId) = Preparer();
+
+        db.ChampsFormulaireEnrolement.Add(CIT.Plateforme.Domain.Enrolement.ChampFormulaireEnrolement.Definir(
+            "num_permis", "Numéro de permis", estObligatoire: true, ordre: 1, CIT.Plateforme.Domain.Enrolement.TypeObjetEnrolement.Chauffeur));
+        await db.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            soumettre.ExecuterAsync(transporteurId, new SoumettreEnrolementRequete("Enrôlement chauffeur", "Sans permis.")));
+
+        Assert.Contains("permis", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task TousLesChampsFournis_SoumissionReussitEtValeursPersistees()
     {
         var (db, soumettre, obtenirFiche, transporteurId) = Preparer();

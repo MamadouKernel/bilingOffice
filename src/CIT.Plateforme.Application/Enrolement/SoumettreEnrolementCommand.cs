@@ -70,7 +70,12 @@ public sealed class SoumettreEnrolementCommand(
 
         // E. Validation des champs structurés paramétrables (ENR-01, remédiation). Tant que le
         // référentiel est vide, aucune contrainte supplémentaire n'est ajoutée.
-        var champsActifs = await champsFormulaire.ListerAsync(activesUniquement: true, ct).ConfigureAwait(false);
+        // LOT 4 — l'auto-inscription individuelle concerne une personne physique = un chauffeur
+        // (research.md D1). Seuls les champs applicables au chauffeur (globaux + typés Chauffeur)
+        // sont exigés et persistés ; un champ propre au camion ne s'applique jamais ici.
+        var champsActifs = (await champsFormulaire.ListerAsync(activesUniquement: true, ct).ConfigureAwait(false))
+            .Where(c => c.EstApplicableA(CIT.Plateforme.Domain.Enrolement.TypeObjetEnrolement.Chauffeur))
+            .ToList();
         var valeursSoumises = (requete.Champs ?? [])
             .Where(v => !string.IsNullOrWhiteSpace(v.Valeur))
             .ToDictionary(v => v.ChampCode, v => v.Valeur, StringComparer.OrdinalIgnoreCase);
