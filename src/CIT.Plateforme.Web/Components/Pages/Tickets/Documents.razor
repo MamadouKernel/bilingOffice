@@ -115,11 +115,17 @@ else
                                 <td class="text-end">
                                     @if (doc.StatutAntivirus == StatutAnalyseAntivirus.Sain)
                                     {
-                                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                                @onclick="() => TelechargerAsync(doc)"
-                                                disabled="@(_telechargementEnCours == doc.Id)">
-                                            @(_telechargementEnCours == doc.Id ? Loc["Docs.Preparing"].Value : Loc["Docs.Download"].Value)
-                                        </button>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-primary"
+                                                    @onclick="() => OuvrirApercuAsync(doc)">
+                                                👁 @Loc["Preview.Open"]
+                                            </button>
+                                            <button type="button" class="btn btn-outline-primary"
+                                                    @onclick="() => TelechargerAsync(doc)"
+                                                    disabled="@(_telechargementEnCours == doc.Id)">
+                                                @(_telechargementEnCours == doc.Id ? Loc["Docs.Preparing"].Value : Loc["Docs.Download"].Value)
+                                            </button>
+                                        </div>
                                     }
                                     else
                                     {
@@ -140,6 +146,13 @@ else
             </div>
         </div>
     }
+
+    <ApercuDocument EstOuvert="@(_apercuDoc is not null)"
+                    NomFichier="@(_apercuDoc?.NomFichier ?? string.Empty)"
+                    TypeContenu="@(_apercuDoc?.TypeContenu ?? string.Empty)"
+                    Base64="@_apercuBase64"
+                    OnFermer="FermerApercu"
+                    OnTelecharger="TelechargerDepuisApercuAsync" />
 }
 
 @code {
@@ -227,24 +240,72 @@ else
     /// dépôt : la voie agent et la voie client ne portent pas les mêmes contrôles, et la nature de
     /// l'utilisateur authentifié — jamais un champ de saisie — décide de celle qu'on emprunte.
     /// </summary>
+    /// <summary>
+    /// Lecture du contenu d'une pièce, commune au téléchargement et à l'aperçu : même cas d'usage,
+    /// mêmes contrôles (SEC-12). La voie client ou agent est décidée par la nature de l'utilisateur.
+    /// </summary>
+    private async Task<string> LireContenuAsync(DocumentItemVue doc)
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var telecharger = scope.ServiceProvider.GetRequiredService<TelechargerDocumentQuery>();
+
+        await using var flux = _estClient
+            ? await telecharger.TelechargerPourClientAsync(_appelantId, doc.Id)
+            : await telecharger.TelechargerPourAgentAsync(_appelantId, doc.Id);
+
+        await using var memoire = new MemoryStream();
+        await flux.CopyToAsync(memoire);
+        return Convert.ToBase64String(memoire.ToArray());
+    }
+
+    // ---- Aperçu dans l'application ----
+    private DocumentItemVue? _apercuDoc;
+    private string? _apercuBase64;
+
+    private async Task OuvrirApercuAsync(DocumentItemVue doc)
+    {
+        _message = null;
+        _apercuDoc = doc;
+        _apercuBase64 = null; // affiche l'indicateur de chargement dans la fenêtre
+        StateHasChanged();
+        try
+        {
+            _apercuBase64 = await LireContenuAsync(doc);
+        }
+        catch (Exception ex) when (ex is AccesRefuseException or DocumentNonAccessibleException)
+        {
+            _apercuDoc = null;
+            _erreur = true;
+            _message = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _apercuDoc = null;
+            _erreur = true;
+            _message = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private void FermerApercu()
+    {
+        _apercuDoc = null;
+        _apercuBase64 = null;
+    }
+
+    private async Task TelechargerDepuisApercuAsync()
+    {
+        if (_apercuDoc is null || _apercuBase64 is null) return;
+        await Js.InvokeVoidAsync("telechargerFichier", _apercuDoc.NomFichier, _apercuDoc.TypeContenu, _apercuBase64);
+    }
+
     private async Task TelechargerAsync(DocumentItemVue doc)
     {
         _message = null;
         _telechargementEnCours = doc.Id;
         try
         {
-            using var scope = ScopeFactory.CreateScope();
-            var telecharger = scope.ServiceProvider.GetRequiredService<TelechargerDocumentQuery>();
-
-            await using var flux = _estClient
-                ? await telecharger.TelechargerPourClientAsync(_appelantId, doc.Id)
-                : await telecharger.TelechargerPourAgentAsync(_appelantId, doc.Id);
-
-            await using var memoire = new MemoryStream();
-            await flux.CopyToAsync(memoire);
-
-            await Js.InvokeVoidAsync(
-                "telechargerFichier", doc.NomFichier, doc.TypeContenu, Convert.ToBase64String(memoire.ToArray()));
+            var base64 = await LireContenuAsync(doc);
+            await Js.InvokeVoidAsync("telechargerFichier", doc.NomFichier, doc.TypeContenu, base64);
         }
         catch (AccesRefuseException ex)
         {

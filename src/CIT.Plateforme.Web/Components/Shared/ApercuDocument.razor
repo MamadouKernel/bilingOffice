@@ -1,0 +1,111 @@
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IJSRuntime Js
+@implements IAsyncDisposable
+
+@* APERÇU D'UNE PIÈCE JOINTE DANS L'APPLICATION. Le contenu est fourni par la page hôte, qui l'a
+   obtenu par le cas d'usage sécurisé (TelechargerDocumentQuery) : ce composant n'accède à rien
+   lui-même. PDF → lecteur intégré du navigateur ; image → affichage direct ; autre format →
+   invitation à télécharger. Échap ou clic sur le voile ferment l'aperçu. *@
+@if (EstOuvert)
+{
+    <div class="cit-modal-backdrop cit-voile-confirmation" @onclick="FermerAsync">
+        <div class="cit-apercu" role="dialog" aria-modal="true" aria-labelledby="@_idTitre"
+             tabindex="-1" @onclick:stopPropagation="true" @onkeydown="ToucheAsync">
+            <header class="cit-apercu-entete">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <span aria-hidden="true">@(EstPdf ? "📄" : EstImage ? "🖼️" : "📎")</span>
+                    <h2 id="@_idTitre" class="cit-apercu-titre">@NomFichier</h2>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    @if (OnTelecharger.HasDelegate)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnTelecharger.InvokeAsync()">
+                            ⬇ @Loc["Preview.Download"]
+                        </button>
+                    }
+                    <button type="button" class="btn-close" aria-label="@Loc["Preview.Close"]" @onclick="FermerAsync"></button>
+                </div>
+            </header>
+
+            <div class="cit-apercu-corps">
+                @if (Base64 is null)
+                {
+                    <IndicateurChargement Message="@Loc["Preview.Loading"]" />
+                }
+                else if (EstPdf)
+                {
+                    <iframe id="@_idCadre" class="cit-apercu-pdf" title="@NomFichier"></iframe>
+                }
+                else if (EstImage)
+                {
+                    <img id="@_idCadre" class="cit-apercu-image" alt="@NomFichier" />
+                }
+                else
+                {
+                    <div class="text-center text-muted p-5">
+                        <div class="fs-1 mb-2" aria-hidden="true">📎</div>
+                        <p class="mb-3">@Loc["Preview.Unsupported"]</p>
+                        @if (OnTelecharger.HasDelegate)
+                        {
+                            <button type="button" class="btn btn-primary" @onclick="() => OnTelecharger.InvokeAsync()">⬇ @Loc["Preview.Download"]</button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool EstOuvert { get; set; }
+    [Parameter] public string NomFichier { get; set; } = string.Empty;
+    [Parameter] public string TypeContenu { get; set; } = string.Empty;
+
+    /// <summary>Contenu du fichier en base64. <c>null</c> tant qu'il se charge.</summary>
+    [Parameter] public string? Base64 { get; set; }
+
+    [Parameter] public EventCallback OnFermer { get; set; }
+    [Parameter] public EventCallback OnTelecharger { get; set; }
+
+    private readonly string _idCadre = $"apercu-{Guid.NewGuid():N}";
+    private readonly string _idTitre = $"apercu-titre-{Guid.NewGuid():N}";
+    private string? _base64Affiche;
+
+    private bool EstPdf => TypeContenu.Contains("pdf", StringComparison.OrdinalIgnoreCase)
+                           || NomFichier.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+
+    private bool EstImage => TypeContenu.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Type MIME effectif : certains dépôts anciens n'ont pas de type fiable.</summary>
+    private string TypeEffectif => EstPdf ? "application/pdf" : TypeContenu;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Le contenu est injecté dans le cadre une fois rendu, et une seule fois par fichier.
+        if (EstOuvert && Base64 is not null && (EstPdf || EstImage) && !ReferenceEquals(_base64Affiche, Base64))
+        {
+            _base64Affiche = Base64;
+            await Js.InvokeVoidAsync("apercuDocument.ouvrir", _idCadre, TypeEffectif, Base64);
+        }
+    }
+
+    private async Task FermerAsync()
+    {
+        await LibererAsync();
+        await OnFermer.InvokeAsync();
+    }
+
+    private Task ToucheAsync(KeyboardEventArgs e) => e.Key == "Escape" ? FermerAsync() : Task.CompletedTask;
+
+    private async Task LibererAsync()
+    {
+        if (_base64Affiche is null) return;
+        _base64Affiche = null;
+        try { await Js.InvokeVoidAsync("apercuDocument.fermer", _idCadre); }
+        catch (JSDisconnectedException) { /* circuit fermé : rien à libérer côté navigateur */ }
+    }
+
+    public async ValueTask DisposeAsync() => await LibererAsync();
+}

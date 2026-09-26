@@ -32,7 +32,11 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
     /// </summary>
     private static string PolitiqueCsp(string nonceScript) =>
         "default-src 'self'; " +
-        "img-src 'self' data:; " +
+        // blob: — aperçu des pièces jointes dans l'application (ApercuDocument) : le fichier, déjà
+        // contrôlé par TelechargerDocumentQuery, est rendu depuis un objet blob créé par la page
+        // elle-même. Aucune origine externe n'est ouverte.
+        "img-src 'self' data: blob:; " +
+        "frame-src 'self' blob:; " +
         "style-src 'self' 'unsafe-inline'; " +
         $"script-src 'self' 'nonce-{nonceScript}'; " +
         "connect-src 'self' ws: wss:; " +
