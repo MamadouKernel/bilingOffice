@@ -915,6 +915,11 @@ else
             new ElementPermission(Permission.AdministrationPerimetresSupervision, Loc["AdmCompte.P.AdminPerim"].Value),
             new ElementPermission(Permission.AdministrationNotifications, Loc["AdmCompte.P.AdminNotif"].Value),
             new ElementPermission(Permission.AuditConsulter, Loc["AdmCompte.P.AuditConsulter"].Value),
+        ]),
+        new GroupePermissions(Loc["AdmCompte.G.SupportIt"].Value, "🎧", [
+            new ElementPermission(Permission.SupportIncidentInstruire, Loc["AdmCompte.P.IncidentN1"].Value),
+            new ElementPermission(Permission.SupportIncidentInstruireN2, Loc["AdmCompte.P.IncidentN2"].Value),
+            new ElementPermission(Permission.AdministrationCategoriesIncident, Loc["AdmCompte.P.IncidentCategories"].Value),
         ])
     ];
 

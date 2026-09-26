@@ -2,6 +2,7 @@ using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.SupportTechnique;
 using CIT.Plateforme.Domain.Files;
+using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 using Moq;
 using Xunit;
@@ -50,6 +51,7 @@ public class IncidentTraitementCommandTests
     {
         var ticket = IncidentEnCours();
         _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+        AutoriserN1();
 
         await Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), ticket.Id, "Cache vidé, service redémarré."), CancellationToken.None);
 
@@ -57,6 +59,32 @@ public class IncidentTraitementCommandTests
         Assert.Equal("Cache vidé, service redémarré.", ticket.ReponseFormalisee);
         _uow.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Resoudre_est_autorise_par_la_permission_N2_seule()
+    {
+        var ticket = IncidentEnCours();
+        _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+        _autorisation.Setup(a => a.EstAutoriseAsync(It.IsAny<Guid>(), Permission.SupportIncidentInstruireN2, It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), ticket.Id, "Correctif appliqué."), CancellationToken.None);
+
+        Assert.Equal(StatutTicket.Cloture, ticket.Statut);
+    }
+
+    [Fact]
+    public async Task Resoudre_sans_habilitation_est_refuse()
+    {
+        var ticket = IncidentEnCours();
+        _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+
+        await Assert.ThrowsAsync<AccesRefuseException>(
+            () => Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), ticket.Id, "x"), CancellationToken.None));
+        _uow.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private void AutoriserN1() =>
+        _autorisation.Setup(a => a.EstAutoriseAsync(It.IsAny<Guid>(), Permission.SupportIncidentInstruire, It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
     [Fact]
     public async Task Resoudre_refuse_un_ticket_d_un_autre_module()

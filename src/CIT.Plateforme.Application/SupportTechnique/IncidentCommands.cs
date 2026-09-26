@@ -109,7 +109,7 @@ public sealed class ResoudreIncidentCommand(
     public async Task ExecuterAsync(ResoudreIncidentRequete requete, CancellationToken ct = default)
     {
         var ticket = await ChargerIncidentAsync(tickets, requete.TicketId, ct).ConfigureAwait(false);
-        await autorisation.ExigerAsync(requete.AgentId, Permission.SupportIncidentInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await ExigerInstructionSurFileAsync(autorisation, requete.AgentId, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
         var statutAvant = ticket.Statut;
         ticket.CloturerAvecReponseFormalisee(requete.ReponseResolution, MotifClotureType.Normale, horloge.MaintenantUtc);
@@ -132,6 +132,24 @@ public sealed class ResoudreIncidentCommand(
         }
 
         return ticket;
+    }
+
+    /// <summary>
+    /// Exige l'habilitation d'instruction adaptée à la file de l'incident : N1
+    /// (<see cref="Permission.SupportIncidentInstruire"/>) ou N2
+    /// (<see cref="Permission.SupportIncidentInstruireN2"/>). Les habilitations étant bornées à une
+    /// file, un agent n'agit que sur les incidents de son niveau ; le Super-Admin couvre les deux.
+    /// </summary>
+    internal static async Task ExigerInstructionSurFileAsync(
+        IAutorisationService autorisation, Guid agentId, Guid fileId, CancellationToken ct)
+    {
+        var n1 = await autorisation.EstAutoriseAsync(agentId, Permission.SupportIncidentInstruire, fileId, ct).ConfigureAwait(false);
+        var n2 = await autorisation.EstAutoriseAsync(agentId, Permission.SupportIncidentInstruireN2, fileId, ct).ConfigureAwait(false);
+
+        if (!n1 && !n2)
+        {
+            throw new AccesRefuseException($"L'agent {agentId} n'a pas l'habilitation d'instruire cet incident.");
+        }
     }
 }
 

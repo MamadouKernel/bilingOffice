@@ -180,6 +180,14 @@ public static class Permission
     public const string SupportIncidentInstruire = "support.incident.instruire";
 
     /// <summary>
+    /// SUPPORT IT — instruction des incidents de SECOND NIVEAU (N2). Permet de reprendre, résoudre
+    /// ou clôturer un incident escaladé dans la file « Support IT — N2 ». Distincte de
+    /// <see cref="SupportIncidentInstruire"/> (N1) : elle permet de cloisonner les équipes N1 et N2
+    /// ; le Super Administrateur, qui détient toutes les permissions, couvre les deux niveaux.
+    /// </summary>
+    public const string SupportIncidentInstruireN2 = "support.incident.instruire.n2";
+
+    /// <summary>
     /// Administration du référentiel des catégories d'incident technique (libellé, file cible,
     /// activation), réservée à l'administrateur fonctionnel — miroir de
     /// <see cref="AdministrationCategoriesReclamation"/>.

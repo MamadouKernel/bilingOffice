@@ -958,6 +958,10 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["AdmCompte.P.AdminPerim"] = "Définition des périmètres de supervision",
         ["AdmCompte.P.AdminNotif"] = "Modèles et diffusion des notifications",
         ["AdmCompte.P.AuditConsulter"] = "Consultation du journal d'audit général",
+        ["AdmCompte.G.SupportIt"] = "Support IT",
+        ["AdmCompte.P.IncidentN1"] = "Instruire les incidents techniques (N1)",
+        ["AdmCompte.P.IncidentN2"] = "Instruire les incidents escaladés (N2)",
+        ["AdmCompte.P.IncidentCategories"] = "Administrer les catégories d'incident",
 
         // LOT 6a — Supervision (TableauDeBord)
         ["Sup.PageTitle"] = "Supervision temps réel — CIT",
@@ -3674,6 +3678,10 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["AdmCompte.P.AdminPerim"] = "Define supervision scopes",
         ["AdmCompte.P.AdminNotif"] = "Notification templates and distribution",
         ["AdmCompte.P.AuditConsulter"] = "View the general audit log",
+        ["AdmCompte.G.SupportIt"] = "IT Support",
+        ["AdmCompte.P.IncidentN1"] = "Handle technical incidents (L1)",
+        ["AdmCompte.P.IncidentN2"] = "Handle escalated incidents (L2)",
+        ["AdmCompte.P.IncidentCategories"] = "Administer incident categories",
 
         // LOT 6a — Supervision (TableauDeBord)
         ["Sup.PageTitle"] = "Real-time supervision — CIT",

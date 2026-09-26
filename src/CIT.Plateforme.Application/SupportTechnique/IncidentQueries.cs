@@ -28,15 +28,27 @@ public sealed class ConsulterFileIncidentsQuery(
             throw new InvalidOperationException("Aucune file du module Support IT n'est configurée.");
         }
 
-        if (!await PeutAccederAsync(agentId, filesSupport.Select(f => f.Id), ct).ConfigureAwait(false))
+        // N'inclure que les files sur lesquelles l'agent est habilité, avec la permission adaptée au
+        // niveau : N1 sur la file N1, N2 sur la file N2. Un agent N1 ne voit donc pas les incidents
+        // escaladés, et inversement — sauf le Super-Admin qui détient les deux.
+        var filesAccessibles = new List<Guid>();
+        foreach (var file in filesSupport)
+        {
+            if (await PeutAccederAsync(agentId, file, ct).ConfigureAwait(false))
+            {
+                filesAccessibles.Add(file.Id);
+            }
+        }
+
+        if (filesAccessibles.Count == 0)
         {
             throw new AccesRefuseException($"L'agent {agentId} n'a pas l'autorisation d'accéder aux files Support IT.");
         }
 
         var incidents = new List<Ticket>();
-        foreach (var file in filesSupport)
+        foreach (var fileId in filesAccessibles)
         {
-            incidents.AddRange(await ticketRepository.ListerParFileAsync(file.Id, ct).ConfigureAwait(false));
+            incidents.AddRange(await ticketRepository.ListerParFileAsync(fileId, ct).ConfigureAwait(false));
         }
 
         return incidents
@@ -45,18 +57,14 @@ public sealed class ConsulterFileIncidentsQuery(
             .ToList();
     }
 
-    private async Task<bool> PeutAccederAsync(Guid agentId, IEnumerable<Guid> fileIds, CancellationToken ct)
+    private async Task<bool> PeutAccederAsync(Guid agentId, Domain.Files.FileDeTraitement file, CancellationToken ct)
     {
-        foreach (var fileId in fileIds)
-        {
-            if (await autorisationService.EstAutoriseAsync(agentId, Permission.SupportIncidentInstruire, fileId, ct).ConfigureAwait(false)
-                || await autorisationService.EstAutoriseAsync(agentId, Permission.TicketPrendreEnCharge, fileId, ct).ConfigureAwait(false))
-            {
-                return true;
-            }
-        }
+        var permissionNiveau = file.Nom == SupportItConstantes.NomFileSupportItN2
+            ? Permission.SupportIncidentInstruireN2
+            : Permission.SupportIncidentInstruire;
 
-        return false;
+        return await autorisationService.EstAutoriseAsync(agentId, permissionNiveau, file.Id, ct).ConfigureAwait(false)
+            || await autorisationService.EstAutoriseAsync(agentId, Permission.TicketPrendreEnCharge, file.Id, ct).ConfigureAwait(false);
     }
 }
 
