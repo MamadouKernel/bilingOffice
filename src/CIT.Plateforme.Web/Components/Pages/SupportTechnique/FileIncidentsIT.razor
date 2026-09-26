@@ -13,6 +13,8 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterFileIncidentsQuery ConsulterFile
 @inject PrendreEnChargeCommand PrendreEnCharge
+@inject ResoudreIncidentCommand ResoudreIncident
+@inject EscaladerIncidentCommand EscaladerIncident
 
 <PageTitle>@Loc["IncidentFile.Title"] — @Loc["Common.AppTitle"]</PageTitle>
 
@@ -76,7 +78,12 @@ else
                                     }
                                     else
                                     {
-                                        <span class="badge bg-primary-subtle text-primary">@Loc["IncidentFile.InProgress"]</span>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-success fw-semibold" disabled="@_enCours"
+                                                    @onclick="() => OuvrirAction(t.Id, ActionType.Resoudre)">@Loc["IncidentFile.Resolve"]</button>
+                                            <button class="btn btn-outline-warning fw-semibold" disabled="@_enCours"
+                                                    @onclick="() => OuvrirAction(t.Id, ActionType.Escalader)">@Loc["IncidentFile.Escalate"]</button>
+                                        </div>
                                     }
                                 </td>
                             </tr>
@@ -86,9 +93,71 @@ else
             </div>
         </div>
     }
+
+    @if (_actionTicketId is not null)
+    {
+        <div class="cit-card mt-3 p-3" style="border-left:4px solid var(--azure-600);">
+            <h6 class="fw-bold mb-2">
+                @(_actionType == ActionType.Resoudre ? Loc["IncidentFile.ResolveTitle"] : Loc["IncidentFile.EscalateTitle"])
+            </h6>
+            <textarea class="form-control mb-2" rows="3"
+                      placeholder="@(_actionType == ActionType.Resoudre ? Loc["IncidentFile.ResolvePlaceholder"] : Loc["IncidentFile.EscalatePlaceholder"])"
+                      @bind="_actionTexte" @bind:event="oninput"></textarea>
+            <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="FermerAction">@Loc["Common.Cancel"]</button>
+                <button class="btn btn-primary btn-sm fw-bold" disabled="@(_enCours || string.IsNullOrWhiteSpace(_actionTexte))"
+                        @onclick="ConfirmerActionAsync">@Loc["Common.Submit"]</button>
+            </div>
+        </div>
+    }
 }
 
 @code {
+    private enum ActionType { Resoudre, Escalader }
+    private Guid? _actionTicketId;
+    private ActionType _actionType;
+    private string _actionTexte = string.Empty;
+
+    private void OuvrirAction(Guid ticketId, ActionType type)
+    {
+        _actionTicketId = ticketId;
+        _actionType = type;
+        _actionTexte = string.Empty;
+    }
+
+    private void FermerAction()
+    {
+        _actionTicketId = null;
+        _actionTexte = string.Empty;
+    }
+
+    private async Task ConfirmerActionAsync()
+    {
+        if (_enCours || _actionTicketId is null || string.IsNullOrWhiteSpace(_actionTexte)) return;
+        _enCours = true;
+        try
+        {
+            if (_actionType == ActionType.Resoudre)
+            {
+                await ResoudreIncident.ExecuterAsync(new ResoudreIncidentRequete(_agentId, _actionTicketId.Value, _actionTexte));
+            }
+            else
+            {
+                await EscaladerIncident.ExecuterAsync(new EscaladerIncidentRequete(_agentId, _actionTicketId.Value, _actionTexte));
+            }
+            FermerAction();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+
     private static readonly SharedResourcesLocalizer Loc = new();
     private bool _chargement = true;
     private bool _nonAutorise;

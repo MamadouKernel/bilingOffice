@@ -397,6 +397,8 @@ public static class DependencyInjection
         services.AddScoped<ICategorieIncidentRepository, CategorieIncidentRepository>();
         services.AddScoped<Application.SupportTechnique.SoumettreIncidentCommand>();
         services.AddScoped<Application.SupportTechnique.ConsulterFileIncidentsQuery>();
+        services.AddScoped<Application.SupportTechnique.ResoudreIncidentCommand>();
+        services.AddScoped<Application.SupportTechnique.EscaladerIncidentCommand>();
         services.AddScoped<Application.SupportTechnique.MesIncidentsQuery>();
         services.AddScoped<Application.SupportTechnique.CreerCategorieIncidentCommand>();
         services.AddScoped<Application.SupportTechnique.ModifierCategorieIncidentCommand>();
