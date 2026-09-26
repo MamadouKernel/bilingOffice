@@ -50,6 +50,7 @@ else
                         <th class="py-3">@Loc["Incident.ColSubject"]</th>
                         <th class="py-3">@Loc["Incident.Severity"]</th>
                         <th class="py-3">@Loc["Incident.ColState"]</th>
+                        <th class="py-3">@Loc["Incident.ColResponse"]</th>
                         <th class="py-3 pe-4">@Loc["Incident.ColDate"]</th>
                     </tr>
                 </thead>
@@ -61,6 +62,16 @@ else
                             <td class="py-3">@t.Objet</td>
                             <td class="py-3">@LibelleGravite(t.Gravite)</td>
                             <td class="py-3">@t.Statut</td>
+                            <td class="py-3 small">
+                                @if (!string.IsNullOrWhiteSpace(t.ReponseFormalisee))
+                                {
+                                    <span class="text-dark">@t.ReponseFormalisee</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
                             <td class="py-3 pe-4 small text-muted">@t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
                         </tr>
                     }

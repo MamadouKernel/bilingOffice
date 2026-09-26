@@ -34,6 +34,7 @@ public sealed class ResolveurClientDuDossier(
         "FactureEditee",         // IMP-11 — CDC-EXIGENCE
         "TicketTransfere",       // TRF-05 — CDC-EXIGENCE
         "RelanceEmise",          // CYC-04 (mécanisme F001) + COM-06 (canal, Could)
+        "TicketIncidentResolu",  // Support IT — le déclarant est informé de la résolution de son incident
     };
 
     public bool PeutResoudre(string typeEvenement) => TypesClient.Contains(typeEvenement);

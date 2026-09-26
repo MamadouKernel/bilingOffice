@@ -83,6 +83,11 @@ public sealed partial class DevelopmentSeeder
         // déplace pas.
         ("BadgeRemisEtDossierCloture", CanalNotification.InApp, false, "ENR-03 — cartes/BAT prêts, retrait par la société"),
         ("BadgeRemisEtDossierCloture", CanalNotification.Email, false, "ENR-03 — cartes/BAT prêts, retrait par la société"),
+
+        // SUPPORT IT — le déclarant est informé quand son incident technique est résolu (clôture
+        // avec réponse de résolution). Canal non imposé par le CDC : non obligatoire.
+        ("TicketIncidentResolu", CanalNotification.InApp, false, "Support IT — résolution d'incident notifiée au déclarant"),
+        ("TicketIncidentResolu", CanalNotification.Email, false, "Support IT — résolution d'incident notifiée au déclarant"),
     ];
 
     private async Task SeedNotificationsAsync()
@@ -111,6 +116,7 @@ public sealed partial class DevelopmentSeeder
                 "RappelExpirationBadge" => "Votre badge arrive à expiration",
                 "CompteValide" => "Votre compte entreprise est activé",
                 "CompteRejete" => "Votre demande de compte n'a pas été retenue",
+                "TicketIncidentResolu" => "Votre incident technique a été résolu",
                 _ => type,
             };
 
