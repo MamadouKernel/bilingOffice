@@ -227,6 +227,17 @@ using (var scope = app.Services.CreateScope())
     await referentiels.ExecuterAsync();
 }
 
+// IA-04 : base de connaissances de départ de l'assistant simulé, dans TOUS les environnements.
+// Sans sujets, l'assistant ne peut que recommander l'escalade ; ces sujets de premier niveau lui
+// donnent de quoi répondre aux questions courantes en attendant l'arbitrage du fournisseur (PC-18).
+// Strictement additif : inerte dès qu'un administrateur a touché au référentiel des sujets.
+using (var scope = app.Services.CreateScope())
+{
+    var sujets = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementSujetsAssistant>();
+    await sujets.ExecuterAsync();
+}
+
 // AMORCAGE DU PREMIER ADMINISTRATEUR — hors de la branche ci-dessus, donc dans TOUS les
 // environnements. Sans lui, une production demarre sans qu'aucun compte ne puisse administrer
 // les comptes agents (§ 17.3), et rien ne permet d'y remedier depuis l'application.
