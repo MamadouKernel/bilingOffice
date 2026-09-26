@@ -13,6 +13,11 @@
        portuaire n'a pas de connectivité sortante garantie), divulgation de l'IP de chaque
        poste client à un tiers, et contenu susceptible de changer sans que le dépôt bouge.
        Elles sont désormais auto-hébergées — voir les @font-face de app.css. *@
+    @* Préchargement des polices variables auto-hébergées : premier rendu directement dans la bonne
+       typographie, sans bascule visible (FOUT). crossorigin requis même en same-origin (les polices
+       sont toujours récupérées en mode CORS). *@
+    <link rel="preload" href="fonts/manrope.var.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/jetbrainsmono.var.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["CIT.Plateforme.Web.styles.css"]" />

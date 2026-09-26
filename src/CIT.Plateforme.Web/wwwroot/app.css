@@ -19,6 +19,29 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
+   0. POLICES — AUTO-HÉBERGÉES (aucune ressource externe, cf. App.razor)
+   Fichiers variables (un woff2 par famille couvre toute la plage de graisses).
+   Sous-ensemble latin (accents FR inclus). font-display: swap pour éviter le
+   texte invisible pendant le chargement.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+    font-family: 'Manrope';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('fonts/manrope.var.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url('fonts/jetbrainsmono.var.woff2') format('woff2');
+}
+
+/* --------------------------------------------------------------------------
    1. JETONS — THÈME CLAIR (référence)
    -------------------------------------------------------------------------- */
 
