@@ -33,6 +33,9 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
                 // Valeur technique de démonstration, explicitement non contractuelle (I4, CLAR-NOT-02 reste ouverte).
                 new KeyValuePair<string, string?>("Notifications:Reessai:NombreTentativesMax", "3"),
                 new KeyValuePair<string, string?>("Notifications:Reessai:DelaiEntreTentatives", "00:01:00"),
+                // Les tests simulent des utilisateurs connectés sans application TOTP : l'obligation
+                // de 2FA (activée par défaut en exécution réelle) est coupée pour eux seulement.
+                new KeyValuePair<string, string?>("Securite:DoubleAuthentificationObligatoire", "false"),
             ]);
         });
 

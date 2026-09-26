@@ -276,6 +276,10 @@ app.UseRequestLocalization(locOptions);
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 2FA OBLIGATOIRE : tout compte connecté sans double authentification active est renvoyé vers
+// la page d'activation jusqu'à ce qu'il l'ait activée. Voir DoubleAuthentificationObligatoireMiddleware.
+app.UseMiddleware<CIT.Plateforme.Web.Middlewares.DoubleAuthentificationObligatoireMiddleware>();
+
 app.UseAntiforgery();
 
 app.MapStaticAssets();

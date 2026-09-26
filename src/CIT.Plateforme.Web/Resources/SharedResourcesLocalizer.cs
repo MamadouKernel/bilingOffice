@@ -2593,6 +2593,9 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["TwoFa.MsgInvalidCode"] = "Code de vérification invalide. Assurez-vous que l'heure de votre smartphone est synchronisée et réessayez.",
         ["TwoFa.MsgEnabled"] = "La double authentification a été activée avec succès ! Vos futures connexions nécessiteront votre application TOTP.",
         ["TwoFa.MsgDisabled"] = "Le second facteur d'authentification a été désactivé.",
+        ["TwoFa.MandatoryTitle"] = "La double authentification est obligatoire",
+        ["TwoFa.MandatoryDesc"] = "Pour protéger la plateforme, chaque compte doit l'activer avant d'accéder à son espace. Configurez-la ci-dessous avec une application d'authentification.",
+        ["TwoFa.Continue"] = "Accéder à mon espace",
 
         // ===== LOT 3 - Avoir / Exonération (Nouvelle demande) =====
         ["Common.KoUnit"] = "Ko",
@@ -5327,6 +5330,9 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["TwoFa.MsgInvalidCode"] = "Invalid verification code. Make sure your smartphone's time is synchronized and try again.",
         ["TwoFa.MsgEnabled"] = "Two-factor authentication was enabled successfully! Your future logins will require your TOTP app.",
         ["TwoFa.MsgDisabled"] = "The second authentication factor has been disabled.",
+        ["TwoFa.MandatoryTitle"] = "Two-factor authentication is mandatory",
+        ["TwoFa.MandatoryDesc"] = "To protect the platform, every account must enable it before accessing its workspace. Set it up below with an authenticator app.",
+        ["TwoFa.Continue"] = "Go to my workspace",
 
         // ===== LOT 3 - Credit / Exemption (New request) =====
         ["Common.KoUnit"] = "KB",

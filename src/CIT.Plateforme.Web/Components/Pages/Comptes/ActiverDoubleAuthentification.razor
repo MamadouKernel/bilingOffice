@@ -13,6 +13,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IGenerateurQrCode GenerateurQrCode
+@inject NavigationManager Navigation
 
 <PageTitle>@Loc["TwoFa.PageTitle"]</PageTitle>
 
@@ -42,6 +43,17 @@
             }
         </div>
 
+        @if (!deuxFacteursActifs)
+        {
+            <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" role="alert">
+                <span aria-hidden="true">🔒</span>
+                <div>
+                    <strong class="d-block">@Loc["TwoFa.MandatoryTitle"]</strong>
+                    <span class="small">@Loc["TwoFa.MandatoryDesc"]</span>
+                </div>
+            </div>
+        }
+
         @if (messageSucces is not null)
         {
             <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="status">
@@ -68,12 +80,14 @@
                 </div>
             </div>
 
+            @* 2FA OBLIGATOIRE : plus de bouton « Désactiver ». On peut seulement reconfigurer
+               l'application (changement de téléphone), ce qui la laisse active. *@
             <div class="d-flex justify-content-between align-items-center pt-2">
                 <button class="btn btn-outline-secondary btn-sm" @onclick="AfficherReconfigurationAsync">
                     @Loc["TwoFa.ResetApp"]
                 </button>
-                <button class="btn btn-outline-danger btn-sm" @onclick="DesactiverAsync">
-                    @Loc["TwoFa.Disable"]
+                <button class="btn btn-primary btn-sm fw-bold px-3" @onclick="ContinuerVersMonEspace">
+                    @Loc["TwoFa.Continue"] <span aria-hidden="true">→</span>
                 </button>
             </div>
         }
@@ -230,17 +244,9 @@
         messageSucces = Loc["TwoFa.MsgEnabled"].Value;
     }
 
-    private async Task DesactiverAsync()
-    {
-        if (utilisateurCourant is null) return;
-        erreur = null;
-        messageSucces = null;
-
-        await UserManager.SetTwoFactorEnabledAsync(utilisateurCourant, false);
-        deuxFacteursActifs = false;
-        enConfiguration = false;
-        messageSucces = Loc["TwoFa.MsgDisabled"].Value;
-    }
+    // 2FA OBLIGATOIRE : la désactivation n'est plus proposée. Une fois activée, l'utilisateur
+    // rejoint son espace ; le rechargement complet repasse par le contrôle d'accès du serveur.
+    private void ContinuerVersMonEspace() => Navigation.NavigateTo("/", forceLoad: true);
 
     private static string FormaterCle(string cle)
     {
