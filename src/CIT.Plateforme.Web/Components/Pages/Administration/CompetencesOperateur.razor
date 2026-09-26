@@ -107,6 +107,7 @@ else if (_vue is not null)
             <div class="p-3 bg-light border-bottom">
                 <span class="fw-bold text-dark small">@Loc["AdmComp.AssignedTitle", _vue.Codes.Count]</span>
             </div>
+            <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <caption class="visually-hidden">@Loc["AdmComp.TableCaption"]</caption>

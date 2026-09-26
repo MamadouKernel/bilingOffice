@@ -1389,6 +1389,26 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
 }
 
 .cit-pagination-controls { display: flex; align-items: center; gap: .5rem; }
+
+/* Filtre plein texte posé au-dessus des tables (composant Shared/FiltreTable.razor) */
+.cit-filtre-table {
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+    max-width: 320px;
+    margin: 0 0 .75rem;
+    padding: 0 .5rem;
+    background: var(--surface);
+    border: 1px solid var(--field-border);
+    border-radius: var(--r-md);
+    transition: border-color var(--dur-fast, 140ms) ease, box-shadow var(--dur-base, 220ms) ease;
+}
+.cit-filtre-table:focus-within { border-color: var(--field-border-focus); box-shadow: var(--ring); }
+.cit-filtre-table .form-control { border: 0; box-shadow: none; background: transparent; padding-left: 0; }
+.cit-filtre-table .form-control:focus { box-shadow: none; }
+.cit-filtre-icone { font-size: .8rem; opacity: .6; }
+/* Filtre posé DANS une carte sans marge interne (tables pleine largeur) */
+.cit-card.p-0 > .cit-filtre-table, .p-0 > .cit-filtre-table { margin: .75rem .875rem; }
 .cit-pagination-size { width: auto; min-width: 4.5rem; }
 .cit-pagination-controls .btn { min-width: 2rem; font-size: 1rem; line-height: 1; padding: .3125rem .5rem; }
 

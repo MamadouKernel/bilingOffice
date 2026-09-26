@@ -1,0 +1,40 @@
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Filtre plein texte commun à toutes les tables : cherche dans toutes les colonnes de la ligne
+   (insensible à la casse, aux accents et aux espaces). Le nombre de résultats est affiché par la
+   barre de pagination, sous la table. La page hôte passe AuChangement="StateHasChanged". *@
+<div class="cit-filtre-table" role="search">
+    <span class="cit-filtre-icone" aria-hidden="true">🔍</span>
+    <input type="search" id="@_id" class="form-control form-control-sm"
+           placeholder="@Loc["Filter.Placeholder"]" aria-label="@Loc["Filter.Aria"]"
+           value="@Etat.Filtre" @oninput="FiltrerAsync" autocomplete="off" />
+    @if (Etat.FiltreActif)
+    {
+        <button type="button" class="btn btn-link btn-sm text-muted text-decoration-none px-2"
+                @onclick="EffacerAsync" aria-label="@Loc["Filter.Clear"]">✕</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public EtatPagination Etat { get; set; } = default!;
+
+    /// <summary>Appelé après chaque saisie : la page hôte se redessine.</summary>
+    [Parameter] public EventCallback AuChangement { get; set; }
+
+    private readonly string _id = $"filtre-table-{Guid.NewGuid():N}";
+
+    private Task FiltrerAsync(ChangeEventArgs e)
+    {
+        Etat.DefinirFiltre(e.Value?.ToString());
+        return AuChangement.InvokeAsync();
+    }
+
+    private Task EffacerAsync()
+    {
+        Etat.DefinirFiltre(null);
+        return AuChangement.InvokeAsync();
+    }
+}

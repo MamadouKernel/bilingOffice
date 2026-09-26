@@ -5,13 +5,30 @@
 
 @* Pagination commune à toutes les tables. Ne s'affiche que si la table dépasse la plus petite
    taille de page. La page hôte passe AuChangement="StateHasChanged" pour se redessiner. *@
-@if (Etat.EstUtile)
+@if (Etat.EstUtile || Etat.FiltreActif)
 {
     <nav class="cit-pagination" aria-label="@Loc["Pagination.Aria"]">
         <div class="cit-pagination-info small text-muted" aria-live="polite">
-            @Loc["Pagination.Range", Etat.PremierRang, Etat.DernierRang, Etat.Total]
+            @if (Etat.FiltreActif && Etat.Total == 0)
+            {
+                @Loc["Filter.NoResult", Etat.Filtre]
+            }
+            else if (Etat.FiltreActif)
+            {
+                @Loc["Filter.Results", Etat.Total, Etat.TotalBrut]
+                @if (Etat.EstUtile)
+                {
+                    <span> · @Loc["Pagination.Range", Etat.PremierRang, Etat.DernierRang, Etat.Total]</span>
+                }
+            }
+            else
+            {
+                @Loc["Pagination.Range", Etat.PremierRang, Etat.DernierRang, Etat.Total]
+            }
         </div>
 
+        @if (Etat.EstUtile)
+        {
         <div class="cit-pagination-controls">
             <label class="small text-muted mb-0" for="@_idTaille">@Loc["Pagination.PerPage"]</label>
             <select id="@_idTaille" class="form-select form-select-sm cit-pagination-size"
@@ -32,6 +49,7 @@
                     disabled="@(!Etat.APageSuivante)" @onclick="SuivanteAsync"
                     aria-label="@Loc["Pagination.Next"]">›</button>
         </div>
+        }
     </nav>
 }
 

@@ -123,6 +123,7 @@ else if (_dashboard is not null)
     {
         <h5 class="fw-bold text-dark mb-3">@Loc["Agent.MyFilesTitle"]</h5>
         <div class="cit-card p-0 overflow-hidden mb-4">
+            <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">

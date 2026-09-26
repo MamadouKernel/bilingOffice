@@ -69,6 +69,7 @@ else if (vuesFiles is not null)
         <div class="p-3 bg-light border-bottom">
             <h6 class="fw-bold text-dark mb-0">@Loc["Sup.FilesTitle"]</h6>
         </div>
+        <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -130,6 +131,7 @@ else if (vuesFiles is not null)
         <div class="p-3 bg-light border-bottom">
             <h6 class="fw-bold text-dark mb-0">@Loc["Sup.ChargeTitle"]</h6>
         </div>
+        <FiltreTable Etat="_pagination2" AuChangement="StateHasChanged" />
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -283,6 +285,7 @@ else if (vuesFiles is not null)
                 </div>
             </div>
 
+            <FiltreTable Etat="_pagination3" AuChangement="StateHasChanged" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <caption class="visually-hidden">@Loc["Sup.TableCaption"]</caption>
