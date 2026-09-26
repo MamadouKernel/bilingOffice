@@ -516,6 +516,21 @@ public interface ICategorieReclamationRepository
     Task<IReadOnlyList<CIT.Plateforme.Domain.Reclamations.CategorieReclamation>> ListerToutesAsync(CancellationToken ct = default);
 }
 
+/// <summary>SUPPORT IT : référentiel des catégories d'incident technique — miroir de
+/// <see cref="ICategorieReclamationRepository"/>.</summary>
+public interface ICategorieIncidentRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Incidents.CategorieIncident categorie, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Incidents.CategorieIncident?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Incidents.CategorieIncident?> ObtenirParCodeAsync(string code, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Incidents.CategorieIncident>> ListerActivesAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Incidents.CategorieIncident>> ListerToutesAsync(CancellationToken ct = default);
+}
+
 // ========================================================================================
 // FEATURE 009 — Notifications multicanales & centre in-app.
 // Le moteur consomme le journal d'événements du socle (EvenementSocle) plutôt que d'être

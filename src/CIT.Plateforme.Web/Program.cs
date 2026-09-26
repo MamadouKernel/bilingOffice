@@ -238,6 +238,16 @@ using (var scope = app.Services.CreateScope())
     await sujets.ExecuterAsync();
 }
 
+// SUPPORT IT : la file « Support IT » et les catégories d'incident de départ doivent exister dans
+// TOUS les environnements, sans quoi aucun incident technique ne peut être routé ni instruit.
+// Strictement additif — inerte dès que l'administrateur a touché au référentiel des catégories.
+using (var scope = app.Services.CreateScope())
+{
+    var supportIt = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementSupportIt>();
+    await supportIt.ExecuterAsync();
+}
+
 // AMORCAGE DU PREMIER ADMINISTRATEUR — hors de la branche ci-dessus, donc dans TOUS les
 // environnements. Sans lui, une production demarre sans qu'aucun compte ne puisse administrer
 // les comptes agents (§ 17.3), et rien ne permet d'y remedier depuis l'application.

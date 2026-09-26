@@ -817,6 +817,40 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("RendezVous", (string)null);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Incidents.CategorieIncident", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("FileCibleDefautId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("EstActif");
+
+                    b.HasIndex("FileCibleDefautId");
+
+                    b.ToTable("CategoriesIncident");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Messagerie.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2098,6 +2132,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CategorieIncidentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("CategorieReclamationId")
                         .HasColumnType("uniqueidentifier");
 
@@ -2167,6 +2204,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("FileCouranteId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Gravite")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("Module")
                         .IsRequired()
@@ -2249,6 +2290,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("rowversion");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategorieIncidentId");
 
                     b.HasIndex("CategorieReclamationId");
 
@@ -2535,6 +2578,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Incidents.CategorieIncident", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Files.FileDeTraitement", null)
+                        .WithMany()
+                        .HasForeignKey("FileCibleDefautId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", b =>
                 {
                     b.HasOne("CIT.Plateforme.Domain.Files.FileDeTraitement", null)
@@ -2697,6 +2748,11 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.Ticket", b =>
                 {
+                    b.HasOne("CIT.Plateforme.Domain.Incidents.CategorieIncident", null)
+                        .WithMany()
+                        .HasForeignKey("CategorieIncidentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", null)
                         .WithMany()
                         .HasForeignKey("CategorieReclamationId")

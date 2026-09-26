@@ -23,6 +23,8 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 006 (Customer Complaint) : Catégories de réclamation (REC-02).</summary>
     public DbSet<Domain.Reclamations.CategorieReclamation> CategoriesReclamation => Set<Domain.Reclamations.CategorieReclamation>();
 
+    public DbSet<Domain.Incidents.CategorieIncident> CategoriesIncident => Set<Domain.Incidents.CategorieIncident>();
+
     public DbSet<Dossier> Dossiers => Set<Dossier>();
 
     public DbSet<FileDeTraitement> Files => Set<FileDeTraitement>();
@@ -236,6 +238,17 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
                 .HasForeignKey(t => t.CategorieReclamationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // EXTENSIONS Support IT (incident technique) : catégorie technique (FK) + gravité (énum
+            // stockée en chaîne, comme les autres énums du ticket).
+            b.HasOne<Domain.Incidents.CategorieIncident>()
+                .WithMany()
+                .HasForeignKey(t => t.CategorieIncidentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.Property(t => t.Gravite)
+                .HasConversion<string>()
+                .HasMaxLength(16);
+
             // EXTENSIONS FEATURE 007 (Avoir & Exonération, research.md D3)
             b.Property(t => t.DecisionAvoirExo)
                 .HasConversion<string>()
@@ -272,6 +285,20 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
         // FEATURE 006 (Customer Complaint) : référentiel des catégories.
         builder.Entity<Domain.Reclamations.CategorieReclamation>(b =>
+        {
+            b.HasKey(c => c.Id);
+            b.Property(c => c.Code).IsRequired().HasMaxLength(50);
+            b.HasIndex(c => c.Code).IsUnique();
+            b.Property(c => c.Libelle).IsRequired().HasMaxLength(100);
+            b.HasIndex(c => c.EstActif);
+            b.HasOne<FileDeTraitement>()
+                .WithMany()
+                .HasForeignKey(c => c.FileCibleDefautId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // SUPPORT IT : référentiel des catégories d'incident technique — miroir de CategorieReclamation.
+        builder.Entity<Domain.Incidents.CategorieIncident>(b =>
         {
             b.HasKey(c => c.Id);
             b.Property(c => c.Code).IsRequired().HasMaxLength(50);

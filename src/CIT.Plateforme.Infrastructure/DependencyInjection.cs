@@ -177,6 +177,8 @@ public static class DependencyInjection
         services.AddScoped<Persistence.ProvisionnementReferentielsTarifaires>();
         // IA-04 : base de connaissances de départ de l'assistant simulé (additif, si base vide).
         services.AddScoped<Persistence.ProvisionnementSujetsAssistant>();
+        // Support IT : file « Support IT » + catégories d'incident de départ (additif).
+        services.AddScoped<Persistence.ProvisionnementSupportIt>();
         services.AddScoped<AttenteClientCommand>();
         services.AddScoped<RelancesAbsenceReponseUseCase>();
         services.AddHostedService<TraitementsDeFond.RelancesAbsenceReponseService>();
@@ -390,6 +392,16 @@ public static class DependencyInjection
         services.AddScoped<Application.Tickets.CloturerReclamationCommand>();
         services.AddScoped<Application.Tickets.EvaluerReclamationCommand>();
         services.AddScoped<Application.Tickets.ModifierCategoriesReclamationCommand>();
+
+        // SUPPORT IT — Incident technique (canal distinct des réclamations métier)
+        services.AddScoped<ICategorieIncidentRepository, CategorieIncidentRepository>();
+        services.AddScoped<Application.SupportTechnique.SoumettreIncidentCommand>();
+        services.AddScoped<Application.SupportTechnique.ConsulterFileIncidentsQuery>();
+        services.AddScoped<Application.SupportTechnique.MesIncidentsQuery>();
+        services.AddScoped<Application.SupportTechnique.CreerCategorieIncidentCommand>();
+        services.AddScoped<Application.SupportTechnique.ModifierCategorieIncidentCommand>();
+        services.AddScoped<Application.SupportTechnique.ListerCategoriesIncidentQuery>();
+        services.AddScoped<Application.SupportTechnique.ListerToutesCategoriesIncidentQuery>();
 
         // FEATURE 008 — Enrôlement Transporteurs
         services.AddScoped<Application.Enrolement.SoumettreEnrolementCommand>();

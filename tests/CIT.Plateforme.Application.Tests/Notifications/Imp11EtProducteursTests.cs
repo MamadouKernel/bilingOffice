@@ -99,7 +99,10 @@ public class Imp11EtProducteursTests
         // ticket). Son objectif est inchangé : détecter tout producteur d'événement non délibéré.
         // Seul l'inventaire attendu est mis à jour, et chaque nouveau producteur est nommé ci-dessous
         // pour que sa disparition soit à son tour détectée.
-        Assert.Equal(29, fichiersProducteurs.Count);
+        // 30e producteur — SUPPORT IT : IncidentCommands.cs publie TicketCree à la déclaration d'un
+        // incident technique, comme toute création de ticket. Producteur délibéré, nommé ci-dessous.
+        Assert.Equal(30, fichiersProducteurs.Count);
+        Assert.Contains("IncidentCommands.cs", fichiersProducteurs);
         Assert.Contains("SoumettreEnrolementSocieteCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreRetraitEnrolementSocieteCommand.cs", fichiersProducteurs);
         Assert.Contains("EmettreDraftInExportCommand.cs", fichiersProducteurs);
