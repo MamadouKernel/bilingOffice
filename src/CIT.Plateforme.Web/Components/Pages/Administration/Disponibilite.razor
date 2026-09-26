@@ -106,7 +106,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var operateur in _operateurs)
+                        @foreach (var operateur in _pagination1.Appliquer(_operateurs))
                         {
                             <tr>
                                 <td class="text-dark fw-semibold">@NomLisible(operateur)</td>
@@ -121,12 +121,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;

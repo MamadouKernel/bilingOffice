@@ -1,4 +1,4 @@
-﻿@page "/client/dashboard"
+@page "/client/dashboard"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Client
@@ -127,7 +127,7 @@ else if (_dashboard is not null)
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var d in _dashboard.DemandesRecentes)
+                        @foreach (var d in _pagination1.Appliquer(_dashboard.DemandesRecentes))
                         {
                             <tr>
                                 <td class="fw-bold">
@@ -168,12 +168,15 @@ else if (_dashboard is not null)
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         }
     </div>
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private string? _erreur;
     private DashboardClientVue? _dashboard;

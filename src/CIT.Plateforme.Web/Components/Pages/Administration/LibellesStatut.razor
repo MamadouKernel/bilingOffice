@@ -74,7 +74,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var l in _libelles)
+                        @foreach (var l in _pagination1.Appliquer(_libelles))
                         {
                             <tr>
                                 <td class="ps-4 fw-bold text-primary font-monospace">@l.Code</td>
@@ -111,12 +111,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<LibelleStatutVue> _libelles = [];
     private Guid _appelantId;
     private bool _chargement = true;

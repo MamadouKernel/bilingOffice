@@ -1,4 +1,4 @@
-﻿@page "/billing-import/facturation"
+@page "/billing-import/facturation"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -92,7 +92,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ticket in _tickets)
+                        @foreach (var ticket in _pagination1.Appliquer(_tickets))
                         {
                             var t = ticket;
                             <tr>
@@ -124,12 +124,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private static readonly ReglesDepotDocument ReglesDemonstration = new(
         ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
 

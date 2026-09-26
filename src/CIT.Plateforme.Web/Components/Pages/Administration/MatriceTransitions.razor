@@ -133,7 +133,7 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var t in _vue.Transitions)
+                            @foreach (var t in _pagination1.Appliquer(_vue.Transitions))
                             {
                                 <tr>
                                     <td class="ps-4 fw-semibold text-dark">@t.FileSourceNom</td>
@@ -161,6 +161,7 @@ else
                             }
                         </tbody>
                     </table>
+                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                 </div>
             </div>
         }
@@ -177,6 +178,8 @@ else
                     OnAnnuler="AnnulerConfirmation" />
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private MatriceTransitionsVue? _vue;
     private Guid _appelantId;
     private bool _chargement = true;

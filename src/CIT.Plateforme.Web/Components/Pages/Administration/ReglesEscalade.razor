@@ -128,7 +128,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var r in _regles)
+                        @foreach (var r in _pagination1.Appliquer(_regles))
                         {
                             <tr class="@(r.EstActive ? "" : "opacity-50")">
                                 <td class="fw-semibold">@Libelle(r.Action)</td>
@@ -155,12 +155,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<RegleEscaladeVue>? _regles;
     private IReadOnlyList<(Guid, string)> _files = [];
     private IReadOnlyList<(Guid, string)> _priorites = [];

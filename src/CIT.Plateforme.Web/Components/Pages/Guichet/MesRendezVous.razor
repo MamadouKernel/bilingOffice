@@ -1,4 +1,4 @@
-﻿@page "/rendez-vous/mes-rendez-vous"
+@page "/rendez-vous/mes-rendez-vous"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -179,7 +179,7 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var r in _rendezVousList)
+                            @foreach (var r in _pagination1.Appliquer(_rendezVousList))
                             {
                                 <tr>
                                     <td>
@@ -232,6 +232,7 @@ else
                             }
                         </tbody>
                     </table>
+                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                 </div>
             </div>
         </div>
@@ -239,6 +240,8 @@ else
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargementInitial = true;
     private Guid _utilisateurId;
     private IReadOnlyList<RendezVousClientDto> _rendezVousList = [];

@@ -1,4 +1,4 @@
-﻿@page "/guichet/agenda"
+@page "/guichet/agenda"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -114,7 +114,7 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var rdv in _rendezVousJournee)
+                            @foreach (var rdv in _pagination1.Appliquer(_rendezVousJournee))
                             {
                                 <tr>
                                     <td class="fw-bold">
@@ -161,6 +161,7 @@ else
                             }
                         </tbody>
                     </table>
+                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                 </div>
             </div>
         </div>
@@ -168,6 +169,8 @@ else
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargementInitial = true;
     private bool _estHabilite = false;
     private Guid _agentId;

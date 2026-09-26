@@ -1,4 +1,4 @@
-﻿@page "/enrolement/mes-enrolements"
+@page "/enrolement/mes-enrolements"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Enrolement
@@ -65,7 +65,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var t in _enrolements)
+                    @foreach (var t in _pagination1.Appliquer(_enrolements))
                     {
                         <tr>
                             <td class="fw-bold text-primary font-monospace">@t.Numero</td>
@@ -90,11 +90,14 @@ else
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private string? _erreur;
     private IReadOnlyList<Ticket> _enrolements = [];

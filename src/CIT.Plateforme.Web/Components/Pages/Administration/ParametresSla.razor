@@ -144,7 +144,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var p in _parametres.OrderByDescending(x => x.Specificite).ThenBy(x => x.Module))
+                        @foreach (var p in _pagination1.Appliquer(_parametres.OrderByDescending(x => x.Specificite).ThenBy(x => x.Module)))
                         {
                             <tr>
                                 <td class="fw-semibold">@p.Module</td>
@@ -164,6 +164,7 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
@@ -179,6 +180,8 @@ else
                     OnAnnuler="AnnulerConfirmation" />
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<ParametreSlaAdministrable>? _parametres;
     private AxesSlaDisponibles? _axes;
     private Guid _appelantId;

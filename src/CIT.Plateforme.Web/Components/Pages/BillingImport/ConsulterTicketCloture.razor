@@ -1,4 +1,4 @@
-﻿@page "/billing-import/ticket-cloture"
+@page "/billing-import/ticket-cloture"
 @page "/billing-import/ticket-cloture/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -64,7 +64,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var document in _documents)
+                            @foreach (var document in _pagination1.Appliquer(_documents))
                             {
                                 <tr>
                                     <td>
@@ -81,6 +81,7 @@
                             }
                         </tbody>
                     </table>
+                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                 </div>
             </div>
         }
@@ -88,6 +89,8 @@
 </div>
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     [Parameter] public Guid? TicketId { get; set; }
 
     private bool _chargement = true;

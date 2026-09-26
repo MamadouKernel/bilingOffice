@@ -1,4 +1,4 @@
-﻿@page "/administration/notifications"
+@page "/administration/notifications"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Notifications
@@ -62,7 +62,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var regle in _regles)
+                @foreach (var regle in _pagination1.Appliquer(_regles))
                 {
                     <tr>
                         <td><code>@regle.TypeEvenement</code></td>
@@ -97,6 +97,7 @@ else
                 }
             </tbody>
         </table>
+        <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
     </div>
 
     <h3 class="h5 mt-4">@Loc["NotifAdm.ModelesTitle"]</h3>
@@ -111,7 +112,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var modele in _modeles)
+                @foreach (var modele in _pagination2.Appliquer(_modeles))
                 {
                     <tr>
                         <td><code>@modele.TypeEvenement</code></td>
@@ -122,10 +123,14 @@ else
                 }
             </tbody>
         </table>
+        <Pagination Etat="_pagination2" AuChangement="StateHasChanged" />
     </div>
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+    private readonly EtatPagination _pagination2 = new();
+
     private IReadOnlyList<RegleDiffusion> _regles = [];
     private IReadOnlyList<ModeleNotification> _modeles = [];
     private bool _chargement = true;

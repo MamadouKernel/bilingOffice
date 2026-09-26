@@ -106,7 +106,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var s in _seuils)
+                        @foreach (var s in _pagination1.Appliquer(_seuils))
                         {
                             <tr>
                                 <td class="fw-semibold">@s.Module</td>
@@ -133,12 +133,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         }
     </div>
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _refuse;
     private bool _enregistrement;

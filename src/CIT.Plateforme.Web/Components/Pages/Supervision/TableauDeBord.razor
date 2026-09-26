@@ -1,4 +1,4 @@
-﻿@page "/supervision"
+@page "/supervision"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Securite
@@ -87,7 +87,7 @@ else if (vuesFiles is not null)
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var vue in vuesFiles)
+                    @foreach (var vue in _pagination1.Appliquer(vuesFiles))
                     {
                         <tr>
                             <td class="text-dark fw-semibold">
@@ -119,6 +119,7 @@ else if (vuesFiles is not null)
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
@@ -141,7 +142,7 @@ else if (vuesFiles is not null)
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var vue in vuesCharge)
+                    @foreach (var vue in _pagination2.Appliquer(vuesCharge))
                     {
                         <tr>
                             <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(vue.NomOperateur) ? Loc["Sup.OperateurNonId"].Value : vue.NomOperateur)</td>
@@ -166,6 +167,7 @@ else if (vuesFiles is not null)
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination2" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
@@ -296,7 +298,7 @@ else if (vuesFiles is not null)
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ticket in _ticketsFile)
+                        @foreach (var ticket in _pagination3.Appliquer(_ticketsFile))
                         {
                             <tr>
                                 <td>
@@ -322,6 +324,7 @@ else if (vuesFiles is not null)
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination3" AuChangement="StateHasChanged" />
             </div>
         }
     </div>
@@ -329,6 +332,10 @@ else if (vuesFiles is not null)
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+    private readonly EtatPagination _pagination2 = new();
+    private readonly EtatPagination _pagination3 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;

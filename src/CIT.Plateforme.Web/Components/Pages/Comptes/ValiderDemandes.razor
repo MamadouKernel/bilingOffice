@@ -1,4 +1,4 @@
-﻿@page "/comptes/valider"
+@page "/comptes/valider"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -82,7 +82,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var demande in demandes)
+                        @foreach (var demande in _pagination1.Appliquer(demandes))
                         {
                             <tr>
                                 <td class="ps-4 py-3">
@@ -144,12 +144,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private List<SocieteCliente> demandes = [];
     private readonly Dictionary<Guid, string> motifsRejet = [];
     private Guid _appelantId;

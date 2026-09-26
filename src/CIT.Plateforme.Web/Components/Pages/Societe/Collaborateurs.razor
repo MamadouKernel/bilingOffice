@@ -1,4 +1,4 @@
-﻿@page "/societe/collaborateurs"
+@page "/societe/collaborateurs"
 @page "/comptes/collaborateurs"
 @rendermode InteractiveServer
 @attribute [Authorize]
@@ -118,7 +118,7 @@ else if (_dashboard is not null)
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var invitation in _invitations)
+                        @foreach (var invitation in _pagination1.Appliquer(_invitations))
                         {
                             <tr>
                                 <td class="fw-bold">@invitation.Email</td>
@@ -147,6 +147,7 @@ else if (_dashboard is not null)
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         }
     </div>
@@ -170,7 +171,7 @@ else if (_dashboard is not null)
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var c in _dashboard.Collaborateurs)
+                    @foreach (var c in _pagination2.Appliquer(_dashboard.Collaborateurs))
                     {
                         var col = c;
                         <tr>
@@ -258,6 +259,7 @@ else if (_dashboard is not null)
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination2" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
@@ -272,6 +274,9 @@ else if (_dashboard is not null)
                     OnAnnuler="AnnulerConfirmation" />
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+    private readonly EtatPagination _pagination2 = new();
+
     private bool _chargement = true;
     private string? _erreur;
     private string? _actionMessage;

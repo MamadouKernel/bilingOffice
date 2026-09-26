@@ -1,4 +1,4 @@
-﻿@page "/tickets/{Id:guid}"
+@page "/tickets/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -451,7 +451,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach (var doc in _fiche.Documents)
+                                            @foreach (var doc in _pagination1.Appliquer(_fiche.Documents))
                                             {
                                                 <tr>
                                                     <td class="fw-semibold">📄 @doc.NomFichier</td>
@@ -462,6 +462,7 @@
                                             }
                                         </tbody>
                                     </table>
+                                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                                 </div>
                             }
                         }
@@ -477,6 +478,8 @@
 </div>
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     [Parameter]
     public Guid Id { get; set; }
 

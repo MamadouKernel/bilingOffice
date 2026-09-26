@@ -117,7 +117,7 @@ else if (_vue is not null)
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var codeAttribue in _vue.Codes)
+                        @foreach (var codeAttribue in _pagination1.Appliquer(_vue.Codes))
                         {
                             <tr>
                                 <td class="ps-4">
@@ -133,12 +133,15 @@ else if (_vue is not null)
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private CompetencesOperateurVue? _vue;
     private Guid _appelantId;
     private bool _chargement = true;

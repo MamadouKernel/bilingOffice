@@ -1,4 +1,4 @@
-﻿@page "/tickets/{TicketId:guid}/documents"
+@page "/tickets/{TicketId:guid}/documents"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Documents
@@ -105,7 +105,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var doc in _documents)
+                        @foreach (var doc in _pagination1.Appliquer(_documents))
                         {
                             <tr>
                                 <td class="fw-semibold">@doc.NomFichier</td>
@@ -135,12 +135,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     [Parameter]
     public Guid TicketId { get; set; }
 

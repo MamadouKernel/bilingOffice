@@ -1,4 +1,4 @@
-﻿@page "/comptes/profil"
+@page "/comptes/profil"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -78,7 +78,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var utilisateur in _resultat.UtilisateursRattaches)
+                        @foreach (var utilisateur in _pagination1.Appliquer(_resultat.UtilisateursRattaches))
                         {
                             <tr>
                                 <td class="text-dark fw-semibold">@NomLisible(utilisateur.UtilisateurId)</td>
@@ -101,12 +101,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private bool _sansSociete;

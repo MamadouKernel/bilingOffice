@@ -201,7 +201,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var compte in ComptesFiltres)
+                        @foreach (var compte in _pagination1.Appliquer(ComptesFiltres))
                         {
                             <tr>
                                 <!-- Identité du collaborateur -->
@@ -306,6 +306,7 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
@@ -459,6 +460,8 @@ else
                    OnFermer="@(() => _toastVisible = false)" />
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<CompteAgentVue>? _comptes;
     private Guid _appelantId;
     private bool _chargement = true;

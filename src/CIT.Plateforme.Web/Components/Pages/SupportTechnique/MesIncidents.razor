@@ -55,7 +55,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var t in _incidents)
+                    @foreach (var t in _pagination1.Appliquer(_incidents))
                     {
                         <tr>
                             <td class="ps-4 py-3 font-monospace">@t.Numero</td>
@@ -77,11 +77,14 @@ else
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private static readonly SharedResourcesLocalizer Loc = new();
     private bool _chargement = true;
     private bool _nonAutorise;

@@ -126,7 +126,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var regle in _regles.OrderBy(r => r.Ordre))
+                        @foreach (var regle in _pagination1.Appliquer(_regles.OrderBy(r => r.Ordre)))
                         {
                             <tr>
                                 <td class="ps-4 font-monospace fw-bold text-muted">#@regle.Ordre</td>
@@ -159,12 +159,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<ReglePrioriteAutomatiqueVue>? _regles;
     private IReadOnlyList<NiveauPrioriteVue>? _niveaux;
     private Guid _appelantId;

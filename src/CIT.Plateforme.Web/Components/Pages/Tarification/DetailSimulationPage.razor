@@ -1,4 +1,4 @@
-﻿@page "/simulation/{Id:guid}"
+@page "/simulation/{Id:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -86,7 +86,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var l in _detail.Lignes)
+                        @foreach (var l in _pagination1.Appliquer(_detail.Lignes))
                         {
                             <tr>
                                 <td class="fw-bold font-monospace text-dark">@l.NumeroConteneur</td>
@@ -108,6 +108,7 @@
                         </tr>
                     </tfoot>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
 
             <div class="alert alert-secondary small mt-3 mb-0">@_detail.MentionLegale</div>
@@ -127,6 +128,8 @@
 </div>
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     [Parameter]
     public Guid Id { get; set; }
 

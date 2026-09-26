@@ -1,0 +1,59 @@
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Pagination commune à toutes les tables. Ne s'affiche que si la table dépasse la plus petite
+   taille de page. La page hôte passe AuChangement="StateHasChanged" pour se redessiner. *@
+@if (Etat.EstUtile)
+{
+    <nav class="cit-pagination" aria-label="@Loc["Pagination.Aria"]">
+        <div class="cit-pagination-info small text-muted" aria-live="polite">
+            @Loc["Pagination.Range", Etat.PremierRang, Etat.DernierRang, Etat.Total]
+        </div>
+
+        <div class="cit-pagination-controls">
+            <label class="small text-muted mb-0" for="@_idTaille">@Loc["Pagination.PerPage"]</label>
+            <select id="@_idTaille" class="form-select form-select-sm cit-pagination-size"
+                    value="@Etat.TaillePage" @onchange="ChangerTailleAsync">
+                @foreach (var taille in EtatPagination.TaillesProposees)
+                {
+                    <option value="@taille">@taille</option>
+                }
+            </select>
+
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    disabled="@(!Etat.APagePrecedente)" @onclick="PrecedenteAsync"
+                    aria-label="@Loc["Pagination.Prev"]">‹</button>
+            <span class="small fw-semibold text-nowrap">
+                @Loc["Pagination.PageXofY", Etat.Page, Etat.NombrePages]
+            </span>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    disabled="@(!Etat.APageSuivante)" @onclick="SuivanteAsync"
+                    aria-label="@Loc["Pagination.Next"]">›</button>
+        </div>
+    </nav>
+}
+
+@code {
+    [Parameter, EditorRequired] public EtatPagination Etat { get; set; } = default!;
+
+    /// <summary>Appelé après chaque changement : la page hôte se redessine.</summary>
+    [Parameter] public EventCallback AuChangement { get; set; }
+
+    private readonly string _idTaille = $"pagination-taille-{Guid.NewGuid():N}";
+
+    private Task PrecedenteAsync() { Etat.Precedente(); return AuChangement.InvokeAsync(); }
+
+    private Task SuivanteAsync() { Etat.Suivante(); return AuChangement.InvokeAsync(); }
+
+    private Task ChangerTailleAsync(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var taille))
+        {
+            Etat.ChangerTaille(taille);
+        }
+
+        return AuChangement.InvokeAsync();
+    }
+}

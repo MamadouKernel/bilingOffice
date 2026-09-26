@@ -1,4 +1,4 @@
-﻿@page "/enrolement/file-agent-gate"
+@page "/enrolement/file-agent-gate"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -72,7 +72,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var t in _tickets)
+                        @foreach (var t in _pagination1.Appliquer(_tickets))
                         {
                             <tr>
                                 <td class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</td>
@@ -103,12 +103,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;

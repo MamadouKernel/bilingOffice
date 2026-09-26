@@ -1,4 +1,4 @@
-﻿@page "/enrolement/{TicketId:guid}"
+@page "/enrolement/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Documents
@@ -143,7 +143,7 @@ else if (_fiche is not null)
             <table class="table table-sm align-middle mb-0">
                 <thead class="table-light"><tr><th>@Loc["FicheEnrol.ColPiece"]</th><th>@Loc["FicheEnrol.ColSize"]</th><th>@Loc["FicheEnrol.ColAntivirus"]</th><th>@Loc["FicheEnrol.ColDepositedOn"]</th></tr></thead>
                 <tbody>
-                    @foreach (var d in f.Documents)
+                    @foreach (var d in _pagination1.Appliquer(f.Documents))
                     {
                         <tr>
                             <td class="fw-semibold text-dark">📄 @d.NomFichier</td>
@@ -154,6 +154,7 @@ else if (_fiche is not null)
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
         </div>
     </div>
 
@@ -175,6 +176,8 @@ else if (_fiche is not null)
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     [Parameter]
     public Guid TicketId { get; set; }
 

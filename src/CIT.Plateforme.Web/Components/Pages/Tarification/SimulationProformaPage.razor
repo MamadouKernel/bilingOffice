@@ -1,4 +1,4 @@
-﻿@page "/simulation/proforma"
+@page "/simulation/proforma"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Tarification
 @using CIT.Plateforme.Domain.Tarification
@@ -239,7 +239,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var l in _resultat.Lignes)
+                            @foreach (var l in _pagination1.Appliquer(_resultat.Lignes))
                             {
                                 <tr>
                                     <td class="fw-bold font-monospace text-dark">@l.NumeroConteneur</td>
@@ -261,6 +261,7 @@
                             </tr>
                         </tfoot>
                     </table>
+                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                 </div>
             </div>
 
@@ -288,6 +289,8 @@
 </div>
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private static readonly SharedResourcesLocalizer Loc = new();
     private bool _chargement = true;
     private bool _nonAutorise;

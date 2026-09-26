@@ -1,4 +1,4 @@
-﻿@page "/guichet/recherche"
+@page "/guichet/recherche"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -243,7 +243,7 @@ else
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var r in _resultats)
+                                @foreach (var r in _pagination1.Appliquer(_resultats))
                                 {
                                     <tr>
                                         <td class="fw-bold">@r.NumeroTicket</td>
@@ -271,6 +271,7 @@ else
                                 }
                             </tbody>
                         </table>
+                        <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                     </div>
                 }
             </div>
@@ -279,6 +280,8 @@ else
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargementInitial = true;
     private bool _estHabilite = false;
     private Guid _agentId;

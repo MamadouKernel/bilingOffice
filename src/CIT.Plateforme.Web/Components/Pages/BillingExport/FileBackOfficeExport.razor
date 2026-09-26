@@ -73,7 +73,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ticket in _tickets)
+                        @foreach (var ticket in _pagination1.Appliquer(_tickets))
                         {
                             var t = ticket;
                             <tr>
@@ -111,6 +111,7 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
@@ -167,6 +168,8 @@ else
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise = false;
     private string _messageNonAutorise = string.Empty;

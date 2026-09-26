@@ -90,7 +90,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var cat in _categories)
+                        @foreach (var cat in _pagination1.Appliquer(_categories))
                         {
                             <tr>
                                 <td class="fw-bold text-primary font-monospace">@cat.Code</td>
@@ -136,12 +136,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;

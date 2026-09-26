@@ -1,4 +1,4 @@
-﻿@page "/simulation/historique"
+@page "/simulation/historique"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
@@ -57,7 +57,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var s in _simulations)
+                        @foreach (var s in _pagination1.Appliquer(_simulations))
                         {
                             <tr>
                                 <td class="fw-bold text-primary font-monospace">@s.Reference</td>
@@ -74,12 +74,15 @@
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 </div>
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;

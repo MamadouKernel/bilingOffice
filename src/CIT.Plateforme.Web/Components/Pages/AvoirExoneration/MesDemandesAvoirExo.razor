@@ -1,4 +1,4 @@
-﻿@page "/avoir-exoneration/mes-demandes"
+@page "/avoir-exoneration/mes-demandes"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.AvoirExoneration
@@ -63,7 +63,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var d in _demandes)
+                    @foreach (var d in _pagination1.Appliquer(_demandes))
                     {
                         <tr>
                             <td class="ps-3 font-monospace fw-bold text-primary">@d.NumeroTicket</td>
@@ -105,11 +105,14 @@ else
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private string? _erreur;
     private IReadOnlyList<DemandeAvoirExoResumeDto> _demandes = Array.Empty<DemandeAvoirExoResumeDto>();

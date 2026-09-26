@@ -121,7 +121,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var champ in _champs.OrderBy(c => c.Ordre))
+                        @foreach (var champ in _pagination1.Appliquer(_champs.OrderBy(c => c.Ordre)))
                         {
                             <tr>
                                 <td class="ps-4 font-monospace fw-bold text-muted">#@champ.Ordre</td>
@@ -176,12 +176,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<ChampFormulaireEnrolementVue>? _champs;
     private Guid _appelantId;
     private bool _chargement = true;

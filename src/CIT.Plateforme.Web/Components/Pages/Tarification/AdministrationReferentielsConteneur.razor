@@ -94,7 +94,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var t in _types)
+                    @foreach (var t in _pagination1.Appliquer(_types))
                     {
                         <tr>
                             <td class="fw-bold text-primary font-monospace">@t.Code</td>
@@ -150,6 +150,7 @@ else
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
         </div>
     </div>
 
@@ -192,7 +193,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var t in _tailles)
+                    @foreach (var t in _pagination2.Appliquer(_tailles))
                     {
                         <tr>
                             <td class="fw-bold text-primary font-monospace">@t.Code</td>
@@ -238,6 +239,7 @@ else
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination2" AuChangement="StateHasChanged" />
         </div>
     </div>
 
@@ -291,7 +293,7 @@ else
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var c in _categories)
+                    @foreach (var c in _pagination3.Appliquer(_categories))
                     {
                         <tr>
                             <td class="small text-muted">@SensLibelle(c.SensOperationId)</td>
@@ -338,12 +340,17 @@ else
                     }
                 </tbody>
             </table>
+            <Pagination Etat="_pagination3" AuChangement="StateHasChanged" />
         </div>
     </div>
 }
 </div>
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+    private readonly EtatPagination _pagination2 = new();
+    private readonly EtatPagination _pagination3 = new();
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;

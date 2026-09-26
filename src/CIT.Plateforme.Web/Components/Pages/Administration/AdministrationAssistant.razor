@@ -80,7 +80,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var sujet in _sujets)
+                        @foreach (var sujet in _pagination1.Appliquer(_sujets))
                         {
                             <tr>
                                 <td class="font-monospace">#@sujet.Ordre</td>
@@ -105,12 +105,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private IReadOnlyList<SujetAssistantVue>? _sujets;
     private Guid _appelantId;
     private bool _chargement = true;

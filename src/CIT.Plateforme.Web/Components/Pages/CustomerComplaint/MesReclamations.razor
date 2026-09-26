@@ -1,4 +1,4 @@
-﻿@page "/reclamations/mes-reclamations"
+@page "/reclamations/mes-reclamations"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Client
@@ -57,7 +57,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var d in reclamations)
+                        @foreach (var d in _pagination1.Appliquer(reclamations))
                         {
                             @foreach (var t in d.Tickets)
                             {
@@ -79,12 +79,15 @@ else
                         }
                     </tbody>
                 </table>
+                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
             </div>
         </div>
     }
 }
 
 @code {
+    private readonly EtatPagination _pagination1 = new();
+
     private bool _chargement = true;
     private string? _erreur;
     private DashboardClientVue? _dashboard;

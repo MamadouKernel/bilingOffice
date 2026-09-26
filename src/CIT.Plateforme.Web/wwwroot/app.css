@@ -1374,6 +1374,25 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
 }
 
 /* --------------------------------------------------------------------------
+   20 ter. PAGINATION DES TABLES (composant Shared/Pagination.razor)
+   -------------------------------------------------------------------------- */
+
+.cit-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    padding: .625rem .875rem;
+    border-top: 1px solid var(--line-soft);
+    background: var(--surface);
+}
+
+.cit-pagination-controls { display: flex; align-items: center; gap: .5rem; }
+.cit-pagination-size { width: auto; min-width: 4.5rem; }
+.cit-pagination-controls .btn { min-width: 2rem; font-size: 1rem; line-height: 1; padding: .3125rem .5rem; }
+
+/* --------------------------------------------------------------------------
    20 bis. MOTION DESIGN — COMMUN À TOUS LES RÔLES
    Principe : le mouvement explique, il ne décore pas. Entrées courtes
    (≤ 320 ms), une courbe de décélération unique, uniquement transform et
