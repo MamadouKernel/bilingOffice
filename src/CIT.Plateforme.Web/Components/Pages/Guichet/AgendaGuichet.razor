@@ -1,6 +1,7 @@
 @page "/guichet/agenda"
 @rendermode InteractiveServer
 @attribute [Authorize]
+@using System.Globalization
 @using CIT.Plateforme.Application.Abstractions
 @using CIT.Plateforme.Application.Guichet
 @using CIT.Plateforme.Application.Web
@@ -16,7 +17,6 @@
 @inject CIT.Plateforme.Application.Guichet.ListerAgendaGuichetQuery ListerAgenda
 @inject MarquerRendezVousHonoreCommand MarquerHonoreCommand
 @inject MarquerRendezVousNonPresenteCommand MarquerNonPresenteCommand
-@inject NavigationManager Navigation
 
 <PageTitle>@Loc["GuiAgenda.PageTitle"]</PageTitle>
 
@@ -25,14 +25,10 @@
         <h1 class="cit-page-title">
             <span>📅</span> @Loc["GuiAgenda.Title"]
         </h1>
-        <div class="cit-page-subtitle">
-            @Loc["GuiAgenda.Subtitle"]
-        </div>
+        <div class="cit-page-subtitle">@Loc["GuiAgenda.Subtitle"]</div>
     </div>
     <div class="d-flex gap-2">
-        <a href="/guichet/recherche" class="btn btn-outline-secondary">
-            @Loc["GuiAgenda.LinkRecherche"]
-        </a>
+        <a href="/guichet/recherche" class="btn btn-outline-secondary">@Loc["GuiAgenda.LinkRecherche"]</a>
     </div>
 </div>
 
@@ -42,9 +38,7 @@
 }
 else if (!_estHabilite)
 {
-    <div class="alert alert-danger" role="alert">
-        @((MarkupString)Loc["GuiAgenda.AccessDenied"].Value)
-    </div>
+    <div class="alert alert-danger" role="alert">@((MarkupString)Loc["GuiAgenda.AccessDenied"].Value)</div>
 }
 else
 {
@@ -55,28 +49,36 @@ else
             <button type="button" class="btn-close" @onclick="() => _messageErreur = null"></button>
         </div>
     }
-
     @if (_messageSucces is not null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show" role="status">
             @_messageSucces
             <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
         </div>
     }
 
-    <div class="card shadow-sm mb-4 border-0">
-        <div class="card-body">
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label for="selectionner-la-date" class="form-label fw-bold mb-0">@Loc["GuiAgenda.SelectDate"]</label>
-                </div>
-                <div class="col-auto">
-                    <input id="selectionner-la-date" type="date" class="form-control" value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-outline-primary" @onclick="() => AllerAujourdhuiAsync()">@Loc["GuiAgenda.Today"]</button>
-                </div>
+    @* ── Barre d'outils façon Teams : aujourd'hui, précédent/suivant, période, vue ── *@
+    <div class="cit-card cit-agenda-toolbar mb-3">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button class="btn btn-outline-primary btn-sm fw-semibold" @onclick="AllerAujourdhuiAsync">@Loc["GuiAgenda.Today"]</button>
+            <div class="btn-group btn-group-sm" role="group">
+                <button class="btn btn-outline-secondary" @onclick="() => DeplacerAsync(-1)" aria-label="@Loc["GuiAgenda.Prev"]">‹</button>
+                <button class="btn btn-outline-secondary" @onclick="() => DeplacerAsync(1)" aria-label="@Loc["GuiAgenda.Next"]">›</button>
             </div>
+            <h2 class="cit-agenda-periode mb-0">@LibellePeriode</h2>
+            <label for="agenda-date" class="visually-hidden">@Loc["GuiAgenda.SelectDate"]</label>
+            <input id="agenda-date" type="date" class="form-control form-control-sm" style="width: auto;"
+                   value="@_dateReference.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
+        </div>
+
+        <div class="btn-group btn-group-sm cit-agenda-vues" role="group" aria-label="@Loc["GuiAgenda.ViewsAria"]">
+            @foreach (var vue in Enum.GetValues<VueAgenda>())
+            {
+                <button class="btn @(vue == _vue ? "btn-primary" : "btn-outline-secondary")"
+                        aria-pressed="@(vue == _vue)" @onclick="() => ChangerVueAsync(vue)">
+                    @LibelleVue(vue)
+                </button>
+            }
         </div>
     </div>
 
@@ -84,23 +86,15 @@ else
     {
         <IndicateurChargement Message="@Loc["GuiAgenda.LoadingAgenda"]" />
     }
-    else if (_rendezVousJournee.Count == 0)
+    else if (_vue == VueAgenda.Jour)
     {
-        <div class="card shadow-sm text-center p-5 border-0">
-            <div class="text-muted fs-5">
-                @Loc["GuiAgenda.NoRdv", _dateSelectionnee.ToString("dd/MM/yyyy")]
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    @Loc["GuiAgenda.RdvOfDay", _dateSelectionnee.ToString("dddd dd MMMM yyyy"), _rendezVousJournee.Count]
-                </h5>
-            </div>
-            <div class="card-body p-0">
+        @if (_rendezVous.Count == 0)
+        {
+            <div class="cit-card text-center p-5 text-muted fs-5">@Loc["GuiAgenda.NoRdv", _dateReference.ToString("dd/MM/yyyy")]</div>
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
                 <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -115,49 +109,15 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var rdv in _pagination1.Appliquer(_rendezVousJournee))
+                            @foreach (var rdv in _pagination1.Appliquer(_rendezVous))
                             {
                                 <tr>
-                                    <td class="fw-bold">
-                                        ⏱️ @rdv.HeureDebut.ToString(@"hh\:mm") - @rdv.HeureFin.ToString(@"hh\:mm")
-                                    </td>
+                                    <td class="fw-bold font-monospace">@Creneau(rdv)</td>
                                     <td>@rdv.Motif</td>
-                                    <td>
-                                        @switch (rdv.Statut)
-                                        {
-                                            case StatutRendezVous.Reserve:
-                                                <span class="badge bg-primary">@Loc["GuiAgenda.StReserve"]</span>
-                                                break;
-                                            case StatutRendezVous.Honore:
-                                                <span class="badge bg-success">@Loc["GuiAgenda.StHonore"]</span>
-                                                break;
-                                            case StatutRendezVous.Annule:
-                                                <span class="badge bg-secondary">@Loc["GuiAgenda.StAnnule"]</span>
-                                                break;
-                                            case StatutRendezVous.NonPresente:
-                                                <span class="badge bg-danger">@Loc["GuiAgenda.StNonPresente"]</span>
-                                                break;
-                                        }
-                                    </td>
-                                    <td class="text-muted small">@rdv.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@BadgeStatut(rdv.Statut)</td>
+                                    <td class="text-muted small">@rdv.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td class="text-muted small">@(rdv.CommentaireAgent ?? "—")</td>
-                                    <td>
-                                        @if (rdv.Statut == StatutRendezVous.Reserve)
-                                        {
-                                            <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnPresentTitle"]">
-                                                    @Loc["GuiAgenda.BtnPresent"]
-                                                </button>
-                                                <button class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnAbsentTitle"]">
-                                                    @Loc["GuiAgenda.BtnAbsent"]
-                                                </button>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">@Loc["GuiAgenda.Traite"]</span>
-                                        }
-                                    </td>
+                                    <td>@Actions(rdv)</td>
                                 </tr>
                             }
                         </tbody>
@@ -165,23 +125,102 @@ else
                     <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
                 </div>
             </div>
+        }
+    }
+    else if (_vue == VueAgenda.Mois)
+    {
+        @* ── Vue mois : grille calendrier, 3 rendez-vous visibles par jour puis « +N » ── *@
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="cit-agenda-mois">
+                @foreach (var jourSemaine in JoursDeSemaine(7))
+                {
+                    <div class="cit-agenda-mois-entete">@NomJourCourt(jourSemaine)</div>
+                }
+                @foreach (var jour in JoursDeLaPeriode())
+                {
+                    var rdvs = RendezVousDu(jour);
+                    <button type="button"
+                            class="cit-agenda-mois-cellule @(jour.Month != _dateReference.Month ? "hors-mois" : "") @(jour == Aujourdhui ? "aujourdhui" : "")"
+                            @onclick="() => OuvrirJourAsync(jour)"
+                            aria-label="@Loc["GuiAgenda.OpenDay", jour.ToString("dd/MM/yyyy"), rdvs.Count]">
+                        <span class="cit-agenda-num">@jour.Day</span>
+                        @foreach (var rdv in rdvs.Take(3))
+                        {
+                            <span class="cit-agenda-puce statut-@rdv.Statut.ToString().ToLowerInvariant()">
+                                <span class="font-monospace">@rdv.HeureDebut.ToString(@"hh\:mm")</span> @rdv.Motif
+                            </span>
+                        }
+                        @if (rdvs.Count > 3)
+                        {
+                            <span class="cit-agenda-plus">@Loc["GuiAgenda.MoreN", rdvs.Count - 3]</span>
+                        }
+                    </button>
+                }
+            </div>
         </div>
+    }
+    else
+    {
+        @* ── Vues semaine / semaine de travail : une colonne par jour ── *@
+        <div class="cit-agenda-semaine" style="--jours: @JoursDeLaPeriode().Count();">
+            @foreach (var jour in JoursDeLaPeriode())
+            {
+                var rdvs = RendezVousDu(jour);
+                <section class="cit-agenda-colonne @(jour == Aujourdhui ? "aujourdhui" : "")">
+                    <button type="button" class="cit-agenda-colonne-entete" @onclick="() => OuvrirJourAsync(jour)">
+                        <span class="cit-agenda-jour-nom">@NomJourCourt(jour.DayOfWeek)</span>
+                        <span class="cit-agenda-jour-num">@jour.Day</span>
+                        @if (rdvs.Count > 0)
+                        {
+                            <span class="badge bg-primary-subtle text-primary">@rdvs.Count</span>
+                        }
+                    </button>
+                    <div class="cit-agenda-colonne-corps">
+                        @if (rdvs.Count == 0)
+                        {
+                            <div class="cit-agenda-vide">—</div>
+                        }
+                        @foreach (var rdv in rdvs)
+                        {
+                            <article class="cit-agenda-rdv statut-@rdv.Statut.ToString().ToLowerInvariant()">
+                                <div class="cit-agenda-rdv-heure font-monospace">@Creneau(rdv)</div>
+                                <div class="cit-agenda-rdv-motif">@rdv.Motif</div>
+                                <div class="d-flex align-items-center justify-content-between gap-1 flex-wrap">
+                                    @BadgeStatut(rdv.Statut)
+                                    @Actions(rdv)
+                                </div>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+        @if (_rendezVous.Count == 0)
+        {
+            <div class="text-center text-muted small mt-3">@Loc["GuiAgenda.NoRdvPeriod"]</div>
+        }
     }
 }
 
 @code {
+    private enum VueAgenda { Jour, SemaineTravail, Semaine, Mois }
+
     private readonly EtatPagination _pagination1 = new();
 
     private bool _chargementInitial = true;
-    private bool _estHabilite = false;
+    private bool _estHabilite;
     private Guid _agentId;
 
-    private DateOnly _dateSelectionnee = DateOnly.FromDateTime(DateTime.Today);
-    private bool _chargementAgenda = false;
-    private IReadOnlyList<RendezVous> _rendezVousJournee = [];
+    private VueAgenda _vue = VueAgenda.SemaineTravail;
+    private DateOnly _dateReference = DateOnly.FromDateTime(DateTime.Today);
+    private bool _chargementAgenda;
+    private IReadOnlyList<RendezVous> _rendezVous = [];
+    private ILookup<DateOnly, RendezVous> _parJour = Array.Empty<RendezVous>().ToLookup(r => r.Date);
 
     private string? _messageErreur;
     private string? _messageSucces;
+
+    private static DateOnly Aujourdhui => DateOnly.FromDateTime(DateTime.Today);
 
     protected override async Task OnInitializedAsync()
     {
@@ -190,7 +229,6 @@ else
             var contexte = await ContexteService.ObtenirContexteAsync();
             _agentId = contexte.UtilisateurId;
             _estHabilite = contexte.Permissions.Contains(Permission.RendezVousGerer);
-
             if (_estHabilite)
             {
                 await ChargerAgendaAsync();
@@ -202,15 +240,89 @@ else
         }
     }
 
+    // ------------------------------------------------------------------ période affichée
+
+    private (DateOnly Du, DateOnly Au) Periode()
+    {
+        switch (_vue)
+        {
+            case VueAgenda.Jour:
+                return (_dateReference, _dateReference);
+            case VueAgenda.SemaineTravail:
+                return (Lundi(_dateReference), Lundi(_dateReference).AddDays(4));
+            case VueAgenda.Semaine:
+                return (Lundi(_dateReference), Lundi(_dateReference).AddDays(6));
+            default:
+                // Mois : 6 semaines complètes, du lundi précédant le 1er — grille toujours rectangulaire.
+                var premier = new DateOnly(_dateReference.Year, _dateReference.Month, 1);
+                var debut = Lundi(premier);
+                return (debut, debut.AddDays(41));
+        }
+    }
+
+    private static DateOnly Lundi(DateOnly d) => d.AddDays(-(((int)d.DayOfWeek + 6) % 7));
+
+    private IEnumerable<DateOnly> JoursDeLaPeriode()
+    {
+        var (du, au) = Periode();
+        for (var d = du; d <= au; d = d.AddDays(1))
+        {
+            yield return d;
+        }
+    }
+
+    private static IEnumerable<DayOfWeek> JoursDeSemaine(int nombre) =>
+        Enumerable.Range(0, nombre).Select(i => (DayOfWeek)((i + 1) % 7));
+
+    private IReadOnlyList<RendezVous> RendezVousDu(DateOnly jour) => _parJour[jour].ToList();
+
+    private string LibellePeriode
+    {
+        get
+        {
+            var culture = CultureInfo.CurrentUICulture;
+            var (du, au) = Periode();
+            return _vue switch
+            {
+                VueAgenda.Jour => Capitaliser(_dateReference.ToString("dddd d MMMM yyyy", culture)),
+                VueAgenda.Mois => Capitaliser(_dateReference.ToString("MMMM yyyy", culture)),
+                _ => du.Month == au.Month
+                    ? $"{du.Day} – {au.ToString("d MMMM yyyy", culture)}"
+                    : $"{du.ToString("d MMM", culture)} – {au.ToString("d MMM yyyy", culture)}",
+            };
+        }
+    }
+
+    private static string Capitaliser(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
+
+    private static string NomJourCourt(DayOfWeek jour) =>
+        Capitaliser(CultureInfo.CurrentUICulture.DateTimeFormat.GetAbbreviatedDayName(jour));
+
+    private string LibelleVue(VueAgenda vue) => vue switch
+    {
+        VueAgenda.Jour => Loc["GuiAgenda.ViewDay"],
+        VueAgenda.SemaineTravail => Loc["GuiAgenda.ViewWorkWeek"],
+        VueAgenda.Semaine => Loc["GuiAgenda.ViewWeek"],
+        _ => Loc["GuiAgenda.ViewMonth"],
+    };
+
+    private static string Creneau(RendezVous rdv) =>
+        $"{rdv.HeureDebut.ToString(@"hh\:mm")} – {rdv.HeureFin.ToString(@"hh\:mm")}";
+
+    // ------------------------------------------------------------------ navigation
+
     private async Task ChargerAgendaAsync()
     {
         _chargementAgenda = true;
         _messageErreur = null;
         try
         {
-            // La lecture passe par un cas d'usage qui exige l'habilitation : un repository
-            // injecté en page ne garde rien (audit du 2026-09-04, docs/89).
-            _rendezVousJournee = await ListerAgenda.ExecuterAsync(_agentId, _dateSelectionnee);
+            // La lecture passe par un cas d'usage qui exige l'habilitation côté serveur.
+            var (du, au) = Periode();
+            _rendezVous = _vue == VueAgenda.Jour
+                ? await ListerAgenda.ExecuterAsync(_agentId, _dateReference)
+                : await ListerAgenda.ExecuterPeriodeAsync(_agentId, du, au);
+            _parJour = _rendezVous.ToLookup(r => r.Date);
         }
         catch (Exception ex)
         {
@@ -222,20 +334,82 @@ else
         }
     }
 
+    private Task ChangerVueAsync(VueAgenda vue)
+    {
+        _vue = vue;
+        return ChargerAgendaAsync();
+    }
+
+    private Task DeplacerAsync(int sens)
+    {
+        _dateReference = _vue switch
+        {
+            VueAgenda.Jour => _dateReference.AddDays(sens),
+            VueAgenda.Mois => _dateReference.AddMonths(sens),
+            _ => _dateReference.AddDays(7 * sens),
+        };
+        return ChargerAgendaAsync();
+    }
+
+    private Task AllerAujourdhuiAsync()
+    {
+        _dateReference = Aujourdhui;
+        return ChargerAgendaAsync();
+    }
+
+    private Task OuvrirJourAsync(DateOnly jour)
+    {
+        _dateReference = jour;
+        _vue = VueAgenda.Jour;
+        return ChargerAgendaAsync();
+    }
+
     private async Task ChangerDateAsync(ChangeEventArgs e)
     {
         if (DateOnly.TryParse(e.Value?.ToString(), out var d))
         {
-            _dateSelectionnee = d;
+            _dateReference = d;
             await ChargerAgendaAsync();
         }
     }
 
-    private async Task AllerAujourdhuiAsync()
+    // ------------------------------------------------------------------ rendu partagé
+
+    private RenderFragment BadgeStatut(StatutRendezVous statut) => __builder =>
     {
-        _dateSelectionnee = DateOnly.FromDateTime(DateTime.Today);
-        await ChargerAgendaAsync();
-    }
+        switch (statut)
+        {
+            case StatutRendezVous.Reserve:
+                <span class="badge bg-primary">@Loc["GuiAgenda.StReserve"]</span>
+                break;
+            case StatutRendezVous.Honore:
+                <span class="badge bg-success">@Loc["GuiAgenda.StHonore"]</span>
+                break;
+            case StatutRendezVous.Annule:
+                <span class="badge bg-secondary">@Loc["GuiAgenda.StAnnule"]</span>
+                break;
+            case StatutRendezVous.NonPresente:
+                <span class="badge bg-danger">@Loc["GuiAgenda.StNonPresente"]</span>
+                break;
+        }
+    };
+
+    private RenderFragment Actions(RendezVous rdv) => __builder =>
+    {
+        if (rdv.Statut == StatutRendezVous.Reserve)
+        {
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnPresentTitle"]">@Loc["GuiAgenda.BtnPresent"]</button>
+                <button class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnAbsentTitle"]">@Loc["GuiAgenda.BtnAbsent"]</button>
+            </div>
+        }
+        else
+        {
+            <span class="text-muted small">@Loc["GuiAgenda.Traite"]</span>
+        }
+    };
+
+    // ------------------------------------------------------------------ actions (inchangées)
 
     private async Task ValiderPresenceAsync(Guid rdvId)
     {
@@ -243,11 +417,7 @@ else
         _messageSucces = null;
         try
         {
-            await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(
-                _agentId,
-                rdvId,
-                Loc["GuiAgenda.PresenceComment"].Value
-            ));
+            await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(_agentId, rdvId, Loc["GuiAgenda.PresenceComment"].Value));
             _messageSucces = Loc["GuiAgenda.SuccessPresence"].Value;
             await ChargerAgendaAsync();
         }
@@ -263,11 +433,7 @@ else
         _messageSucces = null;
         try
         {
-            await MarquerNonPresenteCommand.ExecuterAsync(new MarquerNonPresenteRequest(
-                _agentId,
-                rdvId,
-                Loc["GuiAgenda.AbsenceComment"].Value
-            ));
+            await MarquerNonPresenteCommand.ExecuterAsync(new MarquerNonPresenteRequest(_agentId, rdvId, Loc["GuiAgenda.AbsenceComment"].Value));
             _messageSucces = Loc["GuiAgenda.SuccessAbsence"].Value;
             await ChargerAgendaAsync();
         }

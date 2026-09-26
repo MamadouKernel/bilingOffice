@@ -21,6 +21,9 @@ public interface IRendezVousRepository
 
     Task<IReadOnlyList<RendezVous>> ListerParDateAsync(DateOnly date, CancellationToken ct = default);
 
+    /// <summary>Rendez-vous d'une période (bornes incluses), triés par date puis heure — vues semaine et mois de l'agenda.</summary>
+    Task<IReadOnlyList<RendezVous>> ListerParPeriodeAsync(DateOnly du, DateOnly au, CancellationToken ct = default);
+
     /// <summary>Compte atomiquement les réservations actives sur un créneau pour vérifier la capacité.</summary>
     Task<int> CompterReservationsCreneauAsync(DateOnly date, TimeSpan heureDebut, CancellationToken ct = default);
 

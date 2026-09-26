@@ -58,6 +58,7 @@ public class ConsulterDossierGuichetTests
         public Task<RendezVous?> ObtenirActifParTicketAsync(Guid ticketId, CancellationToken ct = default)
             => Task.FromResult(RendezVousList.Find(r => r.TicketId == ticketId && r.Statut == StatutRendezVous.Reserve));
         public Task<IReadOnlyList<RendezVous>> ListerParDemandeurAsync(Guid demandeurId, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<IReadOnlyList<RendezVous>> ListerParPeriodeAsync(DateOnly du, DateOnly au, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<IReadOnlyList<RendezVous>> ListerParDateAsync(DateOnly date, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<int> CompterReservationsCreneauAsync(DateOnly date, TimeSpan heureDebut, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<bool> PossedeRdvActifAsync(Guid ticketId, CancellationToken ct = default) => throw new NotImplementedException();

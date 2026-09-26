@@ -43,6 +43,7 @@ public class GestionRendezVousTests
         public Task<IReadOnlyList<RendezVous>> ListerParDemandeurAsync(Guid demandeurId, CancellationToken ct = default)
             => Task.FromResult<IReadOnlyList<RendezVous>>(RendezVousList.FindAll(r => r.DemandeurId == demandeurId));
 
+        public Task<IReadOnlyList<RendezVous>> ListerParPeriodeAsync(DateOnly du, DateOnly au, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<IReadOnlyList<RendezVous>> ListerParDateAsync(DateOnly date, CancellationToken ct = default)
             => Task.FromResult<IReadOnlyList<RendezVous>>(RendezVousList.FindAll(r => r.Date == date));
 

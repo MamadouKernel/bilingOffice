@@ -54,6 +54,17 @@ public sealed class RendezVousRepository(PlateformeDbContext dbContext) : IRende
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<RendezVous>> ListerParPeriodeAsync(DateOnly du, DateOnly au, CancellationToken ct = default)
+    {
+        return await dbContext.RendezVous
+            .AsNoTracking()
+            .Where(r => r.Date >= du && r.Date <= au)
+            .OrderBy(r => r.Date)
+            .ThenBy(r => r.HeureDebut)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
     public async Task<int> CompterReservationsCreneauAsync(DateOnly date, TimeSpan heureDebut, CancellationToken ct = default)
     {
         return await dbContext.RendezVous

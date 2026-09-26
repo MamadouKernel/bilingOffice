@@ -27,4 +27,29 @@ public sealed class ListerAgendaGuichetQuery(
 
         return await rendezVous.ListerParDateAsync(journee, ct).ConfigureAwait(false);
     }
+
+    /// <summary>Durée maximale d'une période consultée d'un coup (vue mois + marge).</summary>
+    public const int JoursMaxParPeriode = 62;
+
+    /// <summary>
+    /// Agenda sur une période (vues semaine, semaine de travail, mois), avec la même habilitation
+    /// que la vue journée. La période est bornée pour ne jamais charger un historique entier.
+    /// </summary>
+    public async Task<IReadOnlyList<RendezVous>> ExecuterPeriodeAsync(
+        Guid appelantId, DateOnly du, DateOnly au, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(appelantId, Permission.RendezVousGerer, ct: ct).ConfigureAwait(false);
+
+        if (au < du)
+        {
+            throw new ArgumentException("La fin de période précède son début.");
+        }
+
+        if (au.DayNumber - du.DayNumber + 1 > JoursMaxParPeriode)
+        {
+            throw new ArgumentException($"La période consultée ne peut dépasser {JoursMaxParPeriode} jours.");
+        }
+
+        return await rendezVous.ListerParPeriodeAsync(du, au, ct).ConfigureAwait(false);
+    }
 }

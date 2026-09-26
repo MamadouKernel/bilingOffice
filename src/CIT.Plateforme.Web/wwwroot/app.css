@@ -1390,6 +1390,45 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
 
 .cit-pagination-controls { display: flex; align-items: center; gap: .5rem; }
 
+/* Agenda guichet — vues Jour / Semaine de travail / Semaine / Mois (façon Teams) */
+.cit-agenda-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem; }
+.cit-agenda-periode { font-size: 1.05rem; font-weight: 800; letter-spacing: -.01em; color: var(--ink); margin-inline: .25rem; }
+
+.cit-agenda-semaine { display: grid; grid-template-columns: repeat(var(--jours, 5), minmax(170px, 1fr)); gap: .625rem; overflow-x: auto; padding-bottom: .25rem; }
+.cit-agenda-colonne { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); display: flex; flex-direction: column; min-height: 320px; }
+.cit-agenda-colonne.aujourdhui { border-color: var(--action); box-shadow: 0 0 0 1px var(--action); }
+.cit-agenda-colonne-entete { display: flex; align-items: baseline; gap: .375rem; padding: .625rem .75rem; border: 0; border-bottom: 1px solid var(--line-soft); background: transparent; text-align: left; cursor: pointer; }
+.cit-agenda-colonne-entete:hover { background: var(--surface-2); }
+.cit-agenda-jour-nom { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.cit-agenda-jour-num { font-size: 1.25rem; font-weight: 800; color: var(--ink); margin-right: auto; }
+.aujourdhui .cit-agenda-jour-num { color: var(--action); }
+.cit-agenda-colonne-corps { display: flex; flex-direction: column; gap: .5rem; padding: .625rem; }
+.cit-agenda-vide { color: var(--ink-3); text-align: center; padding-top: 1rem; }
+
+.cit-agenda-rdv { border: 1px solid var(--line); border-left: 3px solid var(--action); border-radius: var(--r-md); padding: .5rem .625rem; background: var(--surface); display: flex; flex-direction: column; gap: .25rem; font-size: .8125rem; }
+.cit-agenda-rdv-heure { font-weight: 700; color: var(--ink); }
+.cit-agenda-rdv-motif { color: var(--ink-2); }
+.cit-agenda-rdv.statut-honore, .cit-agenda-puce.statut-honore { border-left-color: var(--ok-600); }
+.cit-agenda-rdv.statut-nonpresente, .cit-agenda-puce.statut-nonpresente { border-left-color: var(--stop-600); }
+.cit-agenda-rdv.statut-annule, .cit-agenda-puce.statut-annule { border-left-color: var(--steel-400); opacity: .75; }
+
+.cit-agenda-mois { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cit-agenda-mois-entete { padding: .5rem; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.cit-agenda-mois-cellule { display: flex; flex-direction: column; align-items: stretch; gap: .1875rem; min-height: 104px; padding: .375rem; border: 0; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); background: var(--surface); text-align: left; cursor: pointer; overflow: hidden; }
+.cit-agenda-mois-cellule:nth-child(7n) { border-right: 0; }
+.cit-agenda-mois-cellule:hover { background: var(--surface-2); }
+.cit-agenda-mois-cellule.hors-mois { background: var(--surface-2); }
+.cit-agenda-mois-cellule.hors-mois .cit-agenda-num { color: var(--ink-3); }
+.cit-agenda-num { font-size: .8125rem; font-weight: 700; color: var(--ink); align-self: flex-start; width: 1.625rem; height: 1.625rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+.cit-agenda-mois-cellule.aujourdhui .cit-agenda-num { background: var(--action); color: #fff; }
+.cit-agenda-puce { font-size: .72rem; padding: .125rem .375rem; border-left: 3px solid var(--action); border-radius: 4px; background: var(--azure-50); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cit-agenda-plus { font-size: .72rem; font-weight: 700; color: var(--action); }
+
+@media (max-width: 767.98px) {
+    .cit-agenda-mois-cellule { min-height: 64px; }
+    .cit-agenda-puce { display: none; }
+}
+
 /* Filtre plein texte posé au-dessus des tables (composant Shared/FiltreTable.razor) */
 .cit-filtre-table {
     display: flex;
