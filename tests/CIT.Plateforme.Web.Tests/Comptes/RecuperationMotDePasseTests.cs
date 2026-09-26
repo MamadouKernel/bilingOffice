@@ -1,10 +1,15 @@
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Domain.Notifications;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit;
 
 namespace CIT.Plateforme.Web.Tests.Comptes;
@@ -88,7 +93,15 @@ public sealed class RecuperationMotDePasseTests : IClassFixture<PlateformeWebApp
         };
         Assert.True((await userManager.CreateAsync(utilisateur, "MotDePasseValide123!")).Succeeded);
 
-        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        // Le lien part UNIQUEMENT par e-mail : un canal e-mail de capture remplace le SMTP réel.
+        var canalCapture = new CanalEmailCapture();
+        var usine = factory.WithWebHostBuilder(b => b.ConfigureTestServices(services =>
+        {
+            services.RemoveAll<ICanalNotification>();
+            services.AddSingleton<ICanalNotification>(canalCapture);
+        }));
+
+        var client = usine.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
             HandleCookies = true,
@@ -110,7 +123,27 @@ public sealed class RecuperationMotDePasseTests : IClassFixture<PlateformeWebApp
         // Avant correction : l'e-mail reçu server-side était toujours vide, `FindByEmailAsync`
         // retournait null, et aucun lien n'était jamais généré (silencieusement, sans erreur
         // visible — un « faux succès » indétectable sans test HTTP réel).
-        Assert.Contains("reinitialiser-mot-de-passe", corps);
-        Assert.Contains(utilisateur.Id.ToString(), corps);
+        var envoi = Assert.Single(canalCapture.Envois);
+        Assert.Equal(email, envoi.Adresse);
+        Assert.Contains("reinitialiser-mot-de-passe", envoi.Corps);
+        Assert.Contains(utilisateur.Id.ToString(), envoi.Corps);
+
+        // Le lien (et donc le jeton) n'est jamais renvoyé dans la page.
+        Assert.DoesNotContain("reinitialiser-mot-de-passe?", corps);
+    }
+
+    private sealed class CanalEmailCapture : ICanalNotification
+    {
+        private readonly ConcurrentQueue<(string? Adresse, string Corps)> envois = new();
+
+        public CanalNotification Canal => CanalNotification.Email;
+
+        public IReadOnlyList<(string? Adresse, string Corps)> Envois => envois.ToArray();
+
+        public Task<ResultatEnvoi> EnvoyerAsync(DestinationEnvoi destination, string titre, string corps, CancellationToken ct = default)
+        {
+            envois.Enqueue((destination.Adresse, corps));
+            return Task.FromResult(ResultatEnvoi.Succes());
+        }
     }
 }
