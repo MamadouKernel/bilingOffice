@@ -1,0 +1,255 @@
+@page "/administration/categories-incident"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.SupportTechnique
+@using CIT.Plateforme.Domain.Incidents
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject ListerToutesCategoriesIncidentQuery ListerToutesCategories
+@inject CreerCategorieIncidentCommand CreerCategorie
+@inject ModifierCategorieIncidentCommand ModifierCategorie
+@inject ListerFilesSupportItQuery ListerFilesSupportIt
+
+<PageTitle>@Loc["IncidentAdm.Title"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>⚙️</span> @Loc["IncidentAdm.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["IncidentAdm.Subtitle"]</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["Common.Loading"]" />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_success))
+    {
+        <div class="alert alert-success py-2 small mb-3" role="status">@_success</div>
+    }
+
+    <div class="cit-card mb-4">
+        <h6 class="fw-bold text-dark mb-3">@Loc["IncidentAdm.AddTitle"]</h6>
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-semibold" for="code">@Loc["IncidentAdm.Code"]</label>
+                <input id="code" class="form-control form-control-sm font-monospace" @bind="_code" @bind:event="oninput" maxlength="50" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold" for="libelle">@Loc["IncidentAdm.Label"]</label>
+                <input id="libelle" class="form-control form-control-sm" @bind="_libelle" @bind:event="oninput" maxlength="100" />
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-semibold" for="file">@Loc["IncidentAdm.TargetQueue"]</label>
+                <select id="file" class="form-select form-select-sm" @bind="_fileCible">
+                    <option value="">@Loc["IncidentAdm.ChooseQueue"]</option>
+                    @foreach (var f in _files)
+                    {
+                        <option value="@f.Id">@f.Nom</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <button class="btn btn-success btn-sm fw-bold w-100" @onclick="CreerAsync" disabled="@(!Complet)">@Loc["IncidentAdm.Create"]</button>
+            </div>
+        </div>
+    </div>
+
+    @if (_categories.Count == 0)
+    {
+        <EtatVide Titre="@Loc["IncidentAdm.EmptyTitle"]" Description="@Loc["IncidentAdm.EmptyDesc"]" Icone="🛠️" />
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Loc["IncidentAdm.Code"]</th>
+                            <th>@Loc["IncidentAdm.Label"]</th>
+                            <th>@Loc["IncidentAdm.ColState"]</th>
+                            <th class="text-end">@Loc["Common.Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cat in _categories)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary font-monospace">@cat.Code</td>
+                                <td>
+                                    @if (_edition == cat.Id)
+                                    {
+                                        <input class="form-control form-control-sm" @bind="_libelleEdition" />
+                                    }
+                                    else
+                                    {
+                                        @cat.Libelle
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(cat.EstActif ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                        @(cat.EstActif ? Loc["IncidentAdm.Active"] : Loc["IncidentAdm.Inactive"])
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    @if (_edition == cat.Id)
+                                    {
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-primary" @onclick="() => EnregistrerAsync(cat)">@Loc["IncidentAdm.Save"]</button>
+                                            <button class="btn btn-outline-secondary" @onclick="() => _edition = null">@Loc["Common.Cancel"]</button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" @onclick="() => Editer(cat)">@Loc["IncidentAdm.Edit"]</button>
+                                            @if (cat.EstActif)
+                                            {
+                                                <button class="btn btn-outline-secondary" @onclick="() => BasculerAsync(cat, false)">@Loc["IncidentAdm.Deactivate"]</button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-outline-success" @onclick="() => BasculerAsync(cat, true)">@Loc["IncidentAdm.Activate"]</button>
+                                            }
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private string? _success;
+
+    private Guid _appelantId;
+    private IReadOnlyList<CategorieIncident> _categories = [];
+    private IReadOnlyList<FileSupportItVue> _files = [];
+
+    private string _code = string.Empty;
+    private string _libelle = string.Empty;
+    private string _fileCible = string.Empty;
+
+    private Guid? _edition;
+    private string _libelleEdition = string.Empty;
+
+    private bool Complet =>
+        !string.IsNullOrWhiteSpace(_code) && !string.IsNullOrWhiteSpace(_libelle) && Guid.TryParse(_fileCible, out _);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["Incident.LoginRequired"].Value;
+                return;
+            }
+            _appelantId = contexte.UtilisateurId;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _erreur = null;
+        try
+        {
+            _categories = await ListerToutesCategories.ExecuterAsync(_appelantId);
+            _files = await ListerFilesSupportIt.ExecuterAsync(_appelantId);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+    }
+
+    private void Editer(CategorieIncident cat)
+    {
+        _edition = cat.Id;
+        _libelleEdition = cat.Libelle;
+    }
+
+    private async Task CreerAsync()
+    {
+        if (!Complet) return;
+        _erreur = null;
+        _success = null;
+        try
+        {
+            Guid.TryParse(_fileCible, out var fileId);
+            await CreerCategorie.ExecuterAsync(new CreerCategorieIncidentRequete(_appelantId, _code, _libelle, fileId));
+            _success = Loc["IncidentAdm.Created", _libelle].Value;
+            _code = string.Empty;
+            _libelle = string.Empty;
+            _fileCible = string.Empty;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private async Task EnregistrerAsync(CategorieIncident cat)
+    {
+        await AppliquerAsync(cat, _libelleEdition, cat.EstActif, Loc["IncidentAdm.Updated"].Value);
+        _edition = null;
+    }
+
+    private Task BasculerAsync(CategorieIncident cat, bool actif) =>
+        AppliquerAsync(cat, cat.Libelle, actif, actif ? Loc["IncidentAdm.ActivatedMsg"].Value : Loc["IncidentAdm.DeactivatedMsg"].Value);
+
+    private async Task AppliquerAsync(CategorieIncident cat, string libelle, bool actif, string message)
+    {
+        _erreur = null;
+        _success = null;
+        try
+        {
+            await ModifierCategorie.ExecuterAsync(new ModifierCategorieIncidentRequete(_appelantId, cat.Id, libelle, cat.FileCibleDefautId, actif));
+            _success = message;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+}

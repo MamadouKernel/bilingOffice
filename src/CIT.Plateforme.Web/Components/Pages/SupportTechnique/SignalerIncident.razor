@@ -1,0 +1,167 @@
+@page "/support/incidents/signaler"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.SupportTechnique
+@using CIT.Plateforme.Domain.Incidents
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@inject IContexteUtilisateurWeb ContexteService
+@inject SoumettreIncidentCommand SoumettreIncident
+@inject ListerCategoriesIncidentQuery ListerCategories
+
+<PageTitle>@Loc["Incident.Title"] — @Loc["Common.AppTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>🛠️</span> @Loc["Incident.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Incident.Subtitle"]</div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="/support/incidents/mes-incidents" class="btn btn-outline-secondary btn-sm shadow-sm">← @Loc["Common.Back"]</a>
+    </div>
+</div>
+
+<div style="max-width: 760px;">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["Incident.LoadingForm"]" />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else if (_numeroCree is not null)
+    {
+        <div class="cit-card border-success p-4 mb-4">
+            <div class="d-flex align-items-center gap-3 text-success mb-3">
+                <span class="fs-2">✅</span>
+                <div>
+                    <h5 class="fw-bold mb-0">@Loc["Incident.SubmitSuccess"]</h5>
+                    <div class="text-muted small">@Loc["Incident.TrackingNumber"] <strong class="font-monospace text-primary">@_numeroCree</strong></div>
+                </div>
+            </div>
+            <a href="/support/incidents/mes-incidents" class="btn btn-primary fw-bold px-4">@Loc["Incident.MyIncidentsTitle"] ➔</a>
+        </div>
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-4" role="alert">@_erreur</div>
+        }
+
+        <div class="cit-card mb-4">
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="categorie">@Loc["Incident.Category"]</label>
+                <select id="categorie" class="form-select" @bind="_categorieId">
+                    <option value="">@Loc["Incident.SelectCategory"]</option>
+                    @foreach (var cat in _categories)
+                    {
+                        <option value="@cat.Id">@cat.Libelle</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="gravite">@Loc["Incident.Severity"]</label>
+                <select id="gravite" class="form-select" @bind="_gravite">
+                    <option value="@GraviteIncident.Mineure">@Loc["Incident.SeverityMinor"]</option>
+                    <option value="@GraviteIncident.Majeure">@Loc["Incident.SeverityMajor"]</option>
+                    <option value="@GraviteIncident.Critique">@Loc["Incident.SeverityCritical"]</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark" for="objet">@Loc["Incident.Subject"]</label>
+                <input id="objet" class="form-control" placeholder="@Loc["Incident.SubjectPlaceholder"]" @bind="_objet" @bind:event="oninput" maxlength="200" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-semibold text-dark" for="description">@Loc["Incident.Description"]</label>
+                <textarea id="description" class="form-control" rows="5" placeholder="@Loc["Incident.DescPlaceholder"]" @bind="_description" @bind:event="oninput"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="/support/incidents/mes-incidents" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
+                <button class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                    @(_envoiEnCours ? Loc["Common.Loading"].Value : "🚀 " + Loc["Common.Submit"].Value)
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly SharedResourcesLocalizer Loc = new();
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private bool _envoiEnCours;
+    private string? _numeroCree;
+
+    private Guid _utilisateurId;
+    private IReadOnlyList<CategorieIncident> _categories = [];
+    private string _categorieId = string.Empty;
+    private GraviteIncident _gravite = GraviteIncident.Majeure;
+    private string _objet = string.Empty;
+    private string _description = string.Empty;
+
+    private bool PeutSoumettre =>
+        Guid.TryParse(_categorieId, out _) && !string.IsNullOrWhiteSpace(_objet) && !string.IsNullOrWhiteSpace(_description);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chargement = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["Incident.LoginRequired"].Value;
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+            _categories = await ListerCategories.ExecuterAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task SoumettreAsync()
+    {
+        if (!PeutSoumettre || !Guid.TryParse(_categorieId, out var categorieId))
+        {
+            return;
+        }
+
+        _envoiEnCours = true;
+        _erreur = null;
+        try
+        {
+            var resultat = await SoumettreIncident.ExecuterAsync(
+                _utilisateurId,
+                new SoumettreIncidentRequete(categorieId, _gravite, _objet, _description));
+
+            _numeroCree = resultat.NumeroTicket;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _envoiEnCours = false;
+        }
+    }
+}

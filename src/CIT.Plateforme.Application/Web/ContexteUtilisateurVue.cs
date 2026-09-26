@@ -11,7 +11,12 @@ public enum EspaceFonctionnel
     AdministrateurSociete,
     Agent,
     Supervision,
-    AdministrationCit
+    AdministrationCit,
+
+    /// <summary>SUPPORT IT — cockpit du Support N1 (équipe IT) : file Support IT et raccourcis de
+    /// diagnostic (recherche de dossier, files en lecture, journal d'audit). Persona disponible dès
+    /// que le compte détient <see cref="Domain.Securite.Permission.SupportIncidentInstruire"/>.</summary>
+    SupportN1
 }
 
 public sealed record ContexteUtilisateurVue(

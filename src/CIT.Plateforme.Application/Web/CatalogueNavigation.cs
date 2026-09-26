@@ -2,6 +2,7 @@
 using CIT.Plateforme.Application.BillingImport;
 using CIT.Plateforme.Application.CustomerComplaint;
 using CIT.Plateforme.Application.Enrolement;
+using CIT.Plateforme.Application.SupportTechnique;
 using CIT.Plateforme.Domain.Securite;
 
 namespace CIT.Plateforme.Application.Web;
@@ -71,6 +72,7 @@ public static class CatalogueNavigation
         EspaceFonctionnel.Agent => Agent,
         EspaceFonctionnel.Supervision => Supervision,
         EspaceFonctionnel.AdministrationCit => AdministrationCit,
+        EspaceFonctionnel.SupportN1 => SupportN1,
         _ => [],
     };
 
@@ -102,6 +104,8 @@ public static class CatalogueNavigation
         [
             new("Nouvelle réclamation", "📝", "/reclamations/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Mes réclamations", "📋", "/reclamations/mes-reclamations", Aucune, ExigeRattachementSociete: true),
+            new("Signaler un problème technique", "🛠️", "/support/incidents/signaler", Aucune),
+            new("Mes incidents", "🧰", "/support/incidents/mes-incidents", Aucune),
             new("Nouvel enrôlement", "🚚", "/enrolement/soumettre", [Permission.EnrolementSoumettre]),
             new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true),
@@ -262,10 +266,38 @@ public static class CatalogueNavigation
             new("Demandes de compte", "📝", "/comptes/valider", [Permission.CompteValider], CorrespondanceExacte: true),
             new("Modifier type de client", "🏷️", "/comptes/modifier-type", [Permission.CompteTypeModifier]),
             new("Catégories réclamation", "📝", "/reclamations/administration-categories", [Permission.AdministrationCategoriesReclamation]),
+            new("Catégories d'incident", "🛠️", "/administration/categories-incident", [Permission.AdministrationCategoriesIncident]),
             new("Notifications", "🔔", "/administration/notifications", [Permission.AdministrationNotifications]),
             new("Comptes agents", "🛠️", "/administration/comptes-agents", [Permission.AdministrationComptes]),
             new("Pièces exigées", "📎", "/administration/pieces-exigees-compte", [Permission.AdministrationComptes]),
             new("Journal d'audit", "🔒", "/administration/audit", [Permission.AuditConsulter]),
+        ]),
+    ];
+
+    // ---------------------------------------------------------------------------------------
+    // SUPPORT N1 (équipe IT) — cockpit dédié : traitement des incidents techniques et
+    // raccourcis de diagnostic. Aucune règle de sécurité propre : chaque entrée reste filtrée
+    // par sa permission, exactement comme dans les autres espaces.
+    // ---------------------------------------------------------------------------------------
+    private static readonly IReadOnlyList<GroupeNavigation> SupportN1 =
+    [
+        new("Support technique", "🎧",
+        [
+            new("File Support IT", "🎫", "/support/incidents/file",
+                [Permission.SupportIncidentInstruire],
+                SupportItConstantes.Module, SupportItConstantes.NomFileSupportIt),
+            new("Guichet Billing Office", "🏛️", "/guichet/recherche", [Permission.GuichetRecherche]),
+        ]),
+        new("Diagnostic", "🔎",
+        [
+            new("Supervision en direct", "📈", "/supervision", [Permission.SupervisionConsulter], CorrespondanceExacte: true),
+            new("Journal d'audit", "🔒", "/administration/audit", [Permission.AuditConsulter]),
+        ]),
+        new("Administration & Sécurité", "⚙️",
+        [
+            new("Signaler un problème technique", "🛠️", "/support/incidents/signaler", Aucune),
+            new("Mes incidents", "🧰", "/support/incidents/mes-incidents", Aucune),
+            new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
         ]),
     ];
 }

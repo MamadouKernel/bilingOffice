@@ -27,6 +27,7 @@ public sealed class NavigationI18nTests
         EspaceFonctionnel.Agent,
         EspaceFonctionnel.Supervision,
         EspaceFonctionnel.AdministrationCit,
+        EspaceFonctionnel.SupportN1,
     ];
 
     private static IEnumerable<string> TousLesLibelles()

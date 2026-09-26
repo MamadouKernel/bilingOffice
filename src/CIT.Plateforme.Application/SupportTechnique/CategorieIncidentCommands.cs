@@ -49,7 +49,7 @@ public sealed class CreerCategorieIncidentCommand(
         var file = await fileRepository.ObtenirParIdAsync(fileCibleId.Value, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("La file cible sélectionnée n'existe pas.");
 
-        if (file.Module != SupportTechnique.Module)
+        if (file.Module != SupportItConstantes.Module)
         {
             throw new InvalidOperationException("La file cible d'une catégorie d'incident doit appartenir au module Support IT.");
         }
@@ -98,6 +98,25 @@ public sealed class ListerCategoriesIncidentQuery(ICategorieIncidentRepository c
 {
     public Task<IReadOnlyList<CategorieIncident>> ExecuterAsync(CancellationToken ct = default) =>
         categorieRepository.ListerActivesAsync(ct);
+}
+
+public sealed record FileSupportItVue(Guid Id, string Nom);
+
+/// <summary>Files du module Support IT éligibles comme cible d'une catégorie — alimente le sélecteur
+/// de l'écran d'administration sans exposer de repository à la couche Web.</summary>
+public sealed class ListerFilesSupportItQuery(
+    IFileDeTraitementRepository fileRepository,
+    IAutorisationService autorisationService)
+{
+    public async Task<IReadOnlyList<FileSupportItVue>> ExecuterAsync(Guid appelantId, CancellationToken ct = default)
+    {
+        await autorisationService.ExigerAsync(appelantId, Permission.AdministrationCategoriesIncident, null, ct).ConfigureAwait(false);
+        var files = await fileRepository.ListerAsync(ct).ConfigureAwait(false);
+        return files
+            .Where(f => f.Module == SupportItConstantes.Module)
+            .Select(f => new FileSupportItVue(f.Id, f.Nom))
+            .ToList();
+    }
 }
 
 /// <summary>Toutes les catégories (actives et désactivées) — écran d'administration.</summary>

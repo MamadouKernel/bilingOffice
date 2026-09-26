@@ -76,6 +76,13 @@ public sealed class ObtenirContexteUtilisateurQuery(
         {
             espaces.Add(EspaceFonctionnel.Agent);
         }
+        // SUPPORT IT : cockpit dédié du Support N1, disponible dès que le compte peut instruire les
+        // incidents techniques. Persona additionnel (le Super-Admin le voit aussi) ; l'espace actif
+        // par défaut reste le premier détecté, jamais forcé sur celui-ci.
+        if (permissions.Contains(Permission.SupportIncidentInstruire))
+        {
+            espaces.Add(EspaceFonctionnel.SupportN1);
+        }
         if (userSoc is not null && userSoc.EstAdministrateur)
         {
             espaces.Add(EspaceFonctionnel.AdministrateurSociete);

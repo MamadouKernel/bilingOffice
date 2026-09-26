@@ -402,6 +402,7 @@ public static class DependencyInjection
         services.AddScoped<Application.SupportTechnique.ModifierCategorieIncidentCommand>();
         services.AddScoped<Application.SupportTechnique.ListerCategoriesIncidentQuery>();
         services.AddScoped<Application.SupportTechnique.ListerToutesCategoriesIncidentQuery>();
+        services.AddScoped<Application.SupportTechnique.ListerFilesSupportItQuery>();
 
         // FEATURE 008 — Enrôlement Transporteurs
         services.AddScoped<Application.Enrolement.SoumettreEnrolementCommand>();
