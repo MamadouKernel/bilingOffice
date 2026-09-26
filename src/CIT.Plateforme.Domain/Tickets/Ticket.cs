@@ -261,6 +261,18 @@ public sealed partial class Ticket
     /// </summary>
     public Guid? DecideurAvoirExoId { get; private set; }
 
+    /// <summary>
+    /// EXTENSION Support IT (incident technique) : catégorie technique du signalement, routant vers
+    /// sa file cible (même principe que <see cref="CategorieReclamationId"/>).
+    /// </summary>
+    public Guid? CategorieIncidentId { get; private set; }
+
+    /// <summary>
+    /// EXTENSION Support IT (incident technique) : gravité déclarée (Mineure / Majeure / Critique).
+    /// Caractéristique du signalement, orientant priorité et SLA — pas un état du workflow.
+    /// </summary>
+    public CIT.Plateforme.Domain.Incidents.GraviteIncident? Gravite { get; private set; }
+
     private Ticket() { }
 
     public static Ticket Creer(
@@ -592,6 +604,35 @@ public sealed partial class Ticket
         if (string.IsNullOrWhiteSpace(description))
         {
             throw new ArgumentException("La description de la réclamation est obligatoire.", nameof(description));
+        }
+
+        Objet = objet;
+        Description = description;
+    }
+
+    /// <summary>
+    /// EXTENSION Support IT : catégorie technique + gravité d'un incident.
+    /// </summary>
+    public void DefinirIncident(Guid categorieIncidentId, CIT.Plateforme.Domain.Incidents.GraviteIncident gravite)
+    {
+        CategorieIncidentId = categorieIncidentId;
+        Gravite = gravite;
+    }
+
+    /// <summary>
+    /// EXTENSION Support IT : contenu réel d'un incident (objet court + description). Réutilise
+    /// <see cref="Objet"/>/<see cref="Description"/>, comme la réclamation et l'enrôlement.
+    /// </summary>
+    public void DefinirContenuIncident(string objet, string description)
+    {
+        if (string.IsNullOrWhiteSpace(objet))
+        {
+            throw new ArgumentException("L'objet de l'incident est obligatoire.", nameof(objet));
+        }
+
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("La description de l'incident est obligatoire.", nameof(description));
         }
 
         Objet = objet;

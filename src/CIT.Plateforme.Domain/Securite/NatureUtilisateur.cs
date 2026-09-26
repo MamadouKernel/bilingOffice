@@ -172,6 +172,21 @@ public static class Permission
     public const string AdministrationComptes = "administration.comptes";
 
     /// <summary>
+    /// SUPPORT IT (incident technique) — instruction d'un incident technique dans la file Support IT :
+    /// prise en charge, échanges, résolution, clôture. C'est la capacité d'INTERVENTION du Support N1,
+    /// distincte de la lecture/diagnostic : elle porte sur le canal technique, jamais sur les dossiers
+    /// métier. Attribuée au <see cref="ProfilSupportN1"/>.
+    /// </summary>
+    public const string SupportIncidentInstruire = "support.incident.instruire";
+
+    /// <summary>
+    /// Administration du référentiel des catégories d'incident technique (libellé, file cible,
+    /// activation), réservée à l'administrateur fonctionnel — miroir de
+    /// <see cref="AdministrationCategoriesReclamation"/>.
+    /// </summary>
+    public const string AdministrationCategoriesIncident = "administration.categories_incident";
+
+    /// <summary>
     /// PROFIL « SUPPORT N1 » (équipe IT) — paquet de permissions de premier niveau, en
     /// LECTURE / DIAGNOSTIC uniquement. Le socle ne nomme aucun rôle métier en dur (decision D4) :
     /// un « profil » n'est donc qu'une liste de codes que l'administrateur applique d'un geste,
@@ -193,6 +208,7 @@ public static class Permission
         SupervisionConsulter,
         AuditConsulter,
         DocumentTelecharger,
+        SupportIncidentInstruire,
     ];
 
     /// <summary>
