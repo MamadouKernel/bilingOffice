@@ -10,48 +10,68 @@
 
 <PageTitle>@Loc["Account.ResetPageTitle"]</PageTitle>
 
-<div class="cit-page-header">
-    <div>
-        <h1 class="cit-page-title">
-            <span>🔑</span> @Loc["Account.ResetTitle"]
-        </h1>
-        <div class="cit-page-subtitle">@Loc["Account.ResetSubtitle"]</div>
-    </div>
-</div>
+@* Écran d'authentification : même langage visuel que Connexion (carte centrée, champ large,
+   bouton pleine largeur). Le titre reçoit le focus à la navigation (FocusOnNavigate) : il n'affiche
+   pas de contour — ce n'est pas un élément interactif — les champs et boutons gardent le leur. *@
+<div class="d-flex justify-content-center py-4 py-md-5">
+    <div class="w-100" style="max-width: 460px;">
+        <div class="cit-card border-0 shadow-lg p-4 p-md-5" style="border-radius: 1.5rem;">
 
-<div style="max-width: 600px;">
-    <div class="cit-card mb-4">
-        <EditForm Model="Modele" OnValidSubmit="ReinitialiserAsync" FormName="reinitialiser-mot-de-passe">
-            <input type="hidden" @bind-value="Modele.UtilisateurId" />
-            <input type="hidden" @bind-value="Modele.Jeton" />
-            <div class="mb-4">
-                <label class="form-label small fw-semibold text-dark" for="nouveau-mot-de-passe">@Loc["Account.NewPassword"]</label>
-                <ChampMotDePasse>
-                    <InputText id="nouveau-mot-de-passe" type="password" class="form-control" @bind-Value="Modele.NouveauMotDePasse" placeholder="@Loc["Account.NewPasswordPlaceholder"]" />
-                </ChampMotDePasse>
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: var(--azure-50); border: 1px solid var(--azure-100); font-size: 1.6rem;"
+                     aria-hidden="true">
+                    @(succes ? "✅" : "🔑")
+                </div>
+                <h1 class="fw-bold h3 mb-2" style="color: var(--ink); outline: none; box-shadow: none;" tabindex="-1">
+                    @Loc["Account.ResetTitle"]
+                </h1>
+                <p class="text-muted mb-0 small">@Loc["Account.ResetSubtitle"]</p>
             </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="/comptes/connexion" class="text-decoration-none small text-muted">@Loc["Account.ResetCancel"]</a>
-                <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">@Loc["Account.ResetSubmit"]</button>
-            </div>
-        </EditForm>
-    </div>
 
-    @if (erreur is not null)
-    {
-        <div class="alert alert-danger mb-4" role="alert">@erreur</div>
-    }
+            @if (succes)
+            {
+                <div class="alert alert-success text-center mb-4" role="status">
+                    <strong>@Loc["Account.ResetSuccess"]</strong>
+                </div>
+                <a href="/comptes/connexion" class="btn btn-primary btn-lg w-100 py-3 shadow-sm" style="border-radius: .75rem;">
+                    @Loc["Account.GoToLogin"] <span class="ms-2" aria-hidden="true">→</span>
+                </a>
+            }
+            else
+            {
+                @if (erreur is not null)
+                {
+                    <div class="alert alert-danger mb-4" role="alert">@erreur</div>
+                }
 
-    @if (succes)
-    {
-        <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="status">
-            <span class="fs-4">✅</span>
-            <div>
-                <strong>@Loc["Account.ResetSuccess"]</strong>
-                <div class="mt-1"><a href="/comptes/connexion" class="fw-bold text-success text-decoration-underline">@Loc["Account.GoToLogin"] ➔</a></div>
-            </div>
+                <EditForm Model="Modele" OnValidSubmit="ReinitialiserAsync" FormName="reinitialiser-mot-de-passe">
+                    <input type="hidden" @bind-value="Modele.UtilisateurId" />
+                    <input type="hidden" @bind-value="Modele.Jeton" />
+
+                    <div class="mb-4">
+                        <label class="form-label text-uppercase fw-bold text-muted" style="font-size: .75rem; letter-spacing: .06em;" for="nouveau-mot-de-passe">
+                            @Loc["Account.NewPassword"]
+                        </label>
+                        <ChampMotDePasse>
+                            <InputText id="nouveau-mot-de-passe" type="password" autocomplete="new-password"
+                                       class="form-control form-control-lg px-3 py-3"
+                                       @bind-Value="Modele.NouveauMotDePasse"
+                                       placeholder="@Loc["Account.NewPasswordPlaceholder"]" />
+                        </ChampMotDePasse>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm" style="border-radius: .75rem;">
+                        @Loc["Account.ResetSubmit"] <span class="ms-2" aria-hidden="true">→</span>
+                    </button>
+
+                    <div class="text-center mt-4">
+                        <a href="/comptes/connexion" class="small text-muted text-decoration-none">@Loc["Account.ResetCancel"]</a>
+                    </div>
+                </EditForm>
+            }
         </div>
-    }
+    </div>
 </div>
 
 @code {
