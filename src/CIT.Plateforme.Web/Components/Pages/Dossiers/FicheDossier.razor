@@ -43,7 +43,7 @@ else if (_fiche is not null)
                     <span>📁</span> @Loc["DosF.HeaderPrefix"] <span class="font-monospace text-primary">@_fiche.NumeroDossier</span>
                 </h1>
                 <div class="cit-page-subtitle">
-                    @Loc["Dash.Company"] <strong class="text-dark">@_fiche.SocieteNom</strong> · @Loc["DosF.CreatedBy"] <strong>@_fiche.AuteurNom</strong> @Loc["DosF.On"] @_fiche.DateCreationUtc.ToString("dd/MM/yyyy")
+                    @Loc["Dash.Company"] <strong class="text-dark">@_fiche.SocieteNom</strong> · @Loc["DosF.CreatedBy"] <strong>@_fiche.AuteurNom</strong> @Loc["DosF.On"] @_fiche.DateCreationUtc.Horodate()
                 </div>
             </div>
         </div>
@@ -135,7 +135,7 @@ else if (_fiche is not null)
                                 <span class="small text-muted">@(t.OperateurAssigneNom ?? Loc["DosF.Unassigned"].Value)</span>
                             </td>
                             <td class="small text-muted font-monospace">
-                                @t.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")
+                                @t.DateCreationUtc.Horodate()
                             </td>
                             <td class="text-end">
                                 <a href="/tickets/@t.TicketId" class="btn btn-outline-primary btn-sm">

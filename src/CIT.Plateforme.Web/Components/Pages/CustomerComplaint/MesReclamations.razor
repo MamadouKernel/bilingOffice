@@ -68,7 +68,7 @@ else
                                             @t.NumeroTicket
                                         </a>
                                     </td>
-                                    <td class="text-muted small font-monospace">@d.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-muted small font-monospace">@d.DateCreationUtc.Horodate()</td>
                                     <td><span class="badge @BadgeClasse(d.EtatGlobal)">@Libelle(d.EtatGlobal)</span></td>
                                     <td class="text-end">
                                         <a href="/tickets/@t.TicketId" class="btn btn-outline-primary btn-sm">

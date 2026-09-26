@@ -114,7 +114,7 @@
                                 <tr>
                                     <td class="fw-bold text-primary font-monospace">@v.NumeroVersion</td>
                                     <td class="small text-muted font-monospace">@v.DateEffetUtc.ToString("dd/MM/yyyy")</td>
-                                    <td class="small text-muted font-monospace">@v.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="small text-muted font-monospace">@v.DateCreationUtc.Horodate()</td>
                                     <td class="text-end font-monospace">@v.NombreLignes</td>
                                     <td>
                                         @if (v.EstActive)

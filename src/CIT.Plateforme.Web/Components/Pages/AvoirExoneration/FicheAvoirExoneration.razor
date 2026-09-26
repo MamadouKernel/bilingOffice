@@ -75,7 +75,7 @@ else if (_fiche is not null)
                 <div>@Loc["FicheAvoirExo.GrantedAmount"] <strong class="fs-5">@(_fiche.MontantAccorde?.ToString("N0") ?? "0") XOF</strong></div>
                 @if (_fiche.DateDecisionUtc.HasValue)
                 {
-                    <div class="small text-muted">@Loc["FicheAvoirExo.DecisionRenderedOn"] @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    <div class="small text-muted">@Loc["FicheAvoirExo.DecisionRenderedOn"] @_fiche.DateDecisionUtc.Value.Horodate()</div>
                 }
             </div>
         </div>
@@ -89,7 +89,7 @@ else if (_fiche is not null)
                 <div>@Loc["FicheAvoirExo.RejectReason"] <strong class="text-danger">@_fiche.MotifRejet</strong></div>
                 @if (_fiche.DateDecisionUtc.HasValue)
                 {
-                    <div class="small text-muted">@Loc["FicheAvoirExo.DecisionRenderedOn"] @_fiche.DateDecisionUtc.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    <div class="small text-muted">@Loc["FicheAvoirExo.DecisionRenderedOn"] @_fiche.DateDecisionUtc.Value.Horodate()</div>
                 }
             </div>
         </div>
@@ -117,7 +117,7 @@ else if (_fiche is not null)
                     </div>
                     <div class="col-sm-6">
                         <div class="text-muted small">@Loc["FicheAvoirExo.SubmitDateField"]</div>
-                        <div class="fw-semibold">@_fiche.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        <div class="fw-semibold">@_fiche.DateCreationUtc.Horodate()</div>
                     </div>
                 </div>
 
@@ -147,7 +147,7 @@ else if (_fiche is not null)
                             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <div>
                                     <div class="fw-semibold">📄 @doc.NomFichier</div>
-                                    <div class="text-muted small">@Loc["FicheAvoirExo.DocCategory"] @doc.Categorie • @(doc.TailleOctets / 1024) @Loc["Common.KoUnit"] • @Loc["FicheAvoirExo.DocDepositedOn"] @doc.DateDepotUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                                    <div class="text-muted small">@Loc["FicheAvoirExo.DocCategory"] @doc.Categorie • @(doc.TailleOctets / 1024) @Loc["Common.KoUnit"] • @Loc["FicheAvoirExo.DocDepositedOn"] @doc.DateDepotUtc.Horodate()</div>
                                 </div>
                             </div>
                         }
@@ -170,7 +170,7 @@ else if (_fiche is not null)
                             <div class="mb-2 pb-2 border-bottom">
                                 <div class="d-flex justify-content-between">
                                     <strong class="text-dark">@h.Evenement</strong>
-                                    <span class="small text-muted">@h.DateUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                    <span class="small text-muted">@h.DateUtc.Horodate()</span>
                                 </div>
                                 @if (!string.IsNullOrEmpty(h.Detail))
                                 {

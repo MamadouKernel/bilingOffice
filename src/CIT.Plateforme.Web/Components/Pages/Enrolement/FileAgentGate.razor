@@ -90,7 +90,7 @@ else
                                     }
                                 </td>
                                 <td><StatutBadge Statut="@t.Statut" /></td>
-                                <td class="small text-muted font-monospace">@t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="small text-muted font-monospace">@t.DateArriveeEnFileUtc.Horodate()</td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                         <a href="/enrolement/@t.Id" class="btn btn-outline-secondary">@Loc["AgentGate.BtnFiche"]</a>

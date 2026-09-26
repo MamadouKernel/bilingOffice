@@ -61,7 +61,7 @@ else
                     </h5>
                     <div class="text-muted small">
                         @Loc["ProfilSoc.ClientType"] <span class="fw-semibold">@_resultat.Societe.Profil</span>
-                        · @Loc["ProfilSoc.CreatedOn"] @_resultat.Societe.DateCreationUtc.ToString("dd/MM/yyyy")
+                        · @Loc["ProfilSoc.CreatedOn"] @_resultat.Societe.DateCreationUtc.Horodate()
                     </div>
                 </div>
                 <span class="badge bg-primary-subtle text-primary fs-6">@_resultat.Societe.Etat</span>

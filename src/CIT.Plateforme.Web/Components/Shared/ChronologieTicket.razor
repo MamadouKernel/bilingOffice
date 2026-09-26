@@ -20,7 +20,7 @@
                     <div class="cit-card p-3 mb-1">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold text-dark small">@ev.Evenement</span>
-                            <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.72rem;">@ev.HorodatageUtc.ToString("dd/MM/yyyy HH:mm") UTC</span>
+                            <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.72rem;">@ev.HorodatageUtc.Horodate() UTC</span>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(ev.Detail))
                         {

@@ -242,13 +242,13 @@
                         </li>
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">@Loc["Ticket.CreatedLabel"]</span>
-                            <span>@_fiche.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                            <span>@_fiche.DateCreationUtc.Horodate()</span>
                         </li>
                         @if (_fiche.DatePriseEnChargeUtc.HasValue)
                         {
                             <li class="mb-2 d-flex justify-content-between">
                                 <span class="text-muted">@Loc["Ticket.TakenChargeLabel"]</span>
-                                <span>@_fiche.DatePriseEnChargeUtc.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                <span>@_fiche.DatePriseEnChargeUtc.Value.Horodate()</span>
                             </li>
                         }
                     </ul>
@@ -389,7 +389,7 @@
                                                             <span class="badge bg-warning text-dark ms-2">@Loc["Ticket.InternalNoteBadge"]</span>
                                                         }
                                                     </span>
-                                                    <span class="text-muted" style="font-size: 0.75rem;">@msg.DateEnvoiUtc.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">@msg.DateEnvoiUtc.Horodate()</span>
                                                 </div>
                                                 <div class="small text-dark">@msg.Contenu</div>
                                             </div>
@@ -458,7 +458,7 @@
                                                     <td class="fw-semibold">📄 @doc.NomFichier</td>
                                                     <td><span class="badge bg-secondary">@doc.TypeContenu</span></td>
                                                     <td>@((doc.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
-                                                    <td class="small text-muted">@doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td class="small text-muted">@doc.DateDepotUtc.Horodate()</td>
                                                 </tr>
                                             }
                                         </tbody>

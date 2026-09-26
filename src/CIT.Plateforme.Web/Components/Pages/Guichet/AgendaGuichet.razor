@@ -115,7 +115,7 @@ else
                                     <td class="fw-bold font-monospace">@Creneau(rdv)</td>
                                     <td>@rdv.Motif</td>
                                     <td>@BadgeStatut(rdv.Statut)</td>
-                                    <td class="text-muted small">@rdv.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-muted small">@rdv.DateCreationUtc.Horodate()</td>
                                     <td class="text-muted small">@(rdv.CommentaireAgent ?? "—")</td>
                                     <td>@Actions(rdv)</td>
                                 </tr>

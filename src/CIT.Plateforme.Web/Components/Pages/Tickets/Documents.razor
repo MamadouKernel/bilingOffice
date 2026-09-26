@@ -110,7 +110,7 @@ else
                         {
                             <tr>
                                 <td class="fw-semibold">@doc.NomFichier</td>
-                                <td>@doc.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@doc.DateDepotUtc.Horodate()</td>
                                 <td>@doc.StatutAntivirus</td>
                                 <td class="text-end">
                                     @if (doc.StatutAntivirus == StatutAnalyseAntivirus.Sain)

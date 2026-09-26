@@ -107,7 +107,7 @@ else
                                 <td>
                                     <StatutBadge Statut="@t.Statut" />
                                 </td>
-                                <td class="small text-muted">@t.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="small text-muted">@t.DateCreationUtc.Horodate()</td>
                                 <td class="text-end pe-3">
                                     <div class="d-flex justify-content-end gap-1">
                                         @if (t.Statut == StatutTicket.EnAttenteDePriseEnCharge)

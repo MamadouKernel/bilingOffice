@@ -117,7 +117,7 @@ else
                                     </span>
                                 </td>
                                 <td class="text-end font-monospace fw-bold text-primary">@operateur.TicketsEnCours</td>
-                                <td class="small text-muted">@operateur.DerniereActiviteUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="small text-muted">@operateur.DerniereActiviteUtc.Horodate()</td>
                             </tr>
                         }
                     </tbody>

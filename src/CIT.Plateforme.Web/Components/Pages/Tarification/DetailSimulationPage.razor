@@ -56,7 +56,7 @@
         <div class="cit-card mb-4">
             <div class="row g-3 small mb-3 p-3 bg-light rounded-3 border">
                 <div class="col-md-3"><span class="text-muted">@Loc["SimDet.RefLabel"]</span> <strong class="font-monospace text-primary">@_detail.Reference</strong></div>
-                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.DateLabel"]</span> <strong class="font-monospace">@_detail.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                <div class="col-md-3"><span class="text-muted">@Loc["SimDet.DateLabel"]</span> <strong class="font-monospace">@_detail.DateCreationUtc.Horodate()</strong></div>
                 <div class="col-md-3"><span class="text-muted">@Loc["SimDet.SensLabel"]</span> <strong>@_detail.Sens</strong></div>
                 <div class="col-md-3"><span class="text-muted">@Loc["SimDet.StayLabel"]</span> <strong>@_detail.DureeSejourJours @Loc["SimHist.DaySuffix"]</strong></div>
                 @if (!string.IsNullOrWhiteSpace(_detail.NomNavire))
@@ -114,7 +114,10 @@
 
             <div class="alert alert-secondary small mt-3 mb-0">@_detail.MentionLegale</div>
 
-            <div class="d-flex justify-content-end mt-3">
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" disabled="@_telechargementEnCours" @onclick="OuvrirApercuAsync">
+                    👁 @Loc["Preview.Open"]
+                </button>
                 <button type="button" class="btn btn-outline-primary px-4 fw-bold shadow-sm" disabled="@_telechargementEnCours" @onclick="TelechargerPdfAsync">
                     @(_telechargementEnCours ? Loc["SimDet.Generating"].Value : Loc["SimDet.DownloadPdf"].Value)
                 </button>
@@ -125,6 +128,13 @@
                 <div class="alert alert-danger mt-3 mb-0" role="alert">@_erreur</div>
             }
         </div>
+
+        <ApercuDocument EstOuvert="_apercu is not null"
+                        NomFichier="@(_apercu?.NomFichier ?? string.Empty)"
+                        TypeContenu="@(_apercu?.TypeContenu ?? string.Empty)"
+                        Base64="@_apercu?.Base64"
+                        OnFermer="FermerApercu"
+                        OnTelecharger="TelechargerDepuisApercuAsync" />
     }
 </div>
 
@@ -142,6 +152,7 @@
     private SimulationProformaDetailVue? _detail;
     private bool _telechargementEnCours;
     private string? _erreur;
+    private PdfGenere? _apercu;
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,7 +187,27 @@
         }
     }
 
-    private async Task TelechargerPdfAsync()
+    private Task TelechargerPdfAsync() => GenererPuisAsync(async pdf =>
+        await Js.InvokeVoidAsync("telechargerFichier", pdf.NomFichier, pdf.TypeContenu, pdf.Base64));
+
+    /// <summary>Aperçu du proforma dans l'application, sans téléchargement.</summary>
+    private Task OuvrirApercuAsync() => GenererPuisAsync(pdf =>
+    {
+        _apercu = pdf;
+        return Task.CompletedTask;
+    });
+
+    private void FermerApercu() => _apercu = null;
+
+    private async Task TelechargerDepuisApercuAsync()
+    {
+        if (_apercu is { } pdf)
+        {
+            await Js.InvokeVoidAsync("telechargerFichier", pdf.NomFichier, pdf.TypeContenu, pdf.Base64);
+        }
+    }
+
+    private async Task GenererPuisAsync(Func<PdfGenere, Task> action)
     {
         _erreur = null;
         _telechargementEnCours = true;
@@ -184,7 +215,7 @@
         {
             // P2-02 : la société n'est plus transmise — elle est résolue côté serveur.
             var pdf = await GenererPdf.HandleAsync(new GenererDocumentProformaPdfRequete(_appelantId, Id));
-            await Js.InvokeVoidAsync("telechargerFichier", pdf.NomFichier, pdf.TypeContenu, Convert.ToBase64String(pdf.Contenu));
+            await action(new PdfGenere(pdf.NomFichier, pdf.TypeContenu, Convert.ToBase64String(pdf.Contenu)));
         }
         catch (Exception ex)
         {
@@ -195,4 +226,6 @@
             _telechargementEnCours = false;
         }
     }
+
+    private sealed record PdfGenere(string NomFichier, string TypeContenu, string Base64);
 }

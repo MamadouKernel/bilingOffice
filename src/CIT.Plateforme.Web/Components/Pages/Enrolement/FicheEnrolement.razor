@@ -150,7 +150,7 @@ else if (_fiche is not null)
                             <td class="fw-semibold text-dark">📄 @d.NomFichier</td>
                             <td class="small text-muted">@((d.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
                             <td><span class="badge bg-success-subtle text-success">@d.StatutAntivirus</span></td>
-                            <td class="small text-muted font-monospace">@d.DateDepotUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="small text-muted font-monospace">@d.DateDepotUtc.Horodate()</td>
                         </tr>
                     }
                 </tbody>

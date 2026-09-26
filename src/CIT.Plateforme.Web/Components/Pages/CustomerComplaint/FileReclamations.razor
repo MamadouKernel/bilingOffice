@@ -78,7 +78,7 @@ else
                                 <td><a href="/tickets/@t.Id" class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</a></td>
                                 <td class="fw-semibold text-dark">@(t.Objet ?? "—")</td>
                                 <td><StatutBadge Statut="@t.Statut" /></td>
-                                <td class="small text-muted font-monospace">@t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="small text-muted font-monospace">@t.DateArriveeEnFileUtc.Horodate()</td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary">@Loc["RecFile.BtnFiche"]</a>

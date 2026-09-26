@@ -154,7 +154,7 @@ else if (vuesFiles is not null)
                                 </span>
                             </td>
                             <td class="text-end font-monospace fw-bold text-primary">@vue.TicketsEnCours</td>
-                            <td class="small text-muted font-monospace">@vue.DerniereActiviteUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="small text-muted font-monospace">@vue.DerniereActiviteUtc.Horodate()</td>
                             <td class="text-end">
                                 @* DIS-02 — réaffectation en masse des tickets d'un opérateur absent/indisponible. *@
                                 @if (vue.Disponibilite != CIT.Plateforme.Domain.Affectation.StatutDisponibilite.Disponible && vue.TicketsEnCours > 0)
@@ -316,7 +316,7 @@ else if (vuesFiles is not null)
                                 <td class="small">@ticket.Statut</td>
                                 <td class="small">@(string.IsNullOrWhiteSpace(ticket.OperateurAssigneNom) ? Loc["Sup.NonAffecte"].Value : ticket.OperateurAssigneNom)</td>
                                 <td class="small">@ticket.PrioriteLibelle</td>
-                                <td class="small text-muted font-monospace">@ticket.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="small text-muted font-monospace">@ticket.DateArriveeEnFileUtc.Horodate()</td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm @(ticket.OperateurAssigneId is null ? "btn-outline-primary" : "btn-outline-secondary")"
                                             @onclick="() => AffecterAsync(ticket.TicketId, ticket.OperateurAssigneId is not null)">

@@ -70,7 +70,7 @@ else
                         @foreach (var entree in _page.Entrees)
                         {
                             <tr>
-                                <td class="small text-muted font-monospace">@entree.HorodatageUtc.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td class="small text-muted font-monospace">@entree.HorodatageUtc.HorodateSecondes()</td>
                                 @* REMÉDIATION D-03 : l'auteur est désormais résolu — identité lisible
                                    en tête, e-mail et identifiant stable en dessous pour la traçabilité. *@
                                 <td class="small">

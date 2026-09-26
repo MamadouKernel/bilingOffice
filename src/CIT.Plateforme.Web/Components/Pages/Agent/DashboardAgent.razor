@@ -153,7 +153,7 @@ else if (_dashboard is not null)
                                     <StatutBadge Statut="@ticket.Statut" />
                                 </td>
                                 <td class="small text-muted font-monospace">
-                                    @ticket.DatePriseEnChargeUtc.ToString("dd/MM/yyyy HH:mm")
+                                    @ticket.DatePriseEnChargeUtc.Horodate()
                                 </td>
                                 <td class="text-end">
                                     <a href="/tickets/@ticket.TicketId" class="btn btn-outline-primary btn-sm">

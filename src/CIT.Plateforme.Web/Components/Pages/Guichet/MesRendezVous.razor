@@ -211,7 +211,7 @@ else
                                                 break;
                                         }
                                     </td>
-                                    <td class="text-muted small">@r.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-muted small">@r.DateCreationUtc.Horodate()</td>
                                     <td>
                                         @if (r.Statut == "Reserve")
                                         {

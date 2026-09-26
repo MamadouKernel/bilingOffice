@@ -89,7 +89,7 @@ else
                                     <StatutBadge Statut="@t.Statut" />
                                 </td>
                                 <td class="small text-muted font-monospace">
-                                    @t.DateArriveeEnFileUtc.ToString("dd/MM/yyyy HH:mm")
+                                    @t.DateArriveeEnFileUtc.Horodate()
                                 </td>
                                 <td>
                                     @* RG-EXP-03 : le Draft IN précède la facture. *@
@@ -101,7 +101,7 @@ else
                                         <span class="badge bg-success-subtle text-success">@Loc["FileFactExp.DraftEmitted"]</span>
                                         @if (t.DraftInExportEmisLeUtc is DateTime emisLe)
                                         {
-                                            <div class="small text-muted mt-1">@Loc["FileFactExp.EmittedOnPrefix"] @emisLe.ToString("dd/MM/yyyy HH:mm")</div>
+                                            <div class="small text-muted mt-1">@Loc["FileFactExp.EmittedOnPrefix"] @emisLe.Horodate()</div>
                                         }
                                     }
                                     else

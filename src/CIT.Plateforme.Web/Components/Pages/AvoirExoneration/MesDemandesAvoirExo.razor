@@ -98,7 +98,7 @@ else
                                     <StatutBadge Statut="@d.Statut" />
                                 }
                             </td>
-                            <td class="small text-muted">@d.DateCreationUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="small text-muted">@d.DateCreationUtc.Horodate()</td>
                             <td class="text-end pe-3">
                                 <a href="/avoir-exoneration/fiche/@d.TicketId" class="btn btn-outline-primary btn-sm">@Loc["AvoirExoList.Consult"]</a>
                             </td>

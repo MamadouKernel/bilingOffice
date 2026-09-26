@@ -148,8 +148,8 @@ public sealed class EtatPagination
     private static string Formater(object? valeur) => valeur switch
     {
         null => string.Empty,
-        DateTime d => d.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture),
-        DateTimeOffset d => d.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture),
+        DateTime d => d.Horodate(),
+        DateTimeOffset d => d.Horodate(),
         DateOnly d => d.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         _ => valeur.ToString() ?? string.Empty,

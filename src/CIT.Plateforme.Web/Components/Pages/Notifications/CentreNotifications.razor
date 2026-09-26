@@ -78,7 +78,7 @@ else
                         <div class="fw-bold">@notification.Titre</div>
                         <div class="text-body-secondary small">@notification.Corps</div>
                         <div class="text-muted small mt-1">
-                            @notification.CreeeLeUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                            @notification.CreeeLeUtc.Horodate()
                         </div>
                     </div>
                     <div class="d-flex flex-column gap-2 align-items-stretch">

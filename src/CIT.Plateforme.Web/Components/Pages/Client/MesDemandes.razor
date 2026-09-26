@@ -109,7 +109,7 @@ else if (_dashboard is not null)
                                         @d.NumeroDossier
                                     </a>
                                 </td>
-                                <td class="text-muted small">@d.DateCreationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-muted small">@d.DateCreationUtc.Horodate()</td>
                                 <td><span class="badge bg-light text-dark border">@d.Module</span></td>
                                 <td>
                                     @if (d.Tickets.Count == 0)

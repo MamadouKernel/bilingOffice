@@ -124,7 +124,7 @@ else if (_dashboard is not null)
                             <tr>
                                 <td class="fw-bold">@invitation.Email</td>
                                 <td><span class="badge bg-secondary-subtle text-secondary">@invitation.Etat</span></td>
-                                <td class="small text-muted">@invitation.DateExpirationUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="small text-muted">@invitation.DateExpirationUtc.Horodate()</td>
                                 <td>
                                     @if (invitation.Etat == EtatInvitation.EnAttente)
                                     {
