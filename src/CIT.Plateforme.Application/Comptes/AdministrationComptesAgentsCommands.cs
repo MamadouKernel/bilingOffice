@@ -279,6 +279,51 @@ public sealed class DefinirHabilitationsEnMasseCommand(
     }
 
     /// <summary>
+    /// Applique le PROFIL « SUPPORT N1 » (équipe IT) à <paramref name="cibleId"/> : accorde, en UNE
+    /// unité de travail, les permissions de <see cref="Permission.ProfilSupportN1"/> qu'il ne détient
+    /// pas encore. N'en RETIRE aucune : appliquer un profil ne dépouille pas des habilitations déjà
+    /// accordées par ailleurs — c'est un ajout, pas une remise à zéro.
+    ///
+    /// Comme <see cref="AccorderToutesAsync"/>, LA LISTE VIENT DU RÉFÉRENTIEL SERVEUR
+    /// (<see cref="Permission.ProfilSupportN1"/>), jamais de l'appelant, et l'autorisation
+    /// (<see cref="Permission.AdministrationComptes"/>) est vérifiée une fois au début. Idempotent :
+    /// relancer n'écrit rien de plus.
+    /// </summary>
+    public async Task<ResultatHabilitationsEnMasse> AppliquerProfilSupportN1Async(
+        Guid appelantId, Guid cibleId, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(appelantId, Permission.AdministrationComptes, ct: ct).ConfigureAwait(false);
+        await ExigerCibleConnueAsync(utilisateurs, cibleId, ct).ConfigureAwait(false);
+
+        var detenues = await PermissionsNonBorneesAsync(cibleId, ct).ConfigureAwait(false);
+
+        var aAccorder = Permission.ProfilSupportN1
+            .Where(p => !detenues.Contains(p))
+            .OrderBy(p => p, StringComparer.Ordinal)
+            .ToList();
+
+        foreach (var permissionCode in aAccorder)
+        {
+            await habilitations
+                .AjouterAsync(HabilitationUtilisateur.Attribuer(cibleId, permissionCode), ct)
+                .ConfigureAwait(false);
+
+            await journalisation.ConsignerAuditAsync(
+                appelantId, "HabilitationAttribuee", "HabilitationUtilisateur", cibleId, null, permissionCode, ct)
+                .ConfigureAwait(false);
+        }
+
+        await journalisation.ConsignerAuditAsync(
+            appelantId, "ProfilSupportN1Applique", "HabilitationUtilisateur", cibleId,
+            null, $"{aAccorder.Count} permission(s)", ct).ConfigureAwait(false);
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+
+        return new ResultatHabilitationsEnMasse(
+            aAccorder.Count, Permission.ProfilSupportN1.Count - aAccorder.Count, []);
+    }
+
+    /// <summary>
     /// Retire à <paramref name="cibleId"/> toutes ses permissions.
     ///
     /// COMPORTEMENT DÉTERMINISTE SUR L'AUTO-RETRAIT : si l'appelant s'applique l'opération à

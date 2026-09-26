@@ -344,7 +344,13 @@ else
                         @* UX-P0 (UI-01) : ces deux actions mutent une soixantaine de permissions.
                            Elles ouvrent désormais une confirmation nommant le compte et le volume,
                            et sont verrouillées pendant le traitement. *@
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <button class="btn btn-sm btn-outline-info fw-semibold rounded-pill px-3"
+                                    title="@Loc["AdmCompte.ApplyProfilN1Title"]"
+                                    disabled="@_enCours"
+                                    @onclick="() => DemanderConfirmationProfilSupportN1(_agentEnEdition)">
+                                <span aria-hidden="true">🎧</span> @Loc["AdmCompte.ApplyProfilN1"]
+                            </button>
                             <button class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3"
                                     disabled="@_enCours"
                                     @onclick="() => DemanderConfirmationAccorderTout(_agentEnEdition)">
@@ -683,6 +689,32 @@ else
             "btn-warning",
             () => ExecuterAccorderToutAsync(cible.Id));
     }
+
+    /// <summary>
+    /// PROFIL « SUPPORT N1 » (équipe IT). Ajoute les permissions de lecture/diagnostic du profil que
+    /// le compte ne détient pas encore — c'est un ajout ciblé, jamais une remise à zéro.
+    /// </summary>
+    private void DemanderConfirmationProfilSupportN1(CompteAgentVue cible)
+    {
+        var manquantes = Permission.ProfilSupportN1.Except(cible.Permissions).Count();
+        if (manquantes == 0)
+        {
+            AfficherToast("info", Loc["AdmCompte.NoChangeTitle"].Value, Loc["AdmCompte.NoChangeProfilN1", cible.NomAffiche].Value);
+            return;
+        }
+
+        _confirmation = new ConfirmationEnAttente(
+            Loc["AdmCompte.ConfProfilN1Title"].Value,
+            Loc["AdmCompte.ConfProfilN1Msg", cible.NomAffiche, cible.Email, manquantes].Value,
+            Loc["AdmCompte.ConfProfilN1Btn"].Value,
+            "btn-info",
+            () => ExecuterProfilSupportN1Async(cible.Id));
+    }
+
+    private async Task ExecuterProfilSupportN1Async(Guid cibleId) =>
+        await ExecuterEnMasseAsync(
+            (commande, ct) => commande.AppliquerProfilSupportN1Async(_appelantId, cibleId, ct),
+            resultat => Loc["AdmCompte.ResultProfilN1", resultat.PermissionsAppliquees].Value);
 
     private void DemanderConfirmationRetirerTout(CompteAgentVue cible)
     {

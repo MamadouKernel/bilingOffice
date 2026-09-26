@@ -172,6 +172,30 @@ public static class Permission
     public const string AdministrationComptes = "administration.comptes";
 
     /// <summary>
+    /// PROFIL « SUPPORT N1 » (équipe IT) — paquet de permissions de premier niveau, en
+    /// LECTURE / DIAGNOSTIC uniquement. Le socle ne nomme aucun rôle métier en dur (decision D4) :
+    /// un « profil » n'est donc qu'une liste de codes que l'administrateur applique d'un geste,
+    /// exactement comme s'il les cochait un à un. Il ne confère aucune capacité de décision,
+    /// d'instruction ou de modification de dossier.
+    ///
+    /// Le N1 assiste l'usager et diagnostique : retrouver un dossier (<see cref="GuichetRecherche"/>),
+    /// consulter l'état des files sans agir (<see cref="SupervisionConsulter"/>), consulter le
+    /// journal d'audit (<see cref="AuditConsulter"/>) et télécharger une pièce pour aider
+    /// (<see cref="DocumentTelecharger"/>). L'escalade métier (N2/N3) et l'accès fonctionnel complet
+    /// restent au Super Administrateur.
+    ///
+    /// Ce n'est pas un <c>const</c> ni un <c>string</c> : <see cref="Tous"/> (réflexion sur les seuls
+    /// littéraux string) ne le capte donc pas et le référentiel des permissions n'est pas élargi.
+    /// </summary>
+    public static readonly IReadOnlyList<string> ProfilSupportN1 =
+    [
+        GuichetRecherche,
+        SupervisionConsulter,
+        AuditConsulter,
+        DocumentTelecharger,
+    ];
+
+    /// <summary>
     /// Ensemble exhaustif des codes de permission definis ci-dessus, obtenu par reflexion sur les
     /// constantes de cette classe. Le faire ainsi plutot qu'a la main garantit qu'une permission
     /// ajoutee plus tard y figure sans qu'on ait a penser a l'y inscrire — une liste tenue
