@@ -287,11 +287,12 @@ public sealed class SecResetDivulgationJetonTests
     }
 
     // ================================================================================
-    // SEC-RESET-06 — le comportement de démonstration est explicitement conditionné
+    // SEC-RESET-06 — le lien n'est affiché dans AUCUN environnement, pas même Development :
+    // il est désormais distribué uniquement par e-mail au titulaire du compte.
     // ================================================================================
 
     [Fact]
-    public async Task SecReset06_Le_comportement_de_demonstration_est_conditionne_a_Development()
+    public async Task SecReset06_Aucun_environnement_n_affiche_le_lien_pas_meme_Development()
     {
         using var fabriqueDev = new FabriqueEnvironnement("Development");
         var compte = await CreerCompteAsync(fabriqueDev);
@@ -299,9 +300,8 @@ public sealed class SecResetDivulgationJetonTests
 
         var corpsDev = await DemanderReinitialisationAsync(clientDev, compte.Email!);
 
-        // En développement, le lien reste affiché : sans canal de distribution, c'est le seul
-        // moyen d'exercer le parcours localement. La garde doit être explicite, donc observable.
-        Assert.Contains("/comptes/reinitialiser-mot-de-passe?", corpsDev, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("/comptes/reinitialiser-mot-de-passe?", corpsDev, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("jeton=", corpsDev, StringComparison.OrdinalIgnoreCase);
 
         using var fabriqueProd = new FabriqueEnvironnement("Production");
         using var clientProd = CreerClientAnonyme(fabriqueProd);
