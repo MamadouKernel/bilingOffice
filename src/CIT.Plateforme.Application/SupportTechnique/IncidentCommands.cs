@@ -16,8 +16,14 @@ public static class SupportItConstantes
     /// <summary>Type de demande discriminant sur le ticket générique.</summary>
     public const string TypeDemande = "Incident";
 
-    /// <summary>Nom de la file d'instruction du Support IT.</summary>
+    /// <summary>Nom de la file d'instruction de premier niveau (N1) du Support IT.</summary>
     public const string NomFileSupportIt = "Support IT";
+
+    /// <summary>Nom de la file de second niveau (N2) — destination d'un incident escaladé.</summary>
+    public const string NomFileSupportItN2 = "Support IT — N2";
+
+    /// <summary>Les deux files du module, dans l'ordre N1 puis N2.</summary>
+    public static readonly IReadOnlyList<string> NomsFiles = [NomFileSupportIt, NomFileSupportItN2];
 }
 
 public sealed record SoumettreIncidentRequete(Guid CategorieIncidentId, GraviteIncident Gravite, string Objet, string Description);
@@ -88,148 +94,90 @@ public sealed class SoumettreIncidentCommand(
 
 public sealed record ResoudreIncidentRequete(Guid AgentId, Guid TicketId, string ReponseResolution);
 
-
-
 /// <summary>
-
 /// Résout et clôture un incident technique avec une réponse de résolution obligatoire. Réutilise
-
 /// <see cref="Ticket.CloturerAvecReponseFormalisee"/> (comme la clôture de réclamation). Réservé
-
 /// au détenteur de <see cref="Permission.SupportIncidentInstruire"/> sur la file de l'incident.
-
 /// </summary>
-
 public sealed class ResoudreIncidentCommand(
-
     ITicketRepository tickets,
-
     IAutorisationService autorisation,
-
     IJournalisationService journalisation,
-
     IHorloge horloge,
-
     IUniteDeTravail uniteDeTravail)
-
 {
-
     public async Task ExecuterAsync(ResoudreIncidentRequete requete, CancellationToken ct = default)
-
     {
-
-        var ticket = await tickets.ObtenirParIdAsync(requete.TicketId, ct).ConfigureAwait(false)
-
-            ?? throw new InvalidOperationException($"Ticket {requete.TicketId} introuvable.");
-
-
-
-        if (ticket.Module != SupportItConstantes.Module)
-
-        {
-
-            throw new InvalidOperationException("Seuls les incidents techniques peuvent être résolus via ce contrat.");
-
-        }
-
-
-
+        var ticket = await ChargerIncidentAsync(tickets, requete.TicketId, ct).ConfigureAwait(false);
         await autorisation.ExigerAsync(requete.AgentId, Permission.SupportIncidentInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
-
-
         var statutAvant = ticket.Statut;
-
         ticket.CloturerAvecReponseFormalisee(requete.ReponseResolution, MotifClotureType.Normale, horloge.MaintenantUtc);
 
-
-
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "IncidentResolu", null, requete.AgentId, ct).ConfigureAwait(false);
-
         await journalisation.ConsignerAuditAsync(requete.AgentId, "IncidentResolu", nameof(Ticket), ticket.Id, statutAvant.ToString(), ticket.Statut.ToString(), ct).ConfigureAwait(false);
-
         await journalisation.PublierEvenementAsync("TicketIncidentResolu", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
-
-
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
-
     }
 
+    internal static async Task<Ticket> ChargerIncidentAsync(ITicketRepository tickets, Guid ticketId, CancellationToken ct)
+    {
+        var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
+
+        if (ticket.Module != SupportItConstantes.Module)
+        {
+            throw new InvalidOperationException("Ce contrat ne traite que les incidents techniques du module Support IT.");
+        }
+
+        return ticket;
+    }
 }
-
-
 
 public sealed record EscaladerIncidentRequete(Guid AgentId, Guid TicketId, string Motif);
 
-
-
 /// <summary>
-
-/// Escalade N1 -> N2 : le N1 transmet un incident qu'il ne peut résoudre. Action tracée et
-
-/// signalée par événement (notification au niveau supérieur) ; le ticket reste en cours. Le motif
-
-/// est obligatoire. Réservé au détenteur de <see cref="Permission.SupportIncidentInstruire"/>.
-
+/// Escalade N1 → N2 : le N1 transmet un incident qu'il ne peut résoudre. Le ticket est
+/// effectivement déplacé vers la file <see cref="SupportItConstantes.NomFileSupportItN2"/> et
+/// repasse en attente de prise en charge — un intervenant N2 le reprend depuis la même file de
+/// travail. Le motif est obligatoire et tracé ; un événement notifie le niveau supérieur. Réservé
+/// au détenteur de <see cref="Permission.SupportIncidentInstruire"/>.
 /// </summary>
-
 public sealed class EscaladerIncidentCommand(
-
     ITicketRepository tickets,
-
+    IFileDeTraitementRepository fileRepository,
     IAutorisationService autorisation,
-
     IJournalisationService journalisation,
-
+    IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
-
 {
-
     public async Task ExecuterAsync(EscaladerIncidentRequete requete, CancellationToken ct = default)
-
     {
-
         if (string.IsNullOrWhiteSpace(requete.Motif))
-
         {
-
             throw new ArgumentException("Le motif d'escalade est obligatoire.", nameof(requete));
-
         }
 
-
-
-        var ticket = await tickets.ObtenirParIdAsync(requete.TicketId, ct).ConfigureAwait(false)
-
-            ?? throw new InvalidOperationException($"Ticket {requete.TicketId} introuvable.");
-
-
-
-        if (ticket.Module != SupportItConstantes.Module)
-
-        {
-
-            throw new InvalidOperationException("Seuls les incidents techniques peuvent être escaladés via ce contrat.");
-
-        }
-
-
-
+        var ticket = await ResoudreIncidentCommand.ChargerIncidentAsync(tickets, requete.TicketId, ct).ConfigureAwait(false);
         await autorisation.ExigerAsync(requete.AgentId, Permission.SupportIncidentInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
+        var files = await fileRepository.ListerAsync(ct).ConfigureAwait(false);
+        var fileN2 = files.FirstOrDefault(f => f.Nom == SupportItConstantes.NomFileSupportItN2 && f.Module == SupportItConstantes.Module)
+            ?? throw new InvalidOperationException("La file « Support IT — N2 » n'est pas configurée.");
 
+        if (ticket.FileCouranteId == fileN2.Id)
+        {
+            throw new InvalidOperationException("Cet incident est déjà au niveau N2.");
+        }
+
+        // Transfert réel vers la file N2, sans destinataire : le ticket y attend une prise en charge.
+        ticket.Transferer(fileN2.Id, destinataireId: null, horloge.MaintenantUtc);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "IncidentEscalade", requete.Motif, requete.AgentId, ct).ConfigureAwait(false);
-
         await journalisation.ConsignerAuditAsync(requete.AgentId, "IncidentEscalade", nameof(Ticket), ticket.Id, null, requete.Motif, ct).ConfigureAwait(false);
-
         await journalisation.PublierEvenementAsync("TicketIncidentEscalade", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
-
-
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
-
     }
-
 }

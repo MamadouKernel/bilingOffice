@@ -6,10 +6,11 @@ using CIT.Plateforme.Domain.Tickets;
 namespace CIT.Plateforme.Application.SupportTechnique;
 
 /// <summary>
-/// File d'instruction du Support IT — tickets d'incident en attente ou en cours dans la file
-/// « Support IT ». Miroir de <c>ConsulterFileReclamationsQuery</c> : l'accès est autorisé au
+/// File d'instruction du Support IT — incidents en attente ou en cours, sur les DEUX files du
+/// module (N1 et N2, cette dernière recevant les incidents escaladés). L'accès est autorisé au
 /// détenteur de <see cref="Permission.SupportIncidentInstruire"/> (ou du droit standard de prise en
-/// charge borné à cette file).
+/// charge) sur l'une de ces files ; un incident escaladé reste ainsi visible dans le même plan de
+/// travail. Miroir de <c>ConsulterFileReclamationsQuery</c>.
 /// </summary>
 public sealed class ConsulterFileIncidentsQuery(
     ITicketRepository ticketRepository,
@@ -18,23 +19,44 @@ public sealed class ConsulterFileIncidentsQuery(
 {
     public async Task<IReadOnlyList<Ticket>> ExecuterAsync(Guid agentId, CancellationToken ct = default)
     {
-        var files = await fileRepository.ListerAsync(ct).ConfigureAwait(false);
-        var fileSupport = files.FirstOrDefault(f => f.Nom == SupportTechnique.NomFileSupportIt && f.Module == SupportTechnique.Module)
-            ?? throw new InvalidOperationException("La file « Support IT » n'est pas configurée.");
+        var filesSupport = (await fileRepository.ListerAsync(ct).ConfigureAwait(false))
+            .Where(f => f.Module == SupportItConstantes.Module)
+            .ToList();
 
-        var peutStandard = await autorisationService.EstAutoriseAsync(agentId, Permission.TicketPrendreEnCharge, fileSupport.Id, ct).ConfigureAwait(false);
-        var peutIncident = await autorisationService.EstAutoriseAsync(agentId, Permission.SupportIncidentInstruire, fileSupport.Id, ct).ConfigureAwait(false);
-
-        if (!peutStandard && !peutIncident)
+        if (filesSupport.Count == 0)
         {
-            throw new AccesRefuseException($"L'agent {agentId} n'a pas l'autorisation d'accéder à la file Support IT.");
+            throw new InvalidOperationException("Aucune file du module Support IT n'est configurée.");
         }
 
-        var tickets = await ticketRepository.ListerParFileAsync(fileSupport.Id, ct).ConfigureAwait(false);
-        return tickets
+        if (!await PeutAccederAsync(agentId, filesSupport.Select(f => f.Id), ct).ConfigureAwait(false))
+        {
+            throw new AccesRefuseException($"L'agent {agentId} n'a pas l'autorisation d'accéder aux files Support IT.");
+        }
+
+        var incidents = new List<Ticket>();
+        foreach (var file in filesSupport)
+        {
+            incidents.AddRange(await ticketRepository.ListerParFileAsync(file.Id, ct).ConfigureAwait(false));
+        }
+
+        return incidents
             .Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)
             .OrderBy(t => t.DateArriveeEnFileUtc)
             .ToList();
+    }
+
+    private async Task<bool> PeutAccederAsync(Guid agentId, IEnumerable<Guid> fileIds, CancellationToken ct)
+    {
+        foreach (var fileId in fileIds)
+        {
+            if (await autorisationService.EstAutoriseAsync(agentId, Permission.SupportIncidentInstruire, fileId, ct).ConfigureAwait(false)
+                || await autorisationService.EstAutoriseAsync(agentId, Permission.TicketPrendreEnCharge, fileId, ct).ConfigureAwait(false))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
@@ -57,7 +79,7 @@ public sealed class MesIncidentsQuery(
 
         var tickets = await ticketRepository.ListerParDossiersAsync(dossiers.Select(d => d.Id), ct).ConfigureAwait(false);
         return tickets
-            .Where(t => t.Module == SupportTechnique.Module)
+            .Where(t => t.Module == SupportItConstantes.Module)
             .OrderByDescending(t => t.DateArriveeEnFileUtc)
             .ToList();
     }

@@ -1,6 +1,7 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.SupportTechnique;
+using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Tickets;
 using Moq;
 using Xunit;
@@ -16,14 +17,18 @@ namespace CIT.Plateforme.Application.Tests.SupportTechnique;
 public class IncidentTraitementCommandTests
 {
     private readonly Mock<ITicketRepository> _tickets = new();
+    private readonly Mock<IFileDeTraitementRepository> _files = new();
     private readonly Mock<IAutorisationService> _autorisation = new();
     private readonly Mock<IJournalisationService> _journal = new();
     private readonly Mock<IHorloge> _horloge = new();
     private readonly Mock<IUniteDeTravail> _uow = new();
+    private readonly FileDeTraitement _fileN2 = FileDeTraitement.Creer(SupportItConstantes.Module, SupportItConstantes.NomFileSupportItN2);
 
     public IncidentTraitementCommandTests()
     {
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 9, 26, 12, 0, 0, DateTimeKind.Utc));
+        // La file N2 doit exister pour qu'une escalade puisse y router l'incident.
+        _files.Setup(r => r.ListerAsync(It.IsAny<CancellationToken>())).ReturnsAsync([_fileN2]);
     }
 
     private static Ticket IncidentEnCours()
@@ -38,7 +43,7 @@ public class IncidentTraitementCommandTests
         new(_tickets.Object, _autorisation.Object, _journal.Object, _horloge.Object, _uow.Object);
 
     private EscaladerIncidentCommand Escalader() =>
-        new(_tickets.Object, _autorisation.Object, _journal.Object, _uow.Object);
+        new(_tickets.Object, _files.Object, _autorisation.Object, _journal.Object, _horloge.Object, _uow.Object);
 
     [Fact]
     public async Task Resoudre_cloture_avec_reponse_et_enregistre()
@@ -72,6 +77,9 @@ public class IncidentTraitementCommandTests
 
         await Escalader().ExecuterAsync(new EscaladerIncidentRequete(agent, ticket.Id, "Nécessite un correctif logiciel."), CancellationToken.None);
 
+        // Transfert réel vers la file N2, remis en attente de prise en charge.
+        Assert.Equal(_fileN2.Id, ticket.FileCouranteId);
+        Assert.Equal(StatutTicket.EnAttenteDePriseEnCharge, ticket.Statut);
         _journal.Verify(j => j.ConsignerHistoriqueAsync(ticket.Id, "IncidentEscalade", "Nécessite un correctif logiciel.", agent, It.IsAny<CancellationToken>()), Times.Once);
         _journal.Verify(j => j.PublierEvenementAsync("TicketIncidentEscalade", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         _uow.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);

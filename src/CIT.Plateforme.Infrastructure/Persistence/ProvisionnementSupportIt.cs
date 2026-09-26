@@ -8,7 +8,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence;
 
 /// <summary>
 /// SUPPORT IT — approvisionne, dans TOUS les environnements, la file « Support IT » (module
-/// <see cref="SupportTechnique.Module"/>) et les catégories d'incident de départ. Sans cette file
+/// <see cref="SupportItConstantes.Module"/>) et les catégories d'incident de départ. Sans cette file
 /// et ces catégories, aucun incident technique ne peut être routé ni instruit.
 ///
 /// STRICTEMENT ADDITIF ET NON DESTRUCTEUR, au même titre que <see cref="ProvisionnementLibellesStatut"/>
@@ -32,17 +32,24 @@ public sealed class ProvisionnementSupportIt(
 
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
-        // 1. La file d'instruction, créée si absente.
-        var file = await contexte.Files
-            .FirstOrDefaultAsync(f => f.Nom == SupportTechnique.NomFileSupportIt && f.Module == SupportTechnique.Module, ct)
-            .ConfigureAwait(false);
-
-        if (file is null)
+        // 1. Les files d'instruction (N1 puis N2), créées si absentes. La N2 reçoit les incidents
+        //    escaladés ; sans elle, aucune escalade n'est possible.
+        FileDeTraitement? fileN1 = null;
+        foreach (var nom in SupportItConstantes.NomsFiles)
         {
-            file = FileDeTraitement.Creer(SupportTechnique.Module, SupportTechnique.NomFileSupportIt);
-            contexte.Files.Add(file);
-            await contexte.SaveChangesAsync(ct).ConfigureAwait(false);
-            journal.LogInformation("File « Support IT » (module {Module}) approvisionnée.", SupportTechnique.Module);
+            var existante = await contexte.Files
+                .FirstOrDefaultAsync(f => f.Nom == nom && f.Module == SupportItConstantes.Module, ct)
+                .ConfigureAwait(false);
+
+            if (existante is null)
+            {
+                existante = FileDeTraitement.Creer(SupportItConstantes.Module, nom);
+                contexte.Files.Add(existante);
+                await contexte.SaveChangesAsync(ct).ConfigureAwait(false);
+                journal.LogInformation("File « {Nom} » (module {Module}) approvisionnée.", nom, SupportItConstantes.Module);
+            }
+
+            fileN1 ??= existante; // la première file (N1) porte les catégories par défaut.
         }
 
         // 2. Les catégories de départ, uniquement si la table est vide.
@@ -53,7 +60,7 @@ public sealed class ProvisionnementSupportIt(
 
         foreach (var (code, libelle) in CategoriesInitiales)
         {
-            contexte.CategoriesIncident.Add(CategorieIncident.Creer(code, libelle, file.Id));
+            contexte.CategoriesIncident.Add(CategorieIncident.Creer(code, libelle, fileN1!.Id));
         }
 
         await contexte.SaveChangesAsync(ct).ConfigureAwait(false);
