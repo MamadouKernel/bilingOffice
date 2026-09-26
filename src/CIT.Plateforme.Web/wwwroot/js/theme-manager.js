@@ -1,19 +1,31 @@
-(function () {
-    const savedTheme = localStorage.getItem('cit-theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    } else if (prefersDark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
+// Thème : CLAIR par défaut, sombre uniquement si l'utilisateur l'a choisi (bouton 🌓, mémorisé).
+// DÉFAUT CORRIGÉ : le thème suivait la préférence du système au chargement complet, alors que la
+// navigation améliorée de Blazor, en recalquant le <html> rendu par le serveur, effaçait
+// l'attribut data-theme. La page alternait donc sombre (après un rechargement, ex. « Recharger »
+// sur la barre d'erreur) et clair (après une navigation), sans action de l'utilisateur.
+function themeVoulu() {
+    try { return localStorage.getItem('cit-theme') === 'dark' ? 'dark' : 'light'; }
+    catch { return 'light'; }
+}
+
+function appliquerTheme() {
+    const voulu = themeVoulu();
+    if (document.documentElement.getAttribute('data-theme') !== voulu) {
+        document.documentElement.setAttribute('data-theme', voulu);
     }
-})();
+}
+
+appliquerTheme();
+
+// Réapplique le thème si une mise à jour du DOM (navigation améliorée Blazor) retire l'attribut.
+new MutationObserver(appliquerTheme)
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('cit-theme', newTheme);
+    const nouveau = themeVoulu() === 'dark' ? 'light' : 'dark';
+    // Le choix est mémorisé AVANT d'être appliqué : l'observateur relit toujours la préférence.
+    try { localStorage.setItem('cit-theme', nouveau); } catch { /* stockage indisponible */ }
+    appliquerTheme();
 }
 
 // F2 (audit sécurité) — les gestionnaires d'événements INLINE (onclick="…") sont bloqués par la
