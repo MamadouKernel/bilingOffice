@@ -43,7 +43,7 @@
             <div>
                 <strong>@Loc["Ticket.AccessErrorLabel"]</strong> @_erreur
             </div>
-            <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">@Loc["Ticket.Back"]</button>
+            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">@Loc["Ticket.Back"]</button>
         </div>
     }
     else if (_fiche is not null)
@@ -53,11 +53,11 @@
         <!-- Barre de navigation supérieure & retour -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-outline-secondary btn-sm" @onclick="RetourArriere">
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="RetourArriere">
                     @Loc["Ticket.Back"]
                 </button>
                 <div>
-                    <h1 class="fw-bold mb-0 text-dark h3">
+                    <h1 class="cit-page-title mb-0">
                         @if (!string.IsNullOrWhiteSpace(_fiche.NumeroBooking))
                         {
                             <span>Booking @_fiche.NumeroBooking</span>
@@ -112,7 +112,7 @@
                 </div>
                 @if (_fiche.PeutReprendreApresClient)
                 {
-                    <button class="btn btn-warning btn-sm fw-bold" @onclick="ReprendreApresClientAsync">
+                    <button type="button" class="btn btn-warning btn-sm fw-bold" @onclick="ReprendreApresClientAsync">
                         @Loc["Ticket.MarkComplementProvided"]
                     </button>
                 }
@@ -146,7 +146,7 @@
                     <div class="border-top pt-3">
                         <label class="form-label fw-semibold small" for="reponseFormalisee">@Loc["Ticket.FormalResponseFieldLabel"]</label>
                         <textarea id="reponseFormalisee" class="form-control mb-2" rows="3" @bind="_reponseFormalisee" @bind:event="oninput"></textarea>
-                        <button class="btn btn-success btn-sm" @onclick="ClotureReclamationAsync" disabled="@string.IsNullOrWhiteSpace(_reponseFormalisee)">
+                        <button type="button" class="btn btn-success btn-sm" @onclick="ClotureReclamationAsync" disabled="@string.IsNullOrWhiteSpace(_reponseFormalisee)">
                             @Loc["Ticket.CloseWithResponse"]
                         </button>
                     </div>
@@ -178,7 +178,7 @@
                                 }
                             </div>
                             <input class="form-control form-control-sm mb-2" placeholder="@Loc["Ticket.CommentOptional"]" @bind="_commentaireEvaluation" />
-                            <button class="btn btn-outline-primary btn-sm" @onclick="EvaluerAsync" disabled="@(_noteEvaluation == 0)">
+                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="EvaluerAsync" disabled="@(_noteEvaluation == 0)">
                                 @Loc["Ticket.SendRating"]
                             </button>
                         }
@@ -260,28 +260,28 @@
                     <div class="d-grid gap-2">
                         @if (_fiche.PeutPrendreEnCharge)
                         {
-                            <button class="btn btn-primary" @onclick="PrendreEnChargeAsync">
+                            <button type="button" class="btn btn-primary" @onclick="PrendreEnChargeAsync">
                                 @Loc["Ticket.TakeCharge"]
                             </button>
                         }
 
                         @if (_fiche.PeutMettreEnAttenteClient)
                         {
-                            <button class="btn btn-outline-warning" @onclick="MettreEnAttenteClientAsync">
+                            <button type="button" class="btn btn-outline-warning" @onclick="MettreEnAttenteClientAsync">
                                 @Loc["Ticket.PutOnHoldClient"]
                             </button>
                         }
 
                         @if (_fiche.PeutReprendreApresClient && _fiche.Statut == StatutTicket.EnAttenteClient)
                         {
-                            <button class="btn btn-outline-success" @onclick="ReprendreApresClientAsync">
+                            <button type="button" class="btn btn-outline-success" @onclick="ReprendreApresClientAsync">
                                 @Loc["Ticket.ResumeProcessing"]
                             </button>
                         }
 
                         @if (_fiche.PeutDemanderFacture)
                         {
-                            <button class="btn btn-outline-primary" @onclick="DemanderFactureAsync" disabled="@_factureDemandee">
+                            <button type="button" class="btn btn-outline-primary" @onclick="DemanderFactureAsync" disabled="@_factureDemandee">
                                 🧾 @(_factureDemandee ? Loc["Ticket.InvoiceRequested"].Value : Loc["Ticket.RequestInvoice"].Value)
                             </button>
                         }
@@ -297,7 +297,7 @@
 
                         @if (_fiche.PeutAnnuler)
                         {
-                            <button class="btn btn-outline-danger" @onclick="AnnulerTicketAsync">
+                            <button type="button" class="btn btn-outline-danger" @onclick="AnnulerTicketAsync">
                                 @Loc["Ticket.CancelMyRequest"]
                             </button>
                         }
@@ -335,7 +335,7 @@
                     <div class="input-group input-group-sm mt-2">
                         <input class="form-control" @bind="_numeroALier" placeholder="@Loc["Ticket.LinkPlaceholder"]"
                                aria-label="@Loc["Ticket.LinkAria"]" />
-                        <button class="btn btn-outline-primary" @onclick="LierTicketAsync"
+                        <button type="button" class="btn btn-outline-primary" @onclick="LierTicketAsync"
                                 disabled="@(string.IsNullOrWhiteSpace(_numeroALier))">@Loc["Ticket.Link"]</button>
                     </div>
                     @if (_erreurLiaison is not null)
@@ -350,17 +350,17 @@
                 <div class="cit-card p-0">
                     <ul class="nav nav-tabs px-3 pt-3 border-bottom" role="tablist">
                         <li class="nav-item">
-                            <button class="nav-link @(_ongletActif == "messages" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "messages")">
+                            <button type="button" class="nav-link @(_ongletActif == "messages" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "messages")">
                                 @Loc["Ticket.TabMessages"] (@_fiche.Messages.Count)
                             </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link @(_ongletActif == "documents" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "documents")">
+                            <button type="button" class="nav-link @(_ongletActif == "documents" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "documents")">
                                 @Loc["Ticket.TabDocuments"] (@_fiche.Documents.Count)
                             </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link @(_ongletActif == "chronologie" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "chronologie")">
+                            <button type="button" class="nav-link @(_ongletActif == "chronologie" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "chronologie")">
                                 @Loc["Ticket.TabHistory"] (@_fiche.Chronologie.Count)
                             </button>
                         </li>
@@ -411,7 +411,7 @@
                                                 <label class="small mb-0" for="chkNoteInterne">@Loc["Ticket.InternalNoteCheck"]</label>
                                             </div>
                                         }
-                                        <button class="btn btn-primary" @onclick="EnvoyerMessageAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauMessageContenu)">
+                                        <button type="button" class="btn btn-primary" @onclick="EnvoyerMessageAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauMessageContenu)">
                                             @Loc["Ticket.Send"]
                                         </button>
                                     </div>

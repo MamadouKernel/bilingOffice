@@ -29,7 +29,7 @@
         <div class="cit-page-subtitle">@Loc["FilePay.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
         <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
@@ -94,10 +94,10 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["FilePay.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button class="btn btn-outline-success" @onclick="() => ValiderPaiementAsync(t.Id)">
+                                        <button type="button" class="btn btn-outline-success" @onclick="() => ValiderPaiementAsync(t.Id)">
                                             @Loc["FilePay.Validate"]
                                         </button>
-                                        <button class="btn btn-outline-danger" @onclick="() => OuvrirRefus(t.Id)">
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirRefus(t.Id)">
                                             @Loc["FilePay.Refuse"]
                                         </button>
                                     </div>
@@ -109,10 +109,10 @@ else
                                     <td colspan="5" class="p-3">
                                         <div class="d-flex align-items-center gap-2">
                                             <input class="form-control form-control-sm" placeholder="@Loc["FilePay.RefusePlaceholder"]" @bind="_motifRefus" />
-                                            <button class="btn btn-danger btn-sm text-nowrap" @onclick="() => ConfirmerRefusAsync(t.Id)" disabled="@string.IsNullOrWhiteSpace(_motifRefus)">
+                                            <button type="button" class="btn btn-danger btn-sm text-nowrap" @onclick="() => ConfirmerRefusAsync(t.Id)" disabled="@string.IsNullOrWhiteSpace(_motifRefus)">
                                                 @Loc["FilePay.ConfirmRefuse"]
                                             </button>
-                                            <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerRefus">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AnnulerRefus">
                                                 @Loc["Common.Cancel"]
                                             </button>
                                         </div>

@@ -56,7 +56,7 @@ else
             <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["MesDonnees.ExportTitle"]</h4>
         </div>
         <p class="text-muted small">@Loc["MesDonnees.ExportDesc"]</p>
-        <button class="btn btn-primary fw-semibold rounded-3 shadow-sm" @onclick="ExporterAsync" disabled="@_exportEnCours">
+        <button type="button" class="btn btn-primary fw-semibold rounded-3 shadow-sm" @onclick="ExporterAsync" disabled="@_exportEnCours">
             @Loc["MesDonnees.ExportBtn"]
         </button>
 
@@ -82,7 +82,7 @@ else
             <div class="col-12 col-md-3">
                 @if (!_confirmationDemandee)
                 {
-                    <button class="btn btn-outline-danger w-100 fw-semibold rounded-3" @onclick="DemanderConfirmation">
+                    <button type="button" class="btn btn-outline-danger w-100 fw-semibold rounded-3" @onclick="DemanderConfirmation">
                         @Loc["MesDonnees.AnonymiserBtn"]
                     </button>
                 }
@@ -95,8 +95,8 @@ else
                 <div class="fw-bold mb-1">@Loc["MesDonnees.ConfirmTitle"]</div>
                 <div class="small mb-3">@Loc["MesDonnees.ConfirmDesc"]</div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-danger btn-sm fw-semibold" @onclick="AnonymiserAsync">@Loc["MesDonnees.ConfirmYes"]</button>
-                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => _confirmationDemandee = false">@Loc["MesDonnees.ConfirmNo"]</button>
+                    <button type="button" class="btn btn-danger btn-sm fw-semibold" @onclick="AnonymiserAsync">@Loc["MesDonnees.ConfirmYes"]</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _confirmationDemandee = false">@Loc["MesDonnees.ConfirmNo"]</button>
                 </div>
             </div>
         }

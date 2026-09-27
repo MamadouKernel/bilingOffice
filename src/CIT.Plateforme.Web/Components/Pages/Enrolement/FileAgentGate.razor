@@ -27,7 +27,7 @@
         <div class="cit-page-subtitle">@Loc["AgentGate.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["Common.Refresh"]</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["Common.Refresh"]</button>
         <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["AgentGate.LinkDashboard"]</a>
     </div>
 </div>
@@ -96,7 +96,7 @@ else
                                         <a href="/enrolement/@t.Id" class="btn btn-outline-secondary">@Loc["AgentGate.BtnFiche"]</a>
                                         @if (t.Statut == StatutTicket.EnAttenteDePriseEnCharge)
                                         {
-                                            <button class="btn btn-outline-success fw-semibold" @onclick="() => PrendreEnChargeAsync(t.Id)">@Loc["AgentGate.BtnPrendreEnCharge"]</button>
+                                            <button type="button" class="btn btn-outline-success fw-semibold" @onclick="() => PrendreEnChargeAsync(t.Id)">@Loc["AgentGate.BtnPrendreEnCharge"]</button>
                                         }
                                     </div>
                                 </td>

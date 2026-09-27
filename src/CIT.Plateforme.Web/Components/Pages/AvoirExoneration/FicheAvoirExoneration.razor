@@ -1,4 +1,4 @@
-﻿@page "/avoir-exoneration/fiche/{TicketId:guid}"
+@page "/avoir-exoneration/fiche/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.AvoirExoneration
@@ -194,7 +194,7 @@ else if (_fiche is not null)
                     {
                         <div class="mb-3">
                             <p class="small text-muted">@Loc["FicheAvoirExo.NotTakenYet"]</p>
-                            <button class="btn btn-primary w-100 fw-bold" @onclick="PrendreEnChargeAsync" disabled="@_actionEnCours">
+                            <button type="button" class="btn btn-primary w-100 fw-bold" @onclick="PrendreEnChargeAsync" disabled="@_actionEnCours">
                                 @Loc["FicheAvoirExo.TakeCharge"]
                             </button>
                         </div>
@@ -205,7 +205,7 @@ else if (_fiche is not null)
                         <div class="mb-4">
                             <label for="demander-un-complement" class="form-label small fw-semibold text-dark">@Loc["FicheAvoirExo.RequestComplementLabel"]</label>
                             <textarea id="demander-un-complement" class="form-control form-control-sm mb-2" rows="3" placeholder="@Loc["FicheAvoirExo.RequestComplementPlaceholder"]" @bind="_motifComplement"></textarea>
-                            <button class="btn btn-warning btn-sm w-100 fw-semibold text-dark" @onclick="DemanderComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_motifComplement) || _actionEnCours)">
+                            <button type="button" class="btn btn-warning btn-sm w-100 fw-semibold text-dark" @onclick="DemanderComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_motifComplement) || _actionEnCours)">
                                 @Loc["FicheAvoirExo.PutOnHold"]
                             </button>
                         </div>
@@ -245,7 +245,7 @@ else if (_fiche is not null)
                                 }
                             </div>
 
-                            <button class="btn btn-success btn-sm w-100 fw-bold shadow-sm" @onclick="EnregistrerDecisionAsync" disabled="@(!PeutValiderDecision || _actionEnCours)">
+                            <button type="button" class="btn btn-success btn-sm w-100 fw-bold shadow-sm" @onclick="EnregistrerDecisionAsync" disabled="@(!PeutValiderDecision || _actionEnCours)">
                                 @Loc["FicheAvoirExo.SaveDecision"]
                             </button>
                         </div>

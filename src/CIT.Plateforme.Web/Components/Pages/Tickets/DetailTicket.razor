@@ -1,4 +1,4 @@
-﻿@* Route distincte de la fiche ticket : /tickets/{id} appartient à FicheTicket.razor. Les deux
+@* Route distincte de la fiche ticket : /tickets/{id} appartient à FicheTicket.razor. Les deux
    pages déclaraient auparavant la même route, ce qui faisait échouer TOUTE ouverture de ticket
    avec une AmbiguousMatchException. *@
 @page "/tickets/{TicketId:guid}/administration"
@@ -78,7 +78,7 @@ else
                             <label class="form-label small fw-semibold text-dark" for="motif-transfert">@Loc["TicketAct.LblMotifTransfert"]</label>
                             <input id="motif-transfert" class="form-control form-control-sm" @bind="motifTransfert" />
                         </div>
-                        <div class="col-12 text-end"><button class="btn btn-primary btn-sm" @onclick="TransfererAsync">@Loc["TicketAct.BtnTransferer"]</button></div>
+                        <div class="col-12 text-end"><button type="button" class="btn btn-primary btn-sm" @onclick="TransfererAsync">@Loc["TicketAct.BtnTransferer"]</button></div>
                     </div>
                 }
             </div>
@@ -106,7 +106,7 @@ else
                                 }
                             </select>
                         </div>
-                        <div class="col-12 text-end pt-2"><button class="btn btn-secondary btn-sm" @onclick="ReaffecterAsync">@Loc["TicketAct.BtnReaffecter"]</button></div>
+                        <div class="col-12 text-end pt-2"><button type="button" class="btn btn-secondary btn-sm" @onclick="ReaffecterAsync">@Loc["TicketAct.BtnReaffecter"]</button></div>
                     </div>
                 }
             </div>
@@ -121,8 +121,8 @@ else
                         <input id="motif-attente" class="form-control form-control-sm" @bind="motifAttente" />
                     </div>
                     <div class="col-12 d-flex justify-content-end gap-2 pt-2">
-                        <button class="btn btn-warning btn-sm" @onclick="MettreEnAttenteAsync">@Loc["TicketAct.BtnDemanderComplement"]</button>
-                        <button class="btn btn-outline-secondary btn-sm" @onclick="RependreAsync">@Loc["TicketAct.BtnReprendre"]</button>
+                        <button type="button" class="btn btn-warning btn-sm" @onclick="MettreEnAttenteAsync">@Loc["TicketAct.BtnDemanderComplement"]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="RependreAsync">@Loc["TicketAct.BtnReprendre"]</button>
                     </div>
                 </div>
             </div>
@@ -137,9 +137,9 @@ else
                         <input id="motif-cycle" class="form-control form-control-sm" @bind="motifCycleDeVie" />
                     </div>
                     <div class="col-12 d-flex justify-content-end gap-2 pt-2 flex-wrap">
-                        <button class="btn btn-outline-danger btn-sm" @onclick="DemanderAnnulation">@Loc["TicketAct.BtnAnnuler"]</button>
-                        <button class="btn btn-success btn-sm" @onclick="DemanderCloture">@Loc["TicketAct.BtnCloturer"]</button>
-                        <button class="btn btn-outline-primary btn-sm" @onclick="RouvrirAsync">@Loc["TicketAct.BtnRouvrir"]</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="DemanderAnnulation">@Loc["TicketAct.BtnAnnuler"]</button>
+                        <button type="button" class="btn btn-success btn-sm" @onclick="DemanderCloture">@Loc["TicketAct.BtnCloturer"]</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="RouvrirAsync">@Loc["TicketAct.BtnRouvrir"]</button>
                     </div>
                 </div>
             </div>
@@ -152,7 +152,7 @@ else
                     @Loc["TicketAct.PresentielDesc"]
                 </p>
                 <div>
-                    <button class="btn btn-outline-primary btn-sm" @onclick="DeclarerFinalisationPresentielleAsync">@Loc["TicketAct.BtnDeclarerPresentiel"]</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="DeclarerFinalisationPresentielleAsync">@Loc["TicketAct.BtnDeclarerPresentiel"]</button>
                 </div>
             </div>
         </div>

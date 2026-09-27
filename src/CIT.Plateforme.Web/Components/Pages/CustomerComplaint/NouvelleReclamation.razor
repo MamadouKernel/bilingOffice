@@ -1,4 +1,4 @@
-﻿@page "/reclamations/soumettre"
+@page "/reclamations/soumettre"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.CustomerComplaint
@@ -79,7 +79,7 @@
             <div class="d-flex justify-content-end gap-2">
                 <a href="/reclamations/mes-reclamations" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
                 <div class="d-flex flex-column align-items-end">
-                    <button class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                    <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
                         @(_envoiEnCours ? Loc["Common.Loading"].Value : "🚀 " + Loc["Common.Submit"].Value)
                     </button>
                     @* REMÉDIATION D-21 : un bouton désactivé explique désormais sa condition. *@

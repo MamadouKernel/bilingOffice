@@ -29,7 +29,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -85,7 +85,7 @@ else
                 <label class="form-check-label small fw-bold text-dark" for="obligatoire">@Loc["AdmChampsEnrol.ObligatoireLabel"]</label>
             </div>
             <div class="col-12 col-md-1">
-                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                <button type="button" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
                     @Loc["AdmChampsEnrol.AddBtn"]
                 </button>
             </div>
@@ -160,14 +160,14 @@ else
                                 <td class="text-end pe-4">
                                     @if (champ.EstActif)
                                     {
-                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                                 @onclick="() => BasculerAsync(champ.Id, false)">
                                             @Loc["AdmChampsEnrol.Deactivate"]
                                         </button>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3"
                                                 @onclick="() => BasculerAsync(champ.Id, true)">
                                             @Loc["AdmChampsEnrol.Reactivate"]
                                         </button>

@@ -59,7 +59,7 @@ else
         <div class="card shadow border-warning mb-4">
             <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">@Loc["Rdv.ReportHeaderPrefix"] @_rdvEnReport.Date.ToString("dd/MM/yyyy") (@_rdvEnReport.NumeroTicket)</h5>
-                <button class="btn btn-sm btn-outline-dark" @onclick="FermerReport">@Loc["Rdv.Close"]</button>
+                <button type="button" class="btn btn-sm btn-outline-dark" @onclick="FermerReport">@Loc["Rdv.Close"]</button>
             </div>
             <div class="card-body">
                 <div class="row g-3 mb-3">
@@ -69,7 +69,7 @@ else
                                value="@_nouvelleDateReport.ToString("yyyy-MM-dd")" @onchange="ChangerDateReportAsync" />
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
-                        <button class="btn btn-outline-primary" @onclick="ChargerCreneauxReportAsync">
+                        <button type="button" class="btn btn-outline-primary" @onclick="ChargerCreneauxReportAsync">
                             @Loc["ProfilSoc.Refresh"]
                         </button>
                     </div>
@@ -105,8 +105,8 @@ else
                 }
 
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-secondary" @onclick="FermerReport">@Loc["Common.Cancel"]</button>
-                    <button class="btn btn-warning" @onclick="ConfirmerReportAsync" disabled="@(_nouvelleHeureReport is null || _enAction)">
+                    <button type="button" class="btn btn-secondary" @onclick="FermerReport">@Loc["Common.Cancel"]</button>
+                    <button type="button" class="btn btn-warning" @onclick="ConfirmerReportAsync" disabled="@(_nouvelleHeureReport is null || _enAction)">
                         @if (_enAction)
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
@@ -124,7 +124,7 @@ else
         <div class="card shadow border-danger mb-4">
             <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">@Loc["Rdv.CancelHeaderPrefix"] (@_rdvEnAnnulation.NumeroTicket)</h5>
-                <button class="btn btn-sm btn-light" @onclick="FermerAnnulation">@Loc["Rdv.Close"]</button>
+                <button type="button" class="btn btn-sm btn-light" @onclick="FermerAnnulation">@Loc["Rdv.Close"]</button>
             </div>
             <div class="card-body">
                 <p>@Loc["Rdv.CancelConfirmPre"] <strong>@_rdvEnAnnulation.Date.ToString("dd/MM/yyyy") @Loc["Rdv.At"] @_rdvEnAnnulation.HeureDebut.ToString(@"hh\:mm")</strong> @Loc["Rdv.CancelConfirmPost"]</p>
@@ -133,8 +133,8 @@ else
                     <input id="motif-de-l-annulation" type="text" class="form-control" placeholder="@Loc["Rdv.CancelMotifPlaceholder"]" @bind="_motifAnnulation" />
                 </div>
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-secondary" @onclick="FermerAnnulation">@Loc["Rdv.KeepRdv"]</button>
-                    <button class="btn btn-danger" @onclick="ConfirmerAnnulationAsync" disabled="@_enAction">
+                    <button type="button" class="btn btn-secondary" @onclick="FermerAnnulation">@Loc["Rdv.KeepRdv"]</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmerAnnulationAsync" disabled="@_enAction">
                         @if (_enAction)
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
@@ -216,10 +216,10 @@ else
                                         @if (r.Statut == "Reserve")
                                         {
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-warning" @onclick="() => OuvrirReport(r)">
+                                                <button type="button" class="btn btn-outline-warning" @onclick="() => OuvrirReport(r)">
                                                     @Loc["Rdv.Reschedule"]
                                                 </button>
-                                                <button class="btn btn-outline-danger" @onclick="() => OuvrirAnnulation(r)">
+                                                <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirAnnulation(r)">
                                                     @Loc["Rdv.CancelBtn"]
                                                 </button>
                                             </div>

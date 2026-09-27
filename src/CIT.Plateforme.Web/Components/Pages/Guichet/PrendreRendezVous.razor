@@ -1,4 +1,4 @@
-﻿@page "/rendez-vous/prendre/{TicketId:guid}"
+@page "/rendez-vous/prendre/{TicketId:guid}"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Abstractions
@@ -111,7 +111,7 @@ else
                                    value="@_dateSelectionnee.ToString("yyyy-MM-dd")" @onchange="ChangerDateAsync" />
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
-                            <button class="btn btn-outline-primary" @onclick="() => ChargerCreneauxAsync()">
+                            <button type="button" class="btn btn-outline-primary" @onclick="() => ChargerCreneauxAsync()">
                                 @Loc["PrdRdv.RefreshSlots"]
                             </button>
                         </div>
@@ -163,7 +163,7 @@ else
 
                     <div class="d-flex justify-content-end gap-2">
                         <a href="/rendez-vous/mes-rendez-vous" class="btn btn-secondary">@Loc["Common.Cancel"]</a>
-                        <button class="btn btn-success btn-lg" @onclick="ConfirmerReservationAsync"
+                        <button type="button" class="btn btn-success btn-lg" @onclick="ConfirmerReservationAsync"
                                 disabled="@(_heureSelectionnee is null || _enReservation)">
                             @if (_enReservation)
                             {

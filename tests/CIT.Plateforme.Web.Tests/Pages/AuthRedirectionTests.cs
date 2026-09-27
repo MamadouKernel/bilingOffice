@@ -46,6 +46,11 @@ public sealed class AuthRedirectionTests : BunitContext
         };
         Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
 
+        // L'accueil est la PREMIÈRE ENTRÉE ACCESSIBLE du menu (même règle pour tous les rôles) :
+        // la vraie construction de navigation est donc branchée, avec le droit de consulter la
+        // supervision (sans effet sur les autres espaces, dont le tableau de bord ouvre le menu).
+        NavigationDeTest.Enregistrer(Services, fakeContexte.Contexte.UtilisateurId, [Permission.SupervisionConsulter]);
+
         var navMan = Services.GetRequiredService<NavigationManager>();
 
         var cut = Render<Home>();

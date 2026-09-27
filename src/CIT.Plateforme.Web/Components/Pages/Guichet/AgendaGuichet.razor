@@ -60,10 +60,10 @@ else
     @* ── Barre d'outils façon Teams : aujourd'hui, précédent/suivant, période, vue ── *@
     <div class="cit-card cit-agenda-toolbar mb-3">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <button class="btn btn-outline-primary btn-sm fw-semibold" @onclick="AllerAujourdhuiAsync">@Loc["GuiAgenda.Today"]</button>
+            <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" @onclick="AllerAujourdhuiAsync">@Loc["GuiAgenda.Today"]</button>
             <div class="btn-group btn-group-sm" role="group">
-                <button class="btn btn-outline-secondary" @onclick="() => DeplacerAsync(-1)" aria-label="@Loc["GuiAgenda.Prev"]">‹</button>
-                <button class="btn btn-outline-secondary" @onclick="() => DeplacerAsync(1)" aria-label="@Loc["GuiAgenda.Next"]">›</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => DeplacerAsync(-1)" aria-label="@Loc["GuiAgenda.Prev"]">‹</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => DeplacerAsync(1)" aria-label="@Loc["GuiAgenda.Next"]">›</button>
             </div>
             <h2 class="cit-agenda-periode mb-0">@LibellePeriode</h2>
             <label for="agenda-date" class="visually-hidden">@Loc["GuiAgenda.SelectDate"]</label>
@@ -74,7 +74,7 @@ else
         <div class="btn-group btn-group-sm cit-agenda-vues" role="group" aria-label="@Loc["GuiAgenda.ViewsAria"]">
             @foreach (var vue in Enum.GetValues<VueAgenda>())
             {
-                <button class="btn @(vue == _vue ? "btn-primary" : "btn-outline-secondary")"
+                <button type="button" class="btn @(vue == _vue ? "btn-primary" : "btn-outline-secondary")"
                         aria-pressed="@(vue == _vue)" @onclick="() => ChangerVueAsync(vue)">
                     @LibelleVue(vue)
                 </button>
@@ -399,8 +399,8 @@ else
         if (rdv.Statut == StatutRendezVous.Reserve)
         {
             <div class="btn-group btn-group-sm">
-                <button class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnPresentTitle"]">@Loc["GuiAgenda.BtnPresent"]</button>
-                <button class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnAbsentTitle"]">@Loc["GuiAgenda.BtnAbsent"]</button>
+                <button type="button" class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnPresentTitle"]">@Loc["GuiAgenda.BtnPresent"]</button>
+                <button type="button" class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnAbsentTitle"]">@Loc["GuiAgenda.BtnAbsent"]</button>
             </div>
         }
         else

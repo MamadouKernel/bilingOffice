@@ -74,7 +74,7 @@
                                     <td class="small text-muted font-monospace">@((document.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
                                     <td class="small text-muted font-monospace">@document.DateDepotUtc.Horodate()</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => Telecharger(document)">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => Telecharger(document)">
                                             @Loc["FileClot.Download"]
                                         </button>
                                     </td>

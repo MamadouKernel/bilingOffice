@@ -51,7 +51,7 @@ else
     <div class="cit-card mb-4">
         @if (!_formulaireCreationOuvert)
         {
-            <button class="btn btn-primary btn-sm shadow-sm fw-bold" @onclick="() => _formulaireCreationOuvert = true">@Loc["RecAdm.BtnNouvelle"]</button>
+            <button type="button" class="btn btn-primary btn-sm shadow-sm fw-bold" @onclick="() => _formulaireCreationOuvert = true">@Loc["RecAdm.BtnNouvelle"]</button>
         }
         else
         {
@@ -79,10 +79,10 @@ else
                     </select>
                 </div>
                 <div class="col-12 col-md-2 d-flex gap-2">
-                    <button class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(!CreationComplete)">
+                    <button type="button" class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(!CreationComplete)">
                         @Loc["RecAdm.BtnCreer"]
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" @onclick="AnnulerCreation">@Loc["RecAdm.BtnAnnuler"]</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AnnulerCreation">@Loc["RecAdm.BtnAnnuler"]</button>
                 </div>
                 @if (_filesCible.Count == 0)
                 {
@@ -174,21 +174,21 @@ else
                                 @if (_categorieEnEdition == cat.Id)
                                 {
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-primary" @onclick="() => EnregistrerLibelleAsync(cat)">@Loc["RecAdm.BtnEnregistrer"]</button>
-                                        <button class="btn btn-outline-secondary" @onclick="() => _categorieEnEdition = null">@Loc["RecAdm.BtnAnnuler"]</button>
+                                        <button type="button" class="btn btn-primary" @onclick="() => EnregistrerLibelleAsync(cat)">@Loc["RecAdm.BtnEnregistrer"]</button>
+                                        <button type="button" class="btn btn-outline-secondary" @onclick="() => _categorieEnEdition = null">@Loc["RecAdm.BtnAnnuler"]</button>
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" @onclick="() => CommencerEditionAsync(cat)">@Loc["RecAdm.BtnModifier"]</button>
+                                        <button type="button" class="btn btn-outline-primary" @onclick="() => CommencerEditionAsync(cat)">@Loc["RecAdm.BtnModifier"]</button>
                                         @if (cat.EstActif)
                                         {
-                                            <button class="btn btn-outline-secondary" @onclick="() => BasculerActifAsync(cat, false)">@Loc["RecAdm.BtnDesactiver"]</button>
+                                            <button type="button" class="btn btn-outline-secondary" @onclick="() => BasculerActifAsync(cat, false)">@Loc["RecAdm.BtnDesactiver"]</button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-outline-success" @onclick="() => BasculerActifAsync(cat, true)">@Loc["RecAdm.BtnActiver"]</button>
+                                            <button type="button" class="btn btn-outline-success" @onclick="() => BasculerActifAsync(cat, true)">@Loc["RecAdm.BtnActiver"]</button>
                                         }
                                     </div>
                                 }

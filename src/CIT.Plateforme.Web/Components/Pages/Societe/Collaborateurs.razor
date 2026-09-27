@@ -140,7 +140,7 @@ else if (_dashboard is not null)
                                 <td class="text-end">
                                     @if (invitation.Etat == EtatInvitation.EnAttente)
                                     {
-                                        <button class="btn btn-outline-danger btn-sm"
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
                                                 @onclick="() => DemanderConfirmationRevocation(invitation.Id)">@Loc["Collab.Revoke"]</button>
                                     }
                                 </td>

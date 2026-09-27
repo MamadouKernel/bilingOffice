@@ -27,7 +27,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -108,7 +108,7 @@ else
                 <div id="aide-escalade" class="form-text small">@Loc["AdmSla.EscaladeHint"]</div>
             </div>
             <div class="col-12 col-md-2">
-                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                <button type="button" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
                     @Loc["Common.Add"]
                 </button>
             </div>
@@ -158,7 +158,7 @@ else
                                 <td class="text-end">@(p.SeuilEscalade == 0 ? "—" : Pourcent(p.SeuilEscalade))</td>
                                 <td class="text-end"><span class="badge bg-secondary bg-opacity-25 text-dark">@p.Specificite</span></td>
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-danger"
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
                                             @onclick="() => DemanderConfirmationSuppression(p.Id)">@Loc["AdmSla.Remove"]</button>
                                 </td>
                             </tr>

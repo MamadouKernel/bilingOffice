@@ -265,6 +265,7 @@ public static class DependencyInjection
 
         // User Story 1 — création et validation d'un compte société.
         services.AddScoped<Application.Comptes.SoumettreDemandeCompteCommand>();
+        services.AddScoped<Application.Comptes.CorrigerIdentiteSocieteCommand>();
         services.AddScoped<Application.Comptes.ValiderOuRejeterDemandeCompteCommand>();
         services.AddScoped<Application.Comptes.ListerDemandesEnAttenteQuery>();
 

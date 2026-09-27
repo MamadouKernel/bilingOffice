@@ -30,7 +30,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
             <span>🔄</span> @Loc["ValidDem.BtnRefresh"]
         </button>
     </div>
@@ -136,7 +136,7 @@ else
                                 </td>
                                 <td class="text-end pe-4 py-3">
                                     <div class="d-flex justify-content-end align-items-center gap-2">
-                                        <button class="btn btn-success btn-sm px-3 py-1 fw-bold shadow-sm d-flex align-items-center gap-1" 
+                                        <button type="button" class="btn btn-success btn-sm px-3 py-1 fw-bold shadow-sm d-flex align-items-center gap-1" 
                                                 @onclick="() => ValiderAsync(demande.Id)">
                                             <span>✓</span> @Loc["ValidDem.BtnValider"]
                                         </button>
@@ -144,7 +144,7 @@ else
                                                style="width: 13rem; background-color: var(--surface);"
                                                placeholder="@Loc["ValidDem.PlaceholderRejet"]"
                                                @bind="motifsRejet[demande.Id]" />
-                                        <button class="btn btn-outline-danger btn-sm px-2 py-1 fw-semibold d-flex align-items-center gap-1"
+                                        <button type="button" class="btn btn-outline-danger btn-sm px-2 py-1 fw-semibold d-flex align-items-center gap-1"
                                                 @onclick="() => RejeterAsync(demande.Id)">
                                             <span>✕</span> @Loc["ValidDem.BtnRejeter"]
                                         </button>

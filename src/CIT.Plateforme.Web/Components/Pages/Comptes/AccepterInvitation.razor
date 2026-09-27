@@ -1,4 +1,4 @@
-﻿@page "/comptes/invitation/{Jeton}"
+@page "/comptes/invitation/{Jeton}"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Domain.Securite
@@ -80,7 +80,7 @@
                     <div class="alert alert-danger small" role="alert">@_erreur</div>
                 }
 
-                <button class="btn btn-primary w-100 fw-bold" @onclick="CreerAsync">
+                <button type="button" class="btn btn-primary w-100 fw-bold" @onclick="CreerAsync">
                     @Loc["Account.InviteCreateAccount"]
                 </button>
             </div>

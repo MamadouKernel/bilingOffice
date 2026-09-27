@@ -82,7 +82,7 @@ public sealed class SoumettreDemandeCompteCommand(
         {
             // Validation du domaine (raison sociale obligatoire, format RCCM) AVANT l'unicité.
             var rccm = NumeroRccm.Normaliser(requete.Rccm);
-            if (await societes.RccmDejaUtiliseAsync(rccm, ct).ConfigureAwait(false))
+            if (await societes.RccmDejaUtiliseAsync(rccm, ct: ct).ConfigureAwait(false))
             {
                 throw new RccmDejaUtiliseException(rccm);
             }

@@ -1,4 +1,4 @@
-﻿@page "/comptes/double-authentification"
+@page "/comptes/double-authentification"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using System.Text
@@ -83,10 +83,10 @@
             @* 2FA OBLIGATOIRE : plus de bouton « Désactiver ». On peut seulement reconfigurer
                l'application (changement de téléphone), ce qui la laisse active. *@
             <div class="d-flex justify-content-between align-items-center pt-2">
-                <button class="btn btn-outline-secondary btn-sm" @onclick="AfficherReconfigurationAsync">
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AfficherReconfigurationAsync">
                     @Loc["TwoFa.ResetApp"]
                 </button>
-                <button class="btn btn-primary btn-sm fw-bold px-3" @onclick="ContinuerVersMonEspace">
+                <button type="button" class="btn btn-primary btn-sm fw-bold px-3" @onclick="ContinuerVersMonEspace">
                     @Loc["TwoFa.Continue"] <span aria-hidden="true">→</span>
                 </button>
             </div>
@@ -128,10 +128,10 @@
                     <label class="form-label small fw-bold text-dark" for="codeConfirmation">@Loc["TwoFa.EnterCodeLabel"]</label>
                     <div class="d-flex gap-2">
                         <input id="codeConfirmation" type="text" maxlength="6" class="form-control font-monospace text-center fs-5 fw-bold" style="max-width: 180px; letter-spacing: 0.2em;" placeholder="123456" @bind="codeConfirmation" @bind:event="oninput" />
-                        <button class="btn btn-primary fw-bold px-4" @onclick="ConfirmerActivationAsync" disabled="@(codeConfirmation?.Length != 6)">
+                        <button type="button" class="btn btn-primary fw-bold px-4" @onclick="ConfirmerActivationAsync" disabled="@(codeConfirmation?.Length != 6)">
                             @Loc["TwoFa.ConfirmActivate"]
                         </button>
-                        <button class="btn btn-outline-secondary" @onclick="AnnulerConfiguration">
+                        <button type="button" class="btn btn-outline-secondary" @onclick="AnnulerConfiguration">
                             @Loc["Common.Cancel"]
                         </button>
                     </div>
@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-md-4 text-md-end">
-                    <button class="btn btn-primary fw-bold px-4 py-2 shadow-sm rounded-pill w-100 w-md-auto" @onclick="DemarrerConfigurationAsync">
+                    <button type="button" class="btn btn-primary fw-bold px-4 py-2 shadow-sm rounded-pill w-100 w-md-auto" @onclick="DemarrerConfigurationAsync">
                         @Loc["TwoFa.ConfigureBtn"]
                     </button>
                 </div>

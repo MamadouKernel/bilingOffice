@@ -13,7 +13,7 @@
     <div class="d-flex align-items-center gap-3">
         @* Menu mobile — <details>/<summary> NATIF, sans Blazor.
 
-           CORRECTIF : ce bouton était un <button @onclick="..."> qui ne se déclenchait JAMAIS.
+           CORRECTIF : ce bouton était un <button type="button" @onclick="..."> qui ne se déclenchait JAMAIS.
            MainLayout est rendu en SSR statique (Routes.razor ne déclare aucun @rendermode) :
            il n'existe aucun circuit interactif pour le layout, donc aucun gestionnaire Blazor
            n'y est câblé côté client. Le panneau, son voile et sa croix de fermeture reposaient

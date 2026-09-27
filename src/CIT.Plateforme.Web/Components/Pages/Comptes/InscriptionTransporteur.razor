@@ -1,4 +1,4 @@
-﻿@page "/comptes/inscription-transporteur"
+@page "/comptes/inscription-transporteur"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Domain.Securite
@@ -191,7 +191,7 @@
                                 <a href="/comptes/connexion" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">
                                     @Loc["Account.CarrierAlreadySignIn"]
                                 </a>
-                                <button class="btn btn-warning btn-lg px-4 py-2 fw-bold text-dark shadow-sm rounded-pill" @onclick="CreerAsync">
+                                <button type="button" class="btn btn-warning btn-lg px-4 py-2 fw-bold text-dark shadow-sm rounded-pill" @onclick="CreerAsync">
                                     @Loc["Account.CarrierSubmit"] ➔
                                 </button>
                             </div>

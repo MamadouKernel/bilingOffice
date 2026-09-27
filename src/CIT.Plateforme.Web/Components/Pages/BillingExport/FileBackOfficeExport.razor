@@ -27,7 +27,7 @@
         <div class="cit-page-subtitle">@Loc["FileBoExp.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
         <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
@@ -97,13 +97,13 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="@Loc["FileBoExp.ValidateTitle"]">
+                                        <button type="button" class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="@Loc["FileBoExp.ValidateTitle"]">
                                             @Loc["FileBoExp.Validate"]
                                         </button>
-                                        <button class="btn btn-outline-warning" @onclick="() => OuvrirModalComplement(t.Id)" title="@Loc["FileBoExp.ComplementTitle"]">
+                                        <button type="button" class="btn btn-outline-warning" @onclick="() => OuvrirModalComplement(t.Id)" title="@Loc["FileBoExp.ComplementTitle"]">
                                             @Loc["FileBoExp.Complement"]
                                         </button>
-                                        <button class="btn btn-outline-danger" @onclick="() => OuvrirModalRejet(t.Id)" title="@Loc["FileBoExp.RejectTitle"]">
+                                        <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModalRejet(t.Id)" title="@Loc["FileBoExp.RejectTitle"]">
                                             @Loc["FileBoExp.Reject"]
                                         </button>
                                     </div>

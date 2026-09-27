@@ -24,7 +24,7 @@
         <div class="cit-page-subtitle">@Loc["AdmStrat.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
-        <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -83,7 +83,7 @@ else
                     </select>
                 </div>
                 <div class="col-12">
-                    <button class="btn btn-primary btn-sm fw-bold shadow-sm" @onclick="ChangerAsync">
+                    <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm" @onclick="ChangerAsync">
                         @Loc["AdmStrat.Apply"]
                     </button>
                 </div>

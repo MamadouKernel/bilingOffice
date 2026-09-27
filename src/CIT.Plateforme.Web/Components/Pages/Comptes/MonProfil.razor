@@ -1,4 +1,4 @@
-﻿@page "/comptes/mon-profil"
+@page "/comptes/mon-profil"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -157,8 +157,8 @@ else if (_profil is not null)
         }
 
         <div class="d-flex justify-content-end gap-2 mb-5">
-            <button class="btn btn-outline-secondary" @onclick="AnnulerAsync" disabled="@_enregistrement">@Loc["Common.Cancel"]</button>
-            <button class="btn btn-primary px-4 fw-bold" @onclick="EnregistrerAsync" disabled="@(!PeutEnregistrer || _enregistrement)">
+            <button type="button" class="btn btn-outline-secondary" @onclick="AnnulerAsync" disabled="@_enregistrement">@Loc["Common.Cancel"]</button>
+            <button type="button" class="btn btn-primary px-4 fw-bold" @onclick="EnregistrerAsync" disabled="@(!PeutEnregistrer || _enregistrement)">
                 @(_enregistrement ? Loc["Profil.Saving"].Value : Loc["Profil.SaveChanges"].Value)
             </button>
         </div>

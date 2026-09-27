@@ -1,4 +1,4 @@
-﻿@page "/assistant"
+@page "/assistant"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Assistant
@@ -96,7 +96,7 @@
                                    placeholder="@Loc["Asst.PlaceholderTicket"]" @bind="_ticketEscalade" />
                         </div>
                         <div class="col-md-4">
-                            <button class="btn btn-warning btn-sm w-100 fw-semibold"
+                            <button type="button" class="btn btn-warning btn-sm w-100 fw-semibold"
                                     @onclick="EscaladerAsync" disabled="@_envoi">
                                 @Loc["Asst.BtnTransmettre"]
                             </button>
@@ -114,7 +114,7 @@
                                placeholder="@Loc["Asst.PlaceholderQuestion"]" />
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary w-100 fw-semibold" @onclick="PoserAsync"
+                        <button type="button" class="btn btn-primary w-100 fw-semibold" @onclick="PoserAsync"
                                 disabled="@(_envoi || string.IsNullOrWhiteSpace(_question))">
                             @Loc["Asst.BtnEnvoyer"]
                         </button>

@@ -27,7 +27,7 @@
         <div class="cit-page-subtitle">@Loc["FileIes.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
         <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
@@ -119,19 +119,19 @@ else
                                         </a>
                                         @if (!manifAchevee && peutInstruireManifeste)
                                         {
-                                            <button class="btn btn-outline-primary" @onclick="() => AcheverAsync(t.Id, BrancheIes.Manifeste)">
+                                            <button type="button" class="btn btn-outline-primary" @onclick="() => AcheverAsync(t.Id, BrancheIes.Manifeste)">
                                                 @Loc["FileIes.CompleteManifest"]
                                             </button>
                                         }
                                         @if (!docAchevee && peutInstruireControleDoc)
                                         {
-                                            <button class="btn btn-outline-primary" @onclick="() => AcheverAsync(t.Id, BrancheIes.ControleDocumentaire)">
+                                            <button type="button" class="btn btn-outline-primary" @onclick="() => AcheverAsync(t.Id, BrancheIes.ControleDocumentaire)">
                                                 @Loc["FileIes.CompleteDocControl"]
                                             </button>
                                         }
                                         @if (manifAchevee && docAchevee)
                                         {
-                                            <button class="btn btn-success" @onclick="() => FinaliserAsync(t.Id)">
+                                            <button type="button" class="btn btn-success" @onclick="() => FinaliserAsync(t.Id)">
                                                 @Loc["FileIes.JoinAndClose"]
                                             </button>
                                         }

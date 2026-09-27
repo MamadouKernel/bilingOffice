@@ -67,7 +67,7 @@ else
                 </select>
             </div>
             <div class="col-12 col-md-2">
-                <button class="btn btn-success btn-sm fw-bold w-100" @onclick="CreerAsync" disabled="@(!Complet)">@Loc["IncidentAdm.Create"]</button>
+                <button type="button" class="btn btn-success btn-sm fw-bold w-100" @onclick="CreerAsync" disabled="@(!Complet)">@Loc["IncidentAdm.Create"]</button>
             </div>
         </div>
     </div>
@@ -114,21 +114,21 @@ else
                                     @if (_edition == cat.Id)
                                     {
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-primary" @onclick="() => EnregistrerAsync(cat)">@Loc["IncidentAdm.Save"]</button>
-                                            <button class="btn btn-outline-secondary" @onclick="() => _edition = null">@Loc["Common.Cancel"]</button>
+                                            <button type="button" class="btn btn-primary" @onclick="() => EnregistrerAsync(cat)">@Loc["IncidentAdm.Save"]</button>
+                                            <button type="button" class="btn btn-outline-secondary" @onclick="() => _edition = null">@Loc["Common.Cancel"]</button>
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" @onclick="() => Editer(cat)">@Loc["IncidentAdm.Edit"]</button>
+                                            <button type="button" class="btn btn-outline-primary" @onclick="() => Editer(cat)">@Loc["IncidentAdm.Edit"]</button>
                                             @if (cat.EstActif)
                                             {
-                                                <button class="btn btn-outline-secondary" @onclick="() => BasculerAsync(cat, false)">@Loc["IncidentAdm.Deactivate"]</button>
+                                                <button type="button" class="btn btn-outline-secondary" @onclick="() => BasculerAsync(cat, false)">@Loc["IncidentAdm.Deactivate"]</button>
                                             }
                                             else
                                             {
-                                                <button class="btn btn-outline-success" @onclick="() => BasculerAsync(cat, true)">@Loc["IncidentAdm.Activate"]</button>
+                                                <button type="button" class="btn btn-outline-success" @onclick="() => BasculerAsync(cat, true)">@Loc["IncidentAdm.Activate"]</button>
                                             }
                                         </div>
                                     }

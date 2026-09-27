@@ -24,7 +24,7 @@
         <div class="cit-page-subtitle text-muted">@Loc["AdmLibStatut.Subtitle"]</div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -88,8 +88,8 @@ else
                                     <td><input type="checkbox" class="form-check-input" @bind="_editActif" /></td>
                                     <td class="text-end pe-4">
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-primary" @onclick="() => EnregistrerAsync(l.Code)">@Loc["AdmLibStatut.BtnEnregistrer"]</button>
-                                            <button class="btn btn-outline-secondary" @onclick="() => _codeEnEdition = null">@Loc["AdmLibStatut.BtnAnnuler"]</button>
+                                            <button type="button" class="btn btn-primary" @onclick="() => EnregistrerAsync(l.Code)">@Loc["AdmLibStatut.BtnEnregistrer"]</button>
+                                            <button type="button" class="btn btn-outline-secondary" @onclick="() => _codeEnEdition = null">@Loc["AdmLibStatut.BtnAnnuler"]</button>
                                         </div>
                                     </td>
                                 }
@@ -105,7 +105,7 @@ else
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-outline-primary btn-sm" @onclick="() => CommencerEdition(l)">@Loc["AdmLibStatut.BtnModifier"]</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => CommencerEdition(l)">@Loc["AdmLibStatut.BtnModifier"]</button>
                                     </td>
                                 }
                             </tr>

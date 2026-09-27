@@ -1,4 +1,4 @@
-﻿@page "/enrolement/soumettre"
+@page "/enrolement/soumettre"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Administration
@@ -108,7 +108,7 @@
 
             <div class="d-flex justify-content-end gap-2">
                 <a href="/enrolement/mes-enrolements" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
-                <button class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
                     @(_envoiEnCours ? Loc["Enrol.Sending"].Value : Loc["Enrol.Submit"].Value)
                 </button>
             </div>

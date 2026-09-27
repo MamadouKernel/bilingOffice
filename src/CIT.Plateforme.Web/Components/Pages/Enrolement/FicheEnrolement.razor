@@ -85,23 +85,23 @@ else if (_fiche is not null)
             <div class="d-flex flex-wrap gap-2">
                 @if (f.PeutPrendreEnCharge)
                 {
-                    <button class="btn btn-outline-success btn-sm fw-semibold" @onclick="PrendreEnChargeAsync">@Loc["FicheEnrol.BtnTakeCharge"]</button>
+                    <button type="button" class="btn btn-outline-success btn-sm fw-semibold" @onclick="PrendreEnChargeAsync">@Loc["FicheEnrol.BtnTakeCharge"]</button>
                 }
                 @if (f.PeutDemanderComplement)
                 {
-                    <button class="btn btn-outline-warning btn-sm fw-semibold" @onclick="() => _afficherFormulaireComplement = true">@Loc["FicheEnrol.BtnRequestComplement"]</button>
+                    <button type="button" class="btn btn-outline-warning btn-sm fw-semibold" @onclick="() => _afficherFormulaireComplement = true">@Loc["FicheEnrol.BtnRequestComplement"]</button>
                 }
                 @if (f.PeutValider)
                 {
-                    <button class="btn btn-outline-primary btn-sm fw-semibold" @onclick="ValiderAsync">@Loc["FicheEnrol.BtnValidate"]</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" @onclick="ValiderAsync">@Loc["FicheEnrol.BtnValidate"]</button>
                 }
                 @if (f.PeutConvoquer)
                 {
-                    <button class="btn btn-outline-info btn-sm fw-semibold" @onclick="ConvoquerAsync">@Loc["FicheEnrol.BtnConvene"]</button>
+                    <button type="button" class="btn btn-outline-info btn-sm fw-semibold" @onclick="ConvoquerAsync">@Loc["FicheEnrol.BtnConvene"]</button>
                 }
                 @if (f.PeutConstaterBadge)
                 {
-                    <button class="btn btn-outline-dark btn-sm fw-semibold" @onclick="ConstaterBadgeAsync">@Loc["FicheEnrol.BtnBadge"]</button>
+                    <button type="button" class="btn btn-outline-dark btn-sm fw-semibold" @onclick="ConstaterBadgeAsync">@Loc["FicheEnrol.BtnBadge"]</button>
                 }
             </div>
 
@@ -111,7 +111,7 @@ else if (_fiche is not null)
                     <label for="motif-du-complement-demande" class="form-label small fw-semibold">@Loc["FicheEnrol.ComplementMotifLabel"]</label>
                     <div class="input-group">
                         <input id="motif-du-complement-demande" class="form-control" @bind="_motifComplement" @bind:event="oninput" placeholder="@Loc["FicheEnrol.ComplementMotifPlaceholder"]" />
-                        <button class="btn btn-warning fw-bold" @onclick="DemanderComplementAsync" disabled="@string.IsNullOrWhiteSpace(_motifComplement)">@Loc["FicheEnrol.Send"]</button>
+                        <button type="button" class="btn btn-warning fw-bold" @onclick="DemanderComplementAsync" disabled="@string.IsNullOrWhiteSpace(_motifComplement)">@Loc["FicheEnrol.Send"]</button>
                     </div>
                 </div>
             }
@@ -126,7 +126,7 @@ else if (_fiche is not null)
             <div class="mb-2">
                 <textarea class="form-control" rows="3" @bind="_reponseComplement" @bind:event="oninput" placeholder="@Loc["FicheEnrol.ClientComplementPlaceholder"]"></textarea>
             </div>
-            <button class="btn btn-primary btn-sm fw-bold" @onclick="RepondreComplementAsync" disabled="@string.IsNullOrWhiteSpace(_reponseComplement)">@Loc["FicheEnrol.SendReply"]</button>
+            <button type="button" class="btn btn-primary btn-sm fw-bold" @onclick="RepondreComplementAsync" disabled="@string.IsNullOrWhiteSpace(_reponseComplement)">@Loc["FicheEnrol.SendReply"]</button>
         </div>
     }
 

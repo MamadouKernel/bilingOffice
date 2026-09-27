@@ -26,7 +26,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -86,7 +86,7 @@ else
                 </select>
             </div>
             <div class="col-12 col-md-1">
-                <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                <button type="button" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
                     @Loc["Common.Add"]
                 </button>
             </div>
@@ -139,7 +139,7 @@ else
                                     }
                                 </td>
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => BasculerAsync(p.Id, !p.EstActif)">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => BasculerAsync(p.Id, !p.EstActif)">
                                         @(p.EstActif ? Loc["Common.Deactivate"] : Loc["Common.Activate"])
                                     </button>
                                 </td>

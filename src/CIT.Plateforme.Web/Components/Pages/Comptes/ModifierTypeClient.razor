@@ -59,7 +59,7 @@ else
                     <label class="form-label text-uppercase fw-bold text-muted small" for="societe">@Loc["ModifType.LblSociete"]</label>
                     <select id="societe" class="form-select form-select-lg border-0 shadow-sm" 
                             style="background-color: var(--surface); border-radius: 0.75rem;" 
-                            @bind="_societeSelectionnee">
+                            @bind="_societeSelectionnee" @bind:after="SurChangementSociete">
                         @foreach (var societe in _societes)
                         {
                             <option value="@societe.Id">@NomLisible(societe)</option>
@@ -100,6 +100,33 @@ else
                     </button>
                 </div>
             </div>
+
+            @* IDENTITÉ STRUCTURÉE — correction de la raison sociale et du RCCM (sociétés reprises
+               sans RCCM valide, erreur de saisie). Action distincte, tracée à l'audit. *@
+            <div class="cit-card p-4 mb-4">
+                <h2 class="h6 fw-bold mb-1">🪪 @Loc["ModifType.IdentityTitle"]</h2>
+                <p class="small text-muted mb-3">@Loc["ModifType.IdentityHint"]</p>
+                @if (SocieteCourante is { Rccm: null })
+                {
+                    <div class="alert alert-warning small py-2 mb-3">@Loc["ModifType.RccmMissing"]</div>
+                }
+                <div class="row g-3">
+                    <div class="col-12 col-md-7">
+                        <label class="form-label small" for="raison-sociale">@Loc["Account.CompanyNameLabel"]</label>
+                        <input id="raison-sociale" class="form-control" maxlength="200" @bind="_raisonSociale" />
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small" for="rccm">@Loc["Account.RccmLabel"]</label>
+                        <input id="rccm" class="form-control font-monospace text-uppercase" maxlength="40"
+                               placeholder="CI-ABJ-2024-B-12345" spellcheck="false" @bind="_rccm" />
+                    </div>
+                </div>
+                <div class="pt-3 text-end">
+                    <button type="button" class="btn btn-outline-primary px-4" @onclick="CorrigerIdentiteAsync">
+                        @Loc["ModifType.BtnIdentity"]
+                    </button>
+                </div>
+            </div>
         }
 
         @if (_erreur is not null)
@@ -113,7 +140,7 @@ else
         {
             <div class="alert alert-success border-0 text-success bg-success bg-opacity-10 d-flex align-items-center gap-2 mb-4 rounded-3 p-3" role="status">
                 <span class="fs-4">✅</span>
-                <div class="fw-semibold">@Loc["ModifType.Success"]</div>
+                <div class="fw-semibold">@(_messageSucces ?? Loc["ModifType.Success"].Value)</div>
             </div>
         }
     </div>
@@ -130,6 +157,54 @@ else
     private IReadOnlyList<SocieteSelectionnable>? _societes;
     private Guid _societeSelectionnee;
     private TypeClient _nouveauType = TypeClient.Normal;
+
+    private string? _messageSucces;
+    private string _raisonSociale = string.Empty;
+    private string _rccm = string.Empty;
+
+    /// <summary>Pré-remplit les champs (type, identité) avec la société choisie.</summary>
+    private void SurChangementSociete()
+    {
+        _succes = false;
+        _erreur = null;
+        if (SocieteCourante is { } societe)
+        {
+            _nouveauType = societe.Profil;
+            _raisonSociale = societe.Nom;
+            _rccm = societe.Rccm ?? string.Empty;
+        }
+    }
+
+    private async Task CorrigerIdentiteAsync()
+    {
+        _erreur = null;
+        _succes = false;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<CorrigerIdentiteSocieteCommand>()
+                .ExecuterAsync(_appelantId, _societeSelectionnee, _raisonSociale, _rccm);
+            _messageSucces = Loc["ModifType.IdentitySuccess"].Value;
+            _succes = true;
+            await ChargerAsync();
+        }
+        catch (RccmDejaUtiliseException)
+        {
+            _erreur = Loc["ModifType.RccmTaken"].Value;
+        }
+        catch (ArgumentException)
+        {
+            _erreur = Loc["Account.RccmInvalid"].Value;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
 
     private TypeClient TypeActuel =>
         _societes?.FirstOrDefault(s => s.Id == _societeSelectionnee)?.Profil ?? TypeClient.Normal;
@@ -178,6 +253,8 @@ else
             {
                 _societeSelectionnee = courante.Id;
                 _nouveauType = courante.Profil;
+                _raisonSociale = courante.Nom;
+                _rccm = courante.Rccm ?? string.Empty;
             }
             _nonAutorise = false;
         }
@@ -212,6 +289,7 @@ else
             using var scope = ScopeFactory.CreateScope();
             var modifierTypeCmd = scope.ServiceProvider.GetRequiredService<ModifierTypeClientCommand>();
             await modifierTypeCmd.ExecuterAsync(_appelantId, _societeSelectionnee, _nouveauType);
+            _messageSucces = null;
             _succes = true;
             await ChargerAsync();
         }

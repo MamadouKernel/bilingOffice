@@ -25,7 +25,7 @@
         <div class="cit-page-subtitle">@Loc["FileComptaExp.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="ChargerAsync">@Loc["File.Refresh"]</button>
         <a href="/agent/dashboard" class="btn btn-outline-primary btn-sm shadow-sm">@Loc["File.MyDashboard"]</a>
     </div>
 </div>
@@ -90,7 +90,7 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button class="btn btn-outline-success" @onclick="() => ConfirmerLettrageAsync(t.Id)" title="@Loc["FileComptaExp.ConfirmTitle"]">
+                                        <button type="button" class="btn btn-outline-success" @onclick="() => ConfirmerLettrageAsync(t.Id)" title="@Loc["FileComptaExp.ConfirmTitle"]">
                                             @Loc["FileComptaExp.Confirm"]
                                         </button>
                                     </div>

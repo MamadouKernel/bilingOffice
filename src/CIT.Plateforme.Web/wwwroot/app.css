@@ -2586,3 +2586,33 @@ html { scroll-padding-top: var(--header-h); }
 @media (prefers-reduced-motion: reduce) {
     .cit-chargement, .cit-modal-dialog { animation: none; }
 }
+
+/* ==========================================================================
+   THÈME SOMBRE — neutralisation des utilitaires Bootstrap à couleur FIGÉE.
+   Audit des pages : 404 « text-dark » et 99 « bg-white / bg-light » écrits
+   pour le thème clair. En sombre, ils donnaient du texte presque noir sur fond
+   sombre (illisible) et des blocs blancs éblouissants. Corrigé à la source,
+   une fois, par les tokens — plutôt que 500 retouches page par page.
+   ========================================================================== */
+:root[data-theme="dark"] .text-dark,
+:root[data-theme="dark"] .text-black { color: var(--ink) !important; }
+:root[data-theme="dark"] .text-body,
+:root[data-theme="dark"] .text-body-emphasis { color: var(--ink) !important; }
+:root[data-theme="dark"] .text-secondary,
+:root[data-theme="dark"] .text-muted,
+:root[data-theme="dark"] .text-body-secondary { color: var(--ink-3) !important; }
+:root[data-theme="dark"] .bg-white,
+:root[data-theme="dark"] .bg-body { background-color: var(--surface) !important; }
+:root[data-theme="dark"] .bg-light,
+:root[data-theme="dark"] .bg-body-tertiary,
+:root[data-theme="dark"] .bg-body-secondary,
+:root[data-theme="dark"] .table-light { background-color: var(--surface-2) !important; color: var(--ink); }
+:root[data-theme="dark"] .border,
+:root[data-theme="dark"] .border-top,
+:root[data-theme="dark"] .border-bottom,
+:root[data-theme="dark"] .border-light { border-color: var(--line) !important; }
+:root[data-theme="dark"] .table { --bs-table-color: var(--ink); --bs-table-bg: transparent; --bs-table-border-color: var(--line-soft); }
+:root[data-theme="dark"] .form-control,
+:root[data-theme="dark"] .form-select { background-color: var(--surface-2); color: var(--ink); border-color: var(--line); }
+:root[data-theme="dark"] .form-control::placeholder { color: var(--ink-3); }
+:root[data-theme="dark"] .btn-close { filter: invert(1) grayscale(1) brightness(1.6); }

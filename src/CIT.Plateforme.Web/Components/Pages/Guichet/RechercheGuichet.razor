@@ -86,7 +86,7 @@ else
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-primary btn-lg w-100" @onclick="EffectuerRechercheAsync" disabled="@_enRecherche">
+                    <button type="button" class="btn btn-primary btn-lg w-100" @onclick="EffectuerRechercheAsync" disabled="@_enRecherche">
                         @if (_enRecherche)
                         {
                             <span class="spinner-border spinner-border-sm me-1"></span>
@@ -109,7 +109,7 @@ else
                 <h5 class="mb-0">
                     @Loc["GuiRech.DossierTitle", _dossierConsulte.NumeroTicket, _dossierConsulte.Module]
                 </h5>
-                <button class="btn btn-sm btn-light" @onclick="FermerDossier">@Loc["GuiRech.BtnFermerVue"]</button>
+                <button type="button" class="btn btn-sm btn-light" @onclick="FermerDossier">@Loc["GuiRech.BtnFermerVue"]</button>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
@@ -206,7 +206,7 @@ else
                                 <input id="description-de-l-operation" type="text" class="form-control form-control-sm" placeholder="@Loc["GuiRech.PlaceholderDescOp"]" @bind="_descriptionDegrade" />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button class="btn btn-warning btn-sm w-100" @onclick="RegulariserModeDegradeAsync" disabled="@_enRegularisation">
+                                <button type="button" class="btn btn-warning btn-sm w-100" @onclick="RegulariserModeDegradeAsync" disabled="@_enRegularisation">
                                     @if (_enRegularisation)
                                     {
                                         <span class="spinner-border spinner-border-sm"></span>
@@ -275,7 +275,7 @@ else
                                             }
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ConsulterDossierAsync(r.TicketId)">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => ConsulterDossierAsync(r.TicketId)">
                                                 @Loc["GuiRech.BtnOuvrirGuichet"]
                                             </button>
                                         </td>

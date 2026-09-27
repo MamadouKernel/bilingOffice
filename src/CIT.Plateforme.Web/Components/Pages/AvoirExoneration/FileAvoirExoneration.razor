@@ -58,7 +58,7 @@ else
                 </select>
             </div>
             <div class="col-md-4 text-md-end pt-md-4">
-                <button class="btn btn-outline-secondary btn-sm" @onclick="ChargerFileAsync">@Loc["Common.Refresh"]</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="ChargerFileAsync">@Loc["Common.Refresh"]</button>
             </div>
         </div>
     </div>
@@ -112,7 +112,7 @@ else
                                     <div class="d-flex justify-content-end gap-1">
                                         @if (t.Statut == StatutTicket.EnAttenteDePriseEnCharge)
                                         {
-                                            <button class="btn btn-sm btn-outline-success" @onclick="() => PrendreEnChargeAsync(t.TicketId)">
+                                            <button type="button" class="btn btn-sm btn-outline-success" @onclick="() => PrendreEnChargeAsync(t.TicketId)">
                                                 @Loc["AvoirFile.BtnPrendreEnCharge"]
                                             </button>
                                         }

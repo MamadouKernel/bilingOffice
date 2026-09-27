@@ -26,7 +26,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -95,7 +95,7 @@ else
                            placeholder="@Loc["AdmMatrice.MotifsPlaceholder"]" />
                 </div>
                 <div class="col-12 col-md-1 d-grid">
-                    <button class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" @onclick="DefinirAsync">
+                    <button type="button" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" @onclick="DefinirAsync">
                         @Loc["AdmMatrice.Define"]
                     </button>
                 </div>
@@ -153,7 +153,7 @@ else
                                         }
                                     </td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                                 @onclick="() => DemanderConfirmationSuppression(t.FileSourceId, t.FileCibleId)">
                                             @Loc["AdmMatrice.Delete"]
                                         </button>

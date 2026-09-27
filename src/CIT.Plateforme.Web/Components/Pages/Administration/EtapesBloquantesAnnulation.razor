@@ -29,7 +29,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
             @Loc["Common.Refresh"]
         </button>
     </div>
@@ -78,7 +78,7 @@ else
                 <input id="motif-blocage" class="form-control form-control-sm" placeholder="@Loc["AdmSeuil.MotifPlaceholder"]" @bind="_motif" />
             </div>
             <div class="col-md-1">
-                <button class="btn btn-primary btn-sm w-100 fw-semibold" @onclick="DefinirAsync" disabled="@_enregistrement">@Loc["Common.Add"]</button>
+                <button type="button" class="btn btn-primary btn-sm w-100 fw-semibold" @onclick="DefinirAsync" disabled="@_enregistrement">@Loc["Common.Add"]</button>
             </div>
         </div>
     </div>
@@ -125,7 +125,7 @@ else
                                     }
                                 </td>
                                 <td class="text-end">
-                                    <button class="btn btn-outline-secondary btn-sm"
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
                                             @onclick="() => BasculerAsync(s.Id, !s.EstActif)" disabled="@_enregistrement">
                                         @(s.EstActif ? Loc["Common.Deactivate"] : Loc["Common.Activate"])
                                     </button>

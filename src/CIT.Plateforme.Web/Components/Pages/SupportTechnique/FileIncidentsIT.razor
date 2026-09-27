@@ -74,15 +74,15 @@ else
                                 <td class="py-3 pe-4 text-end">
                                     @if (t.Statut == StatutTicket.EnAttenteDePriseEnCharge)
                                     {
-                                        <button class="btn btn-outline-success btn-sm fw-semibold" disabled="@_enCours"
+                                        <button type="button" class="btn btn-outline-success btn-sm fw-semibold" disabled="@_enCours"
                                                 @onclick="() => PrendreEnChargeAsync(t.Id)">@Loc["IncidentFile.TakeCharge"]</button>
                                     }
                                     else
                                     {
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-success fw-semibold" disabled="@_enCours"
+                                            <button type="button" class="btn btn-outline-success fw-semibold" disabled="@_enCours"
                                                     @onclick="() => OuvrirAction(t.Id, ActionType.Resoudre)">@Loc["IncidentFile.Resolve"]</button>
-                                            <button class="btn btn-outline-warning fw-semibold" disabled="@_enCours"
+                                            <button type="button" class="btn btn-outline-warning fw-semibold" disabled="@_enCours"
                                                     @onclick="() => OuvrirAction(t.Id, ActionType.Escalader)">@Loc["IncidentFile.Escalate"]</button>
                                         </div>
                                     }
@@ -106,8 +106,8 @@ else
                       placeholder="@(_actionType == ActionType.Resoudre ? Loc["IncidentFile.ResolvePlaceholder"] : Loc["IncidentFile.EscalatePlaceholder"])"
                       @bind="_actionTexte" @bind:event="oninput"></textarea>
             <div class="d-flex gap-2 justify-content-end">
-                <button class="btn btn-outline-secondary btn-sm" @onclick="FermerAction">@Loc["Common.Cancel"]</button>
-                <button class="btn btn-primary btn-sm fw-bold" disabled="@(_enCours || string.IsNullOrWhiteSpace(_actionTexte))"
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="FermerAction">@Loc["Common.Cancel"]</button>
+                <button type="button" class="btn btn-primary btn-sm fw-bold" disabled="@(_enCours || string.IsNullOrWhiteSpace(_actionTexte))"
                         @onclick="ConfirmerActionAsync">@Loc["Common.Submit"]</button>
             </div>
         </div>

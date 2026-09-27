@@ -1,4 +1,4 @@
-﻿@page "/avoir-exoneration/soumettre"
+@page "/avoir-exoneration/soumettre"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.AvoirExoneration
@@ -125,7 +125,7 @@
 
             <div class="d-flex justify-content-end gap-2 pt-2 border-top">
                 <a href="/avoir-exoneration/mes-demandes" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
-                <button id="btnSoumettre" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                <button type="button" id="btnSoumettre" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
                     @if (_envoiEnCours)
                     {
                         <span class="spinner-border spinner-border-sm me-2" role="status"></span>

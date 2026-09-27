@@ -1,4 +1,4 @@
-﻿@page "/dossiers/{Id:guid}"
+@page "/dossiers/{Id:guid}"
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
 @using CIT.Plateforme.Application.Client
@@ -25,7 +25,7 @@ else if (_erreur is not null)
         <div>
             <strong>@Loc["Ticket.AccessErrorLabel"]</strong> @_erreur
         </div>
-        <button class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">@Loc["DosF.Back"]</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="RetourArriere">@Loc["DosF.Back"]</button>
     </div>
 }
 else if (_fiche is not null)
@@ -35,7 +35,7 @@ else if (_fiche is not null)
     <!-- En-tête Dossier -->
     <div class="cit-page-header">
         <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="RetourArriere">
+            <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" @onclick="RetourArriere">
                 @Loc["DosF.Back"]
             </button>
             <div>
