@@ -2663,3 +2663,92 @@ html { scroll-padding-top: var(--header-h); }
     user-select: all;
 }
 @media (max-width: 420px) { .cit-codes-secours-liste { grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   MOTION DESIGN — le mouvement explique un changement, il ne décore pas.
+   Règles : transform + opacity uniquement (fluide, GPU), 150–450 ms, entrée en
+   ease-out, légers décalages (stagger) dans l'ordre de lecture. Tout est coupé
+   par prefers-reduced-motion (voir le bloc final).
+   ========================================================================== */
+:root {
+    --mv-rapide: 160ms;
+    --mv-normal: 320ms;
+    --mv-lent: 450ms;
+    --mv-sortie: cubic-bezier(.16, 1, .3, 1);   /* ease-out expressif : arrive vite, se pose */
+    --mv-decalage: 45ms;                          /* stagger entre éléments frères */
+}
+
+/* 1. TRANSITIONS ENTRE PAGES
+   - navigations complètes : API View Transitions native (fondu croisé du document) ;
+   - navigations Blazor (même document) : js/motion.js rejoue l'entrée du contenu. */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: var(--mv-rapide) ease-in both mv-fondu-sortie; }
+::view-transition-new(root) { animation: var(--mv-normal) var(--mv-sortie) both mv-entree; }
+@keyframes mv-fondu-sortie { to { opacity: 0; } }
+@keyframes mv-entree { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.cit-page-entree > .container-fluid { animation: mv-entree var(--mv-normal) var(--mv-sortie) both; }
+
+/* 2. SQUELETTES DE CHARGEMENT — reflet qui balaie les formes du contenu à venir. */
+.cit-squelette { display: grid; gap: .7rem; padding: 1.25rem; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line-soft); }
+.cit-squelette-ligne {
+    height: .8rem;
+    width: var(--l, 100%);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--surface-sunken) 0%, var(--surface-2) 45%, var(--surface-sunken) 90%);
+    background-size: 220% 100%;
+    animation: mv-reflet 1.3s ease-in-out infinite;
+}
+.cit-squelette-titre { height: 1.2rem; width: 38%; margin-bottom: .4rem; }
+@keyframes mv-reflet { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+/* 3. INDICATEURS — les cartes arrivent en cascade, le chiffre « monte » en place.
+   (Le texte n'est jamais réécrit en JavaScript : Blazor reste maître de la valeur.) */
+.row > [class*="col"] > .cit-stat-card { animation: mv-entree var(--mv-lent) var(--mv-sortie) both; }
+.row > [class*="col"]:nth-child(2) > .cit-stat-card { animation-delay: calc(var(--mv-decalage) * 1); }
+.row > [class*="col"]:nth-child(3) > .cit-stat-card { animation-delay: calc(var(--mv-decalage) * 2); }
+.row > [class*="col"]:nth-child(4) > .cit-stat-card { animation-delay: calc(var(--mv-decalage) * 3); }
+.cit-stat-card .fs-4 { display: inline-block; animation: mv-chiffre var(--mv-lent) var(--mv-sortie) both; animation-delay: 120ms; }
+@keyframes mv-chiffre { from { opacity: 0; transform: translateY(60%) scale(.9); } to { opacity: 1; transform: none; } }
+
+/* 4. RETOURS D'ACTION — les messages de résultat glissent en place ; les lignes de tableau
+   apparaissent en cascade (8 premières), puis sans délai. */
+.alert { animation: mv-alerte var(--mv-normal) var(--mv-sortie) both; }
+@keyframes mv-alerte { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+.table > tbody > tr { animation: mv-ligne var(--mv-normal) var(--mv-sortie) both; }
+.table > tbody > tr:nth-child(2) { animation-delay: calc(var(--mv-decalage) * 1); }
+.table > tbody > tr:nth-child(3) { animation-delay: calc(var(--mv-decalage) * 2); }
+.table > tbody > tr:nth-child(4) { animation-delay: calc(var(--mv-decalage) * 3); }
+.table > tbody > tr:nth-child(5) { animation-delay: calc(var(--mv-decalage) * 4); }
+.table > tbody > tr:nth-child(6) { animation-delay: calc(var(--mv-decalage) * 5); }
+.table > tbody > tr:nth-child(7) { animation-delay: calc(var(--mv-decalage) * 6); }
+.table > tbody > tr:nth-child(8) { animation-delay: calc(var(--mv-decalage) * 7); }
+@keyframes mv-ligne { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+
+/* Validation d'un formulaire : le bouton principal « s'enfonce » brièvement au clic. */
+.btn:not(:disabled):active { transform: scale(.97); transition-duration: 60ms; }
+
+/* 5. CHRONOLOGIE D'UN TICKET — les étapes se déposent l'une après l'autre, la pastille pulse. */
+.timeline-container > * { animation: mv-etape var(--mv-lent) var(--mv-sortie) both; }
+.timeline-container > *:nth-child(2) { animation-delay: 70ms; }
+.timeline-container > *:nth-child(3) { animation-delay: 140ms; }
+.timeline-container > *:nth-child(4) { animation-delay: 210ms; }
+.timeline-container > *:nth-child(5) { animation-delay: 280ms; }
+.timeline-container > *:nth-child(n+6) { animation-delay: 350ms; }
+@keyframes mv-etape { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.timeline-container .rounded-circle { animation: mv-pastille 600ms var(--mv-sortie) both 200ms; }
+@keyframes mv-pastille { 0% { transform: translate(-50%, -50%) scale(0); } 70% { transform: translate(-50%, -50%) scale(1.35); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
+/* ACCESSIBILITÉ — mouvement réduit : aucune animation d'entrée ni de reflet. */
+@media (prefers-reduced-motion: reduce) {
+    @view-transition { navigation: none; }
+    .cit-page-entree > .container-fluid,
+    .cit-squelette-ligne,
+    .row > [class*="col"] > .cit-stat-card,
+    .cit-stat-card .fs-4,
+    .alert,
+    .table > tbody > tr,
+    .timeline-container > *,
+    .timeline-container .rounded-circle { animation: none !important; }
+    .btn:not(:disabled):active { transform: none; }
+}

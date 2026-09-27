@@ -1,10 +1,20 @@
 @using CIT.Plateforme.Web.Resources
 
-<div class="cit-chargement d-flex flex-column align-items-center justify-content-center py-5">
-    <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem;">
-        <span class="visually-hidden">@SharedResourcesLocalizer.Get("Common.Loading")</span>
+@* CHARGEMENT EN SQUELETTE — la forme du contenu à venir (en-tête, lignes) plutôt qu'une simple
+   roue : l'utilisateur voit où l'information va apparaître, et l'attente paraît plus courte.
+   L'état reste annoncé aux lecteurs d'écran (role="status"). Mouvement réduit : pas de reflet. *@
+<div class="cit-chargement" role="status" aria-live="polite">
+    <div class="cit-squelette" aria-hidden="true">
+        <div class="cit-squelette-ligne cit-squelette-titre"></div>
+        <div class="cit-squelette-ligne" style="--l: 92%"></div>
+        <div class="cit-squelette-ligne" style="--l: 78%"></div>
+        <div class="cit-squelette-ligne" style="--l: 85%"></div>
+        <div class="cit-squelette-ligne" style="--l: 64%"></div>
     </div>
-    <p class="text-muted fw-medium">@(Message ?? SharedResourcesLocalizer.Get("Common.LoadingData"))</p>
+    <div class="d-flex align-items-center justify-content-center gap-2 mt-3 text-muted small">
+        <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
+        <span>@(Message ?? SharedResourcesLocalizer.Get("Common.LoadingData"))</span>
+    </div>
 </div>
 
 @code {
