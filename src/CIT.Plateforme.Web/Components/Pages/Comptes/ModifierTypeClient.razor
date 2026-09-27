@@ -83,7 +83,8 @@ else
                     <label class="form-label text-uppercase fw-bold text-muted small" for="nouveau-type">@Loc["ModifType.LblNouveauType"]</label>
                     <select id="nouveau-type" class="form-select form-select-lg border-0 shadow-sm u-r-md u-bg-surface" 
                             @bind="_nouveauType">
-                        @foreach (var valeur in Enum.GetValues<TypeClient>())
+                        @* Types proposables : les ACTIFS du référentiel, plus le type actuel de la société. *@
+                        @foreach (var valeur in TypesProposes)
                         {
                             <option value="@valeur">@LibelleType(valeur)</option>
                         }
@@ -216,7 +217,19 @@ else
     private SocieteSelectionnable? SocieteCourante =>
         _societes?.FirstOrDefault(s => s.Id == _societeSelectionnee);
 
-    private string LibelleType(TypeClient type) => type switch
+    private IReadOnlyList<TypeClientVue> _typesClient = [];
+
+    private IEnumerable<TypeClient> TypesProposes =>
+        _typesClient.Count == 0
+            ? Enum.GetValues<TypeClient>()
+            : _typesClient.Where(t => t.Actif || t.Type == TypeActuel).Select(t => t.Type);
+
+    /// <summary>Libellé paramétré (référentiel), sinon libellé par défaut.</summary>
+    private string LibelleType(TypeClient type) =>
+        _typesClient.FirstOrDefault(t => t.Type == type)?.Libelle(System.Globalization.CultureInfo.CurrentUICulture.Name)
+        ?? LibelleParDefaut(type);
+
+    private string LibelleParDefaut(TypeClient type) => type switch
     {
         TypeClient.Normal => Loc["ModifType.TypeNormal"].Value,
         TypeClient.EnCompte => Loc["ModifType.TypeEnCompte"].Value,
@@ -244,6 +257,7 @@ else
             using var scope = ScopeFactory.CreateScope();
             var listerSocietesQuery = scope.ServiceProvider.GetRequiredService<ListerSocietesActivesQuery>();
             _societes = await listerSocietesQuery.ExecuterAsync(_appelantId);
+            _typesClient = await scope.ServiceProvider.GetRequiredService<ListerTypesClientQuery>().ExecuterAsync(activesUniquement: false);
 
             var courante = _societes.FirstOrDefault(s => s.Id == _societeSelectionnee) ?? _societes.FirstOrDefault();
             if (courante is not null)

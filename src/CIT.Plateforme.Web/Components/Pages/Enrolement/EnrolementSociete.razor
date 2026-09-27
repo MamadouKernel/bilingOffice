@@ -87,7 +87,7 @@ else
                                        placeholder="@Loc["EnrolSoc.DescPlaceholder"]" maxlength="500" />
                             </td>
                             <td>
-                                <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RetirerLigne(ligne)" disabled="@(_lignes.Count == 1)">@Loc["EnrolSoc.RemoveObjectBtn"]</button>
+                                <BoutonSupprimer Discret="true" Libelle="@Loc["EnrolSoc.RemoveObjectBtn"]" Desactive="@(_lignes.Count == 1)" OnSupprimer="() => RetirerLigne(ligne)" />
                             </td>
                         </tr>
                     }

@@ -1,0 +1,190 @@
+@page "/administration/types-client"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* RÉFÉRENTIEL DES TYPES DE CLIENT — libellés FR/EN, description, ordre, activation, modifiables
+   sans développement et tracés à l'audit. Le code (circuit métier) est affiché en lecture seule :
+   il pilote l'aiguillage Import/Export et la facturation. *@
+
+<PageTitle>@Loc["TypesCli.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span aria-hidden="true">🏷️</span> @Loc["TypesCli.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["TypesCli.Subtitle"]</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["TypesCli.Loading"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    <div class="alert alert-info mb-4 small" role="note">ℹ️ @Loc["TypesCli.Limit"]</div>
+
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-4" role="alert">⚠️ @_erreur</div>
+    }
+    @if (_succes is not null)
+    {
+        <div class="alert alert-success mb-4" role="status">✅ @_succes</div>
+    }
+
+    <div class="d-grid gap-3">
+        @foreach (var e in _edition)
+        {
+            <div class="cit-card">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis font-monospace" title="@Loc["TypesCli.CodeHint"]">@e.Type</span>
+                        <strong>@e.LibelleFr</strong>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="actif-@e.Type" @bind="e.Actif" />
+                        <label class="form-check-label small" for="actif-@e.Type">@Loc["TypesCli.Active"]</label>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small" for="fr-@e.Type">@Loc["TypesCli.LabelFr"]</label>
+                        <input id="fr-@e.Type" class="form-control" maxlength="120" @bind="e.LibelleFr" />
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small" for="en-@e.Type">@Loc["TypesCli.LabelEn"]</label>
+                        <input id="en-@e.Type" class="form-control" maxlength="120" @bind="e.LibelleEn" />
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label small" for="ordre-@e.Type">@Loc["TypesCli.Order"]</label>
+                        <input id="ordre-@e.Type" type="number" min="0" class="form-control" @bind="e.Ordre" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small" for="dfr-@e.Type">@Loc["TypesCli.DescFr"]</label>
+                        <textarea id="dfr-@e.Type" class="form-control" rows="2" maxlength="400" @bind="e.DescriptionFr"></textarea>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small" for="den-@e.Type">@Loc["TypesCli.DescEn"]</label>
+                        <textarea id="den-@e.Type" class="form-control" rows="2" maxlength="400" @bind="e.DescriptionEn"></textarea>
+                    </div>
+                </div>
+                <div class="text-end pt-3">
+                    <button type="button" class="btn btn-primary btn-sm px-4" disabled="@_enCours" @onclick="() => EnregistrerAsync(e)">
+                        @Loc["TypesCli.Save"]
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>État éditable d'une carte (copie de la vue, jamais la vue elle-même).</summary>
+    private sealed class Edition
+    {
+        public CIT.Plateforme.Domain.Comptes.TypeClient Type { get; init; }
+        public string LibelleFr { get; set; } = string.Empty;
+        public string LibelleEn { get; set; } = string.Empty;
+        public string DescriptionFr { get; set; } = string.Empty;
+        public string DescriptionEn { get; set; } = string.Empty;
+        public int Ordre { get; set; }
+        public bool Actif { get; set; }
+    }
+
+    private List<Edition> _edition = [];
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _enCours;
+    private bool _refuse;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+    private string? _succes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        if (!contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.CompteTypeModifier))
+        {
+            _refuse = true;
+            _messageRefus = Loc["TypesCli.Denied"].Value;
+            _chargement = false;
+            return;
+        }
+
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var types = await scope.ServiceProvider.GetRequiredService<ListerTypesClientQuery>().ExecuterAsync(activesUniquement: false);
+            _edition = types.Select(t => new Edition
+            {
+                Type = t.Type, LibelleFr = t.LibelleFr, LibelleEn = t.LibelleEn,
+                DescriptionFr = t.DescriptionFr, DescriptionEn = t.DescriptionEn, Ordre = t.Ordre, Actif = t.Actif,
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task EnregistrerAsync(Edition e)
+    {
+        _erreur = null;
+        _succes = null;
+        _enCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<ModifierParametreTypeClientCommand>().ExecuterAsync(
+                _appelantId, e.Type, e.LibelleFr, e.LibelleEn, e.DescriptionFr, e.DescriptionEn, e.Ordre, e.Actif);
+            _succes = Loc["TypesCli.Saved", e.LibelleFr].Value;
+            await ChargerAsync();
+        }
+        catch (DernierTypeClientActifException)
+        {
+            _erreur = Loc["TypesCli.LastActive"].Value;
+            e.Actif = true;
+        }
+        catch (ArgumentException)
+        {
+            _erreur = Loc["TypesCli.Invalid"].Value;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

@@ -111,7 +111,7 @@
                         <span class="cit-sim-ctn-id">
                             <span class="cit-sim-ctn-num">@(index + 1)</span> @Loc["Sim.ContainerWord"] @(index + 1)
                         </span>
-                        <button type="button" class="cit-sim-ctn-remove" @onclick="() => SupprimerConteneur(index)">🗑️ @Loc["Sim.Remove"]</button>
+                        <BoutonSupprimer Discret="true" Libelle="@Loc["Sim.Remove"]" OnSupprimer="() => SupprimerConteneur(index)" />
                     </div>
                     <div class="row g-3">
                         <div class="col-6 col-lg-3">

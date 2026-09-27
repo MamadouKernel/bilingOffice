@@ -184,6 +184,10 @@ public static class DependencyInjection
         // §11.4 / §9.10 : approvisionnement additif des libellés de statut paramétrables.
         services.AddScoped<Persistence.ProvisionnementLibellesStatut>();
         services.AddScoped<Persistence.ProvisionnementIdentiteSocietes>();
+        services.AddScoped<Persistence.ProvisionnementTypesClient>();
+        services.AddScoped<Application.Comptes.IParametreTypeClientRepository, Persistence.ParametreTypeClientRepository>();
+        services.AddScoped<Application.Comptes.ListerTypesClientQuery>();
+        services.AddScoped<Application.Comptes.ModifierParametreTypeClientCommand>();
         services.AddScoped<Persistence.ProvisionnementReferentielsTarifaires>();
         // IA-04 : base de connaissances de départ de l'assistant simulé (additif, si base vide).
         services.AddScoped<Persistence.ProvisionnementSujetsAssistant>();

@@ -352,6 +352,43 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("JustificatifsDemandeCompte");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.ParametreTypeClient", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("DescriptionEn")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("DescriptionFr")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("LibelleEn")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("LibelleFr")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("TypesClient", (string)null);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.PieceExigeeCompte", b =>
                 {
                     b.Property<Guid>("Id")

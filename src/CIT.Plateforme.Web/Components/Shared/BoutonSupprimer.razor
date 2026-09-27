@@ -1,0 +1,76 @@
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* BOUTON DE SUPPRESSION « LA CORBEILLE AVALE LE LIBELLÉ » — au clic, le couvercle s'ouvre, les
+   lettres glissent une à une dans la corbeille, le couvercle se referme ; l'action n'est exécutée
+   qu'ensuite. Réservé aux RETRAITS légitimes (élément en cours d'édition, référentiel) : les
+   données probantes (tickets, dossiers, audit) se clôturent ou s'archivent, elles ne se suppriment pas.
+   Accessibilité : le libellé complet reste annoncé (aria-label), un double clic est ignoré, et
+   prefers-reduced-motion coupe l'animation. *@
+<button type="button"
+        class="cit-bouton-supprimer @(Discret ? "discret" : "") @(_etat == Etat.Mange ? "mange" : "")"
+        aria-label="@LibelleEffectif"
+        title="@LibelleEffectif"
+        disabled="@(Desactive || _etat != Etat.Repos)"
+        @onclick="ClicAsync">
+    <svg class="cit-corbeille" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <g class="cit-corbeille-couvercle">
+            <path d="M4 6.5h16" />
+            <path d="M9.5 6.5V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v1.5" />
+        </g>
+        <path class="cit-corbeille-cuve" d="M6 8.5l.9 10.6A2 2 0 0 0 8.9 21h6.2a2 2 0 0 0 2-1.9L18 8.5" />
+        <path class="cit-corbeille-trait" d="M10.2 11.5v5.5M13.8 11.5v5.5" />
+    </svg>
+    <span class="cit-bouton-supprimer-libelle" aria-hidden="true">
+        @for (var i = 0; i < LibelleEffectif.Length; i++)
+        {
+            var lettre = LibelleEffectif[i];
+            <span style="--i: @i">@(lettre == ' ' ? " " : lettre.ToString())</span>
+        }
+    </span>
+</button>
+
+@code {
+    private enum Etat { Repos, Mange }
+
+    /// <summary>Durée de l'animation avant l'exécution de l'action (couvercle + lettres).</summary>
+    private const int DureeAnimationMs = 700;
+
+    /// <summary>Action de suppression, exécutée une fois l'animation terminée.</summary>
+    [Parameter, EditorRequired] public EventCallback OnSupprimer { get; set; }
+
+    /// <summary>Libellé affiché (par défaut : « Supprimer »).</summary>
+    [Parameter] public string? Libelle { get; set; }
+
+    /// <summary>Variante compacte et neutre, pour les lignes denses (liste de fichiers…).</summary>
+    [Parameter] public bool Discret { get; set; }
+
+    [Parameter] public bool Desactive { get; set; }
+
+    private Etat _etat = Etat.Repos;
+
+    private string LibelleEffectif => string.IsNullOrWhiteSpace(Libelle) ? Loc["Common.Delete"].Value : Libelle;
+
+    private async Task ClicAsync()
+    {
+        if (_etat != Etat.Repos)
+        {
+            return;
+        }
+
+        _etat = Etat.Mange;
+        StateHasChanged();
+        await Task.Delay(DureeAnimationMs);
+
+        try
+        {
+            await OnSupprimer.InvokeAsync();
+        }
+        finally
+        {
+            // Le composant peut avoir disparu avec la ligne supprimée ; sinon il revient au repos.
+            _etat = Etat.Repos;
+        }
+    }
+}

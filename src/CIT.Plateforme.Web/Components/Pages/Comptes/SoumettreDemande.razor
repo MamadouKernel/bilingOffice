@@ -10,6 +10,7 @@
 @inject SoumettreDemandeCompteCommand SoumettreDemandeCommande
 @inject UserManager<ApplicationUser> UserManager
 @inject ListerPiecesExigeesQuery ListerPiecesExigees
+@inject ListerTypesClientQuery ListerTypesClient
 @inject CIT.Plateforme.Domain.Documents.IStockageDocuments StockageDocuments
 @inject IStringLocalizer<SharedResources> Loc
 
@@ -169,9 +170,20 @@
                                             </div>
                                             <InputSelect id="profil" class="form-select border-0 shadow-xs u-r-md u-bg-surface" 
                                                          @bind-Value="modele.Profil">
-                                                @foreach (var valeur in Enum.GetValues<TypeClient>())
+                                                @if (typesClient.Count > 0)
                                                 {
-                                                    <option value="@valeur">@valeur</option>
+                                                    @* Référentiel paramétrable : seuls les types ACTIFS sont proposés. *@
+                                                    @foreach (var type in typesClient)
+                                                    {
+                                                        <option value="@type.Type">@type.Libelle(Langue)</option>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    @foreach (var valeur in Enum.GetValues<TypeClient>())
+                                                    {
+                                                        <option value="@valeur">@valeur</option>
+                                                    }
                                                 }
                                             </InputSelect>
                                         </div>
@@ -179,6 +191,12 @@
                                         <!-- Encadré explicatif dynamique selon le profil sélectionné -->
                                         <div class="col-12 col-md-6 d-flex align-items-center">
                                             <div class="p-2 px-3 rounded-3 border bg-light w-100 small" style="font-size: 0.8rem; line-height: 1.4;">
+                                                @if (typesClient.FirstOrDefault(t => t.Type == modele.Profil) is { } choisi && !string.IsNullOrWhiteSpace(choisi.Description(Langue)))
+                                                {
+                                                    <div><strong>@choisi.Libelle(Langue) :</strong> @choisi.Description(Langue)</div>
+                                                }
+                                                else
+                                                {
                                                 @switch (modele.Profil)
                                                 {
                                                     case TypeClient.Normal:
@@ -193,6 +211,7 @@
                                                     case TypeClient.IES:
                                                         <div>@((MarkupString)Loc["Account.ProfileIesShort"].Value)</div>
                                                         break;
+                                                }
                                                 }
                                             </div>
                                         </div>
@@ -351,10 +370,19 @@
 
     private const long TailleMaxOctets = 10L * 1024 * 1024;
 
+    private IReadOnlyList<TypeClientVue> typesClient = [];
+
+    private static string Langue => System.Globalization.CultureInfo.CurrentUICulture.Name;
+
     protected override async Task OnInitializedAsync()
     {
         modele = modeleFormulaire ?? modele;
         piecesExigees = await ListerPiecesExigees.ExecuterAsync();
+        typesClient = await ListerTypesClient.ExecuterAsync(activesUniquement: true);
+        if (typesClient.Count > 0 && typesClient.All(t => t.Type != modele.Profil))
+        {
+            modele.Profil = typesClient[0].Type;
+        }
     }
 
     private void SelectionnerFichier(string pieceCode, InputFileChangeEventArgs e)

@@ -2752,3 +2752,79 @@ html { scroll-padding-top: var(--header-h); }
     .timeline-container .rounded-circle { animation: none !important; }
     .btn:not(:disabled):active { transform: none; }
 }
+
+/* ==========================================================================
+   BOUTON SUPPRIMER — « la corbeille avale le libellé » (Shared/BoutonSupprimer)
+   Couvercle qui s'ouvre, lettres aspirées une à une vers la corbeille, couvercle
+   qui se referme ; l'action part ensuite. transform + opacity uniquement.
+   ========================================================================== */
+.cit-bouton-supprimer {
+    --sup-fond: linear-gradient(135deg, #d9453a, #a8261e);
+    --sup-texte: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .38rem .9rem .38rem .7rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sup-fond);
+    color: var(--sup-texte);
+    font: 700 .82rem/1 var(--font-sans, inherit);
+    letter-spacing: .01em;
+    box-shadow: 0 6px 14px -8px rgba(168, 38, 30, .7);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.cit-bouton-supprimer:hover { filter: brightness(1.06); box-shadow: 0 8px 18px -8px rgba(168, 38, 30, .8); }
+.cit-bouton-supprimer:active { transform: scale(.96); }
+.cit-bouton-supprimer:focus-visible { outline: 3px solid rgba(240, 160, 32, .55); outline-offset: 2px; }
+.cit-bouton-supprimer:disabled { cursor: default; }
+.cit-bouton-supprimer:disabled:not(.mange) { opacity: .45; filter: grayscale(.4); }
+
+/* Variante discrète (lignes denses) : fond neutre, texte rouge. */
+.cit-bouton-supprimer.discret {
+    --sup-fond: var(--surface-2);
+    --sup-texte: #c0392b;
+    box-shadow: none;
+    border: 1px solid var(--line);
+    padding: .25rem .65rem .25rem .5rem;
+    font-size: .75rem;
+}
+
+.cit-corbeille { width: 1.15em; height: 1.15em; flex: 0 0 auto; overflow: visible; }
+.cit-corbeille path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cit-corbeille-couvercle { transform-box: fill-box; transform-origin: 0% 100%; transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
+
+.cit-bouton-supprimer-libelle { display: inline-flex; }
+.cit-bouton-supprimer-libelle > span { display: inline-block; transform-origin: left center; }
+
+/* Séquence : couvercle ouvert → lettres aspirées (de la plus proche à la plus lointaine) → fermé. */
+.cit-bouton-supprimer.mange .cit-corbeille-couvercle { animation: sup-couvercle .7s cubic-bezier(.34, 1.56, .64, 1) both; }
+.cit-bouton-supprimer.mange .cit-bouton-supprimer-libelle > span {
+    animation: sup-lettre .32s cubic-bezier(.55, 0, .75, .3) both;
+    animation-delay: calc(80ms + var(--i) * 35ms);
+}
+.cit-bouton-supprimer.mange .cit-corbeille { animation: sup-bascule .7s ease both; }
+
+@keyframes sup-couvercle {
+    0% { transform: rotate(0); }
+    18%, 72% { transform: rotate(-32deg) translateY(-1px); }
+    100% { transform: rotate(0); }
+}
+@keyframes sup-lettre {
+    0% { opacity: 1; transform: none; }
+    100% { opacity: 0; transform: translateX(calc(-1 * (var(--i) + 1) * .62em)) translateY(-.15em) scale(.2) rotate(-25deg); }
+}
+@keyframes sup-bascule {
+    0%, 70% { transform: none; }
+    80% { transform: rotate(-8deg) scale(1.08); }
+    100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cit-bouton-supprimer.mange .cit-corbeille-couvercle,
+    .cit-bouton-supprimer.mange .cit-bouton-supprimer-libelle > span,
+    .cit-bouton-supprimer.mange .cit-corbeille { animation: none; }
+    .cit-bouton-supprimer.mange .cit-bouton-supprimer-libelle { opacity: .4; }
+}

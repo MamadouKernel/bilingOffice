@@ -125,10 +125,7 @@ else if (_vue is not null)
                                     <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">@codeAttribue</span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                            @onclick="() => RetirerAsync(codeAttribue)">
-                                        @Loc["AdmComp.Remove"]
-                                    </button>
+                                    <BoutonSupprimer Libelle="@Loc["AdmComp.Remove"]" OnSupprimer="() => RetirerAsync(codeAttribue)" />
                                 </td>
                             </tr>
                         }
