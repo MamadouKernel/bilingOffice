@@ -12,8 +12,7 @@ public sealed class ParametreTypeClientRepository(PlateformeDbContext contexte) 
 
     public async Task<ParametreTypeClient?> ObtenirAsync(TypeClient type, CancellationToken ct = default)
     {
-        var code = type.ToString();
-        return await contexte.TypesClient.FirstOrDefaultAsync(p => p.Code == code, ct).ConfigureAwait(false);
+        return await contexte.TypesClient.FirstOrDefaultAsync(p => p.Code == type, ct).ConfigureAwait(false);
     }
 }
 
@@ -43,7 +42,7 @@ public sealed class ProvisionnementTypesClient(PlateformeDbContext contexte, ILo
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
         var presents = await contexte.TypesClient.Select(p => p.Code).ToListAsync(ct).ConfigureAwait(false);
-        var manquants = Initiaux.Where(i => !presents.Contains(i.Type.ToString())).ToList();
+        var manquants = Initiaux.Where(i => !presents.Contains(i.Type)).ToList();
         if (manquants.Count == 0)
         {
             return;

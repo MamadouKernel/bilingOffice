@@ -75,6 +75,15 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     public DbSet<SocieteCliente> Societes => Set<SocieteCliente>();
     public DbSet<ParametreTypeClient> TypesClient => Set<ParametreTypeClient>();
 
+    /// <summary>Référentiels métier issus des énumérations (voir <see cref="ConfigurationReferentiels"/>).</summary>
+    public DbSet<Domain.Referentiels.ReferentielGraviteIncident> GravitesIncident => Set<Domain.Referentiels.ReferentielGraviteIncident>();
+
+    public DbSet<Domain.Referentiels.ReferentielMotifCloture> MotifsCloture => Set<Domain.Referentiels.ReferentielMotifCloture>();
+
+    public DbSet<Domain.Referentiels.ReferentielCategorieDocument> CategoriesDocument => Set<Domain.Referentiels.ReferentielCategorieDocument>();
+
+    public DbSet<Domain.Referentiels.ReferentielCanalNotification> CanauxNotification => Set<Domain.Referentiels.ReferentielCanalNotification>();
+
     /// <summary>FEATURE 002 (research.md D2) : rattachements utilisateur↔société.</summary>
     public DbSet<UtilisateurSociete> UtilisateursSociete => Set<UtilisateurSociete>();
 
@@ -647,7 +656,6 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         {
             b.ToTable("TypesClient");
             b.HasKey(p => p.Code);
-            b.Property(p => p.Code).HasMaxLength(32);
             b.Property(p => p.LibelleFr).HasMaxLength(ParametreTypeClient.LongueurMaxLibelle).IsRequired();
             b.Property(p => p.LibelleEn).HasMaxLength(ParametreTypeClient.LongueurMaxLibelle).IsRequired();
             b.Property(p => p.DescriptionFr).HasMaxLength(ParametreTypeClient.LongueurMaxDescription);
@@ -1111,5 +1119,10 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasIndex(e => e.SocieteId)
                 .HasDatabaseName("IX_Brouillons_Societe");
         });
+
+        // Normalisation des énumérations (Merise, 3FN) : référentiels + clés étrangères, puis
+        // contraintes CHECK sur les autres — en dernier, sur le modèle complet.
+        ConfigurationReferentiels.Appliquer(builder);
+        ConfigurationReferentiels.ContraindreEnumerations(builder);
     }
 }

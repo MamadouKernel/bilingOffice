@@ -290,6 +290,7 @@ public static class CatalogueNavigation
             new("Demandes de compte", "📝", "/comptes/valider", [Permission.CompteValider], CorrespondanceExacte: true),
             new("Modifier type de client", "🏷️", "/comptes/modifier-type", [Permission.CompteTypeModifier]),
             new("Types de client", "🗂️", "/administration/types-client", [Permission.CompteTypeModifier]),
+            new("Référentiels", "🗃️", "/administration/referentiels", [Permission.AdministrationReferentiels]),
             new("Catégories réclamation", "📝", "/reclamations/administration-categories", [Permission.AdministrationCategoriesReclamation]),
             new("Catégories d'incident", "🛠️", "/administration/categories-incident", [Permission.AdministrationCategoriesIncident]),
             new("Notifications", "🔔", "/administration/notifications", [Permission.AdministrationNotifications]),

@@ -9,6 +9,7 @@
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
+@inject LibellesReferentiels Referentiels
 @inject MesIncidentsQuery MesIncidentsQuery
 
 <PageTitle>@Loc["Incident.MyIncidentsTitle"] — @Loc["Common.AppTitle"]</PageTitle>
@@ -105,6 +106,7 @@ else
             }
 
             _incidents = await MesIncidentsQuery.ExecuterAsync(contexte.UtilisateurId);
+            _gravites = await Referentiels.ValeursAsync(CIT.Plateforme.Application.Administration.DomaineReferentiel.GraviteIncident);
         }
         finally
         {
@@ -112,11 +114,8 @@ else
         }
     }
 
-    private string LibelleGravite(GraviteIncident? g) => g switch
-    {
-        GraviteIncident.Mineure => Loc["Incident.SeverityMinor"].Value,
-        GraviteIncident.Majeure => Loc["Incident.SeverityMajor"].Value,
-        GraviteIncident.Critique => Loc["Incident.SeverityCritical"].Value,
-        _ => "—",
-    };
+    /// <summary>Libellés de gravité : référentiel administrable (table GravitesIncident).</summary>
+    private IReadOnlyList<CIT.Plateforme.Application.Administration.ValeurReferentielleVue> _gravites = [];
+
+    private string LibelleGravite(GraviteIncident? g) => LibellesReferentiels.Libelle(_gravites, g);
 }

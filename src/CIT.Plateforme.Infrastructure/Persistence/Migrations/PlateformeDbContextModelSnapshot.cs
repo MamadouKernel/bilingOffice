@@ -71,7 +71,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("OperateurId")
                         .IsUnique();
 
-                    b.ToTable("Disponibilites");
+                    b.ToTable("Disponibilites", t =>
+                        {
+                            t.HasCheckConstraint("CK_Disponibilites_Statut", "[Statut] IN (0, 1, 2)");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.ConversationAssistant", b =>
@@ -140,7 +143,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("ConversationAssistantId", "Rang")
                         .IsUnique();
 
-                    b.ToTable("MessagesAssistant", (string)null);
+                    b.ToTable("MessagesAssistant", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MessagesAssistant_Auteur", "[Auteur] IN (N'Client', N'Assistant')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.SujetAssistant", b =>
@@ -304,7 +310,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SocieteId");
 
-                    b.ToTable("InvitationsCollaborateur");
+                    b.ToTable("InvitationsCollaborateur", t =>
+                        {
+                            t.HasCheckConstraint("CK_InvitationsCollaborateur_Etat", "[Etat] IN (N'EnAttente', N'Acceptee', N'Revoquee')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte", b =>
@@ -471,9 +480,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Etat");
 
+                    b.HasIndex("Profil");
+
                     b.HasIndex("Rccm");
 
-                    b.ToTable("Societes");
+                    b.ToTable("Societes", t =>
+                        {
+                            t.HasCheckConstraint("CK_Societes_Etat", "[Etat] IN (N'EnAttenteValidation', N'Active', N'Refusee')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.UtilisateurSociete", b =>
@@ -512,7 +526,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("UtilisateurId")
                         .IsUnique();
 
-                    b.ToTable("UtilisateursSociete");
+                    b.ToTable("UtilisateursSociete", t =>
+                        {
+                            t.HasCheckConstraint("CK_UtilisateursSociete_DroitConsultation", "[DroitConsultation] IN (N'PropresDemandesUniquement', N'ToutesDemandesSociete')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Documents.Document", b =>
@@ -564,9 +581,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Categorie");
+
                     b.HasIndex("TicketId");
 
-                    b.ToTable("Documents");
+                    b.ToTable("Documents", t =>
+                        {
+                            t.HasCheckConstraint("CK_Documents_StatutAntivirus", "[StatutAntivirus] IN (0, 1, 2)");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Documents.PieceExigeeEtape", b =>
@@ -646,7 +668,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("EstActif");
 
-                    b.ToTable("ChampsFormulaireEnrolement");
+                    b.ToTable("ChampsFormulaireEnrolement", t =>
+                        {
+                            t.HasCheckConstraint("CK_ChampsFormulaireEnrolement_TypeObjet", "[TypeObjet] IN (N'Chauffeur', N'Camion')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Enrolement.ValeurChampEnrolement", b =>
@@ -699,7 +724,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", t =>
+                        {
+                            t.HasCheckConstraint("CK_Files_StrategieActive", "[StrategieActive] IN (0, 1, 2, 3, 4, 5)");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Files.MotifTransfert", b =>
@@ -861,7 +889,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("Date", "HeureDebut", "Statut")
                         .HasDatabaseName("IX_RendezVous_Date_HeureDebut");
 
-                    b.ToTable("RendezVous", (string)null);
+                    b.ToTable("RendezVous", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_RendezVous_Statut", "[Statut] IN (N'Reserve', N'Honore', N'Annule', N'NonPresente')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Incidents.CategorieIncident", b =>
@@ -927,7 +958,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", t =>
+                        {
+                            t.HasCheckConstraint("CK_Messages_Type", "[Type] IN (0, 1)");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.EnvoiNotification", b =>
@@ -964,13 +998,18 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Canal");
+
                     b.HasIndex("NotificationId")
                         .HasDatabaseName("IX_EnvoisNotification_NotificationId");
 
                     b.HasIndex("Statut", "DerniereTentativeUtc")
                         .HasDatabaseName("IX_EnvoisNotification_Statut_DerniereTentative");
 
-                    b.ToTable("EnvoisNotification");
+                    b.ToTable("EnvoisNotification", t =>
+                        {
+                            t.HasCheckConstraint("CK_EnvoisNotification_Statut", "[Statut] IN (N'EnAttente', N'Envoye', N'Echec', N'NonDelivrable')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.ModeleNotification", b =>
@@ -1002,6 +1041,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(128)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Canal");
 
                     b.HasIndex("TypeEvenement", "Canal")
                         .IsUnique()
@@ -1083,6 +1124,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Canal");
+
                     b.HasIndex("UtilisateurId", "Canal")
                         .IsUnique()
                         .HasDatabaseName("IX_PreferencesCanal_Utilisateur_Canal");
@@ -1120,6 +1163,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(128)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Canal");
 
                     b.HasIndex("TypeEvenement", "Canal")
                         .IsUnique()
@@ -1160,6 +1205,114 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("FileCibleDefautId");
 
                     b.ToTable("CategoriesReclamation");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Referentiels.ReferentielCanalNotification", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LibelleEn")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("LibelleFr")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("CanauxNotification", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Referentiels.ReferentielCategorieDocument", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LibelleEn")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("LibelleFr")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("CategoriesDocument", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Referentiels.ReferentielGraviteIncident", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LibelleEn")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("LibelleFr")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("GravitesIncident", (string)null);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Referentiels.ReferentielMotifCloture", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LibelleEn")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("LibelleFr")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("Ordre")
+                        .HasColumnType("int");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("MotifsCloture", (string)null);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Securite.HabilitationUtilisateur", b =>
@@ -1223,8 +1376,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<double>("SeuilInformation")
                         .HasColumnType("float");
 
-                    b.Property<int?>("TypeClient")
-                        .HasColumnType("int");
+                    b.Property<string>("TypeClient")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("TypeDemande")
                         .IsRequired()
@@ -1234,6 +1388,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TypeClient");
 
                     b.HasIndex("Module", "TypeDemande")
                         .IsUnique();
@@ -1266,7 +1422,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TicketId", "Type");
 
-                    b.ToTable("Alertes");
+                    b.ToTable("Alertes", t =>
+                        {
+                            t.HasCheckConstraint("CK_Alertes_Type", "[Type] IN (0, 1, 2, 3, 4, 5, 6, 7, 8)");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Supervision.LotPurgeRetention", b =>
@@ -1354,7 +1513,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_ReglesEscalade_Portee")
                         .HasFilter("[EstActive] = 1");
 
-                    b.ToTable("ReglesEscalade", (string)null);
+                    b.ToTable("ReglesEscalade", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ReglesEscalade_Action", "[Action] IN (N'NotifierSuperviseur', N'RemonterPriorite', N'Reaffecter')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", b =>
@@ -1527,7 +1689,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("VersionGrilleTarifaireId", "Type")
                         .IsUnique();
 
-                    b.ToTable("ParametresMajoration", (string)null);
+                    b.ToTable("ParametresMajoration", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ParametresMajoration_Type", "[Type] IN (N'Lourd', N'Dangereux', N'HorsGabarit')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.Parametres.QuotePartBeneficiaire", b =>
@@ -1898,6 +2063,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("Numero")
                         .IsUnique();
 
+                    b.HasIndex("TypeClient");
+
                     b.ToTable("Dossiers");
                 });
 
@@ -2170,7 +2337,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("TicketId");
 
-                    b.ToTable("SuivisBranchesIes");
+                    b.ToTable("SuivisBranchesIes", t =>
+                        {
+                            t.HasCheckConstraint("CK_SuivisBranchesIes_Branche", "[Branche] IN (N'Manifeste', N'ControleDocumentaire', N'BackOffice')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.Ticket", b =>
@@ -2253,8 +2423,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Gravite")
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("Module")
                         .IsRequired()
@@ -2269,8 +2439,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("MotifCloture")
-                        .HasColumnType("int");
+                    b.Property<string>("MotifCloture")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("MotifRejetAvoirExo")
                         .HasMaxLength(1000)
@@ -2342,6 +2513,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CategorieReclamationId");
 
+                    b.HasIndex("Gravite");
+
+                    b.HasIndex("MotifCloture");
+
                     b.HasIndex("Numero")
                         .IsUnique();
 
@@ -2357,7 +2532,20 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("Module", "TypeDemande", "Statut")
                         .HasDatabaseName("IX_Tickets_Module_TypeDemande_Statut");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", t =>
+                        {
+                            t.HasCheckConstraint("CK_Tickets_DecisionAvoirExo", "[DecisionAvoirExo] IN (N'Accorde', N'Rejete')");
+
+                            t.HasCheckConstraint("CK_Tickets_ObjetEnrolement", "[ObjetEnrolement] IN (N'Chauffeur', N'Camion')");
+
+                            t.HasCheckConstraint("CK_Tickets_SensEnrolement", "[SensEnrolement] IN (N'Ajout', N'Retrait')");
+
+                            t.HasCheckConstraint("CK_Tickets_Statut", "[Statut] IN (0, 1, 2, 3, 4)");
+
+                            t.HasCheckConstraint("CK_Tickets_TypeAnnulationExport", "[TypeAnnulationExport] IN (N'RejetBackOffice')");
+
+                            t.HasCheckConstraint("CK_Tickets_TypeAnnulationImport", "[TypeAnnulationImport] IN (N'RejetManifeste')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Infrastructure.Identity.ApplicationUser", b =>
@@ -2433,7 +2621,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_AspNetUsers_Nature", "[Nature] IN (0, 1)");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -2602,6 +2793,15 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.SocieteCliente", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.ParametreTypeClient", null)
+                        .WithMany()
+                        .HasForeignKey("Profil")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.UtilisateurSociete", b =>
                 {
                     b.HasOne("CIT.Plateforme.Domain.Comptes.SocieteCliente", null)
@@ -2609,6 +2809,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SocieteId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Documents.Document", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielCategorieDocument", null)
+                        .WithMany()
+                        .HasForeignKey("Categorie")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Guichet.RendezVous", b =>
@@ -2633,12 +2841,56 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.EnvoiNotification", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielCanalNotification", null)
+                        .WithMany()
+                        .HasForeignKey("Canal")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.ModeleNotification", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielCanalNotification", null)
+                        .WithMany()
+                        .HasForeignKey("Canal")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielCanalNotification", null)
+                        .WithMany()
+                        .HasForeignKey("Canal")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Notifications.RegleDiffusion", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielCanalNotification", null)
+                        .WithMany()
+                        .HasForeignKey("Canal")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", b =>
                 {
                     b.HasOne("CIT.Plateforme.Domain.Files.FileDeTraitement", null)
                         .WithMany()
                         .HasForeignKey("FileCibleDefautId")
                         .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.SuiviTemps.ParametreSlaAdministrable", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.ParametreTypeClient", null)
+                        .WithMany()
+                        .HasForeignKey("TypeClient")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tarification.LigneResultatSimulationConteneur", b =>
@@ -2784,6 +3036,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.Dossier", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.ParametreTypeClient", null)
+                        .WithMany()
+                        .HasForeignKey("TypeClient")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.EtapeBloquanteAnnulation", b =>
                 {
                     b.HasOne("CIT.Plateforme.Domain.Files.FileDeTraitement", null)
@@ -2803,6 +3063,16 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasOne("CIT.Plateforme.Domain.Reclamations.CategorieReclamation", null)
                         .WithMany()
                         .HasForeignKey("CategorieReclamationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielGraviteIncident", null)
+                        .WithMany()
+                        .HasForeignKey("Gravite")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CIT.Plateforme.Domain.Referentiels.ReferentielMotifCloture", null)
+                        .WithMany()
+                        .HasForeignKey("MotifCloture")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 

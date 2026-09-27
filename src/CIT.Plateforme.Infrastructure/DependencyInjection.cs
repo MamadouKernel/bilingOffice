@@ -188,6 +188,11 @@ public static class DependencyInjection
         services.AddScoped<Application.Comptes.IParametreTypeClientRepository, Persistence.ParametreTypeClientRepository>();
         services.AddScoped<Application.Comptes.ListerTypesClientQuery>();
         services.AddScoped<Application.Comptes.ModifierParametreTypeClientCommand>();
+        // Référentiels métier issus des énumérations (Merise, 3FN).
+        services.AddScoped<Persistence.ProvisionnementReferentiels>();
+        services.AddScoped<Application.Administration.IReferentielsRepository, Persistence.ReferentielsRepository>();
+        services.AddScoped<Application.Administration.ListerReferentielQuery>();
+        services.AddScoped<Application.Administration.ModifierValeurReferentielleCommand>();
         services.AddScoped<Persistence.ProvisionnementReferentielsTarifaires>();
         // IA-04 : base de connaissances de départ de l'assistant simulé (additif, si base vide).
         services.AddScoped<Persistence.ProvisionnementSujetsAssistant>();

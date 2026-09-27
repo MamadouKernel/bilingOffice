@@ -76,6 +76,14 @@ public static class BaseDeTestSql
 
                     contexte.SaveChanges();
 
+                    // Référentiels issus des énumérations (types de client, gravités, motifs de
+                    // clôture, catégories de pièces, canaux) : en production la migration les
+                    // insère ; EnsureCreated ne le fait pas, et les clés étrangères les exigent.
+                    new ProvisionnementTypesClient(contexte, Microsoft.Extensions.Logging.Abstractions.NullLogger<ProvisionnementTypesClient>.Instance)
+                        .ExecuterAsync().GetAwaiter().GetResult();
+                    new ProvisionnementReferentiels(contexte, Microsoft.Extensions.Logging.Abstractions.NullLogger<ProvisionnementReferentiels>.Instance)
+                        .ExecuterAsync().GetAwaiter().GetResult();
+
                     baseDejaCreee = true;
                 }
             }

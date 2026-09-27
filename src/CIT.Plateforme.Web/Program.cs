@@ -134,6 +134,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AjouterInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.IContexteUtilisateurWeb, CIT.Plateforme.Web.Services.ContexteUtilisateurWebService>();
+// Libellés des référentiels métier (tables), mis en cache par circuit.
+builder.Services.AddScoped<CIT.Plateforme.Web.Services.LibellesReferentiels>();
 // Lien de (re)définition du mot de passe par e-mail : « mot de passe oublié » et invitation d'agent.
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.EnvoiLienMotDePasse>();
 builder.Services.AddOpenApi();
@@ -233,6 +235,10 @@ using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementTypesClient>()
+        .ExecuterAsync();
+    // Référentiels métier (gravités, motifs de clôture, catégories de pièces, canaux) : additif.
+    await scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementReferentiels>()
         .ExecuterAsync();
 }
 

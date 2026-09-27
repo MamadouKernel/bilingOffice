@@ -129,6 +129,12 @@ public static class Permission
     public const string AdministrationAssistant = "administration.assistant";
 
     /// <summary>
+    /// Administration des référentiels métier issus des énumérations (gravités d'incident, motifs
+    /// de clôture, catégories de pièces, canaux de notification) : libellés, ordre, activation.
+    /// </summary>
+    public const string AdministrationReferentiels = "administration.referentiels";
+
+    /// <summary>
     /// FEATURE 010 (CON-01, CON-02, research.md D11) — recherche rapide de ticket/dossier au guichet
     /// et reprise sans ressaisie par un agent habilité.
     /// </summary>

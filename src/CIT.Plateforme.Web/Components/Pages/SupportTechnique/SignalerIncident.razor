@@ -10,6 +10,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreIncidentCommand SoumettreIncident
 @inject ListerCategoriesIncidentQuery ListerCategories
+@inject LibellesReferentiels Referentiels
 
 <PageTitle>@Loc["Incident.Title"] — @Loc["Common.AppTitle"]</PageTitle>
 
@@ -67,9 +68,11 @@
             <div class="mb-3">
                 <label class="form-label small fw-semibold text-dark" for="gravite">@Loc["Incident.Severity"]</label>
                 <select id="gravite" class="form-select" @bind="_gravite">
-                    <option value="@GraviteIncident.Mineure">@Loc["Incident.SeverityMinor"]</option>
-                    <option value="@GraviteIncident.Majeure">@Loc["Incident.SeverityMajor"]</option>
-                    <option value="@GraviteIncident.Critique">@Loc["Incident.SeverityCritical"]</option>
+                    @* Gravités proposées : les valeurs ACTIVES du référentiel, avec leurs libellés. *@
+                    @foreach (var g in _gravites.Where(v => v.Actif))
+                    {
+                        <option value="@g.Code">@g.Libelle(System.Globalization.CultureInfo.CurrentUICulture.Name)</option>
+                    }
                 </select>
             </div>
 
@@ -106,6 +109,7 @@
     private IReadOnlyList<CategorieIncident> _categories = [];
     private string _categorieId = string.Empty;
     private GraviteIncident _gravite = GraviteIncident.Majeure;
+    private IReadOnlyList<CIT.Plateforme.Application.Administration.ValeurReferentielleVue> _gravites = [];
     private string _objet = string.Empty;
     private string _description = string.Empty;
 
@@ -127,6 +131,7 @@
 
             _utilisateurId = contexte.UtilisateurId;
             _categories = await ListerCategories.ExecuterAsync();
+            _gravites = await Referentiels.ValeursAsync(CIT.Plateforme.Application.Administration.DomaineReferentiel.GraviteIncident);
         }
         catch (Exception ex)
         {

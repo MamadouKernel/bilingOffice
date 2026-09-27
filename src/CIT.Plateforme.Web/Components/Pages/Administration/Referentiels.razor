@@ -1,0 +1,203 @@
+@page "/administration/referentiels"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* RÉFÉRENTIELS MÉTIER (Merise, 3FN) — chaque liste de valeurs affichée aux usagers est une table :
+   libellés FR/EN, ordre et activation se modifient ici, sans développement, et sont tracés à
+   l'audit. Le code reste en lecture seule (le domaine s'en sert pour ses règles) et aucune valeur
+   ne se supprime : les lignes qui la portent sont protégées par une clé étrangère. *@
+
+<PageTitle>@Loc["Refs.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span aria-hidden="true">🗃️</span> @Loc["Refs.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Refs.Subtitle"]</div>
+    </div>
+</div>
+
+@if (_refuse)
+{
+    <PermissionDenied Message="@Loc["Refs.Denied"]" />
+}
+else
+{
+    <ul class="nav nav-pills gap-2 mb-4" role="tablist">
+        @foreach (var domaine in Enum.GetValues<DomaineReferentiel>())
+        {
+            <li class="nav-item" role="presentation">
+                <button type="button" role="tab" aria-selected="@(domaine == _domaine)"
+                        class="nav-link @(domaine == _domaine ? "active" : "")"
+                        @onclick="() => ChoisirAsync(domaine)">
+                    @Loc[$"Refs.Domain.{domaine}"]
+                </button>
+            </li>
+        }
+    </ul>
+
+    <div class="alert alert-info mb-4 small" role="note">ℹ️ @Loc["Refs.Limit"]</div>
+
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-4" role="alert">⚠️ @_erreur</div>
+    }
+    @if (_succes is not null)
+    {
+        <div class="alert alert-success mb-4" role="status">✅ @_succes</div>
+    }
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["Refs.Loading"]" />
+    }
+    else
+    {
+        <div class="d-grid gap-3">
+            @foreach (var e in _edition)
+            {
+                <div class="cit-card">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-monospace" title="@Loc["Refs.CodeHint"]">@e.Code</span>
+                            <strong>@e.LibelleFr</strong>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="actif-@e.Code" @bind="e.Actif" />
+                            <label class="form-check-label small" for="actif-@e.Code">@Loc["Refs.Active"]</label>
+                        </div>
+                    </div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-5">
+                            <label class="form-label small" for="fr-@e.Code">@Loc["Refs.LabelFr"]</label>
+                            <input id="fr-@e.Code" class="form-control" maxlength="120" @bind="e.LibelleFr" />
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small" for="en-@e.Code">@Loc["Refs.LabelEn"]</label>
+                            <input id="en-@e.Code" class="form-control" maxlength="120" @bind="e.LibelleEn" />
+                        </div>
+                        <div class="col-6 col-md-1">
+                            <label class="form-label small" for="ordre-@e.Code">@Loc["Refs.Order"]</label>
+                            <input id="ordre-@e.Code" type="number" min="0" class="form-control" @bind="e.Ordre" />
+                        </div>
+                        <div class="col-6 col-md-2 text-end">
+                            <button type="button" class="btn btn-primary btn-sm px-4" disabled="@_enCours" @onclick="() => EnregistrerAsync(e)">
+                                @Loc["Refs.Save"]
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    /// <summary>État éditable d'une carte (copie de la vue, jamais la vue elle-même).</summary>
+    private sealed class Edition
+    {
+        public string Code { get; init; } = string.Empty;
+        public string LibelleFr { get; set; } = string.Empty;
+        public string LibelleEn { get; set; } = string.Empty;
+        public int Ordre { get; set; }
+        public bool Actif { get; set; }
+    }
+
+    private DomaineReferentiel _domaine = DomaineReferentiel.GraviteIncident;
+    private List<Edition> _edition = [];
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _enCours;
+    private bool _refuse;
+    private string? _erreur;
+    private string? _succes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        if (!contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationReferentiels))
+        {
+            _refuse = true;
+            return;
+        }
+
+        await ChargerAsync();
+    }
+
+    private async Task ChoisirAsync(DomaineReferentiel domaine)
+    {
+        _domaine = domaine;
+        _erreur = null;
+        _succes = null;
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var valeurs = await scope.ServiceProvider.GetRequiredService<ListerReferentielQuery>()
+                .ExecuterAsync(_domaine, activesUniquement: false);
+            _edition = valeurs.Select(v => new Edition
+            {
+                Code = v.Code, LibelleFr = v.LibelleFr, LibelleEn = v.LibelleEn, Ordre = v.Ordre, Actif = v.Actif,
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task EnregistrerAsync(Edition e)
+    {
+        _erreur = null;
+        _succes = null;
+        _enCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<ModifierValeurReferentielleCommand>().ExecuterAsync(
+                _appelantId, _domaine, e.Code, e.LibelleFr, e.LibelleEn, e.Ordre, e.Actif);
+            _succes = Loc["Refs.Saved", e.LibelleFr].Value;
+            await ChargerAsync();
+        }
+        catch (DerniereValeurActiveException)
+        {
+            _erreur = Loc["Refs.LastActive"].Value;
+            e.Actif = true;
+        }
+        catch (ArgumentException)
+        {
+            _erreur = Loc["Refs.Invalid"].Value;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

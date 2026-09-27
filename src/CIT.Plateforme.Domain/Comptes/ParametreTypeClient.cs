@@ -18,7 +18,7 @@ public sealed class ParametreTypeClient
     public const int LongueurMaxDescription = 400;
 
     /// <summary>Identité technique : nom de la valeur de <see cref="TypeClient"/>. Jamais modifiable.</summary>
-    public string Code { get; private set; } = string.Empty;
+    public TypeClient Code { get; private set; }
 
     public string LibelleFr { get; private set; } = string.Empty;
 
@@ -34,13 +34,13 @@ public sealed class ParametreTypeClient
 
     private ParametreTypeClient() { }
 
-    public TypeClient Type => Enum.Parse<TypeClient>(Code);
+    public TypeClient Type => Code;
 
     public static ParametreTypeClient Creer(
         TypeClient type, string libelleFr, string libelleEn, string descriptionFr, string descriptionEn, int ordre) =>
         new()
         {
-            Code = type.ToString(),
+            Code = type,
             LibelleFr = Exiger(libelleFr, LongueurMaxLibelle, nameof(libelleFr)),
             LibelleEn = Exiger(libelleEn, LongueurMaxLibelle, nameof(libelleEn)),
             DescriptionFr = Borner(descriptionFr, nameof(descriptionFr)),

@@ -15,6 +15,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
+@inject LibellesReferentiels Referentiels
 @inject Microsoft.JSInterop.IJSRuntime Js
 
 @*
@@ -70,9 +71,11 @@ else
                 <select id="categorie-document" class="form-select form-select-sm" style="max-width:320px"
                         @bind="_categorieSelectionnee">
                     <option value="">@Loc["Docs.CategoryNone"]</option>
-                    <option value="@CategorieDocumentBillingImport.DeclarationDouane">@Loc["Docs.CategoryDeclarationDouane"]</option>
-                    <option value="@CategorieDocumentBillingImport.CopieDuBl">@Loc["Docs.CategoryCopieDuBl"]</option>
-                    <option value="@CategorieDocumentBillingImport.AutresPieces">@Loc["Docs.CategoryAutresPieces"]</option>
+                    @* Catégories proposées : les valeurs ACTIVES du référentiel (table CategoriesDocument). *@
+                    @foreach (var c in _categoriesDocument.Where(v => v.Actif))
+                    {
+                        <option value="@c.Code">@c.Libelle(System.Globalization.CultureInfo.CurrentUICulture.Name)</option>
+                    }
                 </select>
             </div>
         }
@@ -173,6 +176,7 @@ else
     private Guid? _telechargementEnCours;
     private string? _moduleTicket;
     private string _categorieSelectionnee = string.Empty;
+    private IReadOnlyList<CIT.Plateforme.Application.Administration.ValeurReferentielleVue> _categoriesDocument = [];
 
     private const long TailleMax = ValidateurFichierDocument.TailleMaxDefaut;
     private static readonly string[] Extensions = [".pdf", ".jpg", ".jpeg", ".png", ".xlsx"];
@@ -214,6 +218,7 @@ else
 
             _documents = fiche.Documents;
             _moduleTicket = fiche.Module;
+            _categoriesDocument = await Referentiels.ValeursAsync(CIT.Plateforme.Application.Administration.DomaineReferentiel.CategorieDocument);
             _refuse = false;
         }
         catch (AccesRefuseException ex)
