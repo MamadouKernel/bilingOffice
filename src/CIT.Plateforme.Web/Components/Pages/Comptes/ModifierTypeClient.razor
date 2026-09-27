@@ -114,7 +114,7 @@ else
                         <input id="raison-sociale" class="form-control" maxlength="200" @bind="_raisonSociale" />
                     </div>
                     <div class="col-12 col-md-5">
-                        <label class="form-label small" for="rccm">@Loc["Account.RccmLabel"]</label>
+                        <label class="form-label small" for="rccm">@Loc["Account.RccmLabel"] <InfoBulle Texte="@Loc["Tip.Rccm"]" /></label>
                         <input id="rccm" class="form-control font-monospace text-uppercase" maxlength="40"
                                placeholder="CI-ABJ-2024-B-12345" spellcheck="false" @bind="_rccm" />
                     </div>

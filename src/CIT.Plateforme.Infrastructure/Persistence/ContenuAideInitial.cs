@@ -11,7 +11,14 @@ public sealed record ArticleAideInitial(string Route, string TitreFr, string Tit
 /// </summary>
 public static class ContenuAideInitial
 {
-    public static readonly IReadOnlyList<ArticleAideInitial> Articles =
+    /// <summary>
+    /// Toute l'aide de départ : écrans principaux (ci-dessous) puis autres écrans du menu. Propriété
+    /// calculée, et non champ : un champ statique serait initialisé AVANT <see cref="Principaux"/>,
+    /// déclaré plus bas, et lirait une liste nulle. Lue au démarrage seulement.
+    /// </summary>
+    public static IReadOnlyList<ArticleAideInitial> Articles => [.. Principaux, .. ContenuAideSecondaire.Articles];
+
+    private static readonly IReadOnlyList<ArticleAideInitial> Principaux =
     [
         // ------------------------------------------------------------------ Commun à tous
         new("/comptes/double-authentification", "Sécurité : double authentification (2FA)", "Security: two-factor authentication (2FA)",

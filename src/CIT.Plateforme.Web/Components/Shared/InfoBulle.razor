@@ -1,0 +1,19 @@
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* INFO-BULLE DE CHAMP — un « ? » à côté d'un libellé, qui explique le champ au survol ET au
+   focus clavier (CSS pur : fonctionne aussi dans les pages rendues sans interactivité, et sans
+   script, CSP oblige). Le texte est relié au bouton par aria-describedby : un lecteur d'écran le
+   lit à la prise de focus. Il disparaît dès que le focus ou le pointeur s'en va. *@
+<span class="cit-infobulle">
+    <button type="button" class="cit-infobulle-bouton" aria-label="@Loc["Help.FieldTip"]" aria-describedby="@_id">?</button>
+    <span role="tooltip" id="@_id" class="cit-infobulle-texte">@Texte</span>
+</span>
+
+@code {
+    /// <summary>Explication du champ, déjà traduite.</summary>
+    [Parameter, EditorRequired] public string Texte { get; set; } = string.Empty;
+
+    private readonly string _id = "infobulle-" + Guid.NewGuid().ToString("N")[..8];
+}

@@ -56,7 +56,7 @@
                 <h6 class="fw-bold text-dark mb-3">@Loc["BExp.BookingSection"]</h6>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold text-dark" for="numeros-booking">@Loc["BillingExport.BookingNumber"]</label>
+                    <label class="form-label fw-semibold text-dark" for="numeros-booking">@Loc["BillingExport.BookingNumber"] <InfoBulle Texte="@Loc["Tip.Booking"]" /></label>
                     <InputTextArea id="numeros-booking" class="form-control font-monospace" rows="6"
                                    placeholder="@Loc["BExp.BookingPlaceholder"]"
                                    @bind-Value="_modele.NumerosBooking" />

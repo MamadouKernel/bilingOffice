@@ -72,7 +72,7 @@ else
             <h5 class="card-title text-primary mb-3">@Loc["GuiRech.SearchTitle"]</h5>
             <div class="row g-3">
                 <div class="col-md-7">
-                    <label for="numero-de-ticket-bl" class="form-label fw-bold">@Loc["GuiRech.LblTerme"]</label>
+                    <label for="numero-de-ticket-bl" class="form-label fw-bold">@Loc["GuiRech.LblTerme"] <InfoBulle Texte="@Loc["Tip.CounterSearch"]" /></label>
                     <input id="numero-de-ticket-bl" type="text" class="form-control form-control-lg" placeholder="@Loc["GuiRech.PlaceholderTerme"]"
                            @bind="_termeRecherche" @bind:event="oninput" @onkeyup="GererToucheRecherche" />
                 </div>

@@ -46,7 +46,7 @@
                                 @* CODE DE SECOURS — voie de repli sans téléphone : un des codes remis à
                                    l'activation de la 2FA, à usage unique. Mêmes contrôles que la voie TOTP. *@
                                 <div class="mb-4">
-                                    <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="code">@Loc["Auth.RecoveryCodeLabel"]</label>
+                                    <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="code">@Loc["Auth.RecoveryCodeLabel"] <InfoBulle Texte="@Loc["Tip.RecoveryCode"]" /></label>
                                     <InputText id="code" class="form-control form-control-lg text-center font-monospace fw-bold"
                                                placeholder="XXXXX-XXXXX" maxlength="11" autocomplete="off" spellcheck="false"
                                                @bind-Value="Modele.Code" />
@@ -56,7 +56,7 @@
                             else
                             {
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="code">@Loc["Auth.TwoFactorCode"]</label>
+                                <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="code">@Loc["Auth.TwoFactorCode"] <InfoBulle Texte="@Loc["Tip.TotpLogin"]" /></label>
                                 @* SAISIE OTP À 6 CASES. Le vrai champ (InputText) reste l'unique source de la
                                    valeur postée : js/otp.js le rend transparent et le superpose aux cases,
                                    qui ne font que refléter sa valeur. Sans JavaScript, le champ classique

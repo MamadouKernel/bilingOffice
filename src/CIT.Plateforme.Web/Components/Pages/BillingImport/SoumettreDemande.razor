@@ -56,7 +56,7 @@
                 <h6 class="fw-bold text-dark mb-3">@Loc["BImp.BlSection"]</h6>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold text-dark" for="numeros-bl">@Loc["BillingImport.BlNumber"]</label>
+                    <label class="form-label fw-semibold text-dark" for="numeros-bl">@Loc["BillingImport.BlNumber"] <InfoBulle Texte="@Loc["Tip.Bl"]" /></label>
                     <InputTextArea id="numeros-bl" class="form-control font-monospace" rows="6"
                                    placeholder="@Loc["BImp.BlPlaceholder"]"
                                    @bind-Value="_modele.NumerosBl" @bind-Value:after="MettreAJourCompteurBl" />
