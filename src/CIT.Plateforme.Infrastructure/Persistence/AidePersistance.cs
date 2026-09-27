@@ -9,6 +9,17 @@ public sealed class ArticleAideRepository(PlateformeDbContext contexte) : IArtic
 {
     public async Task<IReadOnlyList<ArticleAide>> ListerActifsAsync(CancellationToken ct = default) =>
         await contexte.ArticlesAide.AsNoTracking().Where(a => a.Actif).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<ArticleAide>> ListerTousAsync(CancellationToken ct = default) =>
+        await contexte.ArticlesAide.OrderBy(a => a.Route).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<ArticleAide?> ObtenirAsync(Guid id, CancellationToken ct = default) =>
+        await contexte.ArticlesAide.FirstOrDefaultAsync(a => a.Id == id, ct).ConfigureAwait(false);
+
+    public async Task<bool> RouteExisteAsync(string route, CancellationToken ct = default) =>
+        await contexte.ArticlesAide.AnyAsync(a => a.Route == route, ct).ConfigureAwait(false);
+
+    public void Ajouter(ArticleAide article) => contexte.ArticlesAide.Add(article);
 }
 
 /// <summary>
@@ -28,7 +39,7 @@ public sealed class ProvisionnementAide(PlateformeDbContext contexte, ILogger<Pr
             return;
         }
 
-        contexte.ArticlesAide.AddRange(manquants.Select(a => ArticleAide.Creer(a.Route, a.TitreFr, a.TitreEn, a.ContenuFr, a.ContenuEn)));
+        contexte.ArticlesAide.AddRange(manquants.Select(a => ArticleAide.Creer(a.Route, a.TitreFr, a.TitreEn, a.ContenuFr, a.ContenuEn, a.Transverse)));
         await contexte.SaveChangesAsync(ct).ConfigureAwait(false);
         journal.LogInformation("Aide contextuelle : {Nombre} article(s) installé(s).", manquants.Count);
     }

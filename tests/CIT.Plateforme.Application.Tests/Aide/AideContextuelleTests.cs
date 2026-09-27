@@ -67,7 +67,7 @@ public sealed class AideContextuelleTests
     {
         using var db = ContexteDeTest.CreerNouveauContexte();
         var article = ArticleAide.Creer("/supervision", "S", "S", "C", "C");
-        article.Modifier("S", "S", "C", "C", actif: false);
+        article.Modifier("S", "S", "C", "C", actif: false, transverse: false);
         db.ArticlesAide.Add(article);
         await db.SaveChangesAsync();
 

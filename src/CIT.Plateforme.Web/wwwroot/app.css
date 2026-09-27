@@ -2869,3 +2869,15 @@ html { scroll-padding-top: var(--header-h); }
 .cit-aide-lien { font-size: .875rem; font-weight: 600; text-decoration: none; }
 .cit-aide-lien:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) { .cit-aide-panneau { animation: none; } }
+
+/* Centre d'aide : fiches repliables (<details> natif) et aperçu d'administration. */
+.cit-aide-fiche { padding: 0; }
+.cit-aide-fiche-titre { cursor: pointer; padding: .9rem 1.1rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+.cit-aide-fiche-titre::-webkit-details-marker { display: none; }
+.cit-aide-fiche-titre::after { content: "▾"; opacity: .5; transition: transform .15s ease; }
+.cit-aide-fiche[open] > .cit-aide-fiche-titre::after { transform: rotate(180deg); }
+.cit-aide-fiche-corps { padding: 0 1.1rem 1rem; font-size: .9rem; line-height: 1.55; max-width: 72ch; }
+.cit-aide-fiche-corps p { margin: 0 0 .6rem; }
+.cit-aide-apercu { padding: 1rem 1.25rem; border: 1px dashed var(--line); border-radius: var(--r-md); background: var(--surface-2); font-size: .9rem; line-height: 1.55; }
+.cit-aide-apercu p { margin: 0 0 .6rem; }
+@media (prefers-reduced-motion: reduce) { .cit-aide-fiche-titre::after { transition: none; } }

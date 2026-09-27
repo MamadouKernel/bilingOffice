@@ -1,0 +1,115 @@
+@page "/aide"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Globalization
+@using CIT.Plateforme.Application.Aide
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* CENTRE D'AIDE — le guide du rôle de l'utilisateur : les fiches des écrans de SON menu, rangées
+   comme son menu, puis les écrans ouverts à tous. Même périmètre que la navigation : on n'y lit
+   jamais l'aide d'un écran qu'on ne peut pas ouvrir. *@
+
+<PageTitle>@Loc["HelpCenter.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span aria-hidden="true">📘</span> @Loc["HelpCenter.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["HelpCenter.Subtitle"]</div>
+    </div>
+    <a href="/assistant" class="btn btn-outline-primary btn-sm">💬 @Loc["Help.Assistant"]</a>
+</div>
+
+<div class="cit-page-etroite">
+    <div class="mb-4" role="search">
+        <label class="visually-hidden" for="recherche-aide">@Loc["HelpCenter.Search"]</label>
+        <input id="recherche-aide" type="search" class="form-control form-control-lg" autocomplete="off"
+               placeholder="@Loc["HelpCenter.Search"]" maxlength="100"
+               @bind="_recherche" @bind:event="oninput" @bind:after="ChargerAsync" />
+    </div>
+
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger" role="alert">⚠️ @_erreur</div>
+    }
+    else if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["HelpCenter.Loading"]" />
+    }
+    else if (_sections.Count == 0)
+    {
+        <EtatVide Titre="@Loc["HelpCenter.EmptyTitle"]" Description="@Loc["HelpCenter.EmptyDesc"]" Icone="🔎" />
+    }
+    else
+    {
+        <div class="d-grid gap-4">
+            @foreach (var section in _sections)
+            {
+                <section aria-label="@TitreSection(section)">
+                    <h2 class="h6 fw-bold text-uppercase text-muted mb-2">
+                        <span aria-hidden="true">@section.Icone</span> @TitreSection(section)
+                    </h2>
+                    <div class="d-grid gap-2">
+                        @foreach (var article in section.Articles)
+                        {
+                            <details class="cit-card cit-aide-fiche" open="@(OuvrirTout ? true : null)">
+                                <summary class="cit-aide-fiche-titre">@article.Titre</summary>
+                                <div class="cit-aide-fiche-corps">
+                                    <ContenuAide Blocs="@article.Blocs" />
+                                    @* Un écran transverse (fiche d'un dossier…) n'a pas d'adresse fixe à ouvrir. *@
+                                    @if (!article.Transverse)
+                                    {
+                                        <a href="@article.Route" class="btn btn-sm btn-outline-primary mt-2">@Loc["HelpCenter.OpenScreen"] →</a>
+                                    }
+                                </div>
+                            </details>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<SectionAide> _sections = [];
+    private string _recherche = string.Empty;
+    private bool _chargement = true;
+    private string? _erreur;
+
+    /// <summary>Pendant une recherche, les fiches trouvées s'ouvrent : on voit tout de suite pourquoi elles correspondent.</summary>
+    private bool OuvrirTout => !string.IsNullOrWhiteSpace(_recherche);
+
+    protected override Task OnInitializedAsync() => ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            using var scope = ScopeFactory.CreateScope();
+            _sections = await scope.ServiceProvider.GetRequiredService<ConsulterCentreAideQuery>().ExecuterAsync(
+                contexte.UtilisateurId, contexte.EspaceActif, contexte.SocieteId.HasValue,
+                CultureInfo.CurrentUICulture.Name, _recherche);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private string TitreSection(SectionAide section) =>
+        section.Titre is null ? Loc["HelpCenter.General"].Value : Loc[section.Titre].Value;
+}

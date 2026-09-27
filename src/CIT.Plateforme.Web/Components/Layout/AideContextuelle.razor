@@ -1,6 +1,5 @@
 @using System.Globalization
 @using CIT.Plateforme.Application.Aide
-@using CIT.Plateforme.Domain.Aide
 @using CIT.Plateforme.Web.Resources
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Localization
@@ -30,34 +29,13 @@
             }
             else
             {
-                var numero = 0;
-                @foreach (var bloc in _aide.Blocs)
-                {
-                    numero = bloc.Type == TypeBlocAide.Etape ? numero + 1 : 0;
-                    @switch (bloc.Type)
-                    {
-                        case TypeBlocAide.Intertitre:
-                            <h3 class="cit-aide-intertitre">@bloc.Texte</h3>
-                            break;
-                        case TypeBlocAide.Puce:
-                            <p class="cit-aide-puce">@bloc.Texte</p>
-                            break;
-                        case TypeBlocAide.Etape:
-                            <p class="cit-aide-etape"><span class="cit-aide-numero" aria-hidden="true">@numero</span>@bloc.Texte</p>
-                            break;
-                        case TypeBlocAide.Astuce:
-                            <p class="cit-aide-astuce"><span aria-hidden="true">💡</span> @bloc.Texte</p>
-                            break;
-                        default:
-                            <p>@bloc.Texte</p>
-                            break;
-                    }
-                }
+                <CIT.Plateforme.Web.Components.Shared.ContenuAide Blocs="@_aide.Blocs" />
             }
         </div>
 
         <div class="cit-aide-pied">
             <span class="small text-muted">@Loc["Help.MoreHelp"]</span>
+            <a href="/aide" class="cit-aide-lien">📘 @Loc["Help.Center"]</a>
             <a href="/assistant" class="cit-aide-lien">💬 @Loc["Help.Assistant"]</a>
             <a href="/support/incidents/signaler" class="cit-aide-lien">🛠️ @Loc["Help.ReportProblem"]</a>
         </div>

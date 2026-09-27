@@ -1,0 +1,267 @@
+@page "/administration/aide"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Aide
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Aide
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* FICHES D'AIDE — rédaction de l'aide contextuelle (bouton « ? ») et du centre d'aide, sans
+   développement. Texte simple avec un balisage minimal ; l'aperçu montre le rendu réel. Une fiche
+   se désactive, elle ne se supprime pas ; chaque enregistrement est tracé à l'audit. *@
+
+<PageTitle>@Loc["HelpAdm.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span aria-hidden="true">📘</span> @Loc["HelpAdm.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["HelpAdm.Subtitle"]</div>
+    </div>
+    @if (!_refuse && _edition is null)
+    {
+        <button type="button" class="btn btn-primary btn-sm" @onclick="Nouvelle">＋ @Loc["HelpAdm.New"]</button>
+    }
+</div>
+
+@if (_refuse)
+{
+    <PermissionDenied Message="@Loc["HelpAdm.Denied"]" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-4" role="alert">⚠️ @_erreur</div>
+    }
+    @if (_succes is not null)
+    {
+        <div class="alert alert-success mb-4" role="status">✅ @_succes</div>
+    }
+
+    @if (_edition is not null)
+    {
+        <div class="cit-card mb-4">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label small" for="route">@Loc["HelpAdm.Route"]</label>
+                    <input id="route" class="form-control font-monospace" maxlength="200" placeholder="/billing-import/soumettre"
+                           disabled="@(_edition.Id is not null)" @bind="_edition.Route" />
+                    <div class="form-text">@Loc["HelpAdm.RouteHint"]</div>
+                </div>
+                <div class="col-12 col-md-6 d-flex flex-column justify-content-center gap-2">
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="actif" @bind="_edition.Actif" />
+                        <label class="form-check-label small" for="actif">@Loc["HelpAdm.Active"]</label>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="transverse" @bind="_edition.Transverse" />
+                        <label class="form-check-label small" for="transverse">@Loc["HelpAdm.Transverse"]</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label small" for="titre-fr">@Loc["HelpAdm.TitleFr"]</label>
+                    <input id="titre-fr" class="form-control" maxlength="150" @bind="_edition.TitreFr" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label small" for="titre-en">@Loc["HelpAdm.TitleEn"]</label>
+                    <input id="titre-en" class="form-control" maxlength="150" @bind="_edition.TitreEn" />
+                </div>
+                <div class="col-12 col-lg-6">
+                    <label class="form-label small" for="contenu-fr">@Loc["HelpAdm.ContentFr"]</label>
+                    <textarea id="contenu-fr" class="form-control font-monospace small" rows="12" maxlength="8000"
+                              @bind="_edition.ContenuFr" @bind:event="oninput"></textarea>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <label class="form-label small" for="contenu-en">@Loc["HelpAdm.ContentEn"]</label>
+                    <textarea id="contenu-en" class="form-control font-monospace small" rows="12" maxlength="8000"
+                              @bind="_edition.ContenuEn" @bind:event="oninput"></textarea>
+                </div>
+            </div>
+
+            <p class="small text-muted mt-3 mb-2">@Loc["HelpAdm.Syntax"]</p>
+
+            <div class="cit-aide-apercu">
+                <div class="small fw-bold text-uppercase text-muted mb-2">@Loc["HelpAdm.Preview"]</div>
+                <h3 class="cit-aide-titre mb-2">@_edition.TitreFr</h3>
+                <ContenuAide Blocs="@BlocAide.Analyser(_edition.ContenuFr)" />
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3">
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Annuler">@Loc["HelpAdm.Cancel"]</button>
+                <button type="button" class="btn btn-primary btn-sm px-4" disabled="@_enCours" @onclick="EnregistrerAsync">@Loc["HelpAdm.Save"]</button>
+            </div>
+        </div>
+    }
+
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["HelpAdm.Loading"]" />
+    }
+    else if (_articles.Count == 0)
+    {
+        <EtatVide Titre="@Loc["HelpAdm.EmptyTitle"]" Description="@Loc["HelpAdm.EmptyDesc"]" Icone="📘" />
+    }
+    else
+    {
+        <div class="cit-card p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>@Loc["HelpAdm.Route"]</th>
+                            <th>@Loc["HelpAdm.TitleFr"]</th>
+                            <th>@Loc["HelpAdm.State"]</th>
+                            <th class="text-end"><span class="visually-hidden">@Loc["HelpAdm.Edit"]</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _articles)
+                        {
+                            <tr>
+                                <td class="font-monospace small">@a.Route</td>
+                                <td>@a.TitreFr</td>
+                                <td>
+                                    <span class="badge @(a.Actif ? "bg-success-subtle text-success-emphasis" : "bg-secondary-subtle text-secondary-emphasis")">
+                                        @(a.Actif ? Loc["HelpAdm.Active"] : Loc["HelpAdm.Inactive"])
+                                    </span>
+                                    @if (a.Transverse)
+                                    {
+                                        <span class="badge bg-info-subtle text-info-emphasis ms-1">@Loc["HelpAdm.TransverseBadge"]</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => Modifier(a)">@Loc["HelpAdm.Edit"]</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    /// <summary>État éditable du formulaire (copie, jamais la vue elle-même).</summary>
+    private sealed class Edition
+    {
+        public Guid? Id { get; init; }
+        public string Route { get; set; } = string.Empty;
+        public string TitreFr { get; set; } = string.Empty;
+        public string TitreEn { get; set; } = string.Empty;
+        public string ContenuFr { get; set; } = string.Empty;
+        public string ContenuEn { get; set; } = string.Empty;
+        public bool Actif { get; set; } = true;
+        public bool Transverse { get; set; }
+    }
+
+    private IReadOnlyList<ArticleAideAdminVue> _articles = [];
+    private Edition? _edition;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _enCours;
+    private bool _refuse;
+    private string? _erreur;
+    private string? _succes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        if (!contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationAide))
+        {
+            _refuse = true;
+            return;
+        }
+
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            _articles = await scope.ServiceProvider.GetRequiredService<ListerArticlesAideQuery>().ExecuterAsync(_appelantId);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private void Nouvelle()
+    {
+        _erreur = null;
+        _succes = null;
+        _edition = new Edition();
+    }
+
+    private void Modifier(ArticleAideAdminVue a)
+    {
+        _erreur = null;
+        _succes = null;
+        _edition = new Edition
+        {
+            Id = a.Id, Route = a.Route, TitreFr = a.TitreFr, TitreEn = a.TitreEn,
+            ContenuFr = a.ContenuFr, ContenuEn = a.ContenuEn, Actif = a.Actif, Transverse = a.Transverse,
+        };
+    }
+
+    private void Annuler() => _edition = null;
+
+    private async Task EnregistrerAsync()
+    {
+        if (_edition is null)
+        {
+            return;
+        }
+
+        _erreur = null;
+        _succes = null;
+        _enCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<EnregistrerArticleAideCommand>().ExecuterAsync(
+                _appelantId, _edition.Id, _edition.Route, _edition.TitreFr, _edition.TitreEn,
+                _edition.ContenuFr, _edition.ContenuEn, _edition.Actif, _edition.Transverse);
+            _succes = Loc["HelpAdm.Saved", _edition.TitreFr].Value;
+            _edition = null;
+            await ChargerAsync();
+        }
+        catch (RouteAideDejaUtiliseeException)
+        {
+            _erreur = Loc["HelpAdm.RouteTaken"].Value;
+        }
+        catch (ArgumentException)
+        {
+            _erreur = Loc["HelpAdm.Invalid"].Value;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

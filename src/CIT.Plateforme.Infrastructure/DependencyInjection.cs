@@ -194,6 +194,9 @@ public static class DependencyInjection
         services.AddScoped<Persistence.ProvisionnementAide>();
         services.AddScoped<Application.Aide.IArticleAideRepository, Persistence.ArticleAideRepository>();
         services.AddScoped<Application.Aide.ObtenirAideContextuelleQuery>();
+        services.AddScoped<Application.Aide.ConsulterCentreAideQuery>();
+        services.AddScoped<Application.Aide.ListerArticlesAideQuery>();
+        services.AddScoped<Application.Aide.EnregistrerArticleAideCommand>();
         services.AddScoped<Application.Administration.IReferentielsRepository, Persistence.ReferentielsRepository>();
         services.AddScoped<Application.Administration.ListerReferentielQuery>();
         services.AddScoped<Application.Administration.ModifierValeurReferentielleCommand>();

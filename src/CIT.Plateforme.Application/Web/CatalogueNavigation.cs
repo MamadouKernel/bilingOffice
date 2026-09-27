@@ -74,6 +74,7 @@ public static class CatalogueNavigation
         new("Mes incidents", "🧰", "/support/incidents/mes-incidents", Aucune),
         new("Préférences de notification", "🔔", "/notifications/preferences", Aucune),
         new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
+        new("Centre d'aide", "❓", "/aide", Aucune),
     ];
 
     /// <summary>
@@ -291,6 +292,7 @@ public static class CatalogueNavigation
             new("Modifier type de client", "🏷️", "/comptes/modifier-type", [Permission.CompteTypeModifier]),
             new("Types de client", "🗂️", "/administration/types-client", [Permission.CompteTypeModifier]),
             new("Référentiels", "🗃️", "/administration/referentiels", [Permission.AdministrationReferentiels]),
+            new("Fiches d'aide", "📘", "/administration/aide", [Permission.AdministrationAide]),
             new("Catégories réclamation", "📝", "/reclamations/administration-categories", [Permission.AdministrationCategoriesReclamation]),
             new("Catégories d'incident", "🛠️", "/administration/categories-incident", [Permission.AdministrationCategoriesIncident]),
             new("Notifications", "🔔", "/administration/notifications", [Permission.AdministrationNotifications]),

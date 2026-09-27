@@ -36,9 +36,9 @@ public sealed class NavigationParPermissionsTests
         var routes = Routes(groupes);
 
         // Restent uniquement les écrans qui n'exigent rien : son tableau de bord et les entrées de
-        // compte communes à tous les rôles (incidents, notifications, 2FA).
+        // compte communes à tous les rôles (incidents, notifications, 2FA, centre d'aide).
         Assert.Equal(
-            ["/agent/dashboard", "/comptes/double-authentification", "/notifications/preferences",
+            ["/agent/dashboard", "/aide", "/comptes/double-authentification", "/notifications/preferences",
              "/support/incidents/mes-incidents", "/support/incidents/signaler"],
             routes.Order().ToArray());
 

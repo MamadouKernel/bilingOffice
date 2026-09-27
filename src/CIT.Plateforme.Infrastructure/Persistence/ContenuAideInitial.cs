@@ -1,7 +1,8 @@
 namespace CIT.Plateforme.Infrastructure.Persistence;
 
 /// <summary>Contenu de départ d'un article d'aide (modifiable ensuite par l'administration).</summary>
-public sealed record ArticleAideInitial(string Route, string TitreFr, string TitreEn, string ContenuFr, string ContenuEn);
+/// <param name="Transverse">Écran ouvert à tous les connectés hors menu (voir <c>ArticleAide.Transverse</c>).</param>
+public sealed record ArticleAideInitial(string Route, string TitreFr, string TitreEn, string ContenuFr, string ContenuEn, bool Transverse = false);
 
 /// <summary>
 /// AIDE DE DÉPART DES ÉCRANS PRINCIPAUX, par rôle — rédigée à partir des parcours du cahier de
@@ -49,7 +50,7 @@ public static class ContenuAideInitial
             - The bell at the top right shows the number of unread notifications.
             - Open a notification to go straight to the related file; it is then marked as read.
             ! To also receive an email, set your preferences (⚙️ icon at the top right).
-            """),
+            """, Transverse: true),
 
         new("/support/incidents/signaler", "Signaler un problème technique", "Report a technical problem",
             """
@@ -160,7 +161,7 @@ public static class ContenuAideInitial
             ## Answer a request for information
             1. When the file is "Awaiting customer", add your message and the requested document.
             2. The file automatically returns to the agent and the processing time resumes.
-            """),
+            """, Transverse: true),
 
         new("/simulation/proforma", "Simulation de proforma", "Proforma simulation",
             """

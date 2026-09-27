@@ -134,6 +134,9 @@ public static class Permission
     /// </summary>
     public const string AdministrationReferentiels = "administration.referentiels";
 
+    /// <summary>Rédaction des fiches d'aide contextuelle et du centre d'aide.</summary>
+    public const string AdministrationAide = "administration.aide";
+
     /// <summary>
     /// FEATURE 010 (CON-01, CON-02, research.md D11) — recherche rapide de ticket/dossier au guichet
     /// et reprise sans ressaisie par un agent habilité.

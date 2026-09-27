@@ -6,6 +6,15 @@ namespace CIT.Plateforme.Application.Aide;
 public interface IArticleAideRepository
 {
     Task<IReadOnlyList<ArticleAide>> ListerActifsAsync(CancellationToken ct = default);
+
+    /// <summary>Tous les articles, actifs ou non (administration), suivis pour modification.</summary>
+    Task<IReadOnlyList<ArticleAide>> ListerTousAsync(CancellationToken ct = default);
+
+    Task<ArticleAide?> ObtenirAsync(Guid id, CancellationToken ct = default);
+
+    Task<bool> RouteExisteAsync(string route, CancellationToken ct = default);
+
+    void Ajouter(ArticleAide article);
 }
 
 /// <summary>L'aide d'un écran, prête à afficher dans la langue demandée.</summary>

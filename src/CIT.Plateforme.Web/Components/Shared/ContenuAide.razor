@@ -1,0 +1,33 @@
+@using CIT.Plateforme.Domain.Aide
+
+@* Rendu d'un contenu d'aide découpé en blocs (voir BlocAide) : texte pur, jamais de HTML
+   interprété. Partagé par le panneau « ? », le centre d'aide et l'aperçu d'administration. *@
+@{
+    var numero = 0;
+}
+@foreach (var bloc in Blocs)
+{
+    numero = bloc.Type == TypeBlocAide.Etape ? numero + 1 : 0;
+    @switch (bloc.Type)
+    {
+        case TypeBlocAide.Intertitre:
+            <h3 class="cit-aide-intertitre">@bloc.Texte</h3>
+            break;
+        case TypeBlocAide.Puce:
+            <p class="cit-aide-puce">@bloc.Texte</p>
+            break;
+        case TypeBlocAide.Etape:
+            <p class="cit-aide-etape"><span class="cit-aide-numero" aria-hidden="true">@numero</span>@bloc.Texte</p>
+            break;
+        case TypeBlocAide.Astuce:
+            <p class="cit-aide-astuce"><span aria-hidden="true">💡</span> @bloc.Texte</p>
+            break;
+        default:
+            <p>@bloc.Texte</p>
+            break;
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<BlocAide> Blocs { get; set; } = [];
+}

@@ -32,22 +32,31 @@ public sealed class ArticleAide
 
     public bool Actif { get; private set; } = true;
 
+    /// <summary>
+    /// Écran ouvert à tout utilisateur connecté sans figurer dans son menu (fiche d'un dossier,
+    /// notifications) : l'article est alors proposé à tous dans le centre d'aide. Sinon, il n'y
+    /// apparaît que pour les comptes dont le menu mène à cet écran.
+    /// </summary>
+    public bool Transverse { get; private set; }
+
     private ArticleAide() { }
 
-    public static ArticleAide Creer(string route, string titreFr, string titreEn, string contenuFr, string contenuEn)
+    public static ArticleAide Creer(
+        string route, string titreFr, string titreEn, string contenuFr, string contenuEn, bool transverse = false)
     {
         var article = new ArticleAide { Id = Guid.NewGuid(), Route = NormaliserRoute(route) };
-        article.Modifier(titreFr, titreEn, contenuFr, contenuEn, actif: true);
+        article.Modifier(titreFr, titreEn, contenuFr, contenuEn, actif: true, transverse);
         return article;
     }
 
-    public void Modifier(string titreFr, string titreEn, string contenuFr, string contenuEn, bool actif)
+    public void Modifier(string titreFr, string titreEn, string contenuFr, string contenuEn, bool actif, bool transverse)
     {
         TitreFr = Exiger(titreFr, LongueurMaxTitre, nameof(titreFr));
         TitreEn = Exiger(titreEn, LongueurMaxTitre, nameof(titreEn));
         ContenuFr = Exiger(contenuFr, LongueurMaxContenu, nameof(contenuFr));
         ContenuEn = Exiger(contenuEn, LongueurMaxContenu, nameof(contenuEn));
         Actif = actif;
+        Transverse = transverse;
     }
 
     public string Titre(string langue) => EstAnglais(langue) ? TitreEn : TitreFr;
