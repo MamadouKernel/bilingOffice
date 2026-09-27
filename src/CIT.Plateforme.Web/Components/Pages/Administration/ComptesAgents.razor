@@ -287,6 +287,16 @@ else
                                             <span>🔑</span> @Loc["AdmCompte.ManageAccess", compte.Permissions.Count]
                                         </button>
 
+                                        @if (!_invitationsEnAttente.Contains(compte.Id) && compte.Id != _appelantId)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                                                    title="@Loc["AdmCompte.Reset2FaTitle"]"
+                                                    disabled="@_enCours"
+                                                    @onclick="() => DemanderConfirmationReinit2Fa(compte)">
+                                                🛡️ @Loc["AdmCompte.Reset2Fa"]
+                                            </button>
+                                        }
+
                                         @if (_invitationsEnAttente.Contains(compte.Id) && compte.EstActif)
                                         {
                                             <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold"
@@ -794,6 +804,20 @@ else
     /// PROFIL « SUPPORT N1 » (équipe IT). Ajoute les permissions de lecture/diagnostic du profil que
     /// le compte ne détient pas encore — c'est un ajout ciblé, jamais une remise à zéro.
     /// </summary>
+    /// <summary>
+    /// Réinitialisation de la 2FA (téléphone ET codes de secours perdus) : action sensible,
+    /// confirmée ; l'utilisateur reconfigurera sa 2FA à sa prochaine connexion.
+    /// </summary>
+    private void DemanderConfirmationReinit2Fa(CompteAgentVue cible) =>
+        _confirmation = new ConfirmationEnAttente(
+            Loc["AdmCompte.Conf2FaTitle"].Value,
+            Loc["AdmCompte.Conf2FaMsg", cible.NomAffiche, cible.Email].Value,
+            Loc["AdmCompte.Conf2FaBtn"].Value,
+            "btn-warning",
+            () => ExecuterAsync(async sp =>
+                await sp.GetRequiredService<ReinitialiserDoubleAuthentificationCommand>().ExecuterAsync(_appelantId, cible.Id),
+                Loc["AdmCompte.Result2Fa", cible.NomAffiche].Value));
+
     private void DemanderConfirmationProfilSupportN1(CompteAgentVue cible)
     {
         var manquantes = Permission.ProfilSupportN1.Except(cible.Permissions).Count();

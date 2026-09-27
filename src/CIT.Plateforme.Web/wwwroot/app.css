@@ -2642,3 +2642,24 @@ html { scroll-padding-top: var(--header-h); }
 .u-voile { background: rgba(0, 0, 0, .5); }
 .u-alerte-stop { background-color: var(--stop-100); color: var(--stop-600); border: 1px solid var(--stop-border); }
 .u-alerte-ok { background-color: var(--ok-100); border: 1px solid var(--ok-border); }
+
+/* Codes de secours 2FA : bloc mis en évidence, codes en deux colonnes lisibles. */
+.cit-codes-secours {
+    padding: 1.25rem;
+    border-radius: var(--r-xl);
+    border: 1px dashed var(--signal-500);
+    background: rgba(240, 160, 32, .06);
+}
+.cit-codes-secours-liste {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .4rem 1.5rem;
+    margin: 0;
+    padding-left: 1.4rem;
+    font-size: .95rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--ink);
+    user-select: all;
+}
+@media (max-width: 420px) { .cit-codes-secours-liste { grid-template-columns: 1fr; } }

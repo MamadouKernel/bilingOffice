@@ -14,6 +14,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IGenerateurQrCode GenerateurQrCode
 @inject NavigationManager Navigation
+@inject IJSRuntime Js
 
 <PageTitle>@Loc["TwoFa.PageTitle"]</PageTitle>
 
@@ -68,6 +69,26 @@
             </div>
         }
 
+        @if (codesSecours is not null)
+        {
+            @* CODES DE SECOURS — affichés UNE SEULE FOIS (Identity n'en conserve qu'une empreinte).
+               Chacun permet une connexion sans téléphone, puis devient inutilisable. *@
+            <div class="cit-codes-secours mb-4" role="region" aria-labelledby="titre-codes-secours">
+                <h3 id="titre-codes-secours" class="h6 fw-bold mb-1">🔑 @Loc["TwoFa.RecoveryTitle"]</h3>
+                <p class="small text-muted mb-3">@Loc["TwoFa.RecoveryDesc"]</p>
+                <ol class="cit-codes-secours-liste font-monospace">
+                    @foreach (var codeSecours in codesSecours)
+                    {
+                        <li>@codeSecours</li>
+                    }
+                </ol>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="TelechargerCodesAsync">⬇ @Loc["TwoFa.RecoveryDownload"]</button>
+                    <button type="button" class="btn btn-primary btn-sm" @onclick="() => codesSecours = null">@Loc["TwoFa.RecoveryDone"]</button>
+                </div>
+            </div>
+        }
+
         @if (deuxFacteursActifs)
         {
             <div class="alert alert-success bg-opacity-10 border-success d-flex align-items-start gap-3 mb-4 p-3 rounded-3" role="status">
@@ -82,10 +103,23 @@
 
             @* 2FA OBLIGATOIRE : plus de bouton « Désactiver ». On peut seulement reconfigurer
                l'application (changement de téléphone), ce qui la laisse active. *@
-            <div class="d-flex justify-content-between align-items-center pt-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AfficherReconfigurationAsync">
-                    @Loc["TwoFa.ResetApp"]
-                </button>
+            <div class="small text-muted mb-3">
+                🔑 @Loc["TwoFa.RecoveryLeft", codesRestants]
+                @if (codesRestants <= 3)
+                {
+                    <span class="text-warning-emphasis fw-semibold"> — @Loc["TwoFa.RecoveryLow"]</span>
+                }
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center pt-2">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AfficherReconfigurationAsync">
+                        @Loc["TwoFa.ResetApp"]
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="GenererCodesSecoursAsync">
+                        @Loc["TwoFa.RecoveryRegenerate"]
+                    </button>
+                </div>
                 <button type="button" class="btn btn-primary btn-sm fw-bold px-3" @onclick="ContinuerVersMonEspace">
                     @Loc["TwoFa.Continue"] <span aria-hidden="true">→</span>
                 </button>
@@ -150,6 +184,8 @@
                         <span>•</span>
                         <span class="d-flex align-items-center gap-1">@Loc["TwoFa.AppMicrosoft"]</span>
                         <span>•</span>
+                        <span class="d-flex align-items-center gap-1">@Loc["TwoFa.AppApple"]</span>
+                        <span>•</span>
                         <span class="d-flex align-items-center gap-1">@Loc["TwoFa.KeyTotpStd"]</span>
                     </div>
                 </div>
@@ -181,6 +217,7 @@
         if (utilisateurCourant is not null)
         {
             deuxFacteursActifs = await UserManager.GetTwoFactorEnabledAsync(utilisateurCourant);
+            codesRestants = await UserManager.CountRecoveryCodesAsync(utilisateurCourant);
         }
     }
 
@@ -242,6 +279,33 @@
         deuxFacteursActifs = true;
         enConfiguration = false;
         messageSucces = Loc["TwoFa.MsgEnabled"].Value;
+
+        // Première activation (ou reconfiguration) : un jeu de codes de secours neuf est remis.
+        await GenererCodesSecoursAsync();
+    }
+
+    private const int NombreCodesSecours = 10;
+    private IReadOnlyList<string>? codesSecours;
+    private int codesRestants;
+
+    /// <summary>
+    /// Génère un NOUVEAU jeu de codes de secours ; les précédents deviennent immédiatement
+    /// inutilisables. Les codes ne sont montrés qu'ici, une fois.
+    /// </summary>
+    private async Task GenererCodesSecoursAsync()
+    {
+        if (utilisateurCourant is null) return;
+        codesSecours = (await UserManager.GenerateNewTwoFactorRecoveryCodesAsync(utilisateurCourant, NombreCodesSecours))?.ToList();
+        codesRestants = await UserManager.CountRecoveryCodesAsync(utilisateurCourant);
+    }
+
+    private async Task TelechargerCodesAsync()
+    {
+        if (codesSecours is null) return;
+        var contenu = $"YABA — Côte d'Ivoire Terminal\n{Loc["TwoFa.RecoveryTitle"].Value} ({utilisateurCourant?.Email})\n\n"
+                      + string.Join("\n", codesSecours) + "\n";
+        await Js.InvokeVoidAsync("telechargerFichier", "yaba-codes-de-secours.txt", "text/plain",
+            Convert.ToBase64String(Encoding.UTF8.GetBytes(contenu)));
     }
 
     // 2FA OBLIGATOIRE : la désactivation n'est plus proposée. Une fois activée, l'utilisateur
