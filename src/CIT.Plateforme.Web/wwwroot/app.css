@@ -2271,3 +2271,113 @@ html { scroll-padding-top: var(--header-h); }
 @media (prefers-reduced-motion: reduce) {
     .cit-rail-flyout, .cit-rail-btn { transition: none; }
 }
+
+/* ==========================================================================
+   SAISIE OTP À CASES + ANNEAU (VerifierCode.razor, js/otp.js)
+   Sans JS : le champ classique reste affiché. Avec JS (.cit-otp--actif) : le
+   champ devient transparent au-dessus de 6 cases qui reflètent sa valeur.
+   Code complet (.cit-otp--anneau) : les cases s'alignent sur un cercle et
+   tournent autour d'un moyeu, puis le formulaire part.
+   ========================================================================== */
+.cit-otp { --otp-case: 52px; --otp-rayon: 74px; position: relative; }
+
+.cit-otp-champ { letter-spacing: .5rem; font-size: 1.6rem; border-radius: .75rem; }
+
+.cit-otp-cases { display: none; }
+
+.cit-otp--actif .cit-otp-cases {
+    display: flex;
+    justify-content: center;
+    gap: .6rem;
+    position: relative;
+    height: calc(var(--otp-case) + 8px);
+    transition: height .45s cubic-bezier(.32, .72, 0, 1);
+}
+
+/* Le champ réel couvre les cases : clic, collage et remplissage automatique restent natifs. */
+.cit-otp--actif .cit-otp-champ {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0;
+    caret-color: transparent;
+    cursor: text;
+}
+
+.cit-otp-case {
+    width: var(--otp-case);
+    height: var(--otp-case);
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--surface-2);
+    border: 1.5px solid var(--line);
+    font: 700 1.5rem/1 var(--font-mono, ui-monospace, monospace);
+    color: var(--ink);
+    transition: border-color .15s ease, box-shadow .15s ease, transform .5s cubic-bezier(.32, .72, 0, 1), background-color .3s ease;
+}
+
+.cit-otp-case.rempli { background: var(--surface); border-color: var(--deep-500); }
+
+/* Case active : bordure marquée et curseur clignotant, comme la maquette. */
+.cit-otp-case.courant { border-color: var(--deep-600); box-shadow: 0 0 0 4px rgba(29, 70, 101, .14); }
+.cit-otp-case.courant:not(.rempli)::after {
+    content: "";
+    width: 2px;
+    height: 1.4rem;
+    background: var(--ink);
+    animation: otp-curseur 1s steps(1) infinite;
+}
+
+@keyframes otp-curseur { 50% { opacity: 0; } }
+
+.cit-otp-moyeu {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    opacity: 0;
+    transition: opacity .3s ease;
+}
+
+/* Anneau : cases posées sur un cercle (60° d'écart), qui tourne une fois. */
+.cit-otp--anneau .cit-otp-cases {
+    height: calc(2 * var(--otp-rayon) + var(--otp-case));
+    animation: otp-rotation .9s cubic-bezier(.5, 0, .2, 1) .15s both;
+}
+
+.cit-otp--anneau .cit-otp-cases::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(2 * var(--otp-rayon));
+    height: calc(2 * var(--otp-rayon));
+    margin: calc(-1 * var(--otp-rayon)) 0 0 calc(-1 * var(--otp-rayon));
+    border: 1.5px dashed var(--line);
+    border-radius: 50%;
+}
+
+.cit-otp--anneau .cit-otp-case {
+    position: absolute;
+    left: calc(50% - var(--otp-case) / 2);
+    top: calc(50% - var(--otp-case) / 2);
+    transform: rotate(calc(var(--i) * 60deg)) translateY(calc(-1 * var(--otp-rayon))) rotate(calc(var(--i) * -60deg));
+    background: rgba(46, 158, 106, .12);
+    border-color: var(--ok-600, #2e9e6a);
+}
+
+.cit-otp--anneau .cit-otp-moyeu { opacity: 1; }
+
+@keyframes otp-rotation { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+@media (max-width: 420px) { .cit-otp { --otp-case: 42px; --otp-rayon: 62px; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .cit-otp-case, .cit-otp--actif .cit-otp-cases { transition: none; }
+    .cit-otp--anneau .cit-otp-cases { animation: none; }
+}

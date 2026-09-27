@@ -42,7 +42,13 @@ public sealed record ContexteUtilisateurVue(
     /// Compte transporteur/chauffeur (ENR-01, <c>InscrireTransporteurCommand</c>) : client rattaché
     /// à AUCUNE société et titulaire du droit d'enrôlement. Son espace utile est celui de ses
     /// enrôlements, pas les écrans « société » (tableau de bord, demandes, rendez-vous).
+    /// <para>La nature <see cref="NatureUtilisateur.Client"/> est indispensable : un agent (ex. le
+    /// Super Administrateur, qui détient TOUTES les permissions, dont l'enrôlement, sans société)
+    /// n'est jamais un transporteur.</para>
     /// </summary>
     public bool EstTransporteur =>
-        EstAuthentifie && SocieteId is null && Permissions.Contains(Domain.Securite.Permission.EnrolementSoumettre);
+        EstAuthentifie
+        && Nature == NatureUtilisateur.Client
+        && SocieteId is null
+        && Permissions.Contains(Domain.Securite.Permission.EnrolementSoumettre);
 }

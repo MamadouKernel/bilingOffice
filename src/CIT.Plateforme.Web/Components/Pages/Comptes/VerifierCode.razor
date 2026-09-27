@@ -43,13 +43,27 @@
                         <EditForm Model="Modele" OnValidSubmit="ValiderAsync" FormName="verifier-code">
                             <div class="mb-4">
                                 <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="code">@Loc["Auth.TwoFactorCode"]</label>
-                                <div class="position-relative">
-                                    <InputText id="code" 
-                                               class="form-control form-control-lg border-0 px-3 py-3 text-center font-monospace fw-bold" 
-                                               placeholder="0 0 0 0 0 0" 
-                                               maxlength="6" 
-                                               @bind-Value="Modele.Code" 
-                                               style="background-color: var(--surface); letter-spacing: 0.5rem; font-size: 1.6rem; border-radius: 0.75rem;" />
+                                @* SAISIE OTP À 6 CASES. Le vrai champ (InputText) reste l'unique source de la
+                                   valeur postée : js/otp.js le rend transparent et le superpose aux cases,
+                                   qui ne font que refléter sa valeur. Sans JavaScript, le champ classique
+                                   reste visible et utilisable. Collage et remplissage automatique du code
+                                   (autocomplete="one-time-code") fonctionnent nativement. *@
+                                <div class="cit-otp" data-otp>
+                                    <InputText id="code"
+                                               class="form-control form-control-lg cit-otp-champ text-center font-monospace fw-bold"
+                                               placeholder="000000"
+                                               maxlength="6"
+                                               inputmode="numeric"
+                                               pattern="[0-9]{6}"
+                                               autocomplete="one-time-code"
+                                               @bind-Value="Modele.Code" />
+                                    <div class="cit-otp-cases" aria-hidden="true">
+                                        @for (var i = 0; i < 6; i++)
+                                        {
+                                            <span class="cit-otp-case" style="--i: @i"></span>
+                                        }
+                                        <span class="cit-otp-moyeu"></span>
+                                    </div>
                                 </div>
                                 <div class="form-text small text-muted mt-2 text-center text-md-start">
                                     @Loc["Auth.TwoFactorHint"]
