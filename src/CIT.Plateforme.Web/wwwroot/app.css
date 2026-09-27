@@ -2466,3 +2466,123 @@ html { scroll-padding-top: var(--header-h); }
     .btn, .cit-stat-card, .table > tbody > tr { transition: none; }
     .btn:not(:disabled):hover, .cit-stat-card:hover { transform: none; }
 }
+
+/* ==========================================================================
+   DESIGN PREMIUM — OSSATURE COMMUNE (toutes les vues)
+   En-têtes de page, fil d'Ariane, états vides, chargement, alertes, modales,
+   onglets, pagination, filtre, formulaires. Tokens uniquement : clair et
+   sombre restent cohérents ; mouvements réduits respectés.
+   ========================================================================== */
+
+/* En-tête de page : titre affirmé, sous-titre à largeur de lecture, séparation douce. */
+.cit-page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line-soft);
+}
+.cit-page-title {
+    font-size: clamp(1.35rem, 1.1rem + .8vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    text-wrap: balance;
+}
+.cit-page-title > span:first-child {
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    box-shadow: var(--lift-1);
+    font-size: 1.15rem;
+}
+.cit-page-subtitle { color: var(--ink-3); font-size: .9rem; max-width: 70ch; margin-top: .35rem; }
+
+/* Fil d'Ariane : discret, lisible, séparateurs fins. */
+.cit-fil-ariane { font-size: .8rem; margin-bottom: .75rem; }
+.cit-fil-ariane a { color: var(--ink-3); text-decoration: none; }
+.cit-fil-ariane a:hover { color: var(--deep-500); text-decoration: underline; }
+.cit-fil-ariane-courant { color: var(--ink); font-weight: 600; }
+
+/* État vide : illustration en pastille, message centré, appel à l'action mis en avant. */
+.cit-etat-vide {
+    border-style: dashed;
+    border-color: var(--line);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(29, 70, 101, .06), transparent 60%),
+        var(--surface);
+    box-shadow: none;
+}
+.cit-etat-vide h2, .cit-etat-vide h3, .cit-etat-vide h4, .cit-etat-vide h5 { letter-spacing: -.01em; }
+
+/* Chargement : léger fondu, pour éviter l'effet « page cassée ». */
+.cit-chargement { animation: cit-apparition .35s ease both; }
+@keyframes cit-apparition { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Alertes : barre d'accent à gauche, coins arrondis, sans bordure agressive. */
+.alert {
+    border: 1px solid transparent;
+    border-left-width: 4px;
+    border-radius: 12px;
+    box-shadow: var(--lift-1);
+}
+.alert-success { border-left-color: var(--ok-600, #2e9e6a); }
+.alert-danger { border-left-color: var(--stop-600, #c0392b); }
+.alert-warning { border-left-color: var(--signal-500); }
+.alert-info, .alert-secondary { border-left-color: var(--deep-500); }
+
+/* Modales : surface élevée, en-tête et pied séparés, entrée douce. */
+.cit-modal-dialog, .modal-content {
+    border-radius: var(--r-xl);
+    border: 1px solid var(--line-soft);
+    box-shadow: 0 30px 60px -20px rgba(8, 22, 31, .45);
+}
+.cit-modal-dialog { animation: cit-apparition .22s cubic-bezier(.32, .72, 0, 1) both; }
+.modal-header { border-bottom-color: var(--line-soft); }
+.modal-footer { border-top-color: var(--line-soft); }
+
+/* Onglets : soulignement d'accent plutôt que boîtes. */
+.nav-tabs { border-bottom: 1px solid var(--line-soft); gap: .25rem; }
+.nav-tabs .nav-link {
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: var(--ink-3);
+    font-weight: 600;
+    padding: .6rem .9rem;
+    border-radius: 8px 8px 0 0;
+}
+.nav-tabs .nav-link:hover { color: var(--ink); background: var(--surface-2); }
+.nav-tabs .nav-link.active { color: var(--deep-600); border-bottom-color: var(--signal-500); background: transparent; }
+
+/* Pagination et filtre : alignés, compacts, cohérents avec les tableaux. */
+.cit-pagination { padding: .75rem 1rem; border-top: 1px solid var(--line-soft); }
+.cit-pagination .btn { min-width: 2.25rem; }
+.cit-filtre-table .form-control { border-radius: 999px; padding-left: 2.1rem; background: var(--surface-2); border-color: var(--line-soft); }
+.cit-filtre-table .form-control:focus { background: var(--surface); }
+
+/* Formulaires : libellés nets, champs aérés, aide lisible. */
+.form-label { font-weight: 600; color: var(--ink-2); }
+.form-text { color: var(--ink-3); }
+.form-control-lg, .form-select-lg { border-radius: 12px; }
+.form-check-input:checked { background-color: var(--deep-600); border-color: var(--deep-600); }
+
+/* Sélection de texte aux couleurs CIT. */
+::selection { background: rgba(240, 160, 32, .28); }
+
+/* Barres de défilement fines et discrètes (navigateurs Chromium / Firefox). */
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+    .cit-chargement, .cit-modal-dialog { animation: none; }
+}
