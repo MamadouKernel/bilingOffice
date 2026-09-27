@@ -64,6 +64,28 @@ public static class CatalogueNavigation
 
     private static readonly string[] Aucune = [];
 
+    /// <summary>
+    /// Entrées de compte communes à TOUS les espaces : chacun doit pouvoir signaler un incident,
+    /// suivre ses incidents, régler ses notifications et gérer sa 2FA, quel que soit son rôle.
+    /// </summary>
+    private static readonly EntreeNavigation[] EntreesCompte =
+    [
+        new("Signaler un problème technique", "🛠️", "/support/incidents/signaler", Aucune),
+        new("Mes incidents", "🧰", "/support/incidents/mes-incidents", Aucune),
+        new("Préférences de notification", "🔔", "/notifications/preferences", Aucune),
+        new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
+    ];
+
+    /// <summary>
+    /// PAGE D'ACCUEIL D'UN RÔLE — même règle pour tous : la première entrée du menu effectivement
+    /// accessible. L'ordre du catalogue exprime donc la priorité d'atterrissage de chaque espace.
+    /// </summary>
+    public static string PageAccueil(IReadOnlyList<GroupeNavigationVue> menu) =>
+        menu.SelectMany(g => g.Liens).FirstOrDefault()?.Route ?? RouteAccueilParDefaut;
+
+    /// <summary>Repli d'un compte sans aucun écran accessible : son profil, toujours consultable.</summary>
+    public const string RouteAccueilParDefaut = "/comptes/mon-profil";
+
     /// <summary>Groupes proposés pour un espace, avant filtrage par les droits réels.</summary>
     public static IReadOnlyList<GroupeNavigation> Pour(EspaceFonctionnel espace) => espace switch
     {
@@ -92,6 +114,12 @@ public static class CatalogueNavigation
         [
             new("Mes demandes", "📁", "/client/demandes", Aucune, ExigeRattachementSociete: true),
             new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true),
+            // Enrôlement : dossiers du transporteur. « Mes enrôlements » est ainsi sa page
+            // d'accueil (première entrée accessible), sans règle particulière.
+            new("Mes enrôlements", "📋", "/enrolement/mes-enrolements", [Permission.EnrolementSoumettre]),
+            new("Nouvel enrôlement", "🚚", "/enrolement/soumettre", [Permission.EnrolementSoumettre]),
+            new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true),
+            new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true),
         ]),
         new("Facturation & Simulation", "📊",
         [
@@ -106,14 +134,8 @@ public static class CatalogueNavigation
         [
             new("Nouvelle réclamation", "📝", "/reclamations/soumettre", Aucune, ExigeRattachementSociete: true),
             new("Mes réclamations", "📋", "/reclamations/mes-reclamations", Aucune, ExigeRattachementSociete: true),
-            new("Signaler un problème technique", "🛠️", "/support/incidents/signaler", Aucune),
-            new("Mes incidents", "🧰", "/support/incidents/mes-incidents", Aucune),
-            new("Nouvel enrôlement", "🚚", "/enrolement/soumettre", [Permission.EnrolementSoumettre]),
-            new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true),
-            new("Mes enrôlements", "📋", "/enrolement/mes-enrolements", Aucune),
-            new("Préférences de notification", "🔔", "/notifications/preferences", Aucune),
-            new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
+            new("Assistant virtuel", "💬", "/assistant", Aucune),
+            ..EntreesCompte,
         ]),
     ];
 
@@ -131,7 +153,7 @@ public static class CatalogueNavigation
         new("Gestion des Dossiers", "📦",
         [
             new("Demandes de la société", "📂", "/client/demandes?vue=societe", Aucune, ExigeRattachementSociete: true),
-            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune),
+            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true),
         ]),
         new("Facturation & Simulation", "📊",
         [
@@ -144,8 +166,8 @@ public static class CatalogueNavigation
         new("Administration & Sécurité", "⚙️",
         [
             new("Gestion collaborateurs", "👥", "/comptes/collaborateurs", Aucune, ExigeRattachementSociete: true),
-            new("Préférences de notification", "🔔", "/notifications/preferences", Aucune),
-            new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
+            new("Assistant virtuel", "💬", "/assistant", Aucune),
+            ..EntreesCompte,
         ]),
     ];
 
@@ -213,7 +235,7 @@ public static class CatalogueNavigation
         ]),
         new("Administration & Sécurité", "⚙️",
         [
-            new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
+            ..EntreesCompte,
         ]),
     ];
 
@@ -228,7 +250,6 @@ public static class CatalogueNavigation
         ]),
         new("Gestion des Dossiers", "📦",
         [
-            new("Supervision en direct", "📈", "/supervision", [Permission.SupervisionConsulter], CorrespondanceExacte: true),
             new("Disponibilité agents", "🟢", "/administration/disponibilite", [Permission.SupervisionConsulter]),
             new("Stratégie des files", "⚙️", "/administration/strategie-file", [Permission.AdministrationFiles]),
             new("Motifs de transfert", "🔀", "/administration/motifs-transfert", [Permission.AdministrationFiles]),
@@ -239,6 +260,8 @@ public static class CatalogueNavigation
             new("Libellés de statut", "🏷️", "/administration/libelles-statut", [Permission.AdministrationFiles]),
             new("Pièces exigées par étape", "📎", "/administration/pieces-exigees-etape", [Permission.AdministrationFiles]),
             new("Matrice des transitions", "🔁", "/administration/matrice-transitions", [Permission.AdministrationFiles]),
+            new("Règles de priorité automatique", "⚡", "/administration/regles-priorite-automatique", [Permission.AdministrationFiles]),
+            new("Étapes bloquant l'annulation", "⛔", "/administration/etapes-bloquantes-annulation", [Permission.AdministrationFiles]),
             new("Périmètres de supervision", "🗺️", "/administration/perimetres-supervision", [Permission.AdministrationPerimetresSupervision]),
             new("Compétences des opérateurs", "🎯", "/administration/competences-operateur", [Permission.CompetenceGerer]),
         ]),
@@ -246,6 +269,7 @@ public static class CatalogueNavigation
         [
             new("Demandes de compte", "📝", "/comptes/valider", [Permission.CompteValider]),
             new("Journal d'audit technique", "🔒", "/administration/audit", [Permission.AuditConsulter]),
+            ..EntreesCompte,
         ]),
     ];
 
@@ -254,15 +278,13 @@ public static class CatalogueNavigation
     // ---------------------------------------------------------------------------------------
     private static readonly IReadOnlyList<GroupeNavigation> AdministrationCit =
     [
-        new("Espace Structure", "🏢",
-        [
-            new("Accueil Admin CIT", "🏢", "/comptes/valider", [Permission.CompteValider], CorrespondanceExacte: true),
-        ]),
         new("Facturation & Simulation", "📊",
         [
             new("Grilles tarifaires", "📊", "/admin/tarification", [Permission.TarificationAdministrer]),
             new("Référentiels conteneur", "📦", "/admin/tarification/referentiels", [Permission.TarificationAdministrer]),
         ]),
+        // « Demandes de compte » en tête : c'est la page d'accueil de l'administrateur qui détient
+        // ce droit ; à défaut, la première entrée qu'il peut ouvrir prend le relais.
         new("Administration & Sécurité", "⚙️",
         [
             new("Demandes de compte", "📝", "/comptes/valider", [Permission.CompteValider], CorrespondanceExacte: true),
@@ -273,6 +295,9 @@ public static class CatalogueNavigation
             new("Comptes agents", "🛠️", "/administration/comptes-agents", [Permission.AdministrationComptes]),
             new("Pièces exigées", "📎", "/administration/pieces-exigees-compte", [Permission.AdministrationComptes]),
             new("Journal d'audit", "🔒", "/administration/audit", [Permission.AuditConsulter]),
+            new("Archives", "🗄️", "/administration/archives", [Permission.AuditConsulter]),
+            new("Base de l'assistant", "💬", "/administration/assistant", [Permission.AdministrationAssistant]),
+            ..EntreesCompte,
         ]),
     ];
 
@@ -297,9 +322,7 @@ public static class CatalogueNavigation
         ]),
         new("Administration & Sécurité", "⚙️",
         [
-            new("Signaler un problème technique", "🛠️", "/support/incidents/signaler", Aucune),
-            new("Mes incidents", "🧰", "/support/incidents/mes-incidents", Aucune),
-            new("Sécurité (2FA)", "🛡️", "/comptes/double-authentification", Aucune),
+            ..EntreesCompte,
         ]),
     ];
 }

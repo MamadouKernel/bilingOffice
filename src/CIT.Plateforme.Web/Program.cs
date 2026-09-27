@@ -389,16 +389,10 @@ app.MapPost("/contexte/espace", ([Microsoft.AspNetCore.Mvc.FromForm] string espa
             Secure = http.Request.IsHttps
         });
 
-    // Destination calculée côté serveur : aucune URL de redirection n'est acceptée depuis le
-    // formulaire, ce qui écarte tout risque de redirection ouverte.
-    return Results.Redirect(cible switch
-    {
-        CIT.Plateforme.Application.Web.EspaceFonctionnel.Supervision => "/supervision",
-        CIT.Plateforme.Application.Web.EspaceFonctionnel.AdministrationCit => "/comptes/valider",
-        CIT.Plateforme.Application.Web.EspaceFonctionnel.Agent => "/agent/dashboard",
-        CIT.Plateforme.Application.Web.EspaceFonctionnel.AdministrateurSociete => "/societe/dashboard",
-        _ => "/client/dashboard"
-    });
+    // Destination fixe côté serveur (aucune URL acceptée du formulaire : pas de redirection
+    // ouverte). L'accueil « / » applique la règle commune à tous les rôles : première entrée du
+    // menu réellement accessible dans l'espace qui vient d'être choisi.
+    return Results.Redirect("/");
 }).RequireAuthorization();
 
 app.MapPost("/culture/set", ([Microsoft.AspNetCore.Mvc.FromForm] string culture, [Microsoft.AspNetCore.Mvc.FromForm] string? redirectUri, HttpContext http) =>

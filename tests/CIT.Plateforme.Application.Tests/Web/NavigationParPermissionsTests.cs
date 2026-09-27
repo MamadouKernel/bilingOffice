@@ -35,8 +35,12 @@ public sealed class NavigationParPermissionsTests
 
         var routes = Routes(groupes);
 
-        // Restent uniquement les écrans qui n'exigent rien : son tableau de bord et sa sécurité.
-        Assert.Equal(["/agent/dashboard", "/comptes/double-authentification"], routes.Order().ToArray());
+        // Restent uniquement les écrans qui n'exigent rien : son tableau de bord et les entrées de
+        // compte communes à tous les rôles (incidents, notifications, 2FA).
+        Assert.Equal(
+            ["/agent/dashboard", "/comptes/double-authentification", "/notifications/preferences",
+             "/support/incidents/mes-incidents", "/support/incidents/signaler"],
+            routes.Order().ToArray());
 
         Assert.DoesNotContain("/billing-import/manifeste", routes);
         Assert.DoesNotContain("/billing-export/facturation", routes);
@@ -280,6 +284,73 @@ public sealed class NavigationParPermissionsTests
     }
 
     // ===================================================================================
+
+    // ===================================================================================
+    // Même règle pour tous les rôles : accueil = première entrée accessible, et aucun lien
+    // « société » pour un compte qui n'en a pas.
+    // ===================================================================================
+
+    [Fact]
+    public async Task Un_transporteur_atterrit_sur_ses_enrolements_et_ne_voit_aucun_ecran_societe()
+    {
+        var menu = await Construire(EspaceFonctionnel.Client, [Habilitation(Permission.EnrolementSoumettre)], aUneSocieteRattachee: false);
+
+        Assert.Equal("/enrolement/mes-enrolements", CatalogueNavigation.PageAccueil(menu));
+        var routes = Routes(menu);
+        Assert.DoesNotContain("/client/dashboard", routes);
+        Assert.DoesNotContain("/client/demandes", routes);
+        Assert.DoesNotContain("/rendez-vous/mes-rendez-vous", routes);
+    }
+
+    [Fact]
+    public async Task Un_client_de_societe_atterrit_sur_son_tableau_de_bord()
+    {
+        var menu = await Construire(EspaceFonctionnel.Client, [], aUneSocieteRattachee: true);
+
+        Assert.Equal("/client/dashboard", CatalogueNavigation.PageAccueil(menu));
+    }
+
+    [Fact]
+    public async Task Un_support_N1_atterrit_sur_sa_file_et_non_sur_un_ecran_client()
+    {
+        var menu = await Construire(EspaceFonctionnel.SupportN1, [.. Permission.ProfilSupportN1.Select(p => Habilitation(p))]);
+
+        Assert.Equal("/support/incidents/file", CatalogueNavigation.PageAccueil(menu));
+    }
+
+    [Fact]
+    public async Task Un_administrateur_sans_droit_de_validation_n_atterrit_pas_sur_la_validation_des_comptes()
+    {
+        var menu = await Construire(EspaceFonctionnel.AdministrationCit, [Habilitation(Permission.TarificationAdministrer)]);
+
+        Assert.Equal("/admin/tarification", CatalogueNavigation.PageAccueil(menu));
+    }
+
+    [Theory]
+    [InlineData(EspaceFonctionnel.Client)]
+    [InlineData(EspaceFonctionnel.AdministrateurSociete)]
+    [InlineData(EspaceFonctionnel.Agent)]
+    [InlineData(EspaceFonctionnel.Supervision)]
+    [InlineData(EspaceFonctionnel.AdministrationCit)]
+    [InlineData(EspaceFonctionnel.SupportN1)]
+    public async Task Chaque_espace_propose_les_entrees_de_compte_communes(EspaceFonctionnel espace)
+    {
+        var routes = Routes(await Construire(espace, []));
+
+        Assert.Contains("/comptes/double-authentification", routes);
+        Assert.Contains("/notifications/preferences", routes);
+        Assert.Contains("/support/incidents/signaler", routes);
+    }
+
+    [Fact]
+    public void Aucun_espace_ne_liste_deux_fois_la_meme_route()
+    {
+        foreach (var espace in Enum.GetValues<EspaceFonctionnel>())
+        {
+            var routes = CatalogueNavigation.Pour(espace).SelectMany(g => g.Entrees).Select(e => e.Route).ToList();
+            Assert.True(routes.Count == routes.Distinct().Count(), $"Route en double dans l'espace {espace}");
+        }
+    }
 
     private static HabilitationUtilisateur Habilitation(string permission, Guid? fileId = null) =>
         HabilitationUtilisateur.Attribuer(Utilisateur, permission, fileId);

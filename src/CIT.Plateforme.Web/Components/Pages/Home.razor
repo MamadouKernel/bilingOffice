@@ -5,6 +5,7 @@
 @using CIT.Plateforme.Web.Resources
 @inject IContexteUtilisateurWeb ContexteService
 @inject NavigationManager NavigationManager
+@inject IServiceScopeFactory ScopeFactory
 
 <PageTitle>@Loc["Home.PageTitle"]</PageTitle>
 
@@ -293,25 +294,15 @@ else
         if (contexte.EstAuthentifie)
         {
             _estAuthentifie = true;
-            // CORRECTIF — un compte transporteur/chauffeur (ENR-01) n'est rattaché à AUCUNE
-            // société : c'est le fond même de ce parcours (InscrireTransporteurCommand). Le repli
-            // "_ => /client/dashboard" l'y envoyait quand même, faute d'espace fonctionnel dédié,
-            // et cette page exige un SocieteId pour se charger — d'où « aucun compte société
-            // associé » au tout premier login. Un transporteur n'a que EnrolementSoumettre et
-            // aucune société : on le redirige vers ses dossiers d'enrôlement, la seule page que
-            // son compte peut réellement utiliser.
-            var estTransporteur = contexte.EstTransporteur;
+            // MÊME RÈGLE POUR TOUS LES RÔLES : l'accueil est la première entrée du menu que ce
+            // compte peut réellement ouvrir. Un switch par espace envoyait certains profils
+            // (transporteur, Support N1, administrateur sans droit de validation) vers un écran
+            // qui les refusait.
+            using var scope = ScopeFactory.CreateScope();
+            var menu = await scope.ServiceProvider.GetRequiredService<ConstruireNavigationQuery>()
+                .ExecuterAsync(contexte.UtilisateurId, contexte.EspaceActif, contexte.SocieteId.HasValue);
 
-            var destination = contexte.EspaceActif switch
-            {
-                EspaceFonctionnel.Supervision => "/supervision",
-                EspaceFonctionnel.AdministrationCit => "/comptes/valider",
-                EspaceFonctionnel.Agent => "/agent/dashboard",
-                EspaceFonctionnel.AdministrateurSociete => "/societe/dashboard",
-                _ when estTransporteur => "/enrolement/mes-enrolements",
-                _ => "/client/dashboard"
-            };
-            NavigationManager.NavigateTo(destination);
+            NavigationManager.NavigateTo(CatalogueNavigation.PageAccueil(menu));
         }
         else
         {
