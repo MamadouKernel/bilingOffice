@@ -11,7 +11,16 @@ namespace CIT.Plateforme.Application.Comptes;
 /// Soumise à la même habilitation que la modification de type (<c>Permission.CompteTypeModifier</c>)
 /// afin qu'un utilisateur non habilité ne puisse pas énumérer le portefeuille clients.
 /// </summary>
-public sealed record SocieteSelectionnable(Guid Id, string InformationsDeclarees, TypeClient Profil);
+public sealed record SocieteSelectionnable(Guid Id, string InformationsDeclarees, TypeClient Profil)
+{
+    private readonly InformationsSociete _informations = InformationsSociete.Extraire(InformationsDeclarees);
+
+    /// <summary>Nom seul, pour la liste de sélection.</summary>
+    public string Nom => _informations.Nom;
+
+    /// <summary>RCCM, affiché en confirmation sous la sélection (peut être absent).</summary>
+    public string? Rccm => _informations.Rccm;
+}
 
 public sealed class ListerSocietesActivesQuery(
     ISocieteClienteRepository societes,
@@ -25,7 +34,7 @@ public sealed class ListerSocietesActivesQuery(
 
         return actives
             .Select(s => new SocieteSelectionnable(s.Id, s.InformationsDeclarees, s.Profil))
-            .OrderBy(s => s.InformationsDeclarees)
+            .OrderBy(s => s.Nom, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
 }

@@ -159,7 +159,7 @@ public sealed class ObtenirFicheTicketQuery(
         var societeNom = societe?.InformationsDeclarees ?? string.Empty;
         if (societeNom.Contains("RaisonSociale"))
         {
-            societeNom = ExtraireNom(societeNom);
+            societeNom = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(societeNom);
         }
 
         // SOC-10 — les tickets liés. La liaison se lit dans les deux sens (le repository couvre
@@ -239,21 +239,4 @@ public sealed class ObtenirFicheTicketQuery(
         );
     }
 
-    private static string ExtraireNom(string raw)
-    {
-        try
-        {
-            var parts = raw.Split(new[] { '\r', '\n', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var part in parts)
-            {
-                if (part.Contains("RaisonSociale", StringComparison.OrdinalIgnoreCase))
-                {
-                    var kv = part.Split(':');
-                    if (kv.Length > 1) return kv[1].Trim().Trim('"', '{', '}', ' ');
-                }
-            }
-        }
-        catch { }
-        return raw;
-    }
 }

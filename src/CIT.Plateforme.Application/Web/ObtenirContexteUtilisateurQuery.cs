@@ -105,7 +105,7 @@ public sealed class ObtenirContexteUtilisateurQuery(
         if (!string.IsNullOrWhiteSpace(societeNom) && societeNom.Contains("RaisonSociale"))
         {
             // Extraire un nom convivial si stocké sous forme clé/valeur, sinon garder le texte
-            societeNom = ExtraireNomSociete(societeNom);
+            societeNom = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(societeNom);
         }
 
         return new ContexteUtilisateurVue(
@@ -128,24 +128,4 @@ public sealed class ObtenirContexteUtilisateurQuery(
         );
     }
 
-    private static string ExtraireNomSociete(string raw)
-    {
-        try
-        {
-            var parts = raw.Split(new[] { '\r', '\n', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var part in parts)
-            {
-                if (part.Contains("RaisonSociale", StringComparison.OrdinalIgnoreCase))
-                {
-                    var kv = part.Split(':');
-                    if (kv.Length > 1) return kv[1].Trim().Trim('"', '{', '}', ' ');
-                }
-            }
-        }
-        catch
-        {
-            // En cas d'erreur de parsing, retourner la chaîne brute
-        }
-        return raw;
-    }
 }

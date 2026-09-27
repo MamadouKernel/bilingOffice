@@ -65,6 +65,12 @@ else
                             <option value="@societe.Id">@NomLisible(societe)</option>
                         }
                     </select>
+                    @* Le RCCM confirme la société choisie (deux noms peuvent se ressembler) sans
+                       alourdir la liste : action tracée à l'audit, l'erreur de cible doit être évitée. *@
+                    @if (SocieteCourante?.Rccm is { } rccm)
+                    {
+                        <div class="form-text mt-2"><span class="fw-semibold">RCCM</span> · <span class="font-monospace">@rccm</span></div>
+                    }
                 </div>
 
                 <div class="mb-4">
@@ -131,9 +137,12 @@ else
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
     private string NomLisible(SocieteSelectionnable societe) =>
-        string.IsNullOrWhiteSpace(societe.InformationsDeclarees)
+        string.IsNullOrWhiteSpace(societe.Nom)
             ? Loc["ModifType.SocieteSansInfo"].Value
-            : societe.InformationsDeclarees;
+            : societe.Nom;
+
+    private SocieteSelectionnable? SocieteCourante =>
+        _societes?.FirstOrDefault(s => s.Id == _societeSelectionnee);
 
     private string LibelleType(TypeClient type) => type switch
     {

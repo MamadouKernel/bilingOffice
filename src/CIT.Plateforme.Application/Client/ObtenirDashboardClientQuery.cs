@@ -130,7 +130,7 @@ public sealed class ObtenirDashboardClientQuery(
         var nomSociete = societe.InformationsDeclarees;
         if (nomSociete.Contains("RaisonSociale"))
         {
-            nomSociete = ExtraireNom(nomSociete);
+            nomSociete = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(nomSociete);
         }
 
         return new DashboardClientVue(
@@ -160,21 +160,4 @@ public sealed class ObtenirDashboardClientQuery(
         return StatutVisuelDossier.EnAttentePriseEnCharge;
     }
 
-    private static string ExtraireNom(string raw)
-    {
-        try
-        {
-            var parts = raw.Split(new[] { '\r', '\n', ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var part in parts)
-            {
-                if (part.Contains("RaisonSociale", StringComparison.OrdinalIgnoreCase))
-                {
-                    var kv = part.Split(':');
-                    if (kv.Length > 1) return kv[1].Trim().Trim('"', '{', '}', ' ');
-                }
-            }
-        }
-        catch { }
-        return raw;
-    }
 }
