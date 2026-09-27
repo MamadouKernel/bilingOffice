@@ -24,6 +24,22 @@
         if (e.target.matches && e.target.matches('[data-recherche-ecran]')) { naviguer(e.target); }
     });
 
+    // Menus déroulants de la barre (<details class="cit-user-menu"> : espace, profil) : un clic
+    // ailleurs ou Échap les referme, et en ouvrir un referme l'autre.
+    function fermerMenus(sauf) {
+        document.querySelectorAll('details.cit-user-menu[open]').forEach(function (d) {
+            if (d !== sauf) { d.removeAttribute('open'); }
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        fermerMenus(e.target.closest ? e.target.closest('details.cit-user-menu') : null);
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { fermerMenus(null); }
+    });
+
     document.addEventListener('keydown', function (e) {
         if (e.target.matches && e.target.matches('[data-recherche-ecran]') && e.key === 'Enter') {
             e.preventDefault();

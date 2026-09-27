@@ -54,9 +54,10 @@
 
         @if (Contexte?.EstAuthentifie == true)
         {
-            <span class="cit-nav-pill d-none d-lg-inline-flex">
-                <span aria-hidden="true">▦</span> @(Contexte.EstTransporteur ? Loc["Header.SpaceCarrier"] : LibelleEspace(Contexte.EspaceActif))
-            </span>
+            @* Espace actif + bascule entre espaces (dynamique : menu si plusieurs espaces). *@
+            <div class="d-none d-lg-block">
+                <PersonaSwitcher Contexte="@Contexte" EnBarre="true" />
+            </div>
 
             @* RECHERCHE D'ÉCRAN (Ctrl+K) — propose uniquement les écrans du menu de ce compte : elle
                ne peut donc mener nulle part où le menu ne mène pas. Navigation par js/navigation-rapide.js. *@

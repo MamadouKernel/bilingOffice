@@ -72,14 +72,7 @@
                     </div>
                 }
             </div>
-            <div class="cit-rail-groupe cit-rail-pied">
-                <button type="button" class="cit-rail-btn" aria-haspopup="true" aria-label="@Loc["Header.MyAccount"]">
-                    <span aria-hidden="true">🔄</span>
-                </button>
-                <div class="cit-rail-flyout cit-rail-flyout-bas">
-                    <PersonaSwitcher Contexte="@_contexte" />
-                </div>
-            </div>
+            @* Le changement d'espace vit dans la barre supérieure (PersonaSwitcher EnBarre). *@
         </nav>
     }
     else

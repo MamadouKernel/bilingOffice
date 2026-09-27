@@ -2381,3 +2381,11 @@ html { scroll-padding-top: var(--header-h); }
     .cit-otp-case, .cit-otp--actif .cit-otp-cases { transition: none; }
     .cit-otp--anneau .cit-otp-cases { animation: none; }
 }
+
+/* Changement d'espace dans la barre supérieure : la pastille ouvre la liste sous elle. */
+.cit-persona-barre { position: relative; }
+.cit-persona-barre > summary { list-style: none; cursor: pointer; display: inline-flex; }
+.cit-persona-barre > summary::-webkit-details-marker { display: none; }
+.cit-persona-barre > summary:hover { border-color: var(--deep-500); }
+.cit-persona-barre[open] > summary { background: var(--surface); border-color: var(--deep-500); }
+.cit-persona-barre .cit-persona-dropdown { left: 0; right: auto; min-width: 240px; }

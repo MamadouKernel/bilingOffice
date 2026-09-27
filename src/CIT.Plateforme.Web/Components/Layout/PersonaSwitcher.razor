@@ -2,41 +2,58 @@
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 
-@if (Contexte?.EstAuthentifie == true && Contexte.EspacesDisponibles.Count > 1)
+@if (Contexte?.EstAuthentifie == true)
 {
-    @* Ouverture par <details> natif et bascule par POST : la mise en page est rendue en SSR
-       statique (Routes.razor ne déclare aucun @rendermode), donc ni @onclick ni Bootstrap JS
-       n'y sont opérants. Le POST dépose un cookie de préférence puis redirige — le choix
-       survit ainsi à la requête, ce que ne permettait pas un champ de service scoped. *@
-    <details class="cit-user-menu cit-persona mb-2">
-        <summary class="cit-user-trigger cit-persona-trigger" aria-haspopup="true">
-            <span class="d-flex align-items-center gap-2 flex-grow-1" style="min-width:0;">
-                <span>🔄</span>
-                <span class="small fw-semibold text-truncate">@LibelleEspace(Contexte.EspaceActif)</span>
-            </span>
-            <span class="cit-user-caret">▾</span>
-        </summary>
+    var libelleActif = Contexte.EstTransporteur
+        ? SharedResourcesLocalizer.Get("Header.SpaceCarrier")
+        : LibelleEspace(Contexte.EspaceActif);
 
-        <div class="cit-user-dropdown cit-persona-dropdown" role="menu">
-            @foreach (var espace in Contexte.EspacesDisponibles)
-            {
-                <form method="post" action="/contexte/espace" class="m-0">
-                    <AntiforgeryToken />
-                    <input type="hidden" name="espace" value="@espace" />
-                    <button type="submit" role="menuitem"
-                            class="cit-user-dropdown-item @(espace == Contexte.EspaceActif ? "actif" : "")">
-                        <span>@(espace == Contexte.EspaceActif ? "✓" : "")</span>
-                        @LibelleEspace(espace)
-                    </button>
-                </form>
-            }
-        </div>
-    </details>
+    @if (Contexte.EspacesDisponibles.Count > 1)
+    {
+        @* Ouverture par <details> natif et bascule par POST : la mise en page est rendue en SSR
+           statique (Routes.razor ne déclare aucun @rendermode), donc ni @onclick ni Bootstrap JS
+           n'y sont opérants. Le POST dépose un cookie de préférence puis redirige — le choix
+           survit ainsi à la requête, ce que ne permettait pas un champ de service scoped. *@
+        <details class="cit-user-menu cit-persona @(EnBarre ? "cit-persona-barre" : "mb-2")">
+            <summary class="@(EnBarre ? "cit-nav-pill" : "cit-user-trigger cit-persona-trigger")" aria-haspopup="true"
+                     title="@SharedResourcesLocalizer.Get("Header.SwitchSpace")">
+                <span class="d-flex align-items-center gap-2 flex-grow-1" style="min-width:0;">
+                    <span aria-hidden="true">@(EnBarre ? "▦" : "🔄")</span>
+                    <span class="small fw-semibold text-truncate">@libelleActif</span>
+                </span>
+                <span class="cit-user-caret">▾</span>
+            </summary>
+
+            <div class="cit-user-dropdown cit-persona-dropdown" role="menu">
+                @foreach (var espace in Contexte.EspacesDisponibles)
+                {
+                    <form method="post" action="/contexte/espace" class="m-0">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="espace" value="@espace" />
+                        <button type="submit" role="menuitem"
+                                class="cit-user-dropdown-item @(espace == Contexte.EspaceActif ? "actif" : "")">
+                            <span>@(espace == Contexte.EspaceActif ? "✓" : "")</span>
+                            @LibelleEspace(espace)
+                        </button>
+                    </form>
+                }
+            </div>
+        </details>
+    }
+    else if (EnBarre)
+    {
+        @* Un seul espace : la pastille informe, sans menu à ouvrir. *@
+        <span class="cit-nav-pill"><span aria-hidden="true">▦</span> @libelleActif</span>
+    }
 }
 
 @code {
     [Parameter]
     public ContexteUtilisateurVue? Contexte { get; set; }
+
+    /// <summary>Vrai dans la barre supérieure : rendu en pastille, affichée même avec un seul espace.</summary>
+    [Parameter]
+    public bool EnBarre { get; set; }
 
     private static string LibelleEspace(EspaceFonctionnel espace) => espace switch
     {
