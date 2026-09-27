@@ -36,4 +36,13 @@ public sealed record ContexteUtilisateurVue(
     IReadOnlyList<string> Permissions,
     IReadOnlyList<Guid> FilesHabilitees,
     bool EstSuperviseur
-);
+)
+{
+    /// <summary>
+    /// Compte transporteur/chauffeur (ENR-01, <c>InscrireTransporteurCommand</c>) : client rattaché
+    /// à AUCUNE société et titulaire du droit d'enrôlement. Son espace utile est celui de ses
+    /// enrôlements, pas les écrans « société » (tableau de bord, demandes, rendez-vous).
+    /// </summary>
+    public bool EstTransporteur =>
+        EstAuthentifie && SocieteId is null && Permissions.Contains(Domain.Securite.Permission.EnrolementSoumettre);
+}

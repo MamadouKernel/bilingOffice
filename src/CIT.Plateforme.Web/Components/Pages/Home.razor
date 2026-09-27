@@ -300,8 +300,7 @@ else
             // associé » au tout premier login. Un transporteur n'a que EnrolementSoumettre et
             // aucune société : on le redirige vers ses dossiers d'enrôlement, la seule page que
             // son compte peut réellement utiliser.
-            var estTransporteur = contexte.SocieteId is null
-                && contexte.Permissions.Contains(Permission.EnrolementSoumettre);
+            var estTransporteur = contexte.EstTransporteur;
 
             var destination = contexte.EspaceActif switch
             {

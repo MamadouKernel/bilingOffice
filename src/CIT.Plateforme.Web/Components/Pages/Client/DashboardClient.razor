@@ -11,6 +11,7 @@
 @using Microsoft.Extensions.Localization
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirDashboardClientQuery DashboardQuery
+@inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResources> Loc
 
 <PageTitle>@Loc["Dash.PageTitle"]</PageTitle>
@@ -187,6 +188,14 @@ else if (_dashboard is not null)
         try
         {
             var contexte = await ContexteService.ObtenirContexteAsync();
+            // Compte transporteur (sans société, droit d'enrôlement) : ce tableau de bord ne le
+            // concerne pas — son espace est celui de ses enrôlements, comme depuis l'accueil.
+            if (contexte.EstTransporteur)
+            {
+                Navigation.NavigateTo("/enrolement/mes-enrolements", replace: true);
+                return;
+            }
+
             if (!contexte.EstAuthentifie || !contexte.SocieteId.HasValue)
             {
                 _erreur = Loc["Dash.LoadError"].Value;

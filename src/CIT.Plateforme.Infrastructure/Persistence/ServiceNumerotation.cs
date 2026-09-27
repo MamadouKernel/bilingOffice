@@ -26,7 +26,12 @@ public sealed class ServiceNumerotation(PlateformeDbContext dbContext) : IServic
         var valeur = await ProchaineValeurAsync(SequenceTicket, ct).ConfigureAwait(false);
         var prefixeModule = Prefixe(module);
         var prefixeType = Prefixe(typeDemande);
-        return $"{prefixeModule}-{prefixeType}-{valeur:D6}";
+
+        // Module et type confondus (ex. Enrôlement/Enrôlement) : un seul préfixe, sans quoi le
+        // numéro affiché devient « ENR-ENR-000006 ». L'unicité reste portée par la séquence.
+        return prefixeModule == prefixeType
+            ? $"{prefixeModule}-{valeur:D6}"
+            : $"{prefixeModule}-{prefixeType}-{valeur:D6}";
     }
 
     public async Task<string> ProchainNumeroDossierAsync(CancellationToken ct = default)

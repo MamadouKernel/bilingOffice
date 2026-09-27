@@ -83,13 +83,15 @@ public static class CatalogueNavigation
     [
         new("Espace Structure", "🏢",
         [
-            new("Tableau de bord", "📊", "/client/dashboard", Aucune, CorrespondanceExacte: true),
+            // Tableau de bord, demandes et rendez-vous portent sur les dossiers d'une SOCIÉTÉ : un
+            // compte transporteur (client sans société) n'y verrait qu'une erreur de rattachement.
+            new("Tableau de bord", "📊", "/client/dashboard", Aucune, ExigeRattachementSociete: true, CorrespondanceExacte: true),
             new("Profil société", "🏢", "/comptes/profil", Aucune, ExigeRattachementSociete: true),
         ]),
         new("Gestion des Dossiers", "📦",
         [
-            new("Mes demandes", "📁", "/client/demandes", Aucune),
-            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune),
+            new("Mes demandes", "📁", "/client/demandes", Aucune, ExigeRattachementSociete: true),
+            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true),
         ]),
         new("Facturation & Simulation", "📊",
         [

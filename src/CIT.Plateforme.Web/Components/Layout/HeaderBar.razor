@@ -100,7 +100,7 @@
                     <span class="cit-user-avatar">@Initiale</span>
                     <span class="cit-user-identity d-none d-lg-flex">
                         <span class="cit-user-name">@Contexte.NomAffiche</span>
-                        <span class="cit-user-role">@LibelleEspace(Contexte.EspaceActif)</span>
+                        <span class="cit-user-role">@(Contexte.EstTransporteur ? Loc["Header.SpaceCarrier"] : LibelleEspace(Contexte.EspaceActif))</span>
                     </span>
                     <span class="cit-user-caret">▾</span>
                 </summary>
