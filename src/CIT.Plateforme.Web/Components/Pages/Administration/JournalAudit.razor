@@ -78,11 +78,11 @@ else
                                         @entree.AuteurLibelle
                                         @if (entree.AuteurNature is not null)
                                         {
-                                            <span class="badge bg-secondary-subtle text-secondary" style="font-size:.65rem;">@entree.AuteurNature</span>
+                                            <span class="badge bg-secondary-subtle text-secondary u-fs-2xs">@entree.AuteurNature</span>
                                         }
                                         @if (entree.AuteurIntrouvable)
                                         {
-                                            <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size:.65rem;">@Loc["AdmAudit.DeletedAccount"]</span>
+                                            <span class="badge bg-warning-subtle text-warning-emphasis u-fs-2xs">@Loc["AdmAudit.DeletedAccount"]</span>
                                         }
                                     </div>
                                     @if (entree.AuteurId is Guid auteurId)
@@ -90,9 +90,9 @@ else
                                         @if (!entree.AuteurIntrouvable && !string.IsNullOrWhiteSpace(entree.AuteurEmail)
                                              && !string.Equals(entree.AuteurEmail, entree.AuteurLibelle, StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <div class="text-muted" style="font-size:.72rem;">@entree.AuteurEmail</div>
+                                            <div class="text-muted u-fs-2xs">@entree.AuteurEmail</div>
                                         }
-                                        <div class="text-muted font-monospace" style="font-size:.65rem;" title="@Loc["AdmAudit.StableIdTitle"]">@auteurId</div>
+                                        <div class="text-muted font-monospace u-fs-2xs" title="@Loc["AdmAudit.StableIdTitle"]">@auteurId</div>
                                     }
                                 </td>
                                 <td><span class="badge bg-secondary-subtle text-secondary">@entree.Action</span></td>

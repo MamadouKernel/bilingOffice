@@ -1,4 +1,4 @@
-﻿@page "/comptes/reinitialiser-mot-de-passe"
+@page "/comptes/reinitialiser-mot-de-passe"
 @using CIT.Plateforme.Infrastructure.Identity
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
@@ -15,7 +15,7 @@
    pas de contour — ce n'est pas un élément interactif — les champs et boutons gardent le leur. *@
 <div class="d-flex justify-content-center py-4 py-md-5">
     <div class="w-100" style="max-width: 460px;">
-        <div class="cit-card border-0 shadow-lg p-4 p-md-5" style="border-radius: 1.5rem;">
+        <div class="cit-card border-0 shadow-lg p-4 p-md-5 u-r-2xl">
 
             <div class="text-center mb-4">
                 <div class="d-inline-flex align-items-center justify-content-center mb-3"
@@ -34,7 +34,7 @@
                 <div class="alert alert-success text-center mb-4" role="status">
                     <strong>@Loc[activation ? "Account.ActivateSuccess" : "Account.ResetSuccess"]</strong>
                 </div>
-                <a href="/comptes/connexion" class="btn btn-primary btn-lg w-100 py-3 shadow-sm" style="border-radius: .75rem;">
+                <a href="/comptes/connexion" class="btn btn-primary btn-lg w-100 py-3 shadow-sm u-r-md">
                     @Loc["Account.GoToLogin"] <span class="ms-2" aria-hidden="true">→</span>
                 </a>
             }
@@ -61,7 +61,7 @@
                         </ChampMotDePasse>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm" style="border-radius: .75rem;">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm u-r-md">
                         @if (activation)
                         {
                             @Loc["Account.ActivateSubmit"]

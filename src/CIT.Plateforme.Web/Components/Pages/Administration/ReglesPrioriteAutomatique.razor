@@ -57,7 +57,7 @@ else
     }
     else
     {
-        <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="cit-card p-4 mb-4 border-0 shadow-sm u-r-xl u-bg-surface">
             <div class="d-flex align-items-center gap-2 mb-3">
                 <span class="fs-4">➕</span>
                 <h4 class="fw-bold text-dark mb-0 fs-5">@Loc["AdmReglePrio.AddTitle"]</h4>
@@ -100,7 +100,7 @@ else
 
     @if (_regles is null || _regles.Count == 0)
     {
-        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm u-r-lg u-bg-surface">
             <div class="fs-1 mb-3">⚡</div>
             <h4 class="fw-bold text-dark mb-2">@Loc["AdmReglePrio.EmptyTitle"]</h4>
             <p class="text-muted mb-0">@Loc["AdmReglePrio.EmptyDesc"]</p>
@@ -108,7 +108,7 @@ else
     }
     else
     {
-        <div class="cit-card border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="cit-card border-0 shadow-sm overflow-hidden u-r-xl u-bg-surface">
             <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
                 <span class="fw-bold text-dark small">@Loc["AdmReglePrio.ListTitle", _regles.Count]</span>
             </div>

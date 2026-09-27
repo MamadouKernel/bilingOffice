@@ -1,4 +1,4 @@
-﻿@page "/comptes/mot-de-passe-oublie"
+@page "/comptes/mot-de-passe-oublie"
 @using CIT.Plateforme.Infrastructure.Identity
 @using Microsoft.AspNetCore.Identity
 @using CIT.Plateforme.Web.Resources
@@ -13,15 +13,15 @@
 
 <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
-        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem;">
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg u-r-2xl">
             <div class="row g-0">
                 
                 <!-- Left Side: 3D Illustration -->
-                <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
+                <div class="col-md-6 d-none d-md-block u-bg-azure">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
                         <img src="images/login-illustration.jpg" alt="@Loc["Auth.MaritimeIllustrationAlt"]" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">@Loc["Auth.WelcomeDigital"]</h3>
+                            <h3 class="fw-bold text-uppercase u-c-action">@Loc["Auth.WelcomeDigital"]</h3>
                             <p class="text-muted mb-0">@Loc["Auth.WelcomeTagline"]</p>
                         </div>
                     </div>
@@ -32,23 +32,23 @@
                     <div class="p-5 p-lg-5 w-100">
                         <div class="mb-5 text-center text-md-start">
                             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
-                            <h1 class="fw-bold h2 mb-0" style="color: var(--ink);">@Loc["Account.ForgotTitle"]</h1>
+                            <h1 class="fw-bold h2 mb-0 u-c-ink">@Loc["Account.ForgotTitle"]</h1>
                             <p class="text-muted">@Loc["Account.ForgotSubtitle"]</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="DemanderAsync" FormName="mot-de-passe-oublie">
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">@Loc["Account.EmailProfessional"]</label>
-                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="@Loc["Common.EmailPlaceholder"]" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
+                                <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="email">@Loc["Account.EmailProfessional"]</label>
+                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3 u-bg-surface" placeholder="@Loc["Common.EmailPlaceholder"]" @bind-Value="Modele.Email" />
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3" style="border-radius: 0.75rem;">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3 u-r-md">
                                 @Loc["Account.ForgotSubmit"] <span class="ms-2">✉</span>
                             </button>
                         </EditForm>
                         
                         <div class="mt-4 text-center text-md-start">
-                            <a href="/comptes/connexion" class="text-decoration-none fw-bold" style="color: var(--marine-600);">@Loc["Common.BackToLogin"]</a>
+                            <a href="/comptes/connexion" class="text-decoration-none fw-bold u-c-marine">@Loc["Common.BackToLogin"]</a>
                         </div>
 
                         @if (demandeEnregistree)

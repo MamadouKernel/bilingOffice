@@ -2616,3 +2616,29 @@ html { scroll-padding-top: var(--header-h); }
 :root[data-theme="dark"] .form-select { background-color: var(--surface-2); color: var(--ink); border-color: var(--line); }
 :root[data-theme="dark"] .form-control::placeholder { color: var(--ink-3); }
 :root[data-theme="dark"] .btn-close { filter: invert(1) grayscale(1) brightness(1.6); }
+
+/* ==========================================================================
+   UTILITAIRES DU SYSTÈME DE DESIGN (préfixe u-) — remplacent les styles en
+   ligne répétés dans les pages. Valeurs identiques à celles qu'ils remplacent
+   (aucun changement visuel) mais nommées, centralisées et pilotées par les
+   tokens : une évolution de la charte se fait ici, une seule fois.
+   ========================================================================== */
+.u-fs-2xs { font-size: .7rem; }
+.u-fs-xs { font-size: .75rem; }
+.u-fs-sm { font-size: .8rem; }
+.u-fs-md { font-size: .95rem; }
+.u-lh-normal { line-height: 1.5; }
+.u-lh-relaxed { line-height: 1.6; }
+.u-r-md { border-radius: .75rem; }
+.u-r-lg { border-radius: 1rem; }
+.u-r-xl { border-radius: 1.25rem; }
+.u-r-2xl { border-radius: 1.5rem; }
+.u-bg-surface { background-color: var(--surface); }
+.u-bg-azure { background-color: var(--azure-50); }
+.u-c-ink { color: var(--ink); }
+.u-c-action { color: var(--action); }
+.u-c-marine { color: var(--marine-600); }
+.u-c-ok { color: var(--ok-600); }
+.u-voile { background: rgba(0, 0, 0, .5); }
+.u-alerte-stop { background-color: var(--stop-100); color: var(--stop-600); border: 1px solid var(--stop-border); }
+.u-alerte-ok { background-color: var(--ok-100); border: 1px solid var(--ok-border); }

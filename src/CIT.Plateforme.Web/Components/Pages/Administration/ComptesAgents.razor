@@ -139,7 +139,7 @@ else
     }
 
     <!-- 3. Barre de Recherche et Filtres -->
-    <div class="cit-card p-3 mb-4 border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-radius: 1rem; background-color: var(--surface);">
+    <div class="cit-card p-3 mb-4 border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3 u-r-lg u-bg-surface">
         <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
             <span class="text-muted" aria-hidden="true">🔍</span>
             <input type="text" class="form-control form-control-sm border-0 bg-light"
@@ -172,7 +172,7 @@ else
     <!-- 4. Table Élégante des Collaborateurs -->
     @if (_comptes is null || _comptes.Count == 0)
     {
-        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm u-r-lg u-bg-surface">
             <div class="fs-1 mb-3">👥</div>
             <h4 class="fw-bold text-dark mb-2">@Loc["AdmCompte.EmptyTitle"]</h4>
             <p class="text-muted mb-0">@Loc["AdmCompte.EmptyDesc"]</p>
@@ -180,7 +180,7 @@ else
     }
     else if (!ComptesFiltres.Any())
     {
-        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm u-r-lg u-bg-surface">
             <div class="fs-2 mb-2">🔎</div>
             <h5 class="fw-bold text-dark mb-1">@Loc["AdmCompte.NoMatchTitle"]</h5>
             <p class="text-muted small mb-0">@Loc["AdmCompte.NoMatchDesc"]</p>
@@ -188,7 +188,7 @@ else
     }
     else
     {
-        <div class="cit-card border-0 shadow-sm overflow-hidden mb-5" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="cit-card border-0 shadow-sm overflow-hidden mb-5 u-r-xl u-bg-surface">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-muted small border-bottom">
@@ -430,7 +430,7 @@ else
                                                        @onchange="() => BasculerPermissionAsync(_agentEnEdition.Id, perm.Code, !estAccordee)" />
                                                 <div class="flex-grow-1 overflow-hidden">
                                                     <div class="small fw-bold text-dark text-truncate">@perm.Libelle</div>
-                                                    <div class="font-monospace text-muted" style="font-size: 0.72rem;">@perm.Code</div>
+                                                    <div class="font-monospace text-muted u-fs-2xs">@perm.Code</div>
                                                 </div>
                                             </div>
                                         </div>

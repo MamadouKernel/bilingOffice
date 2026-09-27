@@ -43,7 +43,7 @@ else
         </div>
     }
 
-    <div class="cit-card p-4 mb-4 border-0 shadow-sm" style="border-radius: 1.25rem; background-color: var(--surface);">
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm u-r-xl u-bg-surface">
         <div class="row g-3 align-items-end">
             <div class="col-12 col-md-3">
                 <label class="form-label small fw-bold text-dark">@Loc["Archives.FilterModule"]</label>
@@ -69,7 +69,7 @@ else
 
     @if (_archives is null || _archives.Count == 0)
     {
-        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm" style="border-radius: 1rem; background-color: var(--surface);">
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm u-r-lg u-bg-surface">
             <div class="fs-1 mb-3">🗄️</div>
             <h4 class="fw-bold text-dark mb-2">@Loc["Archives.EmptyTitle"]</h4>
             <p class="text-muted mb-0">@Loc["Archives.EmptyDesc"]</p>
@@ -77,7 +77,7 @@ else
     }
     else
     {
-        <div class="cit-card border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem; background-color: var(--surface);">
+        <div class="cit-card border-0 shadow-sm overflow-hidden u-r-xl u-bg-surface">
             <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">

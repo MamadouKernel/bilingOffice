@@ -108,7 +108,7 @@
                         <div class="p-2 bg-white border rounded-3 d-inline-block shadow-xs">
                             <img src="@qrCodeDataUri" alt="@Loc["TwoFa.QrAlt"]" style="width: 160px; height: 160px;" class="img-fluid" />
                         </div>
-                        <div class="small text-muted mt-1" style="font-size: 0.75rem;">@Loc["TwoFa.ScanQr"]</div>
+                        <div class="small text-muted mt-1 u-fs-xs">@Loc["TwoFa.ScanQr"]</div>
                     </div>
 
                     <!-- Clé Manuelle -->
@@ -117,7 +117,7 @@
                         <div class="p-3 bg-white border rounded-3 font-monospace fw-bold text-primary tracking-wider mb-2 select-all" style="font-size: 1rem; word-break: break-all;">
                             @cleFormatee
                         </div>
-                        <div class="small text-muted" style="font-size: 0.8rem;">
+                        <div class="small text-muted u-fs-sm">
                             @((MarkupString)Loc["TwoFa.KeyMeta"].Value)
                         </div>
                     </div>

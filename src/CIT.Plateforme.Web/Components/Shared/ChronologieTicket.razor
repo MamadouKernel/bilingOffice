@@ -20,13 +20,13 @@
                     <div class="cit-card p-3 mb-1">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-bold text-dark small">@ev.Evenement</span>
-                            <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.72rem;">@ev.HorodatageUtc.Horodate() UTC</span>
+                            <span class="badge bg-light text-muted border font-monospace u-fs-2xs">@ev.HorodatageUtc.Horodate() UTC</span>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(ev.Detail))
                         {
                             <div class="small text-secondary mb-2">@ev.Detail</div>
                         }
-                        <div class="text-muted small d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                        <div class="text-muted small d-flex align-items-center gap-1 u-fs-xs">
                             <span>@Loc["Chrono.By"]</span> <span class="fw-semibold text-dark">@ev.AuteurNom</span>
                         </div>
                     </div>

@@ -81,12 +81,12 @@
            XL, et le nom, potentiellement long, est tronqué au lieu de pousser la barre. *@
         @if (Contexte?.SocieteNom is not null)
         {
-            <div class="d-none d-xl-flex align-items-center gap-2 ms-2 px-3 py-1 bg-light border rounded-pill small" style="min-width: 0;">
+            <div class="d-none d-xl-flex align-items-center gap-2 ms-2 px-3 py-1 bg-light border rounded-pill small min-w-0">
                 <span class="text-primary">🏢</span>
                 <span class="fw-bold text-dark text-truncate" style="max-width: 220px;">@Contexte.SocieteNom</span>
                 @if (Contexte.SocieteProfil.HasValue)
                 {
-                    <span class="badge bg-secondary-subtle text-secondary rounded-pill py-1 px-2" style="font-size: 0.7rem;">
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill py-1 px-2 u-fs-2xs">
                         @Contexte.SocieteProfil
                     </span>
                 }
@@ -137,7 +137,7 @@
                 <div class="cit-user-dropdown" role="menu">
                     <div class="cit-user-dropdown-head">
                         <span class="cit-user-avatar lg">@Initiale</span>
-                        <div style="min-width:0;">
+                        <div class="min-w-0">
                             <div class="cit-user-dropdown-name">@Contexte.NomAffiche</div>
                             <div class="cit-user-dropdown-mail">@Contexte.Email</div>
                         </div>

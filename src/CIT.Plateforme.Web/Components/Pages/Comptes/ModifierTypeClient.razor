@@ -1,4 +1,4 @@
-﻿@page "/comptes/modifier-type"
+@page "/comptes/modifier-type"
 @rendermode InteractiveServer
 @attribute [Authorize]
 @using CIT.Plateforme.Application.Comptes
@@ -49,7 +49,7 @@ else
         }
         else
         {
-            <div class="cit-card p-4 border-0 shadow-sm mb-4" style="border-radius: 1rem;">
+            <div class="cit-card p-4 border-0 shadow-sm mb-4 u-r-lg">
                 <div class="alert alert-info bg-info bg-opacity-10 border-0 text-info mb-4 d-flex align-items-center gap-2 p-3 rounded-3">
                     <span class="fs-5">ℹ️</span>
                     <span class="small">@Loc["ModifType.InfoTrace"]</span>
@@ -57,8 +57,7 @@ else
 
                 <div class="mb-4">
                     <label class="form-label text-uppercase fw-bold text-muted small" for="societe">@Loc["ModifType.LblSociete"]</label>
-                    <select id="societe" class="form-select form-select-lg border-0 shadow-sm" 
-                            style="background-color: var(--surface); border-radius: 0.75rem;" 
+                    <select id="societe" class="form-select form-select-lg border-0 shadow-sm u-r-md u-bg-surface" 
                             @bind="_societeSelectionnee" @bind:after="SurChangementSociete">
                         @foreach (var societe in _societes)
                         {
@@ -82,8 +81,7 @@ else
 
                 <div class="mb-4">
                     <label class="form-label text-uppercase fw-bold text-muted small" for="nouveau-type">@Loc["ModifType.LblNouveauType"]</label>
-                    <select id="nouveau-type" class="form-select form-select-lg border-0 shadow-sm" 
-                            style="background-color: var(--surface); border-radius: 0.75rem;" 
+                    <select id="nouveau-type" class="form-select form-select-lg border-0 shadow-sm u-r-md u-bg-surface" 
                             @bind="_nouveauType">
                         @foreach (var valeur in Enum.GetValues<TypeClient>())
                         {
@@ -93,8 +91,7 @@ else
                 </div>
 
                 <div class="pt-2 border-top text-end">
-                    <button type="button" class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow-sm" 
-                            style="border-radius: 0.75rem;" 
+                    <button type="button" class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow-sm u-r-md" 
                             @onclick="ModifierAsync">
                         @Loc["ModifType.BtnEnregistrer"]
                     </button>

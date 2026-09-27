@@ -1,4 +1,4 @@
-﻿@page "/comptes/connexion"
+@page "/comptes/connexion"
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Domain.Securite
@@ -28,15 +28,15 @@
             </a>
         </div>
 
-        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem;">
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg u-r-2xl">
             <div class="row g-0">
                 
                 <!-- Left Side: 3D Illustration -->
-                <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
+                <div class="col-md-6 d-none d-md-block u-bg-azure">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
                         <img src="images/login-illustration.jpg" alt="@Loc["Auth.MaritimeIllustrationAlt"]" class="img-fluid" style="max-height: 500px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">@Loc["Auth.WelcomeDigital"]</h3>
+                            <h3 class="fw-bold text-uppercase u-c-action">@Loc["Auth.WelcomeDigital"]</h3>
                             <p class="text-muted mb-0">@Loc["Auth.WelcomeTagline"]</p>
                         </div>
                     </div>
@@ -47,35 +47,34 @@
                     <div class="p-5 p-lg-5 w-100">
                         <div class="mb-5 text-center text-md-start">
                             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" style="height: 54px; border-radius: 8px; margin-bottom: 1.5rem;" />
-                            <h1 class="fw-bold h2 mb-0" style="color: var(--ink);">@Loc["Auth.LoginTitle"]</h1>
+                            <h1 class="fw-bold h2 mb-0 u-c-ink">@Loc["Auth.LoginTitle"]</h1>
                             <p class="text-muted">@Loc["Auth.LoginSubtitle"]</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="ConnecterAsync" FormName="connexion">
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="email">@Loc["Auth.Email"]</label>
-                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3" placeholder="@Loc["Common.EmailPlaceholder"]" @bind-Value="Modele.Email" style="background-color: var(--surface);" />
+                                <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="email">@Loc["Auth.Email"]</label>
+                                <InputText id="email" class="form-control form-control-lg border-0 px-3 py-3 u-bg-surface" placeholder="@Loc["Common.EmailPlaceholder"]" @bind-Value="Modele.Email" />
                             </div>
                             
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <label class="form-label text-uppercase fw-bold text-muted mb-0" style="font-size: 0.75rem;" for="mot-de-passe">@Loc["Auth.Password"]</label>
-                                    <a href="/comptes/mot-de-passe-oublie" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">@Loc["Auth.ForgotPassword"]</a>
+                                    <label class="form-label text-uppercase fw-bold text-muted mb-0 u-fs-xs" for="mot-de-passe">@Loc["Auth.Password"]</label>
+                                    <a href="/comptes/mot-de-passe-oublie" class="small text-decoration-none fw-bold u-c-marine">@Loc["Auth.ForgotPassword"]</a>
                                 </div>
                                 <ChampMotDePasse>
-                                    <InputText id="mot-de-passe" type="password" class="form-control form-control-lg border-0 px-3 py-3 mt-2" placeholder="••••••••" @bind-Value="Modele.MotDePasse" style="background-color: var(--surface);" />
+                                    <InputText id="mot-de-passe" type="password" class="form-control form-control-lg border-0 px-3 py-3 mt-2 u-bg-surface" placeholder="••••••••" @bind-Value="Modele.MotDePasse" />
                                 </ChampMotDePasse>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3" style="border-radius: 0.75rem;">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-3 py-3 u-r-md">
                                 @Loc["Auth.SignInButton"] <span class="ms-2">→</span>
                             </button>
                         </EditForm>
 
                         @if (erreur is not null)
                         {
-                            <div class="alert mt-4 rounded-3 p-3 d-flex align-items-center shadow-sm" 
-                                 style="background-color: var(--stop-100); color: var(--stop-600); border: 1px solid var(--stop-border);">
+                            <div class="alert mt-4 rounded-3 p-3 d-flex align-items-center shadow-sm u-alerte-stop">
                                 <span class="me-2 fs-5">⚠️</span>
                                 <span class="fw-semibold small">@erreur</span>
                             </div>

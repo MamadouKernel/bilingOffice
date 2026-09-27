@@ -1,4 +1,4 @@
-﻿@page "/comptes/verifier-code"
+@page "/comptes/verifier-code"
 @using CIT.Plateforme.Infrastructure.Identity
 @using CIT.Plateforme.Web.Resources
 @using Microsoft.AspNetCore.Identity
@@ -14,15 +14,15 @@
 
 <div class="row justify-content-center">
     <div class="col-12 col-xl-10">
-        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem;">
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg u-r-2xl">
             <div class="row g-0">
                 
                 <!-- Left Side: 3D Illustration -->
-                <div class="col-md-6 d-none d-md-block" style="background-color: var(--azure-50);">
+                <div class="col-md-6 d-none d-md-block u-bg-azure">
                     <div class="h-100 d-flex flex-column justify-content-center align-items-center p-5 text-center">
                         <img src="images/login-illustration.jpg" alt="@Loc["Auth.SecurityIllustrationAlt"]" class="img-fluid" style="max-height: 480px; border-radius: 1rem; mix-blend-mode: multiply;" />
                         <div class="mt-4">
-                            <h3 class="fw-bold text-uppercase" style="color: var(--action);">@Loc["Auth.TwoFactorHeading"]</h3>
+                            <h3 class="fw-bold text-uppercase u-c-action">@Loc["Auth.TwoFactorHeading"]</h3>
                             <p class="text-muted mb-0">@Loc["Auth.TwoFactorTagline"]</p>
                         </div>
                     </div>
@@ -36,13 +36,13 @@
                             <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-3">
                                 <span>🛡️</span> @Loc["Auth.ReinforcedSecurity"]
                             </div>
-                            <h1 class="fw-bold h2 mb-0" style="color: var(--ink);">@Loc["Auth.TwoFactorTitle"]</h1>
+                            <h1 class="fw-bold h2 mb-0 u-c-ink">@Loc["Auth.TwoFactorTitle"]</h1>
                             <p class="text-muted mb-0">@Loc["Auth.TwoFactorSubtitle"]</p>
                         </div>
 
                         <EditForm Model="Modele" OnValidSubmit="ValiderAsync" FormName="verifier-code">
                             <div class="mb-4">
-                                <label class="form-label text-uppercase fw-bold text-muted" style="font-size: 0.75rem;" for="code">@Loc["Auth.TwoFactorCode"]</label>
+                                <label class="form-label text-uppercase fw-bold text-muted u-fs-xs" for="code">@Loc["Auth.TwoFactorCode"]</label>
                                 @* SAISIE OTP À 6 CASES. Le vrai champ (InputText) reste l'unique source de la
                                    valeur postée : js/otp.js le rend transparent et le superpose aux cases,
                                    qui ne font que refléter sa valeur. Sans JavaScript, le champ classique
@@ -70,7 +70,7 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-2 py-3 fw-bold" style="border-radius: 0.75rem;">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm mt-2 py-3 fw-bold u-r-md">
                                 @Loc["Auth.VerifyButton"] <span class="ms-2">→</span>
                             </button>
 

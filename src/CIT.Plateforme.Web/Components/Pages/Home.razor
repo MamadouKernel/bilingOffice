@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using CIT.Plateforme.Application.Web
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Services
@@ -21,8 +21,7 @@ else
     <div class="cit-landing-container py-3">
         
         <!-- 1. HERO BANNER PRINCIPAL : PRÉSENTATION DE CÔTE D'IVOIRE TERMINAL -->
-        <div class="cit-card cit-hero-gradient p-4 p-lg-5 mb-5 text-white border-0 shadow-lg overflow-hidden position-relative"
-             style="border-radius: 1.5rem;">
+        <div class="cit-card cit-hero-gradient p-4 p-lg-5 mb-5 text-white border-0 shadow-lg overflow-hidden position-relative u-r-2xl">
             
             <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center opacity-10 pe-5 pointer-events-none" style="font-size: 15rem;">
                 ⚓
@@ -34,7 +33,7 @@ else
                         <img src="images/logo_cit.jpeg" alt="@Loc["Home.LogoAlt"]"
                              style="height: 52px; width: auto; object-fit: contain; border-radius: 6px;" />
                         <div class="vr bg-secondary opacity-25 d-none d-sm-block" style="height: 30px;"></div>
-                        <span class="d-inline-block small fw-bold text-dark text-nowrap" style="font-size: 0.95rem;">
+                        <span class="d-inline-block small fw-bold text-dark text-nowrap u-fs-md">
                             @Loc["Home.BadgeDigital"]
                         </span>
                     </div>
@@ -43,7 +42,7 @@ else
                         @Loc["Home.HeroTitlePart1"] <span style="color: var(--signal-500);">@Loc["Home.HeroTitleAccent"]</span>
                     </h1>
 
-                    <p class="lead mb-4 text-white-50 fs-6" style="line-height: 1.6;">
+                    <p class="lead mb-4 text-white-50 fs-6 u-lh-relaxed">
                         @((MarkupString)Loc["Home.HeroLead"].Value)
                     </p>
 
@@ -104,12 +103,12 @@ else
                             </div>
                             <h4 class="fw-bold text-dark mb-2">@Loc["Home.Persona1Title"]</h4>
                             <div class="badge bg-primary-subtle text-primary mb-3">@Loc["Home.Persona1Badge"]</div>
-                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                            <p class="text-muted small mb-4 u-lh-normal">
                                 @Loc["Home.Persona1Text"]
                             </p>
                         </div>
                         <div>
-                            <a href="/comptes/soumettre" class="btn btn-primary w-100 py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
+                            <a href="/comptes/soumettre" class="btn btn-primary w-100 py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 u-r-md">
                                 <span>@Loc["Home.Persona1Cta"]</span> <span>➔</span>
                             </a>
                         </div>
@@ -126,12 +125,12 @@ else
                             </div>
                             <h4 class="fw-bold text-dark mb-2">@Loc["Home.Persona2Title"]</h4>
                             <div class="badge bg-success-subtle text-success mb-3">@Loc["Home.Persona2Badge"]</div>
-                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                            <p class="text-muted small mb-4 u-lh-normal">
                                 @((MarkupString)Loc["Home.Persona2Text"].Value)
                             </p>
                         </div>
                         <div>
-                            <a href="/comptes/connexion" class="btn btn-outline-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
+                            <a href="/comptes/connexion" class="btn btn-outline-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 u-r-md">
                                 <span>@Loc["Home.Persona2Cta"]</span> <span>➔</span>
                             </a>
                         </div>
@@ -148,12 +147,12 @@ else
                             </div>
                             <h4 class="fw-bold text-dark mb-2">@Loc["Home.Persona3Title"]</h4>
                             <div class="badge bg-warning-subtle text-dark mb-3">@Loc["Home.Persona3Badge"]</div>
-                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                            <p class="text-muted small mb-4 u-lh-normal">
                                 @Loc["Home.Persona3Text"]
                             </p>
                         </div>
                         <div>
-                            <a href="/comptes/inscription-transporteur" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm d-flex align-items-center justify-content-center gap-2" style="border-radius: 0.75rem;">
+                            <a href="/comptes/inscription-transporteur" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm d-flex align-items-center justify-content-center gap-2 u-r-md">
                                 <span>@Loc["Home.Persona3Cta"]</span> <span>➔</span>
                             </a>
                         </div>
@@ -222,7 +221,7 @@ else
 
             <div class="row g-3 g-md-4">
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white u-r-lg">
                         <div class="fs-2 mb-2">📦</div>
                         <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature1Title"]</h5>
                         <p class="text-muted small mb-0">
@@ -232,7 +231,7 @@ else
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white u-r-lg">
                         <div class="fs-2 mb-2">🧮</div>
                         <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature2Title"]</h5>
                         <p class="text-muted small mb-0">
@@ -242,7 +241,7 @@ else
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white u-r-lg">
                         <div class="fs-2 mb-2">💳</div>
                         <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature3Title"]</h5>
                         <p class="text-muted small mb-0">
@@ -252,7 +251,7 @@ else
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-3">
-                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white" style="border-radius: 1rem;">
+                    <div class="cit-card p-4 h-100 border-0 shadow-sm bg-white u-r-lg">
                         <div class="fs-2 mb-2">🛡️</div>
                         <h5 class="fw-bold text-dark mb-2">@Loc["Home.Feature4Title"]</h5>
                         <p class="text-muted small mb-0">

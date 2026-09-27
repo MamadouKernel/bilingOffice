@@ -1,4 +1,4 @@
-﻿@page "/comptes/soumettre"
+@page "/comptes/soumettre"
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Comptes
 @using CIT.Plateforme.Domain.Comptes
@@ -29,11 +29,11 @@
             </a>
         </div>
 
-        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg" style="border-radius: 1.5rem; background-color: var(--surface);">
+        <div class="cit-card p-0 overflow-hidden border-0 shadow-lg u-r-2xl u-bg-surface">
             <div class="row g-0">
                 
                 <!-- Left Side: Terminal 3D Illustration & Presentation -->
-                <div class="col-lg-5 d-none d-lg-block" style="background-color: var(--azure-50);">
+                <div class="col-lg-5 d-none d-lg-block u-bg-azure">
                     <div class="h-100 d-flex flex-column justify-content-between p-5">
                         <div>
                             <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white rounded-pill shadow-xs mb-4">
@@ -41,10 +41,10 @@
                                 <span class="small fw-bold text-dark">Côte d'Ivoire Terminal</span>
                             </div>
 
-                            <h3 class="fw-bold text-dark mb-3 lh-sm" style="color: var(--action);">
+                            <h3 class="fw-bold text-dark mb-3 lh-sm u-c-action">
                                 @Loc["Account.CompanyPanelHeading"]
                             </h3>
-                            <p class="text-muted small mb-4" style="line-height: 1.6;">
+                            <p class="text-muted small mb-4 u-lh-relaxed">
                                 @Loc["Account.CompanyPanelTagline"]
                             </p>
 
@@ -80,7 +80,7 @@
                                  alt="@Loc["Account.CompanyImageAlt"]"
                                  class="img-fluid rounded-4 shadow-sm border border-white border-2"
                                  style="max-height: 300px; object-fit: cover;" />
-                            <div class="text-muted small mt-2" style="font-size: 0.75rem;">
+                            <div class="text-muted small mt-2 u-fs-xs">
                                 @Loc["Account.CompanyImageCaption"]
                             </div>
                         </div>
@@ -105,10 +105,9 @@
 
                         @if (societeCreee is not null)
                         {
-                            <div class="p-4 p-md-5 border-0 shadow-sm mb-4 text-center rounded-4" 
-                                 style="background-color: var(--ok-100); border: 1px solid var(--ok-border);">
+                            <div class="p-4 p-md-5 border-0 shadow-sm mb-4 text-center rounded-4 u-alerte-ok">
                                 <div class="fs-1 mb-2">🎉</div>
-                                <h4 class="fw-bold mb-2" style="color: var(--ok-600);">@Loc["Account.CompanySuccessTitle"]</h4>
+                                <h4 class="fw-bold mb-2 u-c-ok">@Loc["Account.CompanySuccessTitle"]</h4>
                                 <p class="text-muted small mb-3">
                                     @Loc["Account.CompanySuccessText"]
                                 </p>
@@ -136,20 +135,18 @@
 
                                     <div class="row g-3">
                                         <div class="col-12 col-md-6">
-                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="email">@Loc["Account.EmailProfessional"] <span class="text-danger">*</span></label>
-                                            <InputText id="email" class="form-control border-0 px-3 py-2 shadow-xs"
+                                            <label class="form-label text-uppercase fw-bold text-muted small u-fs-2xs" for="email">@Loc["Account.EmailProfessional"] <span class="text-danger">*</span></label>
+                                            <InputText id="email" class="form-control border-0 px-3 py-2 shadow-xs u-r-md u-bg-surface"
                                                        placeholder="@Loc["Account.CompanyEmailPlaceholder"]"
-                                                       @bind-Value="modele.Email"
-                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                                       @bind-Value="modele.Email" />
                                         </div>
                                         <div class="col-12 col-md-6">
-                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="mot-de-passe">@Loc["Account.Password"] <span class="text-danger">*</span></label>
+                                            <label class="form-label text-uppercase fw-bold text-muted small u-fs-2xs" for="mot-de-passe">@Loc["Account.Password"] <span class="text-danger">*</span></label>
                                             <ChampMotDePasse>
                                                 <InputText id="mot-de-passe" type="password"
-                                                           class="form-control border-0 px-3 py-2 shadow-xs"
+                                                           class="form-control border-0 px-3 py-2 shadow-xs u-r-md u-bg-surface"
                                                            placeholder="••••••••••••"
-                                                           @bind-Value="modele.MotDePasse"
-                                                           style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                                           @bind-Value="modele.MotDePasse" />
                                             </ChampMotDePasse>
                                         </div>
                                     </div>
@@ -165,14 +162,13 @@
                                     <div class="row g-3 mb-3">
                                         <div class="col-12 col-md-6">
                                             <div class="d-flex align-items-center justify-content-between mb-1">
-                                                <label class="form-label text-uppercase fw-bold text-muted small mb-0" style="font-size: 0.7rem;" for="profil">@Loc["Account.ProfileLabel"]</label>
-                                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary fw-semibold" style="font-size: 0.75rem;" @onclick="() => _afficherGuideProfils = !_afficherGuideProfils">
+                                                <label class="form-label text-uppercase fw-bold text-muted small mb-0 u-fs-2xs" for="profil">@Loc["Account.ProfileLabel"]</label>
+                                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary fw-semibold u-fs-xs" @onclick="() => _afficherGuideProfils = !_afficherGuideProfils">
                                                     @Loc["Account.Understand4Profiles"]
                                                 </button>
                                             </div>
-                                            <InputSelect id="profil" class="form-select border-0 shadow-xs" 
-                                                         @bind-Value="modele.Profil"
-                                                         style="background-color: var(--surface); border-radius: 0.65rem;">
+                                            <InputSelect id="profil" class="form-select border-0 shadow-xs u-r-md u-bg-surface" 
+                                                         @bind-Value="modele.Profil">
                                                 @foreach (var valeur in Enum.GetValues<TypeClient>())
                                                 {
                                                     <option value="@valeur">@valeur</option>
@@ -210,7 +206,7 @@
                                                 <span class="small fw-bold text-dark">@Loc["Account.GuideTitle"]</span>
                                                 <button type="button" class="btn-close" aria-label="@Loc["Common.Close"]" @onclick="() => _afficherGuideProfils = false"></button>
                                             </div>
-                                            <div class="row g-2 small text-muted" style="font-size: 0.75rem;">
+                                            <div class="row g-2 small text-muted u-fs-xs">
                                                 <div class="col-12 col-sm-6">
                                                     <div class="p-2 bg-white rounded border h-100">
                                                         @((MarkupString)Loc["Account.GuideNormal"].Value)
@@ -239,28 +235,25 @@
                                        obligatoires ; le RCCM est normalisé puis contrôlé (format, unicité). *@
                                     <div class="row g-2 mb-2">
                                         <div class="col-12 col-md-7">
-                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="raison-sociale">@Loc["Account.CompanyNameLabel"] <span class="text-danger">*</span></label>
-                                            <InputText id="raison-sociale" class="form-control border-0 shadow-xs p-2" autocomplete="organization"
+                                            <label class="form-label text-uppercase fw-bold text-muted small u-fs-2xs" for="raison-sociale">@Loc["Account.CompanyNameLabel"] <span class="text-danger">*</span></label>
+                                            <InputText id="raison-sociale" class="form-control border-0 shadow-xs p-2 u-r-md u-bg-surface" autocomplete="organization"
                                                        maxlength="200" placeholder="@Loc["Account.CompanyNamePlaceholder"]"
-                                                       @bind-Value="modele.RaisonSociale"
-                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                                       @bind-Value="modele.RaisonSociale" />
                                         </div>
                                         <div class="col-12 col-md-5">
-                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="rccm">@Loc["Account.RccmLabel"] <span class="text-danger">*</span></label>
-                                            <InputText id="rccm" class="form-control border-0 shadow-xs p-2 font-monospace text-uppercase"
+                                            <label class="form-label text-uppercase fw-bold text-muted small u-fs-2xs" for="rccm">@Loc["Account.RccmLabel"] <span class="text-danger">*</span></label>
+                                            <InputText id="rccm" class="form-control border-0 shadow-xs p-2 font-monospace text-uppercase u-r-md u-bg-surface"
                                                        maxlength="40" placeholder="CI-ABJ-2024-B-12345" spellcheck="false"
-                                                       @bind-Value="modele.Rccm"
-                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                                       @bind-Value="modele.Rccm" />
                                             <div class="form-text small">@Loc["Account.RccmHint"]</div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="informations">@Loc["Account.CompanyInfoOptionalLabel"]</label>
-                                        <InputTextArea id="informations" rows="2" class="form-control border-0 shadow-xs p-2"
+                                        <label class="form-label text-uppercase fw-bold text-muted small u-fs-2xs" for="informations">@Loc["Account.CompanyInfoOptionalLabel"]</label>
+                                        <InputTextArea id="informations" rows="2" class="form-control border-0 shadow-xs p-2 u-r-md u-bg-surface"
                                                        placeholder="@Loc["Account.CompanyInfoPlaceholder"]"
-                                                       @bind-Value="modele.InformationsDeclarees"
-                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                                       @bind-Value="modele.InformationsDeclarees" />
                                     </div>
                                 </div>
 
@@ -279,14 +272,14 @@
                                                 <div class="col-12 col-md-6">
                                                     <div class="p-2 border rounded-3 bg-light d-flex flex-column justify-content-between h-100">
                                                         <div class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="small fw-bold text-dark" style="font-size: 0.8rem;">📄 @piece.Libelle</span>
+                                                            <span class="small fw-bold text-dark u-fs-sm">📄 @piece.Libelle</span>
                                                             @if (piece.Obligatoire)
                                                             {
-                                                                <span class="badge bg-danger-subtle text-danger" style="font-size: 0.65rem;">@Loc["Account.Mandatory"]</span>
+                                                                <span class="badge bg-danger-subtle text-danger u-fs-2xs">@Loc["Account.Mandatory"]</span>
                                                             }
                                                             else
                                                             {
-                                                                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">@Loc["Account.Optional"]</span>
+                                                                <span class="badge bg-secondary-subtle text-secondary u-fs-2xs">@Loc["Account.Optional"]</span>
                                                             }
                                                         </div>
 
@@ -297,7 +290,7 @@
 
                                                         @if (fichiers.ContainsKey(piece.Code))
                                                         {
-                                                            <div class="mt-1 small text-success fw-semibold" style="font-size: 0.75rem;">
+                                                            <div class="mt-1 small text-success fw-semibold u-fs-xs">
                                                                 ✅ @fichiers[piece.Code].Name
                                                             </div>
                                                         }
@@ -311,8 +304,7 @@
                                 <!-- MESSAGE D'ERREUR HAUTE VISIBILITÉ -->
                                 @if (erreur is not null)
                                 {
-                                    <div class="alert mt-3 mb-3 rounded-3 p-3 d-flex align-items-center shadow-sm" 
-                                         style="background-color: var(--stop-100); color: var(--stop-600); border: 1px solid var(--stop-border);">
+                                    <div class="alert mt-3 mb-3 rounded-3 p-3 d-flex align-items-center shadow-sm u-alerte-stop">
                                         <span class="me-2 fs-5">⚠️</span>
                                         <span class="fw-semibold small">@erreur</span>
                                     </div>
@@ -320,10 +312,10 @@
 
                                 <!-- BOUTONS D'ACTION -->
                                 <div class="pt-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
-                                    <a href="/comptes/connexion" class="small text-decoration-none fw-bold" style="color: var(--marine-600);">
+                                    <a href="/comptes/connexion" class="small text-decoration-none fw-bold u-c-marine">
                                         ← @Loc["Account.AlreadyAccountSignIn"]
                                     </a>
-                                    <button type="submit" class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow-sm rounded-pill" style="border-radius: 0.75rem;">
+                                    <button type="submit" class="btn btn-primary btn-lg px-4 py-2 fw-bold shadow-sm rounded-pill u-r-md">
                                         @Loc["Account.SubmitFile"] <span class="ms-1">🚀</span>
                                     </button>
                                 </div>

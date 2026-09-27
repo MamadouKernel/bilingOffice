@@ -36,7 +36,7 @@
 <div class="cit-card mb-3 p-3 d-flex flex-wrap align-items-center gap-3">
     <div class="d-flex align-items-center gap-2">
         <label for="filtre-statut" class="form-label mb-0 small fw-semibold">@Loc["File.FilterStatus"]</label>
-        <select id="filtre-statut" class="form-select form-select-sm" style="width:auto" @bind="_filtreStatut" @bind:after="ChargerAsync">
+        <select id="filtre-statut" class="form-select form-select-sm w-auto" @bind="_filtreStatut" @bind:after="ChargerAsync">
             <option value="">@Loc["File.FilterStatusAll"]</option>
             @foreach (var statut in _statutsFiltrables)
             {
@@ -46,7 +46,7 @@
     </div>
     <div class="d-flex align-items-center gap-2">
         <label for="tri-file" class="form-label mb-0 small fw-semibold">@Loc["File.SortLabel"]</label>
-        <select id="tri-file" class="form-select form-select-sm" style="width:auto" @bind="_tri" @bind:after="ChargerAsync">
+        <select id="tri-file" class="form-select form-select-sm w-auto" @bind="_tri" @bind:after="ChargerAsync">
             <option value="@TriFileTicket.DateArriveeCroissante">@Loc["File.SortArrivalAsc"]</option>
             <option value="@TriFileTicket.DateArriveeDecroissante">@Loc["File.SortArrivalDesc"]</option>
             <option value="@TriFileTicket.PrioriteDecroissante">@Loc["File.SortPriorityDesc"]</option>
