@@ -2900,3 +2900,28 @@ html { scroll-padding-top: var(--header-h); }
 }
 .cit-infobulle:hover .cit-infobulle-texte, .cit-infobulle:focus-within .cit-infobulle-texte { visibility: visible; opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .cit-infobulle-texte { transition: none; } }
+
+/* ==========================================================================
+   VISITE GUIDÉE — voile, halo autour de la cible et carte d'explication.
+   ========================================================================== */
+.cit-visite { position: fixed; inset: 0; z-index: var(--z-confirmation); }
+/* Le halo « découpe » la cible dans le voile : son ombre géante assombrit tout le reste. */
+.cit-visite-halo {
+    position: fixed; border-radius: var(--r-md); pointer-events: none;
+    box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgba(8, 22, 31, .62);
+    transition: top .2s ease, left .2s ease, width .2s ease, height .2s ease;
+}
+.cit-visite.centree .cit-visite-halo { top: 50% !important; left: 50% !important; width: 0 !important; height: 0 !important; box-shadow: 0 0 0 9999px rgba(8, 22, 31, .62); }
+.cit-visite-carte {
+    position: fixed; width: min(360px, calc(100vw - 16px)); padding: 1.1rem 1.2rem 1rem;
+    background: var(--surface); color: inherit; border: 1px solid var(--line);
+    border-radius: var(--r-md); box-shadow: var(--lift-2);
+    animation: menu-in .18s cubic-bezier(.32, .72, 0, 1);
+}
+.cit-visite.centree .cit-visite-carte { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%); }
+.cit-visite-compteur { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .6; font-variant-numeric: tabular-nums; }
+.cit-visite-titre { font-size: 1.05rem; font-weight: 700; margin: .3rem 0 .4rem; text-wrap: balance; }
+.cit-visite-texte { font-size: .9rem; line-height: 1.55; margin: 0 0 .9rem; }
+.cit-visite-actions { display: flex; align-items: center; gap: .5rem; }
+.cit-visite-passer { margin-right: auto; padding-left: 0; }
+@media (prefers-reduced-motion: reduce) { .cit-visite-halo { transition: none; } .cit-visite-carte { animation: none; } }

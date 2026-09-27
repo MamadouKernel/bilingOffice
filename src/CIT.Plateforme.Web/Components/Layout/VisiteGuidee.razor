@@ -1,0 +1,36 @@
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* VISITE GUIDÉE (première connexion) — les étapes sont rendues par le serveur, déjà traduites,
+   dans un <template> inerte ; js/visite-guidee.js les affiche (CSP : aucun script inline).
+   Chaque étape vise un élément de la barre ou du menu par sélecteur CSS ; une étape dont la cible
+   est absente ou masquée (écran étroit, compte à un seul espace…) est simplement sautée.
+   « Déjà vue » est mémorisé dans le navigateur, par utilisateur : la visite se relance à tout
+   moment depuis le panneau « ? ». *@
+<template id="cit-visite" data-cle="@UtilisateurId.ToString("N")"
+          data-precedent="@Loc["Tour.Previous"]" data-suivant="@Loc["Tour.Next"]"
+          data-terminer="@Loc["Tour.Finish"]" data-passer="@Loc["Tour.Skip"]" data-compteur="@Loc["Tour.Counter"]">
+    @foreach (var etape in Etapes)
+    {
+        <div data-etape data-cible="@etape.Cible" data-titre="@Loc[etape.Titre]">@Loc[etape.Texte]</div>
+    }
+</template>
+
+@code {
+    [Parameter, EditorRequired] public Guid UtilisateurId { get; set; }
+
+    /// <param name="Cible">Sélecteurs CSS, le premier élément visible est retenu ; vide = étape centrée.</param>
+    private sealed record Etape(string Cible, string Titre, string Texte);
+
+    private static readonly Etape[] Etapes =
+    [
+        new("", "Tour.WelcomeTitle", "Tour.WelcomeText"),
+        new(".cit-rail, .cit-mobile-menu-trigger", "Tour.MenuTitle", "Tour.MenuText"),
+        new(".cit-persona-barre", "Tour.SpaceTitle", "Tour.SpaceText"),
+        new(".cit-recherche-ecran", "Tour.SearchTitle", "Tour.SearchText"),
+        new("a.cit-notification-btn[href='/notifications']", "Tour.BellTitle", "Tour.BellText"),
+        new(".cit-aide-bouton", "Tour.HelpTitle", "Tour.HelpText"),
+        new("details.cit-user-menu[data-cit-menu] > summary", "Tour.AccountTitle", "Tour.AccountText"),
+    ];
+}
