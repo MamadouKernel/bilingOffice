@@ -46,10 +46,33 @@
             </details>
         }
 
-        <a href="/" class="cit-brand">
+        @* Sur bureau, le logo vit dans le rail : la barre ne le répète pas (sauf pour un visiteur). *@
+        <a href="/" class="cit-brand @(Contexte?.EstAuthentifie == true ? "d-lg-none" : "")">
             <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" class="cit-brand-logo" />
             <span class="cit-brand-sub d-none d-sm-inline-block">@Loc["Header.BrandSub"]</span>
         </a>
+
+        @if (Contexte?.EstAuthentifie == true)
+        {
+            <span class="cit-nav-pill d-none d-lg-inline-flex">
+                <span aria-hidden="true">▦</span> @(Contexte.EstTransporteur ? Loc["Header.SpaceCarrier"] : LibelleEspace(Contexte.EspaceActif))
+            </span>
+
+            @* RECHERCHE D'ÉCRAN (Ctrl+K) — propose uniquement les écrans du menu de ce compte : elle
+               ne peut donc mener nulle part où le menu ne mène pas. Navigation par js/navigation-rapide.js. *@
+            <div class="cit-recherche-ecran d-none d-md-flex" role="search">
+                <span aria-hidden="true">🔍</span>
+                <input type="search" list="cit-ecrans" data-recherche-ecran autocomplete="off"
+                       placeholder="@Loc["Header.SearchScreen"]" aria-label="@Loc["Header.SearchScreen"]" />
+                <kbd>Ctrl K</kbd>
+                <datalist id="cit-ecrans">
+                    @foreach (var lien in _ecrans)
+                    {
+                        <option value="@Loc[lien.Libelle]" data-route="@lien.Route"></option>
+                    }
+                </datalist>
+            </div>
+        }
 
         @* REMÉDIATION D-17 : entre 768 et ~1100 px, la barre affichait d'un coup la marque, le
            bandeau société, la langue, le thème, la cloche et l'identité — d'où un débordement
@@ -72,9 +95,11 @@
 
     <div class="d-flex align-items-center gap-2">
         <LanguageSwitcher />
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-theme-toggle title="@Loc["Header.ThemeToggleTitle"]" aria-label="@Loc["Header.ThemeToggleAria"]" style="font-size: 0.9rem;">
-            🌓
-        </button>
+        @* Sélecteur de thème segmenté : l'état actif est posé par theme-manager.js (aria-pressed). *@
+        <div class="cit-theme-switch" role="group" title="@Loc["Header.ThemeToggleTitle"]" aria-label="@Loc["Header.ThemeToggleAria"]">
+            <button type="button" data-theme-set="light" aria-pressed="true">☀ <span class="d-none d-xl-inline">@Loc["Header.ThemeLight"]</span></button>
+            <button type="button" data-theme-set="dark" aria-pressed="false">☾ <span class="d-none d-xl-inline">@Loc["Header.ThemeDark"]</span></button>
+        </div>
 
         @if (Contexte?.EstAuthentifie == true)
         {
@@ -89,6 +114,9 @@
                 {
                     <span class="cit-notification-badge">@(NombreNonLues > 99 ? "99+" : NombreNonLues)</span>
                 }
+            </a>
+            <a href="/notifications/preferences" class="cit-notification-btn d-none d-sm-inline-flex" title="@Loc["Header.Settings"]" aria-label="@Loc["Header.Settings"]">
+                <span>⚙️</span>
             </a>
 
             @* Menu utilisateur — <details>/<summary> natif.
@@ -194,7 +222,22 @@
             // Un compteur indisponible n'est pas une raison de casser l'en-tête : il s'efface.
             NombreNonLues = 0;
         }
+
+        try
+        {
+            // Écrans proposés à la recherche : exactement ceux du menu de ce compte.
+            var menu = await scope.ServiceProvider.GetRequiredService<ConstruireNavigationQuery>()
+                .ExecuterAsync(Contexte.UtilisateurId, Contexte.EspaceActif, Contexte.SocieteId.HasValue);
+            _ecrans = [.. menu.SelectMany(g => g.Liens).DistinctBy(l => l.Route)];
+        }
+        catch (Exception)
+        {
+            // Même principe : sans liste, la recherche reste simplement vide.
+            _ecrans = [];
+        }
     }
+
+    private IReadOnlyList<LienNavigationVue> _ecrans = [];
 
     private string Initiale =>
         string.IsNullOrWhiteSpace(Contexte?.NomAffiche) ? "U" : Contexte!.NomAffiche.Trim()[..1].ToUpperInvariant();

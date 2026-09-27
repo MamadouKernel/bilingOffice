@@ -295,7 +295,7 @@ public static class CatalogueNavigation
             new("Comptes agents", "🛠️", "/administration/comptes-agents", [Permission.AdministrationComptes]),
             new("Pièces exigées", "📎", "/administration/pieces-exigees-compte", [Permission.AdministrationComptes]),
             new("Journal d'audit", "🔒", "/administration/audit", [Permission.AuditConsulter]),
-            new("Archives", "🗄️", "/administration/archives", [Permission.AuditConsulter]),
+            new("Archives des tickets", "🗄️", "/administration/archives", [Permission.AuditConsulter]),
             new("Base de l'assistant", "💬", "/administration/assistant", [Permission.AdministrationAssistant]),
             ..EntreesCompte,
         ]),

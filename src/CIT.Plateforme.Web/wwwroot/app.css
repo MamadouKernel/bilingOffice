@@ -2064,3 +2064,210 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
    de l'en-tête en haut de la zone de défilement : les cibles de focus/ancre s'arrêtent en dessous.
    Bénéficie aussi au lien d'évitement et au fil d'Ariane. */
 html { scroll-padding-top: var(--header-h); }
+
+/* ==========================================================================
+   RAIL D'ICÔNES + BARRE SUPÉRIEURE (maquette « dashboard » : rail arrondi,
+   panneaux au survol, recherche Ctrl+K, sélecteur de thème en pastille).
+   Tout est piloté en CSS natif (:hover / :focus-within / :has) : le layout est
+   rendu en SSR statique, sans circuit Blazor.
+   ========================================================================== */
+:root {
+    --rail-compact-w: 84px;
+    --rail-grad: linear-gradient(185deg, var(--deep-500) 0%, var(--deep-700) 55%, var(--deep-800) 100%);
+}
+
+.cit-desktop-sidebar {
+    width: var(--rail-compact-w);
+    flex: 0 0 var(--rail-compact-w);
+    background: transparent;
+    padding: .75rem 0 .75rem .75rem;
+    overflow: visible; /* les panneaux débordent à droite du rail */
+}
+
+.cit-rail {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    padding: 1rem 0;
+    background: var(--rail-grad);
+    border-radius: 22px 36px 36px 22px;
+    box-shadow: var(--lift-3);
+}
+
+.cit-rail-logo img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    padding: 4px;
+    border-radius: 14px;
+    background: #fff;
+    display: block;
+}
+
+.cit-rail-groupes { display: flex; flex-direction: column; gap: .5rem; flex: 1 1 auto; margin-top: .75rem; }
+
+.cit-rail-groupe { position: relative; }
+
+.cit-rail-btn {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--rail-ink);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color .15s ease, transform .15s ease;
+}
+
+.cit-rail-btn > span { filter: saturate(.6); transition: filter .15s ease; }
+
+.cit-rail-groupe:hover .cit-rail-btn,
+.cit-rail-groupe:focus-within .cit-rail-btn { background: var(--rail-hover); transform: translateX(2px); }
+
+/* Groupe de la page courante : pastille claire, comme l'icône active de la maquette. */
+.cit-rail-groupe:has(.active) .cit-rail-btn {
+    background: #fff;
+    box-shadow: 0 6px 16px -6px rgba(0, 0, 0, .45);
+}
+
+.cit-rail-groupe:has(.active) .cit-rail-btn > span,
+.cit-rail-groupe:hover .cit-rail-btn > span { filter: none; }
+
+.cit-rail-flyout {
+    position: absolute;
+    left: calc(100% + 14px);
+    top: -6px;
+    min-width: 250px;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: .5rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--lift-3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-6px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    z-index: var(--z-menu-mobile);
+}
+
+/* Pont invisible entre l'icône et le panneau : le survol ne se perd pas dans l'écart. */
+.cit-rail-flyout::before { content: ""; position: absolute; left: -16px; top: 0; bottom: 0; width: 16px; }
+
+.cit-rail-groupe:hover > .cit-rail-flyout,
+.cit-rail-groupe:focus-within > .cit-rail-flyout { opacity: 1; visibility: visible; transform: translateX(0); }
+
+.cit-rail-flyout-bas { top: auto; bottom: -6px; }
+
+.cit-rail-flyout-titre {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: .375rem .625rem .5rem;
+}
+
+.cit-rail-lien {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    padding: .5rem .625rem;
+    border-radius: var(--r-md);
+    color: var(--ink-2);
+    font-size: .875rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.cit-rail-lien:hover { background: var(--surface-2); color: var(--ink); text-decoration: none; }
+
+.cit-rail-lien.active { background: var(--rail-active); color: var(--ink); font-weight: 700; }
+
+.cit-rail-pied { margin-top: auto; }
+
+/* ---- Barre supérieure ---------------------------------------------------- */
+.cit-header {
+    background: rgba(var(--surface-rgb), .85);
+    backdrop-filter: saturate(1.4) blur(8px);
+}
+
+.cit-nav-pill {
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem .9rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    font-size: .8125rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.cit-recherche-ecran {
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+    width: clamp(200px, 26vw, 360px);
+    padding: .35rem .5rem .35rem .85rem;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.cit-recherche-ecran:focus-within { border-color: var(--deep-500); box-shadow: 0 0 0 3px rgba(29, 70, 101, .15); }
+
+.cit-recherche-ecran input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: .85rem;
+}
+
+.cit-recherche-ecran kbd {
+    font-size: .68rem;
+    padding: .1rem .4rem;
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+    box-shadow: none;
+}
+
+.cit-theme-switch {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+}
+
+.cit-theme-switch button {
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-size: .8rem;
+    font-weight: 600;
+    padding: .25rem .7rem;
+    border-radius: 999px;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.cit-theme-switch button[aria-pressed="true"] { background: var(--deep-600); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+    .cit-rail-flyout, .cit-rail-btn { transition: none; }
+}

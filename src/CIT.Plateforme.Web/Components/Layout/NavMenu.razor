@@ -43,6 +43,45 @@
             <span>📝</span> @Loc["Nav.CreateCompanyAccount"]
         </NavLink>
     }
+    else if (Rail && _groupes.Count > 0)
+    {
+        @* RAIL D'ICÔNES (bureau) — une icône par groupe ; son panneau de liens s'ouvre au survol ET
+           au focus clavier (:focus-within), sans JavaScript : le layout est rendu en SSR statique.
+           Le groupe contenant la page active est mis en évidence en CSS (:has(.active)). *@
+        <nav class="cit-rail" aria-label="@Loc["Header.NavMenuAria"]">
+            <a href="/" class="cit-rail-logo" title="YABA">
+                <img src="images/logo_cit.jpeg" alt="Côte d'Ivoire Terminal" />
+            </a>
+            <div class="cit-rail-groupes">
+                @foreach (var groupe in _groupes)
+                {
+                    <div class="cit-rail-groupe">
+                        <button type="button" class="cit-rail-btn" aria-haspopup="true" aria-label="@Loc[groupe.Titre]">
+                            <span aria-hidden="true">@groupe.Icone</span>
+                        </button>
+                        <div class="cit-rail-flyout" role="menu">
+                            <div class="cit-rail-flyout-titre">@Loc[groupe.Titre]</div>
+                            @foreach (var lien in groupe.Liens)
+                            {
+                                <NavLink class="cit-rail-lien" href="@lien.Route" role="menuitem"
+                                         Match="@(lien.CorrespondanceExacte ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                                    <span aria-hidden="true">@lien.Icone</span> @Loc[lien.Libelle]
+                                </NavLink>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="cit-rail-groupe cit-rail-pied">
+                <button type="button" class="cit-rail-btn" aria-haspopup="true" aria-label="@Loc["Header.MyAccount"]">
+                    <span aria-hidden="true">🔄</span>
+                </button>
+                <div class="cit-rail-flyout cit-rail-flyout-bas">
+                    <PersonaSwitcher Contexte="@_contexte" />
+                </div>
+            </div>
+        </nav>
+    }
     else
     {
         <div class="px-2 pt-2 pb-1 border-bottom border-white border-opacity-10 mb-2">
@@ -84,6 +123,9 @@
 </div>
 
 @code {
+    /// <summary>Vrai sur bureau : rail d'icônes à panneaux. Faux (mobile) : liste dépliée.</summary>
+    [Parameter] public bool Rail { get; set; }
+
     private ContexteUtilisateurVue? _contexte;
     private IReadOnlyList<GroupeNavigationVue> _groupes = [];
 
