@@ -2389,3 +2389,17 @@ html { scroll-padding-top: var(--header-h); }
 .cit-persona-barre > summary:hover { border-color: var(--deep-500); }
 .cit-persona-barre[open] > summary { background: var(--surface); border-color: var(--deep-500); }
 .cit-persona-barre .cit-persona-dropdown { left: 0; right: auto; min-width: 240px; }
+
+/* ==========================================================================
+   GABARITS DE LARGEUR DE PAGE — remplacent les max-width en ligne calés à
+   gauche, qui laissaient un grand vide à droite sur écran large.
+   Listes, tableaux, administration : pleine largeur. Formulaires : largeur de
+   lecture confortable, CENTRÉS dans la zone de contenu.
+   ========================================================================== */
+.cit-page-large { width: 100%; }
+.cit-page-moyenne { width: 100%; max-width: 1040px; margin-inline: auto; }
+.cit-page-etroite { width: 100%; max-width: 780px; margin-inline: auto; }
+
+/* Le rail occupe toute la hauteur de l'écran : le conteneur du menu (NavMenu)
+   s'étire, et le rail prend 100 % de cette hauteur. */
+.cit-desktop-sidebar > .cit-sidebar { height: 100%; padding: 0; }
