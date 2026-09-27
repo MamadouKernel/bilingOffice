@@ -268,6 +268,8 @@ public static class DependencyInjection
         services.AddScoped<Application.Comptes.CorrigerIdentiteSocieteCommand>();
         services.AddScoped<Application.Comptes.IDoubleAuthentificationAdministration, Identity.DoubleAuthentificationAdministration>();
         services.AddScoped<Application.Comptes.ReinitialiserDoubleAuthentificationCommand>();
+        services.AddScoped<Application.Comptes.IAnnuaireComptes, Identity.AnnuaireComptes>();
+        services.AddScoped<Application.Comptes.ListerComptesUtilisateursQuery>();
         services.AddScoped<Application.Comptes.ValiderOuRejeterDemandeCompteCommand>();
         services.AddScoped<Application.Comptes.ListerDemandesEnAttenteQuery>();
 

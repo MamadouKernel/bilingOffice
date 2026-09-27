@@ -1,0 +1,306 @@
+@page "/administration/comptes-utilisateurs"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* ANNUAIRE DE TOUS LES COMPTES — agents, clients de société, transporteurs. Actions d'exploitation
+   courantes (activer / désactiver, réinitialiser la 2FA), toutes revérifiées côté serveur et
+   tracées à l'audit par leurs commandes. La gestion fine des droits des agents reste sur
+   « Comptes agents ». *@
+
+<PageTitle>@Loc["AdmUsers.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span aria-hidden="true">👥</span> @Loc["AdmUsers.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["AdmUsers.Subtitle"]</div>
+    </div>
+    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync" disabled="@_chargement">
+        @Loc["Common.Refresh"]
+    </button>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["AdmUsers.Loading"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-4" role="alert">⚠️ @_erreur</div>
+    }
+    @if (_succes is not null)
+    {
+        <div class="alert alert-success mb-4" role="status">✅ @_succes</div>
+    }
+
+    @if (_comptes is not null)
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var (categorie, icone) in Categories)
+            {
+                <div class="col-6 col-lg-3">
+                    <div class="cit-stat-card">
+                        <div class="cit-stat-icon" aria-hidden="true">@icone</div>
+                        <div>
+                            <div class="text-muted small fw-semibold">@LibelleCategorie(categorie)</div>
+                            <div class="fs-4 fw-bold">@_comptes.Count(c => c.Categorie == categorie)</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item">
+                <button type="button" class="nav-link @(_filtre is null ? "active" : "")" @onclick="() => Filtrer(null)">
+                    @Loc["AdmUsers.All"] (@_comptes.Count)
+                </button>
+            </li>
+            @foreach (var (categorie, _) in Categories)
+            {
+                <li class="nav-item">
+                    <button type="button" class="nav-link @(_filtre == categorie ? "active" : "")" @onclick="() => Filtrer(categorie)">
+                        @LibelleCategorie(categorie)
+                    </button>
+                </li>
+            }
+        </ul>
+
+        <div class="cit-card p-0">
+            <div class="p-3"><FiltreTable Etat="_pagination" AuChangement="StateHasChanged" /></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>@Loc["AdmUsers.ColAccount"]</th>
+                            <th>@Loc["AdmUsers.ColCategory"]</th>
+                            <th>@Loc["AdmUsers.ColCompany"]</th>
+                            <th>@Loc["AdmUsers.ColState"]</th>
+                            <th>@Loc["AdmUsers.Col2Fa"]</th>
+                            <th class="text-end">@Loc["Common.Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in _pagination.Appliquer(ComptesFiltres))
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@c.NomAffiche</div>
+                                    <div class="small text-muted font-monospace">@c.Email</div>
+                                </td>
+                                <td><span class="badge bg-secondary-subtle text-secondary-emphasis">@LibelleCategorie(c.Categorie)</span></td>
+                                <td>@(c.Societe ?? "—")</td>
+                                <td>
+                                    @if (c.InvitationEnAttente)
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">✉️ @Loc["AdmCompte.PendingBadge"]</span>
+                                    }
+                                    else if (c.EstActif)
+                                    {
+                                        <span class="badge bg-success-subtle text-success-emphasis">@Loc["AdmCompte.StateActive"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">@Loc["AdmCompte.StateInactive"]</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (c.DeuxFacteursActifs)
+                                    {
+                                        <span class="badge bg-success-subtle text-success-emphasis">🛡️ @Loc["AdmUsers.2FaOn"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">@Loc["AdmUsers.2FaOff"]</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (c.Id != _appelantId)
+                                    {
+                                        <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
+                                            @if (c.DeuxFacteursActifs)
+                                            {
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@_enCours"
+                                                        title="@Loc["AdmCompte.Reset2FaTitle"]" @onclick="() => DemanderReinit2Fa(c)">
+                                                    🛡️ @Loc["AdmCompte.Reset2Fa"]
+                                                </button>
+                                            }
+                                            @if (c.EstActif)
+                                            {
+                                                <button type="button" class="btn btn-outline-danger btn-sm" disabled="@_enCours" @onclick="() => DemanderDesactivation(c)">
+                                                    @Loc["Common.Deactivate"]
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-outline-success btn-sm" disabled="@_enCours" @onclick="() => ActiverAsync(c, true)">
+                                                    @Loc["AdmUsers.Activate"]
+                                                </button>
+                                            }
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <Pagination Etat="_pagination" AuChangement="StateHasChanged" />
+        </div>
+    }
+}
+
+@if (_confirmation is { } conf)
+{
+    <div class="cit-modal-backdrop cit-voile-confirmation" role="presentation">
+        <div class="cit-modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="titre-confirmation">
+            <h2 id="titre-confirmation" class="h5 fw-bold mb-2">@conf.Titre</h2>
+            <p class="text-muted mb-4">@conf.Message</p>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => _confirmation = null">@Loc["Common.Cancel"]</button>
+                <button type="button" class="btn @conf.Classe" disabled="@_enCours" @onclick="ConfirmerAsync">@conf.Bouton</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly (CategorieCompte Categorie, string Icone)[] Categories =
+    [
+        (CategorieCompte.AgentCit, "🏢"),
+        (CategorieCompte.ClientSociete, "🧾"),
+        (CategorieCompte.Transporteur, "🚚"),
+        (CategorieCompte.ClientSansSociete, "⏳"),
+    ];
+
+    private sealed record Confirmation(string Titre, string Message, string Bouton, string Classe, Func<Task> Action);
+
+    private readonly EtatPagination _pagination = new();
+    private IReadOnlyList<CompteUtilisateurVue>? _comptes;
+    private CategorieCompte? _filtre;
+    private Confirmation? _confirmation;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _enCours;
+    private bool _refuse;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+    private string? _succes;
+
+    private IEnumerable<CompteUtilisateurVue> ComptesFiltres =>
+        _filtre is null ? _comptes ?? [] : (_comptes ?? []).Where(c => c.Categorie == _filtre);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _appelantId = (await ContexteService.ObtenirContexteAsync()).UtilisateurId;
+        await ChargerAsync();
+    }
+
+    private string LibelleCategorie(CategorieCompte categorie) => Loc[$"AdmUsers.Cat.{categorie}"].Value;
+
+    private void Filtrer(CategorieCompte? categorie)
+    {
+        _filtre = categorie;
+        _pagination.DefinirFiltre(_pagination.Filtre);
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            _comptes = await scope.ServiceProvider.GetRequiredService<ListerComptesUtilisateursQuery>().ExecuterAsync(_appelantId);
+            _refuse = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private void DemanderReinit2Fa(CompteUtilisateurVue c) =>
+        _confirmation = new Confirmation(
+            Loc["AdmCompte.Conf2FaTitle"].Value,
+            Loc["AdmCompte.Conf2FaMsg", c.NomAffiche, c.Email].Value,
+            Loc["AdmCompte.Conf2FaBtn"].Value,
+            "btn-warning",
+            () => ExecuterAsync(sp => sp.GetRequiredService<ReinitialiserDoubleAuthentificationCommand>().ExecuterAsync(_appelantId, c.Id),
+                Loc["AdmCompte.Result2Fa", c.NomAffiche].Value));
+
+    private void DemanderDesactivation(CompteUtilisateurVue c) =>
+        _confirmation = new Confirmation(
+            Loc["AdmUsers.ConfDeactTitle"].Value,
+            Loc["AdmUsers.ConfDeactMsg", c.NomAffiche, c.Email].Value,
+            Loc["Common.Deactivate"].Value,
+            "btn-danger",
+            () => ActiverAsync(c, false));
+
+    private Task ActiverAsync(CompteUtilisateurVue c, bool actif) =>
+        ExecuterAsync(sp => sp.GetRequiredService<DefinirActivationCompteCommand>().ExecuterAsync(_appelantId, c.Id, actif),
+            Loc[actif ? "AdmUsers.ResultActivated" : "AdmUsers.ResultDeactivated", c.NomAffiche].Value);
+
+    private async Task ConfirmerAsync()
+    {
+        var action = _confirmation?.Action;
+        _confirmation = null;
+        if (action is not null)
+        {
+            await action();
+        }
+    }
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action, string messageSucces)
+    {
+        _erreur = null;
+        _succes = null;
+        _enCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
+            _succes = messageSucces;
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = ex.Message;
+        }
+        catch (AutoReinitialisation2FaInterditeException)
+        {
+            _erreur = Loc["AdmUsers.SelfForbidden"].Value;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

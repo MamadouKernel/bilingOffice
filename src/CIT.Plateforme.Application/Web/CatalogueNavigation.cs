@@ -293,6 +293,7 @@ public static class CatalogueNavigation
             new("Catégories d'incident", "🛠️", "/administration/categories-incident", [Permission.AdministrationCategoriesIncident]),
             new("Notifications", "🔔", "/administration/notifications", [Permission.AdministrationNotifications]),
             new("Comptes agents", "🛠️", "/administration/comptes-agents", [Permission.AdministrationComptes]),
+            new("Comptes utilisateurs", "👥", "/administration/comptes-utilisateurs", [Permission.AdministrationComptes]),
             new("Pièces exigées", "📎", "/administration/pieces-exigees-compte", [Permission.AdministrationComptes]),
             new("Journal d'audit", "🔒", "/administration/audit", [Permission.AuditConsulter]),
             new("Archives des tickets", "🗄️", "/administration/archives", [Permission.AuditConsulter]),
