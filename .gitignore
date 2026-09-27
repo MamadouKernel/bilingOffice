@@ -52,3 +52,6 @@ scratch/
 # Le depot distant etant desormais PRIVE, ces artefacts y sont remis sous version.
 # Ils contiennent des informations client et professionnelles : le caractere prive
 # du depot est la condition de cette decision. Voir docs/53.
+
+# Fichiers verrous temporaires d Office (document ouvert)
+~$*
