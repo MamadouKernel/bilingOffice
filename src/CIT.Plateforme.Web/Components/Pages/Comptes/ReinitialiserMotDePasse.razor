@@ -8,7 +8,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IStringLocalizer<SharedResources> Loc
 
-<PageTitle>@Loc["Account.ResetPageTitle"]</PageTitle>
+<PageTitle>@Loc[activation ? "Account.ActivatePageTitle" : "Account.ResetPageTitle"]</PageTitle>
 
 @* Écran d'authentification : même langage visuel que Connexion (carte centrée, champ large,
    bouton pleine largeur). Le titre reçoit le focus à la navigation (FocusOnNavigate) : il n'affiche
@@ -21,18 +21,18 @@
                 <div class="d-inline-flex align-items-center justify-content-center mb-3"
                      style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; background: var(--azure-50); border: 1px solid var(--azure-100); font-size: 1.6rem;"
                      aria-hidden="true">
-                    @(succes ? "✅" : "🔑")
+                    @(succes ? "✅" : activation ? "👋" : "🔑")
                 </div>
                 <h1 class="fw-bold h3 mb-2" style="color: var(--ink); outline: none; box-shadow: none;" tabindex="-1">
-                    @Loc["Account.ResetTitle"]
+                    @Loc[activation ? "Account.ActivateTitle" : "Account.ResetTitle"]
                 </h1>
-                <p class="text-muted mb-0 small">@Loc["Account.ResetSubtitle"]</p>
+                <p class="text-muted mb-0 small">@Loc[activation ? "Account.ActivateSubtitle" : "Account.ResetSubtitle"]</p>
             </div>
 
             @if (succes)
             {
                 <div class="alert alert-success text-center mb-4" role="status">
-                    <strong>@Loc["Account.ResetSuccess"]</strong>
+                    <strong>@Loc[activation ? "Account.ActivateSuccess" : "Account.ResetSuccess"]</strong>
                 </div>
                 <a href="/comptes/connexion" class="btn btn-primary btn-lg w-100 py-3 shadow-sm" style="border-radius: .75rem;">
                     @Loc["Account.GoToLogin"] <span class="ms-2" aria-hidden="true">→</span>
@@ -62,7 +62,15 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-sm" style="border-radius: .75rem;">
-                        @Loc["Account.ResetSubmit"] <span class="ms-2" aria-hidden="true">→</span>
+                        @if (activation)
+                        {
+                            @Loc["Account.ActivateSubmit"]
+                        }
+                        else
+                        {
+                            @Loc["Account.ResetSubmit"]
+                        }
+                        <span class="ms-2" aria-hidden="true">→</span>
                     </button>
 
                     <div class="text-center mt-4">
@@ -89,11 +97,24 @@
     private string? erreur;
     private bool succes;
 
-    protected override void OnInitialized()
+    /// <summary>
+    /// Vrai pour une INVITATION : le compte n'a encore aucun mot de passe (agent créé par un
+    /// administrateur). La page parle alors d'activation plutôt que de réinitialisation. Évalué
+    /// avant le traitement du formulaire, ce mode reste stable sur l'écran de succès.
+    /// </summary>
+    private bool activation;
+
+    protected override async Task OnInitializedAsync()
     {
         Modele ??= new();
         Modele.UtilisateurId ??= UtilisateurIdParametre ?? string.Empty;
         Modele.Jeton ??= JetonParametre ?? string.Empty;
+
+        if (Guid.TryParse(Modele.UtilisateurId, out _)
+            && await UserManager.FindByIdAsync(Modele.UtilisateurId) is { } compte)
+        {
+            activation = !await UserManager.HasPasswordAsync(compte);
+        }
     }
 
     private async Task ReinitialiserAsync()
@@ -110,7 +131,11 @@
         var resultat = await UserManager.ResetPasswordAsync(utilisateur, jeton, Modele.NouveauMotDePasse);
         if (!resultat.Succeeded)
         {
-            erreur = string.Join(" ", resultat.Errors.Select(e => e.Description));
+            // Jeton expiré (> 2 h) ou déjà utilisé : un message clair plutôt que « Invalid token ».
+            var jetonInvalide = resultat.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.InvalidToken));
+            erreur = jetonInvalide
+                ? Loc["Account.LinkExpired"].Value
+                : string.Join(" ", resultat.Errors.Select(e => e.Description));
             return;
         }
 

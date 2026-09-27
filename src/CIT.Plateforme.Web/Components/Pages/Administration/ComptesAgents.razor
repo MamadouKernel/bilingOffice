@@ -16,7 +16,9 @@
 @inject IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
 @using CIT.Plateforme.Infrastructure.Identity
+@using CIT.Plateforme.Application.Abstractions
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 
 <PageTitle>@Loc["AdmCompte.PageTitle"]</PageTitle>
 
@@ -228,6 +230,12 @@ else
                                             @Loc["AdmCompte.StateInactive"]
                                         </span>
                                     }
+                                    @if (_invitationsEnAttente.Contains(compte.Id))
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill d-inline-block mt-1">
+                                            ✉️ @Loc["AdmCompte.PendingBadge"]
+                                        </span>
+                                    }
                                 </td>
 
                                 <!-- Habilitations & Permissions (Présentation Compacte & Élégante) -->
@@ -278,6 +286,16 @@ else
                                                 @onclick="() => OuvrirModalPermissions(compte)">
                                             <span>🔑</span> @Loc["AdmCompte.ManageAccess", compte.Permissions.Count]
                                         </button>
+
+                                        @if (_invitationsEnAttente.Contains(compte.Id) && compte.EstActif)
+                                        {
+                                            <button class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold"
+                                                    title="@Loc["AdmCompte.ResendInviteTitle"]"
+                                                    disabled="@_enCours"
+                                                    @onclick="() => RenvoyerInvitationAsync(compte)">
+                                                ✉️ @Loc["AdmCompte.ResendInvite"]
+                                            </button>
+                                        }
 
                                         @if (compte.EstActif)
                                         {
@@ -521,6 +539,18 @@ else
             _comptes = await listerComptes.ExecuterAsync(_appelantId);
             _refuse = false;
 
+            // Invitations en attente : comptes agents qui n'ont pas encore défini leur mot de
+            // passe. Lu après la query ci-dessus, qui a déjà exigé AdministrationComptes.
+            var idsAgents = _comptes.Select(c => c.Id).ToList();
+            var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
+            _invitationsEnAttente = userManager is null
+                ? []
+                : (await userManager.Users
+                        .Where(u => idsAgents.Contains(u.Id) && u.PasswordHash == null)
+                        .Select(u => u.Id)
+                        .ToListAsync())
+                    .ToHashSet();
+
             // Rafraîchir l'agent en édition si la modale est ouverte
             if (_agentEnEdition is not null)
             {
@@ -585,6 +615,50 @@ else
         catch (Exception ex)
         {
             _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    /// <summary>Agents dont le compte n'est pas encore activé (aucun mot de passe défini).</summary>
+    private HashSet<Guid> _invitationsEnAttente = [];
+
+    /// <summary>
+    /// RENVOI D'INVITATION — nouveau lien d'activation (2 h) pour un agent qui n'a pas encore
+    /// défini son mot de passe. Autorisation revérifiée côté serveur, action tracée à l'audit.
+    /// </summary>
+    private async Task RenvoyerInvitationAsync(CompteAgentVue cible)
+    {
+        var envoyee = false;
+
+        await ExecuterAsync(async sp =>
+        {
+            await sp.GetRequiredService<IAutorisationService>()
+                .ExigerAsync(_appelantId, Permission.AdministrationComptes);
+
+            var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
+            var compte = await userManager.FindByIdAsync(cible.Id.ToString())
+                ?? throw new InvalidOperationException(Loc["AdmCompte.InviteNotSent", cible.Email].Value);
+
+            // Un compte déjà activé n'a pas d'invitation à recevoir : « mot de passe oublié » existe.
+            if (await userManager.HasPasswordAsync(compte))
+            {
+                return;
+            }
+
+            envoyee = await sp.GetRequiredService<EnvoiLienMotDePasse>().EnvoyerAsync(
+                compte,
+                new Uri(Navigation.BaseUri),
+                Loc["AdmCompte.InviteMailSubject"].Value,
+                lien => Loc["AdmCompte.InviteMailBody", compte.NomAffiche, lien].Value);
+
+            await sp.GetRequiredService<IJournalisationService>().ConsignerAuditAsync(
+                _appelantId, "InvitationAgentRenvoyee", "ApplicationUser", compte.Id, null, compte.Email);
+            await sp.GetRequiredService<IUniteDeTravail>().EnregistrerAsync();
+        }, Loc["AdmCompte.SuccessResend", cible.Email].Value);
+
+        if (_erreur is null && !envoyee)
+        {
+            _succes = null;
+            _erreur = Loc["AdmCompte.InviteNotSent", cible.Email].Value;
         }
     }
 

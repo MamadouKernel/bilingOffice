@@ -3,6 +3,7 @@ using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Web.Tests.Support;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace CIT.Plateforme.Web.Tests.Comptes;
@@ -14,6 +15,14 @@ namespace CIT.Plateforme.Web.Tests.Comptes;
 /// </summary>
 public sealed class InvitationAgentTests(PlateformeWebApplicationFactory factory) : IClassFixture<PlateformeWebApplicationFactory>
 {
+    [Fact]
+    public void Les_liens_de_definition_du_mot_de_passe_sont_valables_deux_heures()
+    {
+        var options = factory.Services.GetRequiredService<IOptions<DataProtectionTokenProviderOptions>>().Value;
+
+        Assert.Equal(TimeSpan.FromHours(2), options.TokenLifespan);
+    }
+
     [Fact]
     public async Task Un_agent_cree_par_invitation_n_a_aucun_mot_de_passe()
     {

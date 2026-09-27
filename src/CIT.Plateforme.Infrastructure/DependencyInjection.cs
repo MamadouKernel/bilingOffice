@@ -18,6 +18,9 @@ namespace CIT.Plateforme.Infrastructure;
 /// référence que cette extension, jamais les types Infrastructure individuellement.</summary>
 public static class DependencyInjection
 {
+    /// <summary>Validité d'un lien de définition / réinitialisation du mot de passe.</summary>
+    public static readonly TimeSpan DureeValiditeLienMotDePasse = TimeSpan.FromHours(2);
+
     public static IServiceCollection AjouterInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var chaineConnexion = configuration.GetConnectionString("PlateformeDb");
@@ -38,6 +41,12 @@ public static class DependencyInjection
             // explicitement hors périmètre de son propre socle) — extension additive pure, sans
             // impact sur le comportement d'authentification déjà validé.
             .AddDefaultTokenProviders();
+
+        // Liens de définition / réinitialisation du mot de passe (invitation d'agent, « mot de
+        // passe oublié ») : valables 2 heures seulement (défaut Identity : 1 jour). Une fenêtre
+        // courte limite l'exploitation d'un e-mail intercepté ou d'une boîte partagée.
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+            options.TokenLifespan = DureeValiditeLienMotDePasse);
 
         services.AddScoped<IHorloge, HorlogeSysteme>();
         services.AddScoped<IUniteDeTravail, UniteDeTravail>();
