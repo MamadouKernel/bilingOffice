@@ -2294,8 +2294,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TypeClient")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("TypeDemande")
                         .HasMaxLength(128)
@@ -2306,6 +2306,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasIndex("EstActif");
 
                     b.HasIndex("Ordre");
+
+                    b.HasIndex("TypeClient");
 
                     b.ToTable("ReglesPrioriteAutomatique");
                 });
@@ -3051,6 +3053,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasForeignKey("FileId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.ReglePrioriteAutomatique", b =>
+                {
+                    b.HasOne("CIT.Plateforme.Domain.Comptes.ParametreTypeClient", null)
+                        .WithMany()
+                        .HasForeignKey("TypeClient")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Tickets.Ticket", b =>

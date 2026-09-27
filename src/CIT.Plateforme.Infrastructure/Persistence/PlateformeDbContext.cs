@@ -728,7 +728,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasKey(r => r.Id);
             b.Property(r => r.Module).HasMaxLength(128);
             b.Property(r => r.TypeDemande).HasMaxLength(128);
-            b.Property(r => r.TypeClient).HasMaxLength(128);
+            b.Property(r => r.TypeClient).HasConversion<string>().HasMaxLength(32);
             b.HasIndex(r => r.EstActif);
             b.HasIndex(r => r.Ordre);
         });

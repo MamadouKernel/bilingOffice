@@ -12,6 +12,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject GererPreferencesCanauxCommand PreferencesCommand
+@inject LibellesReferentiels Referentiels
 
 @* FEATURE 009 — CONTRAT C9-09 (COM-05, Should).
 
@@ -87,6 +88,7 @@ else
             _chargement = true;
             _contexte = await ContexteService.ObtenirContexteAsync();
             _preferences = await PreferencesCommand.ListerMesPreferencesAsync(_contexte.UtilisateurId);
+            _canaux = await Referentiels.ValeursAsync(CIT.Plateforme.Application.Administration.DomaineReferentiel.CanalNotification);
             _erreur = null;
         }
         catch (Exception ex)
@@ -116,11 +118,10 @@ else
         }
     }
 
-    private string Libelle(CanalNotification canal) => canal switch
-    {
-        CanalNotification.Email => Loc["NotifPref.CanalEmail"].Value,
-        _ => canal.ToString(),
-    };
+    /// <summary>Libellés des canaux : référentiel administrable (table CanauxNotification).</summary>
+    private IReadOnlyList<CIT.Plateforme.Application.Administration.ValeurReferentielleVue> _canaux = [];
+
+    private string Libelle(CanalNotification canal) => LibellesReferentiels.Libelle(_canaux, (CanalNotification?)canal);
 
     private string Description(CanalNotification canal) => canal switch
     {

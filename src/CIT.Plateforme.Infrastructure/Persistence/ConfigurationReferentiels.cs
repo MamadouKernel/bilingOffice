@@ -44,6 +44,7 @@ internal static class ConfigurationReferentiels
         Lier<SocieteCliente, ParametreTypeClient>(builder, s => s.Profil);
         Lier<Dossier, ParametreTypeClient>(builder, d => d.TypeClient);
         Lier<ParametreSlaAdministrable, ParametreTypeClient>(builder, p => p.TypeClient);
+        Lier<ReglePrioriteAutomatique, ParametreTypeClient>(builder, r => r.TypeClient);
         Lier<Ticket, ReferentielGraviteIncident>(builder, t => t.Gravite);
         Lier<Ticket, ReferentielMotifCloture>(builder, t => t.MotifCloture);
         Lier<Document, ReferentielCategorieDocument>(builder, d => d.Categorie);

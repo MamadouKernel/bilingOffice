@@ -74,7 +74,14 @@ else
                 </div>
                 <div class="col-12 col-md-2">
                     <label class="form-label small fw-bold text-dark" for="typeClient">@Loc["AdmReglePrio.TypeClientLabel"]</label>
-                    <input id="typeClient" class="form-control" @bind="_typeClient" placeholder="@Loc["AdmReglePrio.AnyPlaceholder"]" />
+                    @* Liste fermée issue du référentiel des types de client (clé étrangère en base). *@
+                    <select id="typeClient" class="form-select" @bind="_typeClient">
+                        <option value="">@Loc["AdmReglePrio.AnyValue"]</option>
+                        @foreach (var type in _typesClient)
+                        {
+                            <option value="@type.Type">@type.Libelle(System.Globalization.CultureInfo.CurrentUICulture.Name)</option>
+                        }
+                    </select>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label small fw-bold text-dark" for="priorite">@Loc["AdmReglePrio.PrioriteLabel"]</label>
@@ -133,7 +140,7 @@ else
                                 <td class="ps-4 font-monospace fw-bold text-muted">#@regle.Ordre</td>
                                 <td>@(regle.Module ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
                                 <td>@(regle.TypeDemande ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
-                                <td>@(regle.TypeClient ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
+                                <td>@LibelleTypeClient(regle.TypeClient)</td>
                                 <td>@LibellePriorite(regle.PrioriteId)</td>
                                 <td>
                                     <span class="badge @(regle.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
@@ -180,6 +187,7 @@ else
     private string _module = string.Empty;
     private string _typeDemande = string.Empty;
     private string _typeClient = string.Empty;
+    private IReadOnlyList<CIT.Plateforme.Application.Comptes.TypeClientVue> _typesClient = [];
     private Guid _prioriteId;
     private int _ordre = 1;
 
@@ -211,6 +219,8 @@ else
             var listerNiveaux = scope.ServiceProvider.GetRequiredService<ListerNiveauxPrioriteQuery>();
             _regles = await listerRegles.ExecuterAsync(_appelantId);
             _niveaux = await listerNiveaux.ExecuterAsync(_appelantId);
+            _typesClient = await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.Comptes.ListerTypesClientQuery>()
+                .ExecuterAsync(activesUniquement: false);
             if (_prioriteId == Guid.Empty && _niveaux.Count > 0)
             {
                 _prioriteId = _niveaux[0].Id;
@@ -225,6 +235,11 @@ else
             _chargement = false;
         }
     }
+
+    private string LibelleTypeClient(string? code) =>
+        code is null
+            ? Loc["AdmReglePrio.AnyValue"].Value
+            : _typesClient.FirstOrDefault(t => t.Type.ToString() == code)?.Libelle(System.Globalization.CultureInfo.CurrentUICulture.Name) ?? code;
 
     private string LibellePriorite(Guid prioriteId) =>
         _niveaux?.FirstOrDefault(n => n.Id == prioriteId)?.Libelle ?? "—";

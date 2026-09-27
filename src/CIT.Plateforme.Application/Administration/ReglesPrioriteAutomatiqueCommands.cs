@@ -37,7 +37,7 @@ public sealed class GererReglesPrioriteAutomatiqueCommand(
 
         await journalisation.ConsignerAuditAsync(
             appelantId, "ReglePrioriteAutomatiqueDefinie", nameof(ReglePrioriteAutomatique), regle.Id,
-            null, $"{regle.Module ?? "*"}/{regle.TypeDemande ?? "*"}/{regle.TypeClient ?? "*"} -> {prioriteId}", ct).ConfigureAwait(false);
+            null, $"{regle.Module ?? "*"}/{regle.TypeDemande ?? "*"}/{regle.TypeClient?.ToString() ?? "*"} -> {prioriteId}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
         return regle.Id;
@@ -54,12 +54,12 @@ public sealed class GererReglesPrioriteAutomatiqueCommand(
         _ = await priorites.ObtenirNiveauAsync(prioriteId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Niveau de priorité {prioriteId} introuvable.");
 
-        var avant = $"{regle.Module ?? "*"}/{regle.TypeDemande ?? "*"}/{regle.TypeClient ?? "*"} -> {regle.PrioriteId}";
+        var avant = $"{regle.Module ?? "*"}/{regle.TypeDemande ?? "*"}/{regle.TypeClient?.ToString() ?? "*"} -> {regle.PrioriteId}";
         regle.Modifier(module, typeDemande, typeClient, prioriteId, ordre);
 
         await journalisation.ConsignerAuditAsync(
             appelantId, "ReglePrioriteAutomatiqueModifiee", nameof(ReglePrioriteAutomatique), regle.Id,
-            avant, $"{regle.Module ?? "*"}/{regle.TypeDemande ?? "*"}/{regle.TypeClient ?? "*"} -> {prioriteId}", ct).ConfigureAwait(false);
+            avant, $"{regle.Module ?? "*"}/{regle.TypeDemande ?? "*"}/{regle.TypeClient?.ToString() ?? "*"} -> {prioriteId}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
@@ -106,6 +106,6 @@ public sealed class ListerReglesPrioriteAutomatiqueQuery(
 
         return [.. toutes
             .OrderBy(r => r.Ordre)
-            .Select(r => new ReglePrioriteAutomatiqueVue(r.Id, r.Module, r.TypeDemande, r.TypeClient, r.PrioriteId, r.EstActif, r.Ordre))];
+            .Select(r => new ReglePrioriteAutomatiqueVue(r.Id, r.Module, r.TypeDemande, r.TypeClient?.ToString(), r.PrioriteId, r.EstActif, r.Ordre))];
     }
 }

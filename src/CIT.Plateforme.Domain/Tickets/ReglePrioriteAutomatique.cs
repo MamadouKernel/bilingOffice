@@ -27,8 +27,9 @@ public sealed class ReglePrioriteAutomatique
     public string? TypeDemande { get; private set; }
 
     /// <summary>Type de client ciblé (ex. « Normal », « EnCompte », « Deposit ») ; <c>null</c> =
-    /// tout type de client.</summary>
-    public string? TypeClient { get; private set; }
+    /// tout type de client. Valeur du référentiel des types de client (clé étrangère), jamais
+    /// un texte libre : une faute de frappe rendait la règle silencieusement inapplicable.</summary>
+    public Comptes.TypeClient? TypeClient { get; private set; }
 
     public Guid PrioriteId { get; private set; }
 
@@ -56,7 +57,7 @@ public sealed class ReglePrioriteAutomatique
             Id = Guid.NewGuid(),
             Module = NormaliserOuNull(module),
             TypeDemande = NormaliserOuNull(typeDemande),
-            TypeClient = NormaliserOuNull(typeClient),
+            TypeClient = ParserTypeClient(typeClient),
             PrioriteId = prioriteId,
             EstActif = true,
             Ordre = ordre,
@@ -72,7 +73,7 @@ public sealed class ReglePrioriteAutomatique
 
         Module = NormaliserOuNull(module);
         TypeDemande = NormaliserOuNull(typeDemande);
-        TypeClient = NormaliserOuNull(typeClient);
+        TypeClient = ParserTypeClient(typeClient);
         PrioriteId = prioriteId;
         Ordre = ordre;
     }
@@ -87,7 +88,21 @@ public sealed class ReglePrioriteAutomatique
         EstActif
         && (Module is null || string.Equals(Module, module, StringComparison.OrdinalIgnoreCase))
         && (TypeDemande is null || string.Equals(TypeDemande, typeDemande, StringComparison.OrdinalIgnoreCase))
-        && (TypeClient is null || string.Equals(TypeClient, typeClient, StringComparison.OrdinalIgnoreCase));
+        && (TypeClient is null || string.Equals(TypeClient.Value.ToString(), typeClient, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Type de client de la règle ; <c>null</c> = tout type. Une valeur inconnue est refusée.</summary>
+    private static Comptes.TypeClient? ParserTypeClient(string? valeur)
+    {
+        if (string.IsNullOrWhiteSpace(valeur))
+        {
+            return null;
+        }
+
+        return Enum.TryParse<Comptes.TypeClient>(valeur.Trim(), ignoreCase: true, out var type)
+            && Enum.IsDefined(type) && !int.TryParse(valeur, out _)
+            ? type
+            : throw new ArgumentException($"Type de client inconnu : « {valeur} ».", nameof(valeur));
+    }
 
     private static string? NormaliserOuNull(string? valeur) =>
         string.IsNullOrWhiteSpace(valeur) ? null : valeur.Trim();

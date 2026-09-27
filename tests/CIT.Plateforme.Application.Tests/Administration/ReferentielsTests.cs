@@ -99,6 +99,19 @@ public sealed class ReferentielsTests
     }
 
     [Fact]
+    public void Une_regle_de_priorite_refuse_un_type_de_client_inconnu_et_normalise_la_casse()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Domain.Tickets.ReglePrioriteAutomatique.Definir("BillingImport", null, "Premium", Guid.NewGuid(), 1));
+
+        var regle = Domain.Tickets.ReglePrioriteAutomatique.Definir("BillingImport", null, "deposit", Guid.NewGuid(), 1);
+
+        Assert.Equal(Domain.Comptes.TypeClient.Deposit, regle.TypeClient);
+        Assert.True(regle.Correspond("BillingImport", "Import", "Deposit"));
+        Assert.False(regle.Correspond("BillingImport", "Import", "Normal"));
+    }
+
+    [Fact]
     public void Le_modele_relie_chaque_colonne_de_referentiel_par_une_cle_etrangere()
     {
         using var db = ContexteDeTest.CreerNouveauContexte();
