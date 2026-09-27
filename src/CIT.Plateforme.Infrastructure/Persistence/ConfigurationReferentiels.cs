@@ -41,6 +41,16 @@ internal static class ConfigurationReferentiels
         builder.Entity<ParametreSlaAdministrable>().Property(p => p.TypeClient).HasConversion<string>().HasMaxLength(LongueurCode);
         builder.Entity<Ticket>().Property(t => t.Gravite).HasMaxLength(LongueurCode);
 
+        // Derniers domaines de valeurs encore stockés en entiers : même convention texte que tous
+        // les autres (lisibles en base, stables si l'ordre de l'énumération change un jour).
+        builder.Entity<Ticket>().Property(t => t.Statut).HasConversion<string>().HasMaxLength(LongueurCode);
+        builder.Entity<Domain.Affectation.Disponibilite>().Property(d => d.Statut).HasConversion<string>().HasMaxLength(LongueurCode);
+        builder.Entity<Document>().Property(d => d.StatutAntivirus).HasConversion<string>().HasMaxLength(LongueurCode);
+        builder.Entity<Domain.Files.FileDeTraitement>().Property(f => f.StrategieActive).HasConversion<string>().HasMaxLength(LongueurCode);
+        builder.Entity<Domain.Messagerie.Message>().Property(m => m.Type).HasConversion<string>().HasMaxLength(LongueurCode);
+        builder.Entity<Domain.Supervision.Alerte>().Property(a => a.Type).HasConversion<string>().HasMaxLength(LongueurCode);
+        builder.Entity<Identity.ApplicationUser>().Property(u => u.Nature).HasConversion<string>().HasMaxLength(LongueurCode);
+
         Lier<SocieteCliente, ParametreTypeClient>(builder, s => s.Profil);
         Lier<Dossier, ParametreTypeClient>(builder, d => d.TypeClient);
         Lier<ParametreSlaAdministrable, ParametreTypeClient>(builder, p => p.TypeClient);

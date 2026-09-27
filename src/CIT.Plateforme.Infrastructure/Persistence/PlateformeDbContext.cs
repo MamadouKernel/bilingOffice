@@ -226,13 +226,12 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // (insensible à la casse, sensible aux accents) quelle que soit l'instance cible.
             b.Property(t => t.NumeroBl).HasMaxLength(64).UseCollation("Latin1_General_CI_AS");
             // FEATURE 003 (research.md D3, T017) : index unique filtré — inclusion EXPLICITE des
-            // statuts bloquants (jamais NOT IN), portée globale (CLAR-BL-01). Valeurs entières de
-            // StatutTicket (vérifiées dans StatutTicket.cs, aucune conversion configurée) :
-            // EnAttenteDePriseEnCharge=0, EnCours=1, EnAttenteClient=2 (Cloture=3, Annule=4 exclus
-            // par construction de la liste d'inclusion, jamais par une négation).
+            // statuts bloquants (jamais NOT IN), portée globale (CLAR-BL-01). Le statut est stocké
+            // en texte (ConfigurationReferentiels) : Cloture et Annule sont exclus par construction
+            // de la liste d'inclusion, jamais par une négation.
             b.HasIndex(t => t.NumeroBl)
                 .IsUnique()
-                .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+                .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (N'EnAttenteDePriseEnCharge', N'EnCours', N'EnAttenteClient')");
             // FEATURE 003 (research.md D13bis) : distingue Rejeté d'un Annulé ordinaire sans
             // modifier StatutTicket.
             b.Property(t => t.TypeAnnulationImport).HasConversion<string>().HasMaxLength(32);
@@ -242,7 +241,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasIndex(t => t.NumeroBooking)
                 .IsUnique()
                 .HasDatabaseName("IX_Tickets_NumeroBooking_Actif")
-                .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+                .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (N'EnAttenteDePriseEnCharge', N'EnCours', N'EnAttenteClient')");
             b.Property(t => t.TypeAnnulationExport).HasConversion<string>().HasMaxLength(32);
 
             // EXTENSIONS FEATURE 006 (Customer Complaint)

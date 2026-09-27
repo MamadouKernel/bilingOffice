@@ -63,8 +63,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OperateurId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Statut")
-                        .HasColumnType("int");
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
@@ -73,7 +75,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Disponibilites", t =>
                         {
-                            t.HasCheckConstraint("CK_Disponibilites_Statut", "[Statut] IN (0, 1, 2)");
+                            t.HasCheckConstraint("CK_Disponibilites_Statut", "[Statut] IN (N'Disponible', N'Indisponible', N'Absent')");
                         });
                 });
 
@@ -611,8 +613,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("nvarchar(260)");
 
-                    b.Property<int>("StatutAntivirus")
-                        .HasColumnType("int");
+                    b.Property<string>("StatutAntivirus")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<long>("TailleOctets")
                         .HasColumnType("bigint");
@@ -632,7 +636,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Documents", t =>
                         {
-                            t.HasCheckConstraint("CK_Documents_StatutAntivirus", "[StatutAntivirus] IN (0, 1, 2)");
+                            t.HasCheckConstraint("CK_Documents_StatutAntivirus", "[StatutAntivirus] IN (N'NonAnalyse', N'Sain', N'Infecte')");
                         });
                 });
 
@@ -764,14 +768,16 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<int>("StrategieActive")
-                        .HasColumnType("int");
+                    b.Property<string>("StrategieActive")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Files", t =>
                         {
-                            t.HasCheckConstraint("CK_Files_StrategieActive", "[StrategieActive] IN (0, 1, 2, 3, 4, 5)");
+                            t.HasCheckConstraint("CK_Files_StrategieActive", "[StrategieActive] IN (N'PriseLibre', N'AffectationManuelle', N'RoundRobin', N'Charge', N'Disponibilite', N'Competence')");
                         });
                 });
 
@@ -996,8 +1002,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("TicketId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
@@ -1005,7 +1013,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Messages", t =>
                         {
-                            t.HasCheckConstraint("CK_Messages_Type", "[Type] IN (0, 1)");
+                            t.HasCheckConstraint("CK_Messages_Type", "[Type] IN (N'Externe', N'NoteInterne')");
                         });
                 });
 
@@ -1460,8 +1468,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<bool>("Traitee")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
@@ -1469,7 +1479,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Alertes", t =>
                         {
-                            t.HasCheckConstraint("CK_Alertes_Type", "[Type] IN (0, 1, 2, 3, 4, 5, 6, 7, 8)");
+                            t.HasCheckConstraint("CK_Alertes_Type", "[Type] IN (N'NonPriseEnCharge', N'SansActivite', N'SlaSeuilInformation', N'SlaSeuilAlerte', N'SlaDepasse', N'SlaEscalade', N'BacklogFile', N'VolumeAnormal', N'OperateurIndisponibleAvecTickets')");
                         });
                 });
 
@@ -2532,8 +2542,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<int>("Statut")
-                        .HasColumnType("int");
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("TypeAnnulationExport")
                         .HasMaxLength(32)
@@ -2569,12 +2581,12 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("NumeroBl")
                         .IsUnique()
-                        .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+                        .HasFilter("[NumeroBl] IS NOT NULL AND [Statut] IN (N'EnAttenteDePriseEnCharge', N'EnCours', N'EnAttenteClient')");
 
                     b.HasIndex("NumeroBooking")
                         .IsUnique()
                         .HasDatabaseName("IX_Tickets_NumeroBooking_Actif")
-                        .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (0, 1, 2)");
+                        .HasFilter("[NumeroBooking] IS NOT NULL AND [Statut] IN (N'EnAttenteDePriseEnCharge', N'EnCours', N'EnAttenteClient')");
 
                     b.HasIndex("Module", "TypeDemande", "Statut")
                         .HasDatabaseName("IX_Tickets_Module_TypeDemande_Statut");
@@ -2587,7 +2599,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Tickets_SensEnrolement", "[SensEnrolement] IN (N'Ajout', N'Retrait')");
 
-                            t.HasCheckConstraint("CK_Tickets_Statut", "[Statut] IN (0, 1, 2, 3, 4)");
+                            t.HasCheckConstraint("CK_Tickets_Statut", "[Statut] IN (N'EnAttenteDePriseEnCharge', N'EnCours', N'EnAttenteClient', N'Cloture', N'Annule')");
 
                             t.HasCheckConstraint("CK_Tickets_TypeAnnulationExport", "[TypeAnnulationExport] IN (N'RejetBackOffice')");
 
@@ -2624,8 +2636,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("Nature")
-                        .HasColumnType("int");
+                    b.Property<string>("Nature")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("NomAffiche")
                         .IsRequired()
@@ -2670,7 +2684,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.ToTable("AspNetUsers", null, t =>
                         {
-                            t.HasCheckConstraint("CK_AspNetUsers_Nature", "[Nature] IN (0, 1)");
+                            t.HasCheckConstraint("CK_AspNetUsers_Nature", "[Nature] IN (N'Client', N'Agent')");
                         });
                 });
 
