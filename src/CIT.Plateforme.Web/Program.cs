@@ -218,6 +218,15 @@ using (var scope = app.Services.CreateScope())
     await libelles.ExecuterAsync();
 }
 
+// Identité structurée des sociétés (raison sociale, RCCM) : reprise des sociétés antérieures aux
+// champs dédiés, déduite de leur texte déclaré. Additive : rien de déjà renseigné n'est réécrit.
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementIdentiteSocietes>()
+        .ExecuterAsync();
+}
+
 // SIM-06 / Annexe A.6 : les référentiels tarifaires (sens, taille, type, catégorie de
 // marchandise) sont devenus des tables (analyse Merise § 3.3). Sans approvisionnement, aucune
 // simulation n'est possible — il n'y aurait rien à choisir dans les listes de saisie.

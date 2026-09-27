@@ -81,11 +81,7 @@ public sealed class ObtenirFicheDossierQuery(
 
         var statutGlobal = DeterminerStatutGlobal(tickets.ToList());
 
-        var nomSociete = societe?.InformationsDeclarees ?? string.Empty;
-        if (nomSociete.Contains("RaisonSociale"))
-        {
-            nomSociete = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(nomSociete);
-        }
+        var nomSociete = societe?.NomAffichable ?? string.Empty;
 
         return new FicheDossierVue(
             DossierId: dossier.Id,

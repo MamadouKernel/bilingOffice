@@ -101,12 +101,7 @@ public sealed class ObtenirContexteUtilisateurQuery(
         // Espace actif prioritaire selon CLAR-UX-01 / D3
         var espaceActif = espaces.First();
 
-        var societeNom = societe?.InformationsDeclarees;
-        if (!string.IsNullOrWhiteSpace(societeNom) && societeNom.Contains("RaisonSociale"))
-        {
-            // Extraire un nom convivial si stocké sous forme clé/valeur, sinon garder le texte
-            societeNom = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(societeNom);
-        }
+        var societeNom = societe?.NomAffichable;
 
         return new ContexteUtilisateurVue(
             UtilisateurId: userInfo.Id,

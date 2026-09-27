@@ -235,8 +235,28 @@
                                         </div>
                                     }
 
+                                    @* IDENTITÉ STRUCTURÉE : raison sociale et RCCM dans des champs dédiés,
+                                       obligatoires ; le RCCM est normalisé puis contrôlé (format, unicité). *@
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-12 col-md-7">
+                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="raison-sociale">@Loc["Account.CompanyNameLabel"] <span class="text-danger">*</span></label>
+                                            <InputText id="raison-sociale" class="form-control border-0 shadow-xs p-2" autocomplete="organization"
+                                                       maxlength="200" placeholder="@Loc["Account.CompanyNamePlaceholder"]"
+                                                       @bind-Value="modele.RaisonSociale"
+                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                        </div>
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="rccm">@Loc["Account.RccmLabel"] <span class="text-danger">*</span></label>
+                                            <InputText id="rccm" class="form-control border-0 shadow-xs p-2 font-monospace text-uppercase"
+                                                       maxlength="40" placeholder="CI-ABJ-2024-B-12345" spellcheck="false"
+                                                       @bind-Value="modele.Rccm"
+                                                       style="background-color: var(--surface); border-radius: 0.65rem;" />
+                                            <div class="form-text small">@Loc["Account.RccmHint"]</div>
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="informations">@Loc["Account.CompanyInfoLabel"] <span class="text-danger">*</span></label>
+                                        <label class="form-label text-uppercase fw-bold text-muted small" style="font-size: 0.7rem;" for="informations">@Loc["Account.CompanyInfoOptionalLabel"]</label>
                                         <InputTextArea id="informations" rows="2" class="form-control border-0 shadow-xs p-2"
                                                        placeholder="@Loc["Account.CompanyInfoPlaceholder"]"
                                                        @bind-Value="modele.InformationsDeclarees"
@@ -360,6 +380,20 @@
     {
         erreur = null;
 
+        // Contrôles de l'identité AVANT toute création : un compte utilisateur ne doit jamais
+        // naître pour une demande vouée à l'échec.
+        if (string.IsNullOrWhiteSpace(modele.RaisonSociale))
+        {
+            erreur = Loc["Account.CompanyNameRequired"].Value;
+            return;
+        }
+
+        if (!NumeroRccm.EstValide(modele.Rccm))
+        {
+            erreur = Loc["Account.RccmInvalid"].Value;
+            return;
+        }
+
         var demandeur = new ApplicationUser
         {
             UserName = modele.Email,
@@ -387,11 +421,20 @@
         try
         {
             societe = await SoumettreDemandeCommande.ExecuterAsync(new SoumettreDemandeCompteRequete(
-                demandeur.Id, modele.InformationsDeclarees, modele.Profil, justificatifs));
+                demandeur.Id, modele.InformationsDeclarees, modele.Profil, justificatifs,
+                RaisonSociale: modele.RaisonSociale, Rccm: modele.Rccm));
         }
-        catch (DossierIncompletException ex)
+        catch (Exception ex) when (ex is DossierIncompletException or RccmDejaUtiliseException or ArgumentException)
         {
-            erreur = ex.Message;
+            // La demande n'a pas abouti : le compte utilisateur créé pour elle est retiré, sinon il
+            // resterait orphelin et bloquerait une nouvelle tentative avec la même adresse.
+            await UserManager.DeleteAsync(demandeur);
+            erreur = ex switch
+            {
+                RccmDejaUtiliseException => Loc["Account.RccmTaken"].Value,
+                ArgumentException => Loc["Account.RccmInvalid"].Value,
+                _ => ex.Message,
+            };
             return;
         }
 
@@ -406,5 +449,7 @@
         public string MotDePasse { get; set; } = string.Empty;
         public TypeClient Profil { get; set; } = TypeClient.Normal;
         public string InformationsDeclarees { get; set; } = string.Empty;
+        public string RaisonSociale { get; set; } = string.Empty;
+        public string Rccm { get; set; } = string.Empty;
     }
 }

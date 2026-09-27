@@ -88,10 +88,19 @@ else
                             <tr>
                                 <td class="ps-4 py-3">
                                     <div class="fw-bold text-dark" style="font-size: 0.95rem;">
-                                        @(string.IsNullOrWhiteSpace(demande.InformationsDeclarees)
+                                        @(string.IsNullOrWhiteSpace(demande.NomAffichable)
                                             ? Loc["ValidDem.InfoNonRenseignees"].Value
-                                            : demande.InformationsDeclarees)
+                                            : demande.NomAffichable)
                                     </div>
+                                    @if (demande.RccmAffichable is { } rccm)
+                                    {
+                                        <div class="small"><span class="text-muted">RCCM</span> <span class="font-monospace fw-semibold">@rccm</span></div>
+                                    }
+                                    @* Le texte déclaré complet reste visible : c'est la matière de la décision. *@
+                                    @if (demande.RaisonSociale is not null && !string.IsNullOrWhiteSpace(demande.InformationsDeclarees))
+                                    {
+                                        <div class="small text-muted text-truncate" style="max-width: 420px;" title="@demande.InformationsDeclarees">@demande.InformationsDeclarees</div>
+                                    }
                                     <div class="small text-muted font-monospace">@Loc["ValidDem.IdLabel"] @demande.Id.ToString()[..8]...</div>
                                 </td>
                                 <td>

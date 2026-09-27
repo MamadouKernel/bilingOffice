@@ -156,11 +156,7 @@ public sealed class ObtenirFicheTicketQuery(
             && ticket.Statut != StatutTicket.Cloture
             && ticket.Statut != StatutTicket.Annule;
 
-        var societeNom = societe?.InformationsDeclarees ?? string.Empty;
-        if (societeNom.Contains("RaisonSociale"))
-        {
-            societeNom = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(societeNom);
-        }
+        var societeNom = societe?.NomAffichable ?? string.Empty;
 
         // SOC-10 — les tickets liés. La liaison se lit dans les deux sens (le repository couvre
         // les deux côtés) : un ticket créé plus tard et rattaché à celui-ci doit apparaître ici

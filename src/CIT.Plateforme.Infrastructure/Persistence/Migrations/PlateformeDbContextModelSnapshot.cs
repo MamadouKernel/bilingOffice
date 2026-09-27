@@ -416,6 +416,14 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<string>("RaisonSociale")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Rccm")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<byte[]>("VersionConcurrence")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -425,6 +433,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Etat");
+
+                    b.HasIndex("Rccm");
 
                     b.ToTable("Societes");
                 });

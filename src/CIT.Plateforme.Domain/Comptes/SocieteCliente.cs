@@ -17,6 +17,22 @@ public sealed class SocieteCliente
     /// <summary>Informations/justificatifs déclarés — contenu paramétrable, non fixé ici (PC-08).</summary>
     public string InformationsDeclarees { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// Raison sociale saisie dans un champ DÉDIÉ et obligatoire. Nulle seulement pour les sociétés
+    /// antérieures à ce champ, tant que la reprise ne l'a pas renseignée.
+    /// </summary>
+    public string? RaisonSociale { get; private set; }
+
+    /// <summary>N° RCCM, normalisé en majuscules (voir <see cref="NumeroRccm"/>).</summary>
+    public string? Rccm { get; private set; }
+
+    /// <summary>Nom à afficher partout : le champ dédié, sinon le nom déduit du texte déclaré.</summary>
+    public string NomAffichable =>
+        !string.IsNullOrWhiteSpace(RaisonSociale) ? RaisonSociale : InformationsSociete.NomDe(InformationsDeclarees);
+
+    /// <summary>RCCM à afficher : le champ dédié, sinon celui déduit du texte déclaré.</summary>
+    public string? RccmAffichable => Rccm ?? InformationsSociete.Extraire(InformationsDeclarees).Rccm;
+
     public TypeClient Profil { get; private set; }
 
     public EtatSociete Etat { get; private set; }
@@ -42,6 +58,59 @@ public sealed class SocieteCliente
         NombreAdministrateursActifs = 0,
         DateCreationUtc = maintenantUtc,
     };
+
+    /// <summary>
+    /// Soumission avec IDENTITÉ STRUCTURÉE (voie du formulaire) : raison sociale et RCCM sont des
+    /// champs distincts, obligatoires et validés ; le texte libre ne porte plus que les compléments.
+    /// </summary>
+    public static SocieteCliente Soumettre(
+        Guid demandeurId, string raisonSociale, string rccm, string informationsComplementaires,
+        TypeClient profilDeclare, DateTime maintenantUtc)
+    {
+        var societe = Soumettre(demandeurId, informationsComplementaires ?? string.Empty, profilDeclare, maintenantUtc);
+        societe.RenseignerIdentite(raisonSociale, rccm);
+        return societe;
+    }
+
+    /// <summary>
+    /// REPRISE des sociétés antérieures aux champs dédiés : l'identité est déduite du texte
+    /// déclaré. Le RCCM n'est retenu que s'il est valide — jamais de donnée douteuse promue en
+    /// champ de référence. Sans effet si l'identité est déjà renseignée. Renvoie vrai si modifiée.
+    /// </summary>
+    public bool ReprendreIdentiteDeclaree()
+    {
+        if (!string.IsNullOrWhiteSpace(RaisonSociale))
+        {
+            return false;
+        }
+
+        var deduites = InformationsSociete.Extraire(InformationsDeclarees);
+        if (string.IsNullOrWhiteSpace(deduites.Nom))
+        {
+            return false;
+        }
+
+        RaisonSociale = deduites.Nom.Length > LongueurMaxRaisonSociale
+            ? deduites.Nom[..LongueurMaxRaisonSociale]
+            : deduites.Nom;
+        Rccm = NumeroRccm.EstValide(deduites.Rccm) ? NumeroRccm.Nettoyer(deduites.Rccm) : null;
+        return true;
+    }
+
+    public const int LongueurMaxRaisonSociale = 200;
+
+    /// <summary>Renseigne (ou corrige) l'identité structurée : raison sociale non vide, RCCM valide.</summary>
+    public void RenseignerIdentite(string raisonSociale, string rccm)
+    {
+        if (string.IsNullOrWhiteSpace(raisonSociale) || raisonSociale.Trim().Length > LongueurMaxRaisonSociale)
+        {
+            throw new ArgumentException(
+                $"La raison sociale est obligatoire ({LongueurMaxRaisonSociale} caractères au plus).", nameof(raisonSociale));
+        }
+
+        RaisonSociale = raisonSociale.Trim();
+        Rccm = NumeroRccm.Normaliser(rccm);
+    }
 
     /// <summary>Validation par un administrateur fonctionnel CIT (CPT-01). Le profil déclaré est
     /// confirmé tel quel — aucune modification de valeur à la validation.</summary>

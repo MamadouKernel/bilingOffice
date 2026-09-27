@@ -497,6 +497,11 @@ public sealed class UniteDeTravail(PlateformeDbContext dbContext, Application.Ab
 /// <summary>FEATURE 002 (research.md D2).</summary>
 public sealed class SocieteClienteRepository(PlateformeDbContext dbContext) : ISocieteClienteRepository
 {
+    public async Task<bool> RccmDejaUtiliseAsync(string rccmNormalise, CancellationToken ct = default) =>
+        await dbContext.Societes
+            .AnyAsync(s => s.Rccm == rccmNormalise && s.Etat != EtatSociete.Refusee, ct)
+            .ConfigureAwait(false);
+
     public async Task<SocieteCliente?> ObtenirParDemandeurAsync(Guid demandeurId, CancellationToken ct = default) =>
         await dbContext.Societes
             .OrderByDescending(s => s.DateCreationUtc)

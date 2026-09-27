@@ -626,6 +626,13 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         {
             b.HasKey(s => s.Id);
             b.Property(s => s.InformationsDeclarees).IsRequired();
+            // Identité structurée : nullable pour les sociétés antérieures (reprise au démarrage),
+            // obligatoire pour toute nouvelle demande (contrôle du domaine).
+            b.Property(s => s.RaisonSociale).HasMaxLength(SocieteCliente.LongueurMaxRaisonSociale);
+            b.Property(s => s.Rccm).HasMaxLength(NumeroRccm.LongueurMax);
+            b.HasIndex(s => s.Rccm);
+            b.Ignore(s => s.NomAffichable);
+            b.Ignore(s => s.RccmAffichable);
             b.Property(s => s.Profil).HasConversion<string>().HasMaxLength(32);
             b.Property(s => s.Etat).HasConversion<string>().HasMaxLength(32);
             b.HasIndex(s => s.Etat);

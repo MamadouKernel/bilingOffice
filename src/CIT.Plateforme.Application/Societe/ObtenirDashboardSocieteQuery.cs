@@ -62,11 +62,7 @@ public sealed class ObtenirDashboardSocieteQuery(
             t.Statut == StatutTicket.EnCours ||
             t.Statut == StatutTicket.EnAttenteClient);
 
-        var nomSociete = societe.InformationsDeclarees;
-        if (nomSociete.Contains("RaisonSociale"))
-        {
-            nomSociete = CIT.Plateforme.Domain.Comptes.InformationsSociete.NomDe(nomSociete);
-        }
+        var nomSociete = societe.NomAffichable;
 
         return new DashboardSocieteVue(
             SocieteId: societe.Id,

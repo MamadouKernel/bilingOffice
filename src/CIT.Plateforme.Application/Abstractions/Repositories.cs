@@ -353,6 +353,10 @@ public interface ISocieteClienteRepository
 
     Task<CIT.Plateforme.Domain.Comptes.SocieteCliente?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
 
+    /// <summary>Vrai si ce RCCM (normalisé) porte déjà une société en attente ou active : une
+    /// même entreprise n'ouvre pas deux comptes. Les demandes refusées ne comptent pas.</summary>
+    Task<bool> RccmDejaUtiliseAsync(string rccmNormalise, CancellationToken ct = default);
+
     /// <summary>Alimente la file de l'administrateur fonctionnel CIT (contrat C2-02) — consultation
     /// des demandes en attente, corollaire nécessaire de CPT-01 (déduit, non une FR séparée).</summary>
     Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.SocieteCliente>> ListerParEtatAsync(CIT.Plateforme.Domain.Comptes.EtatSociete etat, CancellationToken ct = default);

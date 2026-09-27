@@ -29,11 +29,20 @@ public sealed class DossierIncompletException(IReadOnlyList<string> piecesManqua
 /// <paramref name="Justificatifs"/> : pièces produites à l'appui de la demande (CPT-01). Leur
 /// complétude est vérifiée ici contre le référentiel paramétrable en vigueur.
 /// </summary>
+// RaisonSociale / Rccm : identité STRUCTURÉE, obligatoire depuis le formulaire (champs dédiés,
+// RCCM validé et unique). Laissées nulles, la demande suit l'ancienne voie (texte déclaré seul),
+// conservée pour les appelants existants.
 public sealed record SoumettreDemandeCompteRequete(
     Guid DemandeurId,
     string InformationsDeclarees,
     TypeClient ProfilDeclare,
-    IReadOnlyList<JustificatifDepose>? Justificatifs = null);
+    IReadOnlyList<JustificatifDepose>? Justificatifs = null,
+    string? RaisonSociale = null,
+    string? Rccm = null);
+
+/// <summary>Un compte existe déjà (en attente ou actif) pour ce RCCM.</summary>
+public sealed class RccmDejaUtiliseException(string rccm)
+    : InvalidOperationException($"Une société est déjà enregistrée avec le RCCM {rccm}.");
 
 public sealed class SoumettreDemandeCompteCommand(
     ISocieteClienteRepository societes,
@@ -64,7 +73,24 @@ public sealed class SoumettreDemandeCompteCommand(
             throw new DossierIncompletException(manquantes);
         }
 
-        var societe = SocieteCliente.Soumettre(requete.DemandeurId, requete.InformationsDeclarees, requete.ProfilDeclare, horloge.MaintenantUtc);
+        SocieteCliente societe;
+        if (requete.RaisonSociale is null && requete.Rccm is null)
+        {
+            societe = SocieteCliente.Soumettre(requete.DemandeurId, requete.InformationsDeclarees, requete.ProfilDeclare, horloge.MaintenantUtc);
+        }
+        else
+        {
+            // Validation du domaine (raison sociale obligatoire, format RCCM) AVANT l'unicité.
+            var rccm = NumeroRccm.Normaliser(requete.Rccm);
+            if (await societes.RccmDejaUtiliseAsync(rccm, ct).ConfigureAwait(false))
+            {
+                throw new RccmDejaUtiliseException(rccm);
+            }
+
+            societe = SocieteCliente.Soumettre(
+                requete.DemandeurId, requete.RaisonSociale ?? string.Empty, rccm,
+                requete.InformationsDeclarees, requete.ProfilDeclare, horloge.MaintenantUtc);
+        }
         await societes.AjouterAsync(societe, ct).ConfigureAwait(false);
 
         foreach (var depose in deposes)

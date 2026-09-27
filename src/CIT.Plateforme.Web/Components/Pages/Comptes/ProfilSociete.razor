@@ -55,10 +55,14 @@ else
             <div class="d-flex justify-content-between align-items-start mb-3 gap-3 flex-wrap">
                 <div>
                     <h5 class="fw-bold text-dark mb-1">
-                        @(string.IsNullOrWhiteSpace(_resultat.Societe.InformationsDeclarees)
+                        @(string.IsNullOrWhiteSpace(_resultat.Societe.NomAffichable)
                             ? Loc["ProfilSoc.NoInfoDeclared"].Value
-                            : _resultat.Societe.InformationsDeclarees)
+                            : _resultat.Societe.NomAffichable)
                     </h5>
+                    @if (_resultat.Societe.RccmAffichable is { } rccm)
+                    {
+                        <div class="small mb-1"><span class="text-muted">RCCM</span> <span class="font-monospace fw-semibold">@rccm</span></div>
+                    }
                     <div class="text-muted small">
                         @Loc["ProfilSoc.ClientType"] <span class="fw-semibold">@_resultat.Societe.Profil</span>
                         · @Loc["ProfilSoc.CreatedOn"] @_resultat.Societe.DateCreationUtc.Horodate()
