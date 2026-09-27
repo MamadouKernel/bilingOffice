@@ -66,15 +66,16 @@ public sealed class ProvisionnementAdministrateurInitial(
             .AnyAsync(h => h.PermissionCode == Permission.AdministrationComptes, ct)
             .ConfigureAwait(false);
 
-        if (administrateurExiste)
-        {
-            return;
-        }
-
         var email = PremiereValeurRenseignee(
             configuration[SectionEmail],
             Environment.GetEnvironmentVariable("CIT_ADMIN_EMAIL"),
             Environment.GetEnvironmentVariable("CIT_INITIAL_ADMIN_EMAIL"));
+
+        if (administrateurExiste)
+        {
+            await CompleterPermissionsSuperAdministrateurAsync(email, ct).ConfigureAwait(false);
+            return;
+        }
 
         var motDePasse = PremiereValeurRenseignee(
             configuration[SectionMotDePasse],
@@ -130,19 +131,69 @@ public sealed class ProvisionnementAdministrateurInitial(
             await userManager.ResetPasswordAsync(compte, resetToken, motDePasse).ConfigureAwait(false);
         }
 
-        // Attribution des 54 permissions du système (Super Admin)
-        foreach (var perm in Permission.Tous)
-        {
-            var existe = await context.Habilitations.AnyAsync(h => h.UtilisateurId == compte.Id && h.PermissionCode == perm, ct).ConfigureAwait(false);
-            if (!existe)
-            {
-                context.Habilitations.Add(HabilitationUtilisateur.Attribuer(compte.Id, perm));
-            }
-        }
-        await context.SaveChangesAsync(ct).ConfigureAwait(false);
+        var ajoutees = await AttribuerPermissionsManquantesAsync(compte.Id, ct).ConfigureAwait(false);
 
         logger.LogInformation(
-            "AMORÇAGE : Le Super Administrateur « {Email} » ({Nom}) est opérationnel avec 54 permissions.",
-            email, nom);
+            "AMORÇAGE : Le Super Administrateur « {Email} » ({Nom}) est opérationnel ({Ajoutees} permissions attribuées sur {Total}).",
+            email, nom, ajoutees, Permission.Tous.Count);
+    }
+
+    /// <summary>
+    /// COMPLÉMENT À CHAQUE DÉMARRAGE — le Super Administrateur doit détenir TOUTES les permissions,
+    /// y compris celles ajoutées au référentiel après son amorçage (sinon il perd silencieusement
+    /// l'accès aux nouveaux écrans, et l'administration ne le compte plus comme super-admin).
+    /// Purement additif et borné : seul le compte configuré, et seulement s'il est DÉJÀ
+    /// administrateur des comptes, est complété ; rien n'est jamais retiré.
+    /// </summary>
+    private async Task CompleterPermissionsSuperAdministrateurAsync(string? email, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
+        var compte = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
+        if (compte is null)
+        {
+            return;
+        }
+
+        var estAdministrateur = await context.Habilitations
+            .AnyAsync(h => h.UtilisateurId == compte.Id && h.PermissionCode == Permission.AdministrationComptes, ct)
+            .ConfigureAwait(false);
+        if (!estAdministrateur)
+        {
+            return;
+        }
+
+        var ajoutees = await AttribuerPermissionsManquantesAsync(compte.Id, ct).ConfigureAwait(false);
+        if (ajoutees > 0)
+        {
+            logger.LogInformation(
+                "Super Administrateur « {Email} » : {Ajoutees} nouvelle(s) permission(s) du référentiel attribuée(s).",
+                email, ajoutees);
+        }
+    }
+
+    private async Task<int> AttribuerPermissionsManquantesAsync(Guid utilisateurId, CancellationToken ct)
+    {
+        var detenues = await context.Habilitations
+            .Where(h => h.UtilisateurId == utilisateurId && h.FileId == null)
+            .Select(h => h.PermissionCode)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        var manquantes = Permission.Tous.Except(detenues, StringComparer.Ordinal).ToList();
+        foreach (var permission in manquantes)
+        {
+            context.Habilitations.Add(HabilitationUtilisateur.Attribuer(utilisateurId, permission));
+        }
+
+        if (manquantes.Count > 0)
+        {
+            await context.SaveChangesAsync(ct).ConfigureAwait(false);
+        }
+
+        return manquantes.Count;
     }
 }

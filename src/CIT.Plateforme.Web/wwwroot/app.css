@@ -2403,3 +2403,66 @@ html { scroll-padding-top: var(--header-h); }
 /* Le rail occupe toute la hauteur de l'écran : le conteneur du menu (NavMenu)
    s'étire, et le rail prend 100 % de cette hauteur. */
 .cit-desktop-sidebar > .cit-sidebar { height: 100%; padding: 0; }
+
+/* ==========================================================================
+   COUCHE « PREMIUM » TRANSVERSALE — s'applique à toutes les vues par les
+   classes partagées (cartes, indicateurs, tableaux, boutons, badges). Tokens
+   uniquement : les thèmes clair et sombre restent cohérents.
+   ========================================================================== */
+:root { --r-xl: 18px; --accent-grad: linear-gradient(90deg, var(--deep-500), var(--signal-500)); }
+
+/* Cartes : rayon plus généreux, profondeur douce. */
+.cit-card { border-radius: var(--r-xl); border-color: var(--line-soft); box-shadow: var(--lift-2); }
+
+/* Indicateurs : filet d'accent en tête, chiffre mis en valeur, icône en pastille. */
+.cit-stat-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--r-xl);
+    border-color: var(--line-soft);
+    padding: 1.125rem 1.25rem;
+    box-shadow: var(--lift-2);
+}
+.cit-stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--accent-grad);
+    opacity: .85;
+}
+.cit-stat-card:hover { box-shadow: var(--lift-3); transform: translateY(-2px); }
+.cit-stat-card .fs-4 { font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.cit-stat-icon { width: 3rem; height: 3rem; flex-basis: 3rem; border-radius: 14px; font-size: 1.3rem; }
+
+/* Tableaux : en-tête discret en capitales, lignes aérées, survol net. */
+.table > thead th {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+}
+.table > tbody > tr { transition: background-color .12s ease; }
+.table-hover > tbody > tr:hover > * { background-color: var(--surface-2); --bs-table-accent-bg: transparent; }
+.table-responsive { border-radius: var(--r-lg); }
+
+/* Boutons : arrondis, poids affirmé, relief au survol, focus visible. */
+.btn { border-radius: 10px; font-weight: 600; transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease; }
+.btn:not(:disabled):hover { transform: translateY(-1px); }
+.btn:not(:disabled):active { transform: translateY(0); }
+.btn-primary { box-shadow: 0 6px 14px -8px rgba(13, 26, 36, .55); }
+.btn:focus-visible { outline: 3px solid rgba(240, 160, 32, .45); outline-offset: 2px; box-shadow: none; }
+
+/* Badges et puces : forme pilule, lecture plus douce. */
+.badge { border-radius: 999px; font-weight: 600; letter-spacing: .01em; }
+
+/* Champs : rayon homogène et halo de focus aux couleurs CIT. */
+.form-control, .form-select { border-radius: 10px; }
+.form-control:focus, .form-select:focus { border-color: var(--deep-500); box-shadow: 0 0 0 3px rgba(29, 70, 101, .15); }
+
+@media (prefers-reduced-motion: reduce) {
+    .btn, .cit-stat-card, .table > tbody > tr { transition: none; }
+    .btn:not(:disabled):hover, .cit-stat-card:hover { transform: none; }
+}
