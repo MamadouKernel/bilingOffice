@@ -23,7 +23,7 @@ public interface IReferentielsRepository
 /// <summary>Une valeur de référentiel telle qu'affichée et administrée.</summary>
 public sealed record ValeurReferentielleVue(string Code, string LibelleFr, string LibelleEn, int Ordre, bool Actif)
 {
-    public string Libelle(string langue) => langue.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? LibelleEn : LibelleFr;
+    public string Libelle(string langue) => Domain.Langue.EstAnglais(langue) ? LibelleEn : LibelleFr;
 }
 
 /// <summary>

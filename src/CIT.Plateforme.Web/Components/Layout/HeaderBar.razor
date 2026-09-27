@@ -188,8 +188,6 @@
     [Parameter]
     public ContexteUtilisateurVue? Contexte { get; set; }
 
-    private bool _menuOuvert;
-
     /// <summary>
     /// FEATURE 009 (NOT-03) — indicateur permanent du nombre de notifications non lues.
     /// Calculé au rendu serveur, pour le SEUL utilisateur authentifié (le compteur ne peut
@@ -245,10 +243,6 @@
 
     private string Initiale =>
         string.IsNullOrWhiteSpace(Contexte?.NomAffiche) ? "U" : Contexte!.NomAffiche.Trim()[..1].ToUpperInvariant();
-
-    private void ToggleMenu() => _menuOuvert = !_menuOuvert;
-
-    private void FermerMenu() => _menuOuvert = false;
 
     private string LibelleEspace(EspaceFonctionnel espace) => espace switch
     {

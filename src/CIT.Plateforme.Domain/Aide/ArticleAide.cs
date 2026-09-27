@@ -42,10 +42,10 @@ public sealed class ArticleAide
     private ArticleAide() { }
 
     public static ArticleAide Creer(
-        string route, string titreFr, string titreEn, string contenuFr, string contenuEn, bool transverse = false)
+        string route, string titreFr, string titreEn, string contenuFr, string contenuEn, bool transverse = false, bool actif = true)
     {
         var article = new ArticleAide { Id = Guid.NewGuid(), Route = NormaliserRoute(route) };
-        article.Modifier(titreFr, titreEn, contenuFr, contenuEn, actif: true, transverse);
+        article.Modifier(titreFr, titreEn, contenuFr, contenuEn, actif, transverse);
         return article;
     }
 
@@ -59,9 +59,9 @@ public sealed class ArticleAide
         Transverse = transverse;
     }
 
-    public string Titre(string langue) => EstAnglais(langue) ? TitreEn : TitreFr;
+    public string Titre(string langue) => Langue.EstAnglais(langue) ? TitreEn : TitreFr;
 
-    public string Contenu(string langue) => EstAnglais(langue) ? ContenuEn : ContenuFr;
+    public string Contenu(string langue) => Langue.EstAnglais(langue) ? ContenuEn : ContenuFr;
 
     /// <summary>Vrai si l'article couvre ce chemin : même écran, ou l'un de ses sous-écrans.</summary>
     public bool Couvre(string chemin)
@@ -82,8 +82,6 @@ public sealed class ArticleAide
 
         return chemin;
     }
-
-    private static bool EstAnglais(string langue) => langue.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 
     private static string Exiger(string valeur, int max, string nom)
     {

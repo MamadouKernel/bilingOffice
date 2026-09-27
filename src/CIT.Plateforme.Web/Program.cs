@@ -1,7 +1,6 @@
 using System.Globalization;
 using CIT.Plateforme.Infrastructure;
 using CIT.Plateforme.Web.Components;
-using CIT.Plateforme.Web.Hubs;
 using CIT.Plateforme.Web.Middlewares;
 using CIT.Plateforme.Web.Resources;
 using Microsoft.AspNetCore.Builder;
@@ -39,8 +38,9 @@ if (!builder.Environment.IsProduction())
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddSignalR();
-builder.Services.AddScoped<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel, SupervisionSignalRNotifier>();
+// Signal temps réel de la supervision : événement en mémoire partagé par tous les circuits.
+builder.Services.AddSingleton<CIT.Plateforme.Web.Services.SignalSupervision>();
+builder.Services.AddSingleton<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel>(sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.SignalSupervision>());
 
 // Localisation bilingue (NFR-07) : fr-FR par défaut, en-US secondaire
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -361,7 +361,6 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-app.MapHub<SupervisionHub>(SupervisionHub.CheminHub);
 
 app.MapPost("/comptes/deconnexion", async (
     SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,

@@ -17,9 +17,6 @@ public interface IArticleAideRepository
     void Ajouter(ArticleAide article);
 }
 
-/// <summary>L'aide d'un écran, prête à afficher dans la langue demandée.</summary>
-public sealed record AideVue(string Route, string Titre, IReadOnlyList<BlocAide> Blocs);
-
 /// <summary>
 /// AIDE CONTEXTUELLE — l'article de l'écran courant : celui dont la route couvre le chemin, la
 /// plus précise l'emportant (« /billing-import/soumettre » avant « /billing-import »). Sans
@@ -27,7 +24,7 @@ public sealed record AideVue(string Route, string Titre, IReadOnlyList<BlocAide>
 /// </summary>
 public sealed class ObtenirAideContextuelleQuery(IArticleAideRepository articles)
 {
-    public async Task<AideVue?> ExecuterAsync(string chemin, string langue, CancellationToken ct = default)
+    public async Task<ArticleAideVue?> ExecuterAsync(string chemin, string langue, CancellationToken ct = default)
     {
         var actifs = await articles.ListerActifsAsync(ct).ConfigureAwait(false);
         var article = actifs
@@ -37,6 +34,6 @@ public sealed class ObtenirAideContextuelleQuery(IArticleAideRepository articles
 
         return article is null
             ? null
-            : new AideVue(article.Route, article.Titre(langue), BlocAide.Analyser(article.Contenu(langue)));
+            : new ArticleAideVue(article.Id, article.Route, article.Titre(langue), BlocAide.Analyser(article.Contenu(langue)), article.Transverse);
     }
 }

@@ -7,8 +7,6 @@
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.SignalR.Client
-@using CIT.Plateforme.Web.Hubs
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
@@ -17,7 +15,7 @@
 @inject VueChargeQuery VueCharge
 @inject IServiceScopeFactory ScopeFactory
 @inject Microsoft.JSInterop.IJSRuntime Js
-@inject NavigationManager Navigation
+@inject SignalSupervision Signal
 @implements IAsyncDisposable
 
 <PageTitle>@Loc["Sup.PageTitle"]</PageTitle>
@@ -359,7 +357,6 @@ else if (vuesFiles is not null)
     private string? _messageAction;
     private string? _erreurAction;
     private Guid? _exportEnCours;
-    private HubConnection? _hubConnection;
 
     // DIS-02 — réaffectation en masse des tickets d'un opérateur absent/indisponible.
     private Guid? _operateurAbsentCible;
@@ -372,34 +369,16 @@ else if (vuesFiles is not null)
     {
         await ChargerAsync();
 
-        // SOC-08 / SUP-01 / SUP-02 : abonnement au signal de rafraîchissement temps réel — le
-        // client relit toujours les vues via les cas d'usage Application, SignalR ne porte que
-        // le "quelque chose a changé".
-        _hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri(SupervisionHub.CheminHub))
-            .WithAutomaticReconnect()
-            .Build();
-
-        _hubConnection.On(SupervisionSignalRNotifier.EvenementRafraichir, async () =>
-        {
-            await InvokeAsync(async () =>
-            {
-                await ChargerAsync();
-                StateHasChanged();
-            });
-        });
-
-        try
-        {
-            await _hubConnection.StartAsync();
-        }
-        catch (Exception)
-        {
-            // Le tableau de bord reste utilisable avec le bouton "Rafraîchir" manuel si la
-            // connexion temps réel échoue (ex. proxy bloquant WebSocket) — dégradation silencieuse
-            // volontaire, sans bloquer la page.
-        }
+        // SOC-08 / SUP-01 / SUP-02 : rafraîchissement temps réel — le signal ne porte que le
+        // « quelque chose a changé », le tableau relit toujours ses vues via les cas d'usage.
+        Signal.Change += RafraichirAsync;
     }
+
+    private Task RafraichirAsync() => InvokeAsync(async () =>
+    {
+        await ChargerAsync();
+        StateHasChanged();
+    });
 
     private async Task ChargerAsync()
     {
@@ -719,11 +698,9 @@ else if (vuesFiles is not null)
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_hubConnection is not null)
-        {
-            await _hubConnection.DisposeAsync();
-        }
+        Signal.Change -= RafraichirAsync;
+        return ValueTask.CompletedTask;
     }
 }

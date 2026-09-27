@@ -663,7 +663,6 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(p => p.LibelleEn).HasMaxLength(ParametreTypeClient.LongueurMaxLibelle).IsRequired();
             b.Property(p => p.DescriptionFr).HasMaxLength(ParametreTypeClient.LongueurMaxDescription);
             b.Property(p => p.DescriptionEn).HasMaxLength(ParametreTypeClient.LongueurMaxDescription);
-            b.Ignore(p => p.Type);
         });
 
         builder.Entity<UtilisateurSociete>(b =>

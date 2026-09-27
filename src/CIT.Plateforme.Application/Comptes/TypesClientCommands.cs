@@ -17,12 +17,12 @@ public interface IParametreTypeClientRepository
 public sealed record TypeClientVue(
     TypeClient Type, string LibelleFr, string LibelleEn, string DescriptionFr, string DescriptionEn, int Ordre, bool Actif)
 {
-    public string Libelle(string langue) => langue.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? LibelleEn : LibelleFr;
+    public string Libelle(string langue) => Domain.Langue.EstAnglais(langue) ? LibelleEn : LibelleFr;
 
-    public string Description(string langue) => langue.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? DescriptionEn : DescriptionFr;
+    public string Description(string langue) => Domain.Langue.EstAnglais(langue) ? DescriptionEn : DescriptionFr;
 
     internal static TypeClientVue Depuis(ParametreTypeClient p) =>
-        new(p.Type, p.LibelleFr, p.LibelleEn, p.DescriptionFr, p.DescriptionEn, p.Ordre, p.Actif);
+        new(p.Code, p.LibelleFr, p.LibelleEn, p.DescriptionFr, p.DescriptionEn, p.Ordre, p.Actif);
 }
 
 /// <summary>

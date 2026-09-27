@@ -34,8 +34,6 @@ public sealed class ParametreTypeClient
 
     private ParametreTypeClient() { }
 
-    public TypeClient Type => Code;
-
     public static ParametreTypeClient Creer(
         TypeClient type, string libelleFr, string libelleEn, string descriptionFr, string descriptionEn, int ordre) =>
         new()
@@ -60,9 +58,9 @@ public sealed class ParametreTypeClient
     }
 
     /// <summary>Libellé dans la langue demandée (« en » → anglais, sinon français).</summary>
-    public string Libelle(string langue) => langue.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? LibelleEn : LibelleFr;
+    public string Libelle(string langue) => Langue.EstAnglais(langue) ? LibelleEn : LibelleFr;
 
-    public string Description(string langue) => langue.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? DescriptionEn : DescriptionFr;
+    public string Description(string langue) => Langue.EstAnglais(langue) ? DescriptionEn : DescriptionFr;
 
     private static string Exiger(string valeur, int max, string nom)
     {

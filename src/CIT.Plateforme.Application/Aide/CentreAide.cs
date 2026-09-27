@@ -7,7 +7,7 @@ using CIT.Plateforme.Domain.Securite;
 
 namespace CIT.Plateforme.Application.Aide;
 
-/// <summary>Un article tel qu'affiché dans le centre d'aide.</summary>
+/// <summary>Un article prêt à afficher dans la langue demandée (panneau « ? » et centre d'aide).</summary>
 public sealed record ArticleAideVue(Guid Id, string Route, string Titre, IReadOnlyList<BlocAide> Blocs, bool Transverse);
 
 /// <summary>
@@ -130,8 +130,7 @@ public sealed class EnregistrerArticleAideCommand(
                 throw new RouteAideDejaUtiliseeException(routeNormalisee);
             }
 
-            article = ArticleAide.Creer(routeNormalisee, titreFr, titreEn, contenuFr, contenuEn, transverse);
-            article.Modifier(titreFr, titreEn, contenuFr, contenuEn, actif, transverse);
+            article = ArticleAide.Creer(routeNormalisee, titreFr, titreEn, contenuFr, contenuEn, transverse, actif);
             articles.Ajouter(article);
         }
 

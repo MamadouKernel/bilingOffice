@@ -49,7 +49,7 @@ public abstract class ValeurReferentielle<TCode> : IValeurReferentielle
 
     /// <summary>Libellé dans la langue demandée (« en » → anglais, sinon français).</summary>
     public string Libelle(string langue) =>
-        langue.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? LibelleEn : LibelleFr;
+        Langue.EstAnglais(langue) ? LibelleEn : LibelleFr;
 
     private static string Exiger(string valeur, string nom)
     {
@@ -79,6 +79,4 @@ public interface IValeurReferentielle
     bool Actif { get; }
 
     void Modifier(string libelleFr, string libelleEn, int ordre, bool actif);
-
-    string Libelle(string langue);
 }
