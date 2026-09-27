@@ -50,7 +50,13 @@ public sealed class AdministrationComptesRepository(UserManager<ApplicationUser>
 
         // Identity écrit immédiatement : la création n'est pas portée par l'unité de travail
         // applicative. La journalisation qui suit, elle, l'est.
-        var resultat = await userManager.CreateAsync(compte, motDePasseInitial).ConfigureAwait(false);
+        //
+        // INVITATION : sans mot de passe initial, le compte naît SANS secret — l'agent définit
+        // lui-même son mot de passe par le lien reçu par e-mail ; l'administrateur ne le connaît
+        // donc jamais. Un compte sans mot de passe ne peut pas se connecter avant cette étape.
+        var resultat = string.IsNullOrEmpty(motDePasseInitial)
+            ? await userManager.CreateAsync(compte).ConfigureAwait(false)
+            : await userManager.CreateAsync(compte, motDePasseInitial).ConfigureAwait(false);
 
         return resultat.Succeeded
             ? new ResultatCreationCompte(true, compte.Id, Array.Empty<string>())

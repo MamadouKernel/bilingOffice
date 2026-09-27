@@ -134,6 +134,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AjouterInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.IContexteUtilisateurWeb, CIT.Plateforme.Web.Services.ContexteUtilisateurWebService>();
+// Lien de (re)définition du mot de passe par e-mail : « mot de passe oublié » et invitation d'agent.
+builder.Services.AddScoped<CIT.Plateforme.Web.Services.EnvoiLienMotDePasse>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();

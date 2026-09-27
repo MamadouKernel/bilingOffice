@@ -1,16 +1,12 @@
 ﻿@page "/comptes/mot-de-passe-oublie"
 @using CIT.Plateforme.Infrastructure.Identity
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.AspNetCore.WebUtilities
-@using System.Text
 @using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
 @using Microsoft.Extensions.Localization
-@using CIT.Plateforme.Application.Abstractions
-@using CIT.Plateforme.Domain.Notifications
 @inject UserManager<ApplicationUser> UserManager
-@inject IEnumerable<ICanalNotification> Canaux
+@inject EnvoiLienMotDePasse EnvoiLien
 @inject NavigationManager Navigation
-@inject ILogger<MotDePasseOublie> Journal
 @inject IStringLocalizer<SharedResources> Loc
 
 <PageTitle>@Loc["Account.ForgotPageTitle"]</PageTitle>
@@ -110,28 +106,11 @@
             return;
         }
 
-        var jeton = await UserManager.GeneratePasswordResetTokenAsync(utilisateur);
-        var jetonEncode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(jeton));
-        var lien = Navigation.ToAbsoluteUri(
-            $"comptes/reinitialiser-mot-de-passe?utilisateurId={utilisateur.Id}&jeton={jetonEncode}").ToString();
-
-        var canalEmail = Canaux.FirstOrDefault(c => c.Canal == CanalNotification.Email);
-        if (canalEmail is null)
-        {
-            Journal.LogWarning("Réinitialisation de mot de passe : aucun canal e-mail enregistré, lien non transmis.");
-            return;
-        }
-
-        var resultat = await canalEmail.EnvoyerAsync(
-            new DestinationEnvoi(utilisateur.Id, utilisateur.Email),
+        await EnvoiLien.EnvoyerAsync(
+            utilisateur,
+            new Uri(Navigation.BaseUri),
             Loc["Account.ResetMailSubject"].Value,
-            Loc["Account.ResetMailBody", lien].Value);
-
-        if (!resultat.Abouti)
-        {
-            // Jamais de jeton ni d'adresse dans le journal : seulement le motif technique.
-            Journal.LogWarning("Réinitialisation de mot de passe : e-mail non envoyé ({Motif}).", resultat.Motif);
-        }
+            lien => Loc["Account.ResetMailBody", lien].Value);
     }
 
     private sealed class ModeleDemande

@@ -14,6 +14,9 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
+@using CIT.Plateforme.Infrastructure.Identity
+@using Microsoft.AspNetCore.Identity
 
 <PageTitle>@Loc["AdmCompte.PageTitle"]</PageTitle>
 
@@ -120,21 +123,15 @@ else
                     <label class="form-label small fw-bold text-dark" for="nom">@Loc["AdmCompte.NameLabel"]</label>
                     <input id="nom" type="text" class="form-control" placeholder="@Loc["AdmCompte.NamePlaceholder"]" @bind="_nomAffiche" />
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small fw-bold text-dark" for="mdp">@Loc["AdmCompte.PwdLabel"]</label>
-                    <ChampMotDePasse>
-                        <input id="mdp" type="password" class="form-control" placeholder="@Loc["AdmCompte.PwdPlaceholder"]" @bind="_motDePasse" />
-                    </ChampMotDePasse>
-                </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-5">
                     <button class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                            @onclick="CreerAsync" disabled="@(string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche) || string.IsNullOrWhiteSpace(_motDePasse))">
-                        <span>✨</span> @Loc["AdmCompte.CreateBtn"]
+                            @onclick="CreerAsync" disabled="@(string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_nomAffiche))">
+                        <span aria-hidden="true">✉️</span> @Loc["AdmCompte.InviteBtn"]
                     </button>
                 </div>
             </div>
             <div class="form-text text-muted mt-2 small">
-                🔒 @Loc["AdmCompte.CreateHint"]
+                🔒 @Loc["AdmCompte.InviteHint"]
             </div>
         </div>
     }
@@ -473,7 +470,6 @@ else
     private bool _afficherFormulaireCreation;
     private string _email = string.Empty;
     private string _nomAffiche = string.Empty;
-    private string _motDePasse = string.Empty;
 
     private string _recherche = string.Empty;
     private string _filtreStatut = "Tous";
@@ -592,20 +588,47 @@ else
         }
     }
 
-    private Task CreerAsync() => ExecuterAsync(async sp =>
+    /// <summary>
+    /// CRÉATION PAR INVITATION — le compte naît sans mot de passe ; l'agent reçoit par e-mail un
+    /// lien à usage unique pour définir LUI-MÊME son mot de passe, puis configure sa 2FA à la
+    /// première connexion. L'administrateur ne connaît jamais le secret de l'agent.
+    /// </summary>
+    private async Task CreerAsync()
     {
-        var creerCompte = sp.GetRequiredService<CreerCompteAgentCommand>();
-        var resultat = await creerCompte.ExecuterAsync(_appelantId, _email, _nomAffiche, _motDePasse);
-        if (!resultat.Succes)
-        {
-            throw new InvalidOperationException(string.Join(" ", resultat.Erreurs));
-        }
+        var invitationEnvoyee = false;
+        var email = _email;
 
-        _email = string.Empty;
-        _nomAffiche = string.Empty;
-        _motDePasse = string.Empty;
-        _afficherFormulaireCreation = false;
-    }, Loc["AdmCompte.SuccessCreate"].Value);
+        await ExecuterAsync(async sp =>
+        {
+            var creerCompte = sp.GetRequiredService<CreerCompteAgentCommand>();
+            var resultat = await creerCompte.ExecuterAsync(_appelantId, _email, _nomAffiche, motDePasseInitial: string.Empty);
+            if (!resultat.Succes)
+            {
+                throw new InvalidOperationException(string.Join(" ", resultat.Erreurs));
+            }
+
+            var compte = await sp.GetRequiredService<UserManager<ApplicationUser>>().FindByIdAsync(resultat.UtilisateurId.ToString());
+            if (compte is not null)
+            {
+                invitationEnvoyee = await sp.GetRequiredService<EnvoiLienMotDePasse>().EnvoyerAsync(
+                    compte,
+                    new Uri(Navigation.BaseUri),
+                    Loc["AdmCompte.InviteMailSubject"].Value,
+                    lien => Loc["AdmCompte.InviteMailBody", compte.NomAffiche, lien].Value);
+            }
+
+            _email = string.Empty;
+            _nomAffiche = string.Empty;
+            _afficherFormulaireCreation = false;
+        }, Loc["AdmCompte.SuccessInvite", email].Value);
+
+        // Compte créé mais e-mail non parti (SMTP non configuré…) : le dire, sans masquer la création.
+        if (_erreur is null && !invitationEnvoyee)
+        {
+            _succes = null;
+            _erreur = Loc["AdmCompte.InviteNotSent", email].Value;
+        }
+    }
 
     /// <summary>
     /// UX-P1 (UI-03) — la désactivation ferme l'accès d'un agent : elle se confirme. La
