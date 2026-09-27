@@ -240,6 +240,10 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementReferentiels>()
         .ExecuterAsync();
+    // Aide contextuelle de départ (additif : un article retouché n'est jamais réécrit).
+    await scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementAide>()
+        .ExecuterAsync();
 }
 
 // SIM-06 / Annexe A.6 : les référentiels tarifaires (sens, taille, type, catégorie de

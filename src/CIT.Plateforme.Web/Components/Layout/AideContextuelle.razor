@@ -1,0 +1,87 @@
+@using System.Globalization
+@using CIT.Plateforme.Application.Aide
+@using CIT.Plateforme.Domain.Aide
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject NavigationManager NavigationManager
+@inject IServiceScopeFactory ScopeFactory
+@inject IStringLocalizer<SharedResources> Loc
+
+@* AIDE CONTEXTUELLE (bouton « ? ») — l'aide de l'écran courant, rendue au rendu serveur comme le
+   reste de la barre (SSR statique : pas de @onclick possible ici). <details> natif ; la classe
+   cit-user-menu lui donne la fermeture au clic extérieur et à Échap (js/navigation-rapide.js).
+   Le contenu est du texte pur découpé en blocs : aucun HTML stocké n'est jamais interprété. *@
+<details class="cit-user-menu cit-aide">
+    <summary class="cit-notification-btn cit-aide-bouton" title="@Loc["Help.Button"]" aria-label="@Loc["Help.Button"]">
+        <span aria-hidden="true">?</span>
+    </summary>
+
+    <aside class="cit-aide-panneau" role="dialog" aria-labelledby="cit-aide-titre">
+        <div class="cit-aide-entete">
+            <span class="cit-aide-surtitre">@Loc["Help.Kicker"]</span>
+            <h2 id="cit-aide-titre" class="cit-aide-titre">@(_aide?.Titre ?? Loc["Help.NoArticleTitle"].Value)</h2>
+        </div>
+
+        <div class="cit-aide-corps">
+            @if (_aide is null)
+            {
+                <p>@Loc["Help.NoArticle"]</p>
+            }
+            else
+            {
+                var numero = 0;
+                @foreach (var bloc in _aide.Blocs)
+                {
+                    numero = bloc.Type == TypeBlocAide.Etape ? numero + 1 : 0;
+                    @switch (bloc.Type)
+                    {
+                        case TypeBlocAide.Intertitre:
+                            <h3 class="cit-aide-intertitre">@bloc.Texte</h3>
+                            break;
+                        case TypeBlocAide.Puce:
+                            <p class="cit-aide-puce">@bloc.Texte</p>
+                            break;
+                        case TypeBlocAide.Etape:
+                            <p class="cit-aide-etape"><span class="cit-aide-numero" aria-hidden="true">@numero</span>@bloc.Texte</p>
+                            break;
+                        case TypeBlocAide.Astuce:
+                            <p class="cit-aide-astuce"><span aria-hidden="true">💡</span> @bloc.Texte</p>
+                            break;
+                        default:
+                            <p>@bloc.Texte</p>
+                            break;
+                    }
+                }
+            }
+        </div>
+
+        <div class="cit-aide-pied">
+            <span class="small text-muted">@Loc["Help.MoreHelp"]</span>
+            <a href="/assistant" class="cit-aide-lien">💬 @Loc["Help.Assistant"]</a>
+            <a href="/support/incidents/signaler" class="cit-aide-lien">🛠️ @Loc["Help.ReportProblem"]</a>
+        </div>
+    </aside>
+</details>
+
+@code {
+    private AideVue? _aide;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var chemin = "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        try
+        {
+            // Portée dédiée : la barre est rendue sur chaque page, en parallèle du chargement de celle-ci.
+            using var scope = ScopeFactory.CreateScope();
+            _aide = await scope.ServiceProvider.GetRequiredService<ObtenirAideContextuelleQuery>()
+                .ExecuterAsync(chemin, CultureInfo.CurrentUICulture.Name);
+        }
+        catch (Exception)
+        {
+            // Une aide indisponible ne doit jamais faire tomber la page : le panneau propose alors
+            // simplement l'assistant et le signalement.
+            _aide = null;
+        }
+    }
+}

@@ -77,6 +77,48 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Aide.ArticleAide", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Actif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ContenuEn")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContenuFr")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Route")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TitreEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("TitreFr")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Route")
+                        .IsUnique();
+
+                    b.ToTable("ArticlesAide", (string)null);
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Assistant.ConversationAssistant", b =>
                 {
                     b.Property<Guid>("Id")

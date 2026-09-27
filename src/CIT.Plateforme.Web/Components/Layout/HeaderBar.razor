@@ -104,6 +104,9 @@
 
         @if (Contexte?.EstAuthentifie == true)
         {
+            @* Aide de l'écran courant (bouton « ? »). *@
+            <AideContextuelle />
+
             @* FEATURE 009 (T148, NOT-03) — câblage de la cloche DÉJÀ PRÉSENTE : la structure et
                les classes CSS sont conservées telles quelles, seul le comportement est ajouté.
                MainLayout est rendu en SSR statique — un @onclick n'y serait jamais déclenché :

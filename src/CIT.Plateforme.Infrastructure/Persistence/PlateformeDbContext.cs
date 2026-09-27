@@ -75,6 +75,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     public DbSet<SocieteCliente> Societes => Set<SocieteCliente>();
     public DbSet<ParametreTypeClient> TypesClient => Set<ParametreTypeClient>();
 
+    /// <summary>Aide contextuelle : un article par écran (bouton « ? »).</summary>
+    public DbSet<Domain.Aide.ArticleAide> ArticlesAide => Set<Domain.Aide.ArticleAide>();
+
     /// <summary>Référentiels métier issus des énumérations (voir <see cref="ConfigurationReferentiels"/>).</summary>
     public DbSet<Domain.Referentiels.ReferentielGraviteIncident> GravitesIncident => Set<Domain.Referentiels.ReferentielGraviteIncident>();
 
@@ -1123,6 +1126,18 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         // Normalisation des énumérations (Merise, 3FN) : référentiels + clés étrangères, puis
         // contraintes CHECK sur les autres — en dernier, sur le modèle complet.
         ConfigurationReferentiels.Appliquer(builder);
+
+        builder.Entity<Domain.Aide.ArticleAide>(b =>
+        {
+            b.ToTable("ArticlesAide");
+            b.HasKey(a => a.Id);
+            b.Property(a => a.Route).HasMaxLength(Domain.Aide.ArticleAide.LongueurMaxRoute).IsRequired();
+            b.HasIndex(a => a.Route).IsUnique();
+            b.Property(a => a.TitreFr).HasMaxLength(Domain.Aide.ArticleAide.LongueurMaxTitre).IsRequired();
+            b.Property(a => a.TitreEn).HasMaxLength(Domain.Aide.ArticleAide.LongueurMaxTitre).IsRequired();
+            b.Property(a => a.ContenuFr).HasMaxLength(Domain.Aide.ArticleAide.LongueurMaxContenu).IsRequired();
+            b.Property(a => a.ContenuEn).HasMaxLength(Domain.Aide.ArticleAide.LongueurMaxContenu).IsRequired();
+        });
         ConfigurationReferentiels.ContraindreEnumerations(builder);
     }
 }

@@ -2828,3 +2828,44 @@ html { scroll-padding-top: var(--header-h); }
     .cit-bouton-supprimer.mange .cit-corbeille { animation: none; }
     .cit-bouton-supprimer.mange .cit-bouton-supprimer-libelle { opacity: .4; }
 }
+
+/* ==========================================================================
+   AIDE CONTEXTUELLE (bouton « ? ») — panneau latéral droit, rendu serveur.
+   ========================================================================== */
+.cit-aide-bouton { font-weight: 800; font-size: 1rem; }
+.cit-aide[open] .cit-aide-bouton { background: var(--accent); color: var(--deep-900); }
+.cit-aide-panneau {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + .75rem);
+    right: .75rem;
+    bottom: .75rem;
+    z-index: var(--z-menu-utilisateur);
+    width: min(420px, calc(100vw - 1.5rem));
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    color: inherit;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--lift-2);
+    animation: menu-in .18s cubic-bezier(.32, .72, 0, 1);
+}
+.cit-aide-entete { padding: 1.1rem 1.25rem .75rem; border-bottom: 1px solid var(--line); }
+.cit-aide-surtitre { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .65; }
+.cit-aide-titre { font-size: 1.1rem; font-weight: 700; margin: .25rem 0 0; text-wrap: balance; }
+.cit-aide-corps { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; font-size: .9rem; line-height: 1.55; }
+.cit-aide-corps p { margin: 0 0 .6rem; }
+.cit-aide-intertitre { font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin: 1.1rem 0 .5rem; opacity: .8; }
+.cit-aide-puce { position: relative; padding-left: 1rem; }
+.cit-aide-puce::before { content: ""; position: absolute; left: .2rem; top: .6em; width: .35rem; height: .35rem; border-radius: 50%; background: currentColor; opacity: .5; }
+.cit-aide-etape { display: flex; gap: .6rem; align-items: flex-start; }
+.cit-aide-numero {
+    flex: none; display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem; margin-top: .05rem;
+    border-radius: 50%; font-size: .75rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    background: var(--surface-2); border: 1px solid var(--line);
+}
+.cit-aide-astuce { padding: .6rem .75rem; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); }
+.cit-aide-pied { display: flex; flex-direction: column; gap: .35rem; padding: .85rem 1.25rem 1rem; border-top: 1px solid var(--line); }
+.cit-aide-lien { font-size: .875rem; font-weight: 600; text-decoration: none; }
+.cit-aide-lien:hover { text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) { .cit-aide-panneau { animation: none; } }
