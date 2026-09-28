@@ -121,7 +121,7 @@ public static class ContenuAideInitial
             2. Déposez les pièces : déclaration en douane, copie du BL et autres pièces exigées (PDF, JPG, PNG ou Excel).
             3. Soumettez : un numéro de dossier et de ticket vous sont attribués.
             ## Ensuite
-            Le dossier passe par le Manifeste, le Contrôle documentaire, la Facturation, la validation du Paiement puis la Comptabilité. Chaque étape vous est notifiée.
+            Le dossier passe par le Manifeste, puis la Facturation. Ensuite, selon votre type de client : vérification du paiement (Normal), rapprochement comptable (Deposit) ou passage direct (En compte). Il se termine par le contrôle des documents, qui vous remet les documents de sortie et clôture le dossier. Chaque étape vous est notifiée.
             ! Un même BL ne peut pas faire l'objet de deux demandes en cours.
             """,
             """
@@ -130,7 +130,7 @@ public static class ContenuAideInitial
             2. Upload the documents: customs declaration, copy of the B/L and other required documents (PDF, JPG, PNG or Excel).
             3. Submit: a file number and a ticket number are assigned.
             ## Next
-            The file goes through Manifest, Document check, Invoicing, Payment validation and Accounting. You are notified at each step.
+            The file goes through Manifest, then Invoicing. Next, depending on your customer type: payment check (Normal), accounting matching (Deposit) or straight through (On account). It ends with the document check, which hands you the release documents and closes the file. You are notified at each step.
             ! The same B/L cannot be used for two open requests.
             """),
 
@@ -141,7 +141,7 @@ public static class ContenuAideInitial
             2. Déposez les pièces justificatives.
             3. Soumettez : le dossier est orienté vers le Back Office Export.
             ## Ensuite
-            Back Office, Contrôle documentaire, Facturation, validation du Paiement puis Comptabilité ; chaque étape vous est notifiée.
+            Le dossier passe par le Back Office Export, puis la Facturation. Ensuite, selon votre type de client : vérification du paiement (Normal), rapprochement comptable (Deposit) ou passage direct (En compte). Il se termine par le contrôle des documents, qui vous remet les documents de sortie et clôture le dossier. Chaque étape vous est notifiée.
             """,
             """
             Create an Export file from your booking number.
@@ -149,7 +149,7 @@ public static class ContenuAideInitial
             2. Upload the supporting documents.
             3. Submit: the file is routed to the Export Back Office.
             ## Next
-            Back Office, Document check, Invoicing, Payment validation then Accounting; you are notified at each step.
+            The file goes through Export Back Office, then Invoicing. Next, depending on your customer type: payment check (Normal), accounting matching (Deposit) or straight through (On account). It ends with the document check, which hands you the release documents and closes the file. You are notified at each step.
             """),
 
         new("/tickets", "Dossier : documents et échanges", "File: documents and messages",
@@ -295,28 +295,28 @@ public static class ContenuAideInitial
             1. Prenez en charge un ticket de la file.
             2. Vérifiez le BL et le manifeste.
             3. S'il manque une information, demandez un complément au client (statut En attente client).
-            4. Validez le manifeste : le dossier passe au Contrôle documentaire.
+            4. Validez le manifeste : le dossier passe à la Facturation (client IES : au circuit IES).
             """,
             """
             First review step of an Import file.
             1. Take over a ticket from the queue.
             2. Check the B/L and the manifest.
             3. If information is missing, request it from the customer (status Awaiting customer).
-            4. Validate the manifest: the file moves to Document check.
+            4. Validate the manifest: the file moves to Invoicing (IES customer: to the IES circuit).
             """),
 
         new("/billing-import/controle-documentaire", "Contrôle documentaire", "Document check",
             """
-            Vérifiez les pièces du dossier.
-            - « 👁 Ouvrir » affiche chaque pièce sans la télécharger.
-            - Rejetez une pièce non conforme avec un motif clair : le client est notifié.
-            - Validez le contrôle : le dossier passe à la Facturation.
+            Dernière étape du dossier : il arrive ici une fois le paiement validé, le lettrage confirmé (client Deposit) ou directement après la facture (client En compte).
+            1. Ouvrez les pièces du dossier avec « 👁 Ouvrir ».
+            2. Dans la colonne « Dépôt BS / BADT & Clôture », joignez les documents de sortie (BS, BADT…).
+            3. Le dossier est alors clôturé : le client est notifié et récupère ses documents de sortie.
             """,
             """
-            Check the file's documents.
-            - "👁 Open" displays each document without downloading it.
-            - Reject a non-compliant document with a clear reason: the customer is notified.
-            - Validate the check: the file moves to Invoicing.
+            Last step of the file: it arrives here once payment is validated, matching is confirmed (Deposit customer) or straight after the invoice (On account customer).
+            1. Open the file's documents with "👁 Open".
+            2. In the "BS / BADT upload & closure" column, attach the release documents (BS, BADT…).
+            3. The file is then closed: the customer is notified and gets the release documents.
             """),
 
         new("/billing-import/facturation", "Facturation", "Invoicing",
@@ -324,24 +324,24 @@ public static class ContenuAideInitial
             Émettez la facture du dossier.
             1. Contrôlez les éléments facturables ; le montant est calculé selon la grille tarifaire active.
             2. Émettez la facture.
-            3. Validez l'étape : le dossier passe à la validation du paiement.
+            3. Validez l'étape : le dossier part automatiquement vers la vérification du paiement (client Normal), la comptabilité (client Deposit) ou le contrôle des documents (client En compte).
             """,
             """
             Issue the file's invoice.
             1. Check the billable items; the amount is calculated from the active tariff grid.
             2. Issue the invoice.
-            3. Validate the step: the file moves to payment validation.
+            3. Validate the step: the file automatically moves to payment check (Normal customer), accounting (Deposit customer) or document check (On account customer).
             """),
 
         new("/billing-import/validation-paiement", "Validation du paiement (caisse)", "Payment validation (cashier)",
             """
             Contrôlez la preuve de paiement du client.
-            - Paiement conforme : validez ; le dossier passe en comptabilité.
+            - Paiement conforme : validez ; le dossier passe au contrôle des documents, dernière étape avant la clôture.
             - Paiement non conforme : refusez avec un motif ; le client est notifié et le dossier reste à cette étape.
             """,
             """
             Check the customer's proof of payment.
-            - Compliant payment: validate; the file moves to accounting.
+            - Compliant payment: validate; the file moves to document check, the last step before closure.
             - Non-compliant payment: reject with a reason; the customer is notified and the file stays at this step.
             """),
 

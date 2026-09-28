@@ -165,12 +165,14 @@ internal static class ContenuAideSecondaire
         // ------------------------------------------------------------------ Files agents
         new("/billing-import/comptabilite-client", "Comptabilité Deposit (Import)", "Deposit accounting (Import)",
             """
-            Dernière étape du dossier Import : confirmez le lettrage du paiement.
-            - Une fois le lettrage confirmé, le dossier est clôturé et passe en lecture seule.
+            Dossiers des clients Deposit : faites le lettrage dans IRIS, puis confirmez-le ici.
+            - Une fois le lettrage confirmé, le dossier part au contrôle des documents, qui le clôture.
+            - Lettrage impossible : le dossier reste dans cette file jusqu'à résolution.
             """,
             """
-            Last step of the Import file: confirm the payment matching.
-            - Once matching is confirmed, the file is closed and becomes read-only.
+            Deposit customers' files: do the matching in IRIS, then confirm it here.
+            - Once matching is confirmed, the file moves to document check, which closes it.
+            - Matching not possible: the file stays in this queue until resolved.
             """),
 
         new("/billing-import/ies", "Traitement IES (Import)", "IES processing (Import)",
@@ -188,55 +190,55 @@ internal static class ContenuAideSecondaire
             Première étape d'un dossier Export.
             1. Prenez en charge le dossier.
             2. Complétez-le ou demandez un complément au client.
-            3. Validez : il passe au Contrôle documentaire Export.
+            3. Validez : il passe à la Facturation Export (client IES : au circuit IES).
             """,
             """
             First step of an Export file.
             1. Take over the file.
             2. Complete it or request information from the customer.
-            3. Validate: it moves to Export document check.
+            3. Validate: it moves to Export Invoicing (IES customer: to the IES circuit).
             """),
 
         new("/billing-export/controle-documentaire", "Contrôle documentaire (Export)", "Document check (Export)",
             """
-            Vérifiez les pièces du dossier Export.
+            Dernière étape du dossier Export : joignez le bordereau d'enlèvement (BEE) et clôturez.
             - « 👁 Ouvrir » affiche chaque pièce sans la télécharger.
-            - Rejetez une pièce non conforme avec un motif ; validez pour passer à la Facturation.
+            - Colonne « Joindre BEE et clôturer » : le BEE est déposé et le dossier clôturé ; le client est notifié.
             """,
             """
-            Check the Export file's documents.
+            Last step of the Export file: attach the removal note (BEE) and close.
             - "👁 Open" displays each document without downloading it.
-            - Reject a non-compliant document with a reason; validate to move to Invoicing.
+            - "Attach BEE and close" column: the BEE is uploaded and the file closed; the customer is notified.
             """),
 
         new("/billing-export/facturation", "Facturation (Export)", "Invoicing (Export)",
             """
             Émettez la facture du dossier Export : le montant suit la grille tarifaire active.
-            - Validez l'étape pour transmettre le dossier à la validation du paiement.
+            - Validez l'étape : le dossier part selon le type de client (paiement, comptabilité ou contrôle des documents), comme à l'Import.
             """,
             """
             Issue the Export file's invoice: the amount follows the active tariff grid.
-            - Validate the step to send the file to payment validation.
+            - Validate the step: the file moves on according to the customer type (payment, accounting or document check), as for Import.
             """),
 
         new("/billing-export/validation-paiement", "Validation du paiement (Export)", "Payment validation (Export)",
             """
             Contrôlez la preuve de paiement du client.
-            - Conforme : validez, le dossier passe en comptabilité.
+            - Conforme : validez, le dossier passe au contrôle des documents.
             - Non conforme : refusez avec un motif ; le client est notifié.
             """,
             """
             Check the customer's proof of payment.
-            - Compliant: validate, the file moves to accounting.
+            - Compliant: validate, the file moves to document check.
             - Non-compliant: reject with a reason; the customer is notified.
             """),
 
         new("/billing-export/comptabilite", "Comptabilité Deposit (Export)", "Deposit accounting (Export)",
             """
-            Dernière étape du dossier Export : confirmez le lettrage du paiement ; le dossier est alors clôturé.
+            Dossiers Export des clients Deposit : faites le lettrage dans IRIS, puis confirmez-le ici ; le dossier part ensuite au contrôle des documents, qui le clôture.
             """,
             """
-            Last step of the Export file: confirm the payment matching; the file is then closed.
+            Export files of Deposit customers: do the matching in IRIS, then confirm it here; the file then moves to document check, which closes it.
             """),
 
         new("/billing-export/ies", "Traitement IES (Export)", "IES processing (Export)",
