@@ -15,6 +15,9 @@ public sealed class SocieteCliente
     public Guid DemandeurId { get; private set; }
 
     /// <summary>Informations/justificatifs déclarés — contenu paramétrable, non fixé ici (PC-08).</summary>
+    // ponytail: double représentation transitoire — texte libre hérité vs champs structurés
+    // RaisonSociale/Rccm. À supprimer une fois la reprise (ReprendreIdentiteDeclaree) appliquée à
+    // toutes les sociétés antérieures ; tant que des écrans admin/profil l'affichent, on le garde.
     public string InformationsDeclarees { get; private set; } = string.Empty;
 
     /// <summary>
