@@ -6,7 +6,7 @@ using CIT.Plateforme.Domain.Securite;
 namespace CIT.Plateforme.Application.Administration;
 
 /// <summary>Un sujet de l'assistant tel que présenté à l'administrateur.</summary>
-public sealed record SujetAssistantVue(Guid Id, string MotsCles, string Reponse, bool EstActif, int Ordre);
+public sealed record SujetAssistantVue(Guid Id, string MotsCles, string Reponse, string? ReponseEn, bool EstActif, int Ordre);
 
 /// <summary>
 /// IA-04 — administration de la base de connaissances de l'assistant simulé (§16, §17.3). Ajouter
@@ -19,11 +19,11 @@ public sealed class GererSujetsAssistantCommand(
     IUniteDeTravail uniteDeTravail)
 {
     public async Task<Guid> DefinirAsync(
-        Guid appelantId, string motsCles, string reponse, int ordre, CancellationToken ct = default)
+        Guid appelantId, string motsCles, string reponse, int ordre, string? reponseEn = null, CancellationToken ct = default)
     {
         await autorisation.ExigerAsync(appelantId, Permission.AdministrationAssistant, ct: ct).ConfigureAwait(false);
 
-        var sujet = SujetAssistant.Definir(motsCles, reponse, ordre);
+        var sujet = SujetAssistant.Definir(motsCles, reponse, ordre, reponseEn);
         await sujets.AjouterAsync(sujet, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerAuditAsync(
@@ -34,7 +34,7 @@ public sealed class GererSujetsAssistantCommand(
     }
 
     public async Task ModifierAsync(
-        Guid appelantId, Guid sujetId, string motsCles, string reponse, int ordre, CancellationToken ct = default)
+        Guid appelantId, Guid sujetId, string motsCles, string reponse, int ordre, string? reponseEn = null, CancellationToken ct = default)
     {
         await autorisation.ExigerAsync(appelantId, Permission.AdministrationAssistant, ct: ct).ConfigureAwait(false);
 
@@ -42,7 +42,7 @@ public sealed class GererSujetsAssistantCommand(
             ?? throw new InvalidOperationException($"Sujet {sujetId} introuvable.");
 
         var avant = sujet.MotsCles;
-        sujet.Modifier(motsCles, reponse, ordre);
+        sujet.Modifier(motsCles, reponse, ordre, reponseEn);
 
         await journalisation.ConsignerAuditAsync(
             appelantId, "SujetAssistantModifie", nameof(SujetAssistant), sujet.Id, avant, sujet.MotsCles, ct).ConfigureAwait(false);
@@ -89,7 +89,7 @@ public sealed class ListerSujetsAssistantQuery(
 
         return tous
             .OrderBy(s => s.Ordre)
-            .Select(s => new SujetAssistantVue(s.Id, s.MotsCles, s.Reponse, s.EstActif, s.Ordre))
+            .Select(s => new SujetAssistantVue(s.Id, s.MotsCles, s.Reponse, s.ReponseEn, s.EstActif, s.Ordre))
             .ToList();
     }
 }

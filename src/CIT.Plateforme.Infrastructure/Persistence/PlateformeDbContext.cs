@@ -739,6 +739,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasKey(s => s.Id);
             b.Property(s => s.MotsCles).IsRequired().HasMaxLength(512);
             b.Property(s => s.Reponse).IsRequired();
+            b.Property(s => s.ReponseEn);
             b.HasIndex(s => s.EstActif);
         });
 

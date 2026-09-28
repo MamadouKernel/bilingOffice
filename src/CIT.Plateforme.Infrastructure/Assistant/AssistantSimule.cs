@@ -1,4 +1,6 @@
+using System.Globalization;
 using CIT.Plateforme.Application.Abstractions;
+using CIT.Plateforme.Domain;
 using CIT.Plateforme.Domain.Assistant;
 using Microsoft.Extensions.Logging;
 
@@ -27,15 +29,19 @@ namespace CIT.Plateforme.Infrastructure.Assistant;
 /// </summary>
 public sealed class AssistantSimule(ISujetAssistantRepository sujets, ILogger<AssistantSimule> journal) : IAssistantConversationnel
 {
-    private const string Signature =
-        "\n\n(Réponse produite par l'assistant de démonstration de la plateforme. "
-        + "Le fournisseur d'assistant conversationnel n'est pas encore arbitré.)";
+    private static string Signature(bool en) => en
+        ? "\n\n(Response produced by the platform's demonstration assistant. "
+          + "The conversational assistant provider has not been selected yet.)"
+        : "\n\n(Réponse produite par l'assistant de démonstration de la plateforme. "
+          + "Le fournisseur d'assistant conversationnel n'est pas encore arbitré.)";
 
     public async Task<ReponseAssistant> RepondreAsync(
         IReadOnlyList<MessageAssistant> historique, string question, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(historique);
 
+        var langue = CultureInfo.CurrentUICulture.Name;
+        var en = Langue.EstAnglais(langue);
         var normalisee = (question ?? string.Empty).ToLowerInvariant();
         var sujetsActifs = await sujets.ListerAsync(activesUniquement: true, ct).ConfigureAwait(false);
 
@@ -43,7 +49,7 @@ public sealed class AssistantSimule(ISujetAssistantRepository sujets, ILogger<As
         {
             if (sujet.MotsClesListe().Any(m => normalisee.Contains(m.ToLowerInvariant(), StringComparison.Ordinal)))
             {
-                return new ReponseAssistant(sujet.Reponse + Signature, EscaladeRecommandee: false);
+                return new ReponseAssistant(sujet.Texte(langue) + Signature(en), EscaladeRecommandee: false);
             }
         }
 
@@ -52,9 +58,14 @@ public sealed class AssistantSimule(ISujetAssistantRepository sujets, ILogger<As
             "Assistant simulé : sujet non couvert, escalade recommandée après {Tours} tour(s).",
             historique.Count / 2);
 
+        var incertitude = en
+            ? "I can't answer this question with certainty. An operator can help you: "
+              + "you can forward this conversation, it will be handed over in full."
+            : "Je ne sais pas répondre à cette question avec certitude. Un opérateur pourra vous aider : "
+              + "vous pouvez transmettre cet échange, il lui sera remis en entier.";
+
         return new ReponseAssistant(
-            "Je ne sais pas répondre à cette question avec certitude. Un opérateur pourra vous aider : "
-            + "vous pouvez transmettre cet échange, il lui sera remis en entier." + Signature,
+            incertitude + Signature(en),
             EscaladeRecommandee: true,
             MotifEscalade: "Question hors des sujets traités par l'assistant.");
     }

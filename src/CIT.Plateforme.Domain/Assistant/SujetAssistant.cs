@@ -14,7 +14,12 @@ public sealed class SujetAssistant
     /// (« contains »), même convention que l'ancienne table codée en dur.</summary>
     public string MotsCles { get; private set; } = string.Empty;
 
+    /// <summary>Réponse en français (langue de référence). Toujours renseignée.</summary>
     public string Reponse { get; private set; } = string.Empty;
+
+    /// <summary>Réponse en anglais (NFR-07). Facultative : si absente, l'anglais retombe sur le
+    /// français, comme le reste des libellés bilingues du projet.</summary>
+    public string? ReponseEn { get; private set; }
 
     /// <summary>Ordre d'évaluation : le premier sujet dont un mot-clé correspond l'emporte.</summary>
     public int Ordre { get; private set; }
@@ -25,7 +30,7 @@ public sealed class SujetAssistant
 
     private SujetAssistant() { }
 
-    public static SujetAssistant Definir(string motsCles, string reponse, int ordre)
+    public static SujetAssistant Definir(string motsCles, string reponse, int ordre, string? reponseEn = null)
     {
         if (string.IsNullOrWhiteSpace(motsCles))
         {
@@ -42,12 +47,13 @@ public sealed class SujetAssistant
             Id = Guid.NewGuid(),
             MotsCles = motsCles.Trim(),
             Reponse = reponse.Trim(),
+            ReponseEn = Nettoyer(reponseEn),
             Ordre = ordre,
             EstActif = true,
         };
     }
 
-    public void Modifier(string motsCles, string reponse, int ordre)
+    public void Modifier(string motsCles, string reponse, int ordre, string? reponseEn = null)
     {
         if (string.IsNullOrWhiteSpace(motsCles))
         {
@@ -61,8 +67,16 @@ public sealed class SujetAssistant
 
         MotsCles = motsCles.Trim();
         Reponse = reponse.Trim();
+        ReponseEn = Nettoyer(reponseEn);
         Ordre = ordre;
     }
+
+    /// <summary>Réponse dans la langue active : anglais si demandé ET renseigné, sinon français.</summary>
+    public string Texte(string langue) =>
+        Langue.EstAnglais(langue) && !string.IsNullOrWhiteSpace(ReponseEn) ? ReponseEn! : Reponse;
+
+    private static string? Nettoyer(string? valeur) =>
+        string.IsNullOrWhiteSpace(valeur) ? null : valeur.Trim();
 
     public void Activer() => EstActif = true;
 

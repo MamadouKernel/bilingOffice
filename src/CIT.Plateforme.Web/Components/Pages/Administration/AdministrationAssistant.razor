@@ -45,8 +45,12 @@ else
                 <input id="mots-cles" class="form-control" @bind="_motsCles" />
             </div>
             <div class="col-12 col-md-5">
-                <label class="form-label small fw-bold" for="reponse">Réponse</label>
+                <label class="form-label small fw-bold" for="reponse">Réponse (FR)</label>
                 <textarea id="reponse" class="form-control" rows="2" @bind="_reponse"></textarea>
+            </div>
+            <div class="col-12 col-md-8">
+                <label class="form-label small fw-bold" for="reponse-en">Réponse (EN) — optionnel, sinon repli sur le français</label>
+                <textarea id="reponse-en" class="form-control" rows="2" @bind="_reponseEn"></textarea>
             </div>
             <div class="col-12 col-md-2">
                 <label class="form-label small fw-bold" for="ordre">Ordre</label>
@@ -124,6 +128,7 @@ else
 
     private string _motsCles = string.Empty;
     private string _reponse = string.Empty;
+    private string _reponseEn = string.Empty;
     private int _ordre = 1;
 
     protected override async Task OnInitializedAsync()
@@ -182,9 +187,11 @@ else
     private Task AjouterAsync() => ExecuterAsync(async sp =>
     {
         var gerer = sp.GetRequiredService<GererSujetsAssistantCommand>();
-        await gerer.DefinirAsync(_appelantId, _motsCles, _reponse, _ordre);
+        await gerer.DefinirAsync(_appelantId, _motsCles, _reponse, _ordre,
+            reponseEn: string.IsNullOrWhiteSpace(_reponseEn) ? null : _reponseEn);
         _motsCles = string.Empty;
         _reponse = string.Empty;
+        _reponseEn = string.Empty;
         _ordre = (_sujets?.Count ?? 0) + 1;
     });
 
