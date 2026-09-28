@@ -16,7 +16,10 @@ public sealed class NavisOptions
     /// l'assistant reste sur YABA seul.</summary>
     public bool Active { get; init; }
 
-    /// <summary>Racine jusqu'à <c>/apex</c> inclus, ex. <c>https://n4.terminal.ci/apex</c>.</summary>
+    /// <summary>Racine de l'Universal Query, jusqu'au segment <c>/apex</c> inclus : schéma,
+    /// hôte N4 du terminal puis <c>/apex</c>. L'hôte réel vient de la configuration ; aucun
+    /// exemple d'URL résolvable n'est écrit ici, pour ne pas être pris pour une ressource
+    /// externe réellement servie (voir AucuneRessourceExterneTests).</summary>
     public string BaseUrl { get; init; } = string.Empty;
 
     // Coordonnées de portée exigées par l'Universal Query (scope de la requête).

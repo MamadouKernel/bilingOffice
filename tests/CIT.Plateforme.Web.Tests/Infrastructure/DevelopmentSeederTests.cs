@@ -15,14 +15,26 @@ using Xunit;
 
 namespace CIT.Plateforme.Web.Tests.Infrastructure;
 
-public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicationFactory>
+// CIT_TEST_USERS_PASSWORD est une variable d'ENVIRONNEMENT, donc globale au processus. Ces tests
+// la positionnent pour activer l'amorçage de démonstration ; sans restauration, elle restait
+// définie pour toutes les classes suivantes du même processus. Leur hôte de test réactivait alors
+// l'amorçage démo au démarrage, qui échouait (SeedClientDemo insère des Sociétés/Dossiers avant
+// que ProvisionnementTypesClient n'ait rempli TypesClient), faisant tomber des jeux de tests
+// variables selon l'ordre — non garanti — des classes. La restauration après CHAQUE test (xUnit
+// crée une instance par test) referme cette fuite.
+public sealed class DevelopmentSeederTests : IClassFixture<PlateformeWebApplicationFactory>, IDisposable
 {
     private readonly PlateformeWebApplicationFactory _factory;
+    private readonly string? _motDePasseInitial =
+        Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
 
     public DevelopmentSeederTests(PlateformeWebApplicationFactory factory)
     {
         _factory = factory;
     }
+
+    public void Dispose() =>
+        Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", _motDePasseInitial);
 
     [Fact]
     public async Task SeedAsync_DoitEtreIdempotent_EtNeCreerQuUneFois()

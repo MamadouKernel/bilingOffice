@@ -40,10 +40,25 @@ public sealed class RecSce07CustomerComplaintE2ETests : BunitContext, IClassFixt
 {
     private readonly PlateformeWebApplicationFactory _factory;
 
+    // CIT_TEST_USERS_PASSWORD est globale au processus : positionnée ici pour activer l'amorçage
+    // démo, elle fuyait vers les classes suivantes et faisait échouer leur démarrage. On restaure
+    // sa valeur d'origine à la libération (voir DevelopmentSeederTests pour le détail du défaut).
+    private readonly string? _motDePasseInitial =
+        Environment.GetEnvironmentVariable("CIT_TEST_USERS_PASSWORD");
+
     public RecSce07CustomerComplaintE2ETests(PlateformeWebApplicationFactory factory)
     {
         _factory = factory;
         LocalisationDeTest.Enregistrer(Services);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Environment.SetEnvironmentVariable("CIT_TEST_USERS_PASSWORD", _motDePasseInitial);
+        }
+        base.Dispose(disposing);
     }
 
     [Fact]
