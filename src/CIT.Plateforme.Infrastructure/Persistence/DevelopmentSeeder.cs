@@ -56,6 +56,7 @@ public sealed partial class DevelopmentSeeder(
         await SeedSujetsAssistantAsync();
 
         await SeedAdminCitAsync(motDePasseComptesDemo!);
+        await SeedClientDemoAsync(motDePasseComptesDemo!);
 
         await context.SaveChangesAsync();
 
