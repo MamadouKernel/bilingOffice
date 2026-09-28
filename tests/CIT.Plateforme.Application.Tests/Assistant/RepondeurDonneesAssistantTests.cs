@@ -1,3 +1,4 @@
+using System.Globalization;
 using CIT.Plateforme.Application.Assistant;
 using CIT.Plateforme.Application.Tests.Support;
 using CIT.Plateforme.Domain.Comptes;
@@ -16,6 +17,10 @@ namespace CIT.Plateforme.Application.Tests.Assistant;
 /// </summary>
 public sealed class RepondeurDonneesAssistantTests
 {
+    // Le répondeur est désormais bilingue (suit la culture active) : on épingle fr-FR pour les
+    // assertions françaises, sinon la culture de l'hôte de test rendrait le résultat non déterministe.
+    public RepondeurDonneesAssistantTests() => CultureInfo.CurrentUICulture = new CultureInfo("fr-FR");
+
     private sealed record Monde(PlateformeDbContext Db, RepondeurDonneesAssistant Repondeur, Guid ClientA, Guid CollegueA, Guid ClientB, Ticket TicketA, Ticket TicketCollegue, Ticket TicketB);
 
     private static Monde Construire()
@@ -138,6 +143,44 @@ public sealed class RepondeurDonneesAssistantTests
         var m = Construire();
 
         Assert.Null(await m.Repondeur.RepondreAsync(Guid.NewGuid(), "Où en est IMP-000101 ?"));
+    }
+
+    [Fact]
+    public async Task En_culture_anglaise_l_etat_d_un_dossier_repond_en_anglais()
+    {
+        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+        var m = Construire();
+
+        var reponse = await m.Repondeur.RepondreAsync(m.ClientA, "Where is my BL mscu1111111?");
+
+        Assert.NotNull(reponse);
+        Assert.Contains("IMP-000101", reponse!.Texte);
+        Assert.Contains("waiting for additional information", reponse.Texte);
+        Assert.DoesNotContain("dossier", reponse.Texte);
+    }
+
+    [Fact]
+    public async Task En_culture_anglaise_la_synthese_repond_en_anglais()
+    {
+        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+        var m = Construire();
+
+        var reponse = await m.Repondeur.RepondreAsync(m.ClientB, "Where are my cases?");
+
+        Assert.Contains("You have 1 case(s) being processed", reponse!.Texte);
+        Assert.DoesNotContain("Vous avez", reponse.Texte);
+    }
+
+    [Fact]
+    public async Task En_culture_anglaise_un_numero_hors_perimetre_reste_invisible()
+    {
+        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+        var m = Construire();
+
+        var reponse = await m.Repondeur.RepondreAsync(m.ClientA, "And case IMP-000201?");
+
+        Assert.Contains("I can't find any case", reponse!.Texte);
+        Assert.DoesNotContain("MSCU9999999", reponse.Texte);
     }
 
     [Theory]
