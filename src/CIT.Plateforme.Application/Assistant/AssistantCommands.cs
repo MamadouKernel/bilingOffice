@@ -30,6 +30,7 @@ public sealed record ConversationAssistantVue(
 // laissé croire à une trace qui n'existait pas.
 public sealed class PoserQuestionAssistantCommand(
     IConversationAssistantRepository conversations,
+    RepondeurDonneesAssistant donnees,
     IAssistantConversationnel assistant,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
@@ -62,7 +63,10 @@ public sealed class PoserQuestionAssistantCommand(
 
         conversation.AjouterMessage(AuteurMessageAssistant.Client, question, maintenant);
 
-        var reponse = await assistant.RepondreAsync(historique, question, ct).ConfigureAwait(false);
+        // D'abord les données de l'usager (état d'un dossier, compléments attendus, rendez-vous),
+        // cloisonnées comme ses écrans ; à défaut, l'assistant généraliste.
+        var reponse = await donnees.RepondreAsync(utilisateurId, question, ct).ConfigureAwait(false)
+            ?? await assistant.RepondreAsync(historique, question, ct).ConfigureAwait(false);
         conversation.AjouterMessage(AuteurMessageAssistant.Assistant, reponse.Texte, maintenant);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

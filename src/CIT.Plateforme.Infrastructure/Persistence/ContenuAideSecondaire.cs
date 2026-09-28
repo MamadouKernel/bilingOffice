@@ -27,14 +27,18 @@ internal static class ContenuAideSecondaire
 
         new("/assistant", "Assistant virtuel", "Virtual assistant",
             """
-            Posez une question en langage courant (ex. « comment suivre mon dossier ? ») : l'assistant répond à partir de la base de réponses de CIT.
-            - Hors de son périmètre, il vous oriente vers le bon écran ou vers un ticket.
-            ! L'assistant ne voit pas vos dossiers : pour un cas précis, ouvrez le dossier ou une réclamation.
+            Posez une question en langage courant : l'assistant répond à partir de VOS dossiers et de la base de réponses de CIT.
+            - « Où en est le dossier IMP-000123 ? » (ou un n° de BL, de booking) : état, étape et lien vers le dossier.
+            - « Qu'attend-on de moi ? » : les dossiers pour lesquels CIT attend votre réponse.
+            - « Où en sont mes dossiers ? » et « Quand est mon rendez-vous ? ».
+            ! L'assistant ne voit que les dossiers que vous pouvez déjà ouvrir, et il ne modifie jamais rien.
             """,
             """
-            Ask a question in plain language (e.g. "how do I track my file?"): the assistant answers from CIT's answer base.
-            - Outside its scope, it points you to the right screen or to a ticket.
-            ! The assistant cannot see your files: for a specific case, open the file or a complaint.
+            Ask a question in plain language: the assistant answers from YOUR files and from CIT's answer base.
+            - "Where is file IMP-000123?" (or a B/L or booking number): status, step and a link to the file.
+            - "What do you need from me?": the files for which CIT is waiting for your reply.
+            - "Where are my files?" and "When is my appointment?".
+            ! The assistant only sees the files you can already open, and it never changes anything.
             """),
 
         new("/support/incidents/mes-incidents", "Mes incidents", "My incidents",

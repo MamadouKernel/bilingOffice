@@ -98,6 +98,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.ISujetAssistantRepository, Persistence.SujetAssistantRepository>();
         services.AddScoped<Application.Administration.GererSujetsAssistantCommand>();
         services.AddScoped<Application.Administration.ListerSujetsAssistantQuery>();
+        services.AddScoped<Application.Assistant.RepondeurDonneesAssistant>();
         services.AddScoped<Application.Assistant.PoserQuestionAssistantCommand>();
         services.AddScoped<Application.Assistant.EscaladerAssistantVersOperateurCommand>();
         services.AddScoped<Application.Assistant.ConsulterConversationAssistantQuery>();

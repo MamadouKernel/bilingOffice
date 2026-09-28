@@ -23,6 +23,17 @@ namespace CIT.Plateforme.Application.Tests.Assistant;
 /// </summary>
 public sealed class AssistantApplicationTests
 {
+    /// <summary>Répondeur « données » branché sur la base de test.</summary>
+    internal static RepondeurDonneesAssistant RepondeurDonnees(PlateformeDbContext db, IHorloge horloge)
+    {
+        var tickets = new TicketRepository(db);
+        return new RepondeurDonneesAssistant(
+            new UtilisateurSocieteRepository(db), new DossierRepository(db), tickets, new FileDeTraitementRepository(db),
+            new LibellesStatutRepository(db),
+            new CIT.Plateforme.Application.Guichet.ListerMesRendezVousQuery(new CIT.Plateforme.Infrastructure.Persistence.RendezVousRepository(db), tickets),
+            horloge);
+    }
+
     private static (PlateformeDbContext Db, PoserQuestionAssistantCommand Poser,
                     EscaladerAssistantVersOperateurCommand Escalader, Guid ClientId, Ticket Ticket)
         Construire()
@@ -51,7 +62,7 @@ public sealed class AssistantApplicationTests
         db.SaveChanges();
 
         var poser = new PoserQuestionAssistantCommand(
-            conversations, new AssistantSimule(new SujetAssistantRepository(db), NullLogger<AssistantSimule>.Instance),
+            conversations, RepondeurDonnees(db, horloge), new AssistantSimule(new SujetAssistantRepository(db), NullLogger<AssistantSimule>.Instance),
             horloge, uniteDeTravail);
 
         var publier = new PublierMessageCommand(

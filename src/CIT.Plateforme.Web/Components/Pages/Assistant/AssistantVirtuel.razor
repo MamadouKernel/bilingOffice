@@ -61,7 +61,15 @@
                             <div class="rounded-3 p-3 shadow-sm @(estClient ? "bg-primary bg-opacity-10" : "bg-light")"
                                  style="max-width: 75%; white-space: pre-wrap;">
                                 <div class="small fw-bold text-muted mb-1">@m.Auteur</div>
-                                <div class="text-dark">@m.Contenu</div>
+                                <div class="text-dark">
+                                    @* Les liens vers un dossier (/tickets/<id>) deviennent cliquables ; tout le reste
+                                       reste du texte pur : aucun lien externe ne peut être injecté. *@
+                                    @foreach (var (texte, lien) in DecouperLiens(m.Contenu))
+                                    {
+                                        if (lien is null) { @texte }
+                                        else { <a href="@lien">@Loc["Asst.OpenFile"]</a> }
+                                    }
+                                </div>
                             </div>
                         </div>
                     }
@@ -126,6 +134,25 @@
 </div>
 
 @code {
+    /// <summary>Lien interne vers un dossier cité par l'assistant : seul motif rendu cliquable.</summary>
+    private static readonly System.Text.RegularExpressions.Regex LienDossier =
+        new(@"/tickets/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>Découpe un message en morceaux de texte et en liens vers des dossiers.</summary>
+    private static IEnumerable<(string Texte, string? Lien)> DecouperLiens(string contenu)
+    {
+        var position = 0;
+        foreach (System.Text.RegularExpressions.Match m in LienDossier.Matches(contenu))
+        {
+            yield return (contenu[position..m.Index], null);
+            yield return (string.Empty, m.Value);
+            position = m.Index + m.Length;
+        }
+
+        yield return (contenu[position..], null);
+    }
+
     private bool _chargement = true;
     private bool _nonAutorise;
     private bool _envoi;
