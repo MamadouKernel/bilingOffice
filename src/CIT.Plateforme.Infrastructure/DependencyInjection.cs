@@ -477,6 +477,13 @@ public static class DependencyInjection
         services.AddHttpClient();
         services.AddScoped<Application.Abstractions.ICanalNotification, Notifications.CanalEmailSmtp>();
 
+        // Source Navis N4 (Universal Query API, LECTURE SEULE) — interrogée par l'assistant à côté
+        // de YABA pour conteneur/navire/disponibilité. Section "Navis", INACTIVE par défaut : sans
+        // configuration, la source répond « indisponible » et l'assistant reste sur YABA. Les
+        // filtres nommés (les requêtes) sont définis côté N4, pas dans le code.
+        services.Configure<Navis.NavisOptions>(configuration.GetSection(Navis.NavisOptions.Section));
+        services.AddHttpClient<Application.Abstractions.ISourceNavis, Navis.SourceNavisRest>();
+
         // Paramètres de reprise ERR-02 — lus EXCLUSIVEMENT depuis la configuration, sans aucune
         // valeur par défaut. L'absence de configuration fait échouer le démarrage de façon
         // explicite, jamais silencieusement (CLAR-NOT-02, research.md D9).
