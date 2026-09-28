@@ -29,13 +29,13 @@ d'avance — c'est le principe du projet depuis le début : `DEFAULT_IF_NO_DECIS
 Ces deux points sont bloqués uniquement par l'absence d'un contrat avec un fournisseur réel. Le
 code est prêt à recevoir n'importe lequel sans développement supplémentaire.
 
-### A-1 — Fournisseur SMS / WhatsApp (couvre ENR-04)
+### A-1 — Fournisseur SMS / WhatsApp (couvre ENR-04) — **ABANDONNÉ (e-mail seul)**
 
-- [ ] **Décision prise**
-- **Ce qui est demandé** : choisir un fournisseur (ex. Twilio, Vonage, Orange, MTN…) et signer un contrat/API key.
-- **Qui tranche** : DSI + Finance.
-- **Débloque** : la réinitialisation de mot de passe et les notifications par SMS/WhatsApp (ENR-04), aujourd'hui indisponibles en dehors du développement.
-- **Référence détaillée** : `docs/82` D-07.
+- [x] **Décision prise** — 2026-09-28 : SMS et WhatsApp **retirés du périmètre**. La plateforme
+  reste sur l'e-mail (+ centre de notifications In-App). ENR-04 est donc servi par e-mail.
+- **Conséquence** : plus aucun fournisseur SMS/WhatsApp à contracter ; l'énum `CanalNotification`
+  ne définit que `InApp` et `Email` (décision produit initiale du 2026-09-25, confirmée ici).
+- **Référence détaillée** : `docs/82` D-07 (clos).
 
 ### A-2 — Fournisseur de modèle de langage (LLM) pour l'assistant conversationnel (couvre IA-05, et plus largement IA-01 à IA-07)
 

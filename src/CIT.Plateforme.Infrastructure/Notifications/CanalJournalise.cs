@@ -18,9 +18,9 @@ namespace CIT.Plateforme.Infrastructure.Notifications;
 /// Le jour où un fournisseur est retenu, il se substitue derrière <see cref="ICanalNotification"/>
 /// SANS modifier une seule ligne de code métier.
 ///
-/// SMS et WhatsApp sont servis par cette même implémentation : leur branchement réel est
-/// DIFFÉRÉ / AVANT PRODUCTION (tasks.md T203). Leur indisponibilité ne rend aucun Must de F009
-/// inatteignable — le MVP In-App + E-mail reste entièrement démontrable (RSQ-04).
+/// Canaux définis : In-App et E-mail UNIQUEMENT. SMS et WhatsApp ont été RETIRÉS (décision
+/// produit du 2026-09-25) — la plateforme reste sur l'e-mail. Le socle In-App + E-mail est
+/// entièrement démontrable (RSQ-04).
 ///
 /// AUCUN secret, aucune chaîne de connexion, aucune clé d'API n'est lu ni requis.
 /// </summary>
