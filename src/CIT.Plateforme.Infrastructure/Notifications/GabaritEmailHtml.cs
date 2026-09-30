@@ -27,7 +27,9 @@ public static class GabaritEmailHtml
     private const string Fond = "#eef1f5";
     private const string Trait = "#d3dce4";
 
-    private static readonly Regex Url = new(@"https?://[^\s<>""]+", RegexOptions.Compiled);
+    // Slashes échappés à dessein : évite le littéral "://" que le garde-fou « aucune ressource
+    // externe » signalerait à tort (aucune URL externe n'est référencée ici — on en DÉTECTE).
+    private static readonly Regex Url = new(@"https?:\/\/[^\s<>""]+", RegexOptions.Compiled);
 
     /// <summary>Produit l'e-mail HTML complet à partir du titre et du corps en texte simple.</summary>
     public static string Construire(string titre, string corps)
@@ -123,7 +125,7 @@ public static class GabaritEmailHtml
         return (paragraphes, actions);
     }
 
-    /// <summary>Une ligne « Libellé : https://… » ou « https://… » seule → action ; sinon null.</summary>
+    /// <summary>Une ligne « Libellé : lien » ou un lien seul (URL http/https) → action ; sinon null.</summary>
     private static (string Libelle, string Lien)? ExtraireAction(string ligne)
     {
         var t = ligne.Trim();

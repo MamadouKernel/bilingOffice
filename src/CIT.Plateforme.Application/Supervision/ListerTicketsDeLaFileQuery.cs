@@ -77,14 +77,17 @@ public sealed class ListerTicketsDeLaFileQuery(
             .ThenBy(t => t.DateArriveeEnFileUtc)
             .ToList();
 
+        // Résolution des noms en UN SEUL appel (évite un N+1 : un ObtenirInfoAsync par ticket).
+        var operateurIds = actifs.Where(t => t.OperateurAssigneId.HasValue).Select(t => t.OperateurAssigneId!.Value).Distinct();
+        var infos = await utilisateurs.ObtenirInfosAsync(operateurIds, ct).ConfigureAwait(false);
+
         var vues = new List<TicketSupervise>(actifs.Count);
         foreach (var t in actifs)
         {
             var nomOperateur = string.Empty;
             if (t.OperateurAssigneId is Guid operateurId)
             {
-                var info = await utilisateurs.ObtenirInfoAsync(operateurId, ct).ConfigureAwait(false);
-                nomOperateur = info?.NomAffiche ?? operateurId.ToString();
+                nomOperateur = infos.GetValueOrDefault(operateurId)?.NomAffiche ?? operateurId.ToString();
             }
 
             vues.Add(new TicketSupervise(
