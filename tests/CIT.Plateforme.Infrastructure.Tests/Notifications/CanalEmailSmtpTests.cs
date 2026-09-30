@@ -35,4 +35,21 @@ public sealed class CanalEmailSmtpTests
         Assert.False(resultat.Abouti);
         Assert.Equal("smtp non configuré", resultat.Motif);
     }
+
+    [Fact]
+    public async Task Hote_configure_mais_Actif_false_ne_tente_pas_l_envoi()
+    {
+        // Interrupteur d'activation : l'hôte est renseigné mais l'envoi n'est pas encore autorisé.
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Notifications:Smtp:Hote"] = "smtp.exemple.com",
+            ["Notifications:Smtp:Actif"] = "false",
+        }).Build();
+        var canal = new CanalEmailSmtp(configuration, NullLogger<CanalEmailSmtp>.Instance);
+
+        var resultat = await canal.EnvoyerAsync(new DestinationEnvoi(Guid.NewGuid(), "client@exemple.com"), "titre", "corps");
+
+        Assert.False(resultat.Abouti);
+        Assert.Equal("envoi désactivé", resultat.Motif);
+    }
 }

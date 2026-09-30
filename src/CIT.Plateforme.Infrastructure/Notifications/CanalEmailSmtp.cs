@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Domain.Notifications;
 using Microsoft.Extensions.Configuration;
@@ -41,9 +42,20 @@ public sealed class CanalEmailSmtp(IConfiguration configuration, ILogger<CanalEm
             return ResultatEnvoi.Echec("smtp non configuré");
         }
 
+        // Interrupteur d'envoi : tant que Notifications:Smtp:Actif n'est pas passé à true, aucun
+        // mail ne part (dernière étape d'activation, après hôte/compte/mot de passe).
+        if (!section.GetValue("Actif", false))
+        {
+            logger.LogInformation(
+                "Envoi e-mail désactivé (Notifications:Smtp:Actif=false) — mail non transmis pour {DestinataireId}.",
+                destination.DestinataireId);
+            return ResultatEnvoi.Echec("envoi désactivé");
+        }
+
         var port = section.GetValue("Port", 587);
         var utiliserSsl = section.GetValue("UtiliserSsl", true);
         var expediteur = section["Expediteur"] ?? "no-reply@cotedivoireterminal.com";
+        var expediteurNom = section["ExpediteurNom"] ?? "Côte d'Ivoire Terminal — YABA";
         var utilisateur = section["Utilisateur"];
         var motDePasse = section["MotDePasse"];
 
@@ -53,7 +65,20 @@ public sealed class CanalEmailSmtp(IConfiguration configuration, ILogger<CanalEm
             client.Credentials = new NetworkCredential(utilisateur, motDePasse);
         }
 
-        using var message = new MailMessage(expediteur, destination.Adresse, titre, corps);
+        using var message = new MailMessage
+        {
+            From = new MailAddress(expediteur, expediteurNom, Encoding.UTF8),
+            Subject = titre,
+            SubjectEncoding = Encoding.UTF8,
+        };
+        message.To.Add(destination.Adresse);
+
+        // Multipart : texte simple (repli, anti-spam) + HTML de marque. Le client de messagerie
+        // choisit le meilleur rendu qu'il sait afficher.
+        message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
+            corps, Encoding.UTF8, "text/plain"));
+        message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
+            GabaritEmailHtml.Construire(titre, corps), Encoding.UTF8, "text/html"));
 
         try
         {
