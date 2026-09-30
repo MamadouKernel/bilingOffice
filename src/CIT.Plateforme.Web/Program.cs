@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
 using CIT.Plateforme.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using CIT.Plateforme.Web.Components;
 using CIT.Plateforme.Web.Middlewares;
 using CIT.Plateforme.Web.Resources;
@@ -84,9 +85,36 @@ builder.Services.AddRateLimiter(options =>
         });
     });
 });
-// Signal temps réel de la supervision : événement en mémoire partagé par tous les circuits.
-builder.Services.AddSingleton<CIT.Plateforme.Web.Services.SignalSupervision>();
-builder.Services.AddSingleton<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel>(sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.SignalSupervision>());
+// Signal temps réel de la supervision (SOC-08, SUP-01..03).
+//
+// L4.2 + L4.3 (tenue en charge multi-nœuds, docs/103) : SI un Redis est configuré, on active
+//  - le SCALE-OUT du signal via pub/sub Redis (SignalSupervisionRedis) : un changement sur un nœud
+//    réveille les tableaux de bord de TOUS les nœuds ;
+//  - le PARTAGE des clés Data Protection (cookies d'auth + jetons antiforgery déchiffrables par tous
+//    les nœuds) — sans quoi un scale-out provoque déconnexions et échecs antiforgery.
+// SANS Redis (mono-nœud), on conserve exactement le comportement d'origine : événement en mémoire.
+var chaineRedis = builder.Configuration["Redis:ConnexionString"];
+if (!string.IsNullOrWhiteSpace(chaineRedis))
+{
+    var multiplexeurRedis = StackExchange.Redis.ConnectionMultiplexer.Connect(chaineRedis);
+    builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(multiplexeurRedis);
+
+    builder.Services.AddSingleton<CIT.Plateforme.Web.Services.SignalSupervisionRedis>();
+    builder.Services.AddSingleton<CIT.Plateforme.Web.Services.ISignalSupervision>(
+        sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.SignalSupervisionRedis>());
+
+    builder.Services.AddDataProtection()
+        .PersistKeysToStackExchangeRedis(multiplexeurRedis, "yaba-dataprotection-keys")
+        .SetApplicationName("YABA");
+}
+else
+{
+    builder.Services.AddSingleton<CIT.Plateforme.Web.Services.SignalSupervision>();
+    builder.Services.AddSingleton<CIT.Plateforme.Web.Services.ISignalSupervision>(
+        sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.SignalSupervision>());
+}
+builder.Services.AddSingleton<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel>(
+    sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.ISignalSupervision>());
 
 // Localisation bilingue (NFR-07) : fr-FR par défaut, en-US secondaire
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

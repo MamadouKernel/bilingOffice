@@ -5,6 +5,13 @@
 > (chaîne de connexion de production) — ils dépendent de l'**infrastructure et du déploiement**, pas
 > du code applicatif seul. Ce mémo donne la marche à suivre concrète pour l'équipe exploitation/dev.
 
+> **MISE À JOUR — L4.2 et L4.3 sont désormais IMPLÉMENTÉS dans le code** (paquets ajoutés, DI
+> conditionnelle, `SignalSupervisionRedis`, partage Data Protection). Ils s'**activent par
+> configuration** : renseigner `Redis__ConnexionString`. Sans cette valeur, l'application reste en
+> mono-nœud, comportement inchangé. Restent à la charge de l'exploitation : **L4.1** (sticky sessions,
+> config LB) et **L5** (chaîne de connexion prod). Les sections ci-dessous décrivent le code livré et
+> ce qu'il reste à faire côté infra.
+
 ---
 
 ## L4 — Passage multi-nœuds (scale-out horizontal)

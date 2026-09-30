@@ -10,7 +10,7 @@ namespace CIT.Plateforme.Web.Services;
 /// suffit à prévenir tous les circuits ouverts. Il remplace un hub SignalR auquel le serveur se
 /// connectait lui-même (aller-retour réseau, dépendance cliente, route exposée).
 /// </summary>
-public sealed class SignalSupervision : INotificateurTempsReel
+public sealed class SignalSupervision : ISignalSupervision
 {
     /// <summary>Déclenché après chaque enregistrement ; les abonnés doivent se désabonner à leur libération.</summary>
     public event Func<Task>? Change;
