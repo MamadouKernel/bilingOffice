@@ -106,7 +106,6 @@ builder.Services.ConfigureApplicationCookie(options =>
     // non authentifié recevait donc un 302 puis une page HTML, au lieu d'un 401. C'est
     // inexploitable pour un client programmatique, et cela sert une page d'interface là où seule
     // une réponse d'API a un sens. Les routes d'interface conservent la redirection.
-    var comportementParDefautConnexion = options.Events.OnRedirectToLogin;
     options.Events.OnRedirectToLogin = contexte =>
     {
         if (contexte.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
@@ -115,10 +114,10 @@ builder.Services.ConfigureApplicationCookie(options =>
             return Task.CompletedTask;
         }
 
-        return comportementParDefautConnexion(contexte);
+        contexte.Response.Redirect(RedirectionRelative(contexte.RedirectUri));
+        return Task.CompletedTask;
     };
 
-    var comportementParDefautRefus = options.Events.OnRedirectToAccessDenied;
     options.Events.OnRedirectToAccessDenied = contexte =>
     {
         if (contexte.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
@@ -127,8 +126,17 @@ builder.Services.ConfigureApplicationCookie(options =>
             return Task.CompletedTask;
         }
 
-        return comportementParDefautRefus(contexte);
+        contexte.Response.Redirect(RedirectionRelative(contexte.RedirectUri));
+        return Task.CompletedTask;
     };
+
+    // ANTI-INJECTION D'EN-TÊTE HOST : le gestionnaire de cookie bâtit une URL de redirection
+    // ABSOLUE à partir de Request.Host (BuildRedirectUri). Un Host usurpé (« Host: evil.com »)
+    // produisait donc « Location: https://evil.com/comptes/connexion?ReturnUrl=… » — une
+    // redirection ouverte. On ne renvoie que le chemin + la query : la redirection reste sur
+    // l'origine réelle, quel que soit l'en-tête Host entrant.
+    static string RedirectionRelative(string cible) =>
+        Uri.TryCreate(cible, UriKind.Absolute, out var absolue) ? absolue.PathAndQuery : cible;
 });
 
 builder.Services.AjouterInfrastructure(builder.Configuration);
