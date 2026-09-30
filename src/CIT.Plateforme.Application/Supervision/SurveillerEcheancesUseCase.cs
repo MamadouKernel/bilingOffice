@@ -11,6 +11,19 @@ namespace CIT.Plateforme.Application.Supervision;
 public interface IParametresSlaProvider
 {
     Task<(ParametresSla Parametres, CalendrierOuvre Calendrier)?> ObtenirPourAsync(Ticket ticket, CancellationToken ct = default);
+
+    /// <summary>Résolution groupée pour plusieurs tickets — évite un N+1 (2 requêtes/ticket) lors du
+    /// calcul SLA de masse (supervision). Default → résolutions unitaires ; le fournisseur EF
+    /// l'écrase en pré-chargeant paramètres et types de client en lot.</summary>
+    async Task<IReadOnlyDictionary<Guid, (ParametresSla Parametres, CalendrierOuvre Calendrier)?>> ObtenirPourPlusieursAsync(IReadOnlyList<Ticket> tickets, CancellationToken ct = default)
+    {
+        var map = new Dictionary<Guid, (ParametresSla Parametres, CalendrierOuvre Calendrier)?>();
+        foreach (var ticket in tickets)
+        {
+            map[ticket.Id] = await ObtenirPourAsync(ticket, ct).ConfigureAwait(false);
+        }
+        return map;
+    }
 }
 
 /// <summary>
@@ -43,18 +56,65 @@ public sealed class SurveillerEcheancesUseCase(
             return null; // PC-12 : aucun SLA configuré — rien à surveiller, rien à inventer.
         }
 
-        var (parametresSla, calendrier) = configuration.Value;
+        var periodes = await periodesAttenteClient.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false);
+        return CalculerStatut(ticket, configuration.Value, periodes);
+    }
+
+    /// <summary>
+    /// SUP-01/SUP-02 — variante GROUPÉE du calcul de statut SLA, pour la supervision de masse
+    /// (<see cref="VueFilesQuery"/>). Élimine le N+1 : les paramètres SLA et les périodes d'attente
+    /// de TOUS les tickets sont pré-chargés en lot (2 requêtes au total au lieu de ~3 par ticket),
+    /// puis le calcul réutilise <see cref="CalculerStatut"/> — MÊME logique que la variante unitaire,
+    /// aucune règle de temps ouvré réimplémentée.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, StatutSla?>> DeterminerStatutsSlaAsync(IReadOnlyList<Ticket> tickets, CancellationToken ct = default)
+    {
+        var resultat = new Dictionary<Guid, StatutSla?>();
+        if (tickets.Count == 0)
+        {
+            return resultat;
+        }
+
+        var configurations = await parametresProvider.ObtenirPourPlusieursAsync(tickets, ct).ConfigureAwait(false);
+        var periodesParTicket = await periodesAttenteClient.ListerParTicketsAsync(tickets.Select(t => t.Id), ct).ConfigureAwait(false);
+
+        foreach (var ticket in tickets)
+        {
+            var configuration = configurations.GetValueOrDefault(ticket.Id);
+            if (configuration is null)
+            {
+                resultat[ticket.Id] = null; // PC-12 : aucun SLA configuré.
+                continue;
+            }
+
+            var periodes = periodesParTicket.GetValueOrDefault(ticket.Id) ?? [];
+            resultat[ticket.Id] = CalculerStatut(ticket, configuration.Value, periodes);
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Calcul PUR du statut SLA à partir de données déjà chargées (paramètres, calendrier, périodes
+    /// d'attente). Aucun accès aux dépôts : c'est l'unique implémentation du calcul temps ouvré,
+    /// partagée par la variante unitaire et la variante groupée.
+    ///
+    /// REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : la durée SLA écoulée est calculée en
+    /// soustrayant des durées ouvrées à des durées ouvrées — jamais une durée brute à une durée
+    /// ouvrée (TPS-04, SLA-03). Chaque période d'attente client est convertie en temps ouvré avec le
+    /// MÊME calendrier que la durée totale, ce qui reste correct même si une période chevauche une
+    /// plage non ouvrée (nuit, week-end, jour férié).
+    /// </summary>
+    private StatutSla CalculerStatut(
+        Ticket ticket,
+        (ParametresSla Parametres, CalendrierOuvre Calendrier) configuration,
+        IReadOnlyList<PeriodeAttenteClient> periodes)
+    {
+        var (parametresSla, calendrier) = configuration;
         var maintenant = horloge.MaintenantUtc;
 
-        // REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : la durée SLA écoulée est
-        // désormais calculée en soustrayant des durées ouvrées à des durées ouvrées — jamais une
-        // durée brute à une durée ouvrée (TPS-04, SLA-03). Chaque période d'attente client
-        // (PeriodeAttenteClient) est convertie en temps ouvré avec le MÊME calendrier que la
-        // durée totale, avant d'être soustraite, ce qui reste correct même si une période
-        // chevauche une plage non ouvrée (nuit, week-end, jour férié).
         var dureeTotaleOuvree = calendrier.DureeOuvreeEntre(ticket.DateArriveeEnFileUtc, maintenant);
 
-        var periodes = await periodesAttenteClient.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false);
         var dureeAttenteClienteOuvree = TimeSpan.Zero;
         foreach (var periode in periodes)
         {

@@ -377,6 +377,19 @@ public sealed class PeriodeAttenteClientRepository(PlateformeDbContext dbContext
             .OrderBy(p => p.DebutUtc)
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+    public async Task<IReadOnlyDictionary<Guid, IReadOnlyList<Domain.Tickets.PeriodeAttenteClient>>> ListerParTicketsAsync(IEnumerable<Guid> ticketIds, CancellationToken ct = default)
+    {
+        var liste = ticketIds.Distinct().ToList();
+        var toutes = await dbContext.PeriodesAttenteClient
+            .Where(p => liste.Contains(p.TicketId))
+            .OrderBy(p => p.DebutUtc)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+        return toutes
+            .GroupBy(p => p.TicketId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<Domain.Tickets.PeriodeAttenteClient>)g.ToList());
+    }
 }
 
 public sealed class CompetenceOperateurRepository(PlateformeDbContext dbContext) : ICompetenceOperateurRepository

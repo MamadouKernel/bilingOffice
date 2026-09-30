@@ -347,6 +347,19 @@ public interface IPeriodeAttenteClientRepository
     Task<PeriodeAttenteClient?> ObtenirDerniereOuvertePourTicketAsync(Guid ticketId, CancellationToken ct = default);
 
     Task<IReadOnlyList<PeriodeAttenteClient>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+
+    /// <summary>Lecture groupée par tickets — évite un N+1 (un ListerParTicket par ticket) lors du
+    /// calcul SLA de masse (supervision). Default → lectures unitaires ; le dépôt EF l'écrase par
+    /// une requête unique regroupée par ticket.</summary>
+    async Task<IReadOnlyDictionary<Guid, IReadOnlyList<PeriodeAttenteClient>>> ListerParTicketsAsync(IEnumerable<Guid> ticketIds, CancellationToken ct = default)
+    {
+        var map = new Dictionary<Guid, IReadOnlyList<PeriodeAttenteClient>>();
+        foreach (var id in ticketIds.Distinct())
+        {
+            map[id] = await ListerParTicketAsync(id, ct).ConfigureAwait(false);
+        }
+        return map;
+    }
 }
 
 /// <summary>FEATURE 003 (research.md D8) : port du suivi des branches IES (IMP-40, IMP-41).</summary>

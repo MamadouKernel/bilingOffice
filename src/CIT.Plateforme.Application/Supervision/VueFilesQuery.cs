@@ -59,24 +59,13 @@ public sealed class VueFilesQuery(
             var ticketsDeLaFile = await tickets.ListerParFileAsync(file.Id, ct).ConfigureAwait(false);
             var actifs = ticketsDeLaFile.Where(t => t.Statut is not (StatutTicket.Cloture or StatutTicket.Annule)).ToList();
 
-            var procheDepassement = 0;
-            var enDepassement = 0;
-            // ponytail: N+1 SLA — DeterminerStatutSlaAsync fait ~3 requêtes/ticket (TypeClient dossier,
-            // ParametresSla, périodes d'attente), imbriquées dans la boucle des files. Lot dédié à
-            // prévoir : pré-charger périodes (batch) + ParametresSla/TypeClients, calcul en mémoire.
-            // Non fait ici car le calcul est partagé avec le service de fond SLA (fort rayon d'impact).
-            foreach (var ticket in actifs)
-            {
-                var statut = await surveillerEcheances.DeterminerStatutSlaAsync(ticket, ct).ConfigureAwait(false);
-                if (statut is StatutSla.SeuilInformation or StatutSla.SeuilAlerte)
-                {
-                    procheDepassement++;
-                }
-                else if (statut is StatutSla.Depasse or StatutSla.Escalade)
-                {
-                    enDepassement++;
-                }
-            }
+            // Anti-N+1 : statut SLA de tous les tickets actifs calculé en lot (paramètres + périodes
+            // pré-chargés), au lieu de ~3 requêtes par ticket. Même calcul que la variante unitaire.
+            var statutsSla = await surveillerEcheances.DeterminerStatutsSlaAsync(actifs, ct).ConfigureAwait(false);
+            var procheDepassement = actifs.Count(t =>
+                statutsSla.GetValueOrDefault(t.Id) is StatutSla.SeuilInformation or StatutSla.SeuilAlerte);
+            var enDepassement = actifs.Count(t =>
+                statutsSla.GetValueOrDefault(t.Id) is StatutSla.Depasse or StatutSla.Escalade);
 
             var sansActivite = actifs.Count(t => maintenant - t.DateDerniereActiviteUtc >= _seuilSansActivite);
 

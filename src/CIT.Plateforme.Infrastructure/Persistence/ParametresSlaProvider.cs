@@ -55,4 +55,48 @@ public sealed class ParametresSlaProvider(PlateformeDbContext dbContext) : IPara
         var calendrier = parametre.ConstruireCalendrierOuvre();
         return (parametre.VersParametresSla(), calendrier);
     }
+
+    /// <summary>
+    /// Variante GROUPÉE : pré-charge en DEUX requêtes le type de client de chaque dossier concerné et
+    /// l'ensemble des paramètres SLA, puis applique EN MÉMOIRE la même sélection par spécificité que
+    /// <see cref="ObtenirPourAsync"/> pour chaque ticket. Élimine le N+1 (2 requêtes/ticket) du calcul
+    /// SLA de supervision, sans réinventer la règle de sélection.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<Guid, (ParametresSla Parametres, CalendrierOuvre Calendrier)?>> ObtenirPourPlusieursAsync(IReadOnlyList<Ticket> tickets, CancellationToken ct = default)
+    {
+        var resultat = new Dictionary<Guid, (ParametresSla Parametres, CalendrierOuvre Calendrier)?>();
+        if (tickets.Count == 0)
+        {
+            return resultat;
+        }
+
+        var dossierIds = tickets.Select(t => t.DossierId).Distinct().ToList();
+        var typeClientParDossier = await dbContext.Dossiers
+            .Where(d => dossierIds.Contains(d.Id))
+            .Select(d => new { d.Id, d.TypeClient })
+            .ToDictionaryAsync(x => x.Id, x => x.TypeClient, ct)
+            .ConfigureAwait(false);
+
+        var tousParametres = await dbContext.ParametresSla.ToListAsync(ct).ConfigureAwait(false);
+
+        foreach (var ticket in tickets)
+        {
+            var typeClientDuTicket = typeClientParDossier.GetValueOrDefault(ticket.DossierId);
+
+            var parametre = tousParametres
+                .Where(p => p.Module == ticket.Module
+                         && p.TypeDemande == ticket.TypeDemande
+                         && (p.FileId == null || p.FileId == ticket.FileCouranteId)
+                         && (p.PrioriteId == null || p.PrioriteId == ticket.PrioriteId)
+                         && (p.TypeClient == null || p.TypeClient == typeClientDuTicket))
+                .OrderByDescending(p => p.Specificite)
+                .FirstOrDefault();
+
+            resultat[ticket.Id] = parametre is null
+                ? null
+                : (parametre.VersParametresSla(), parametre.ConstruireCalendrierOuvre());
+        }
+
+        return resultat;
+    }
 }
