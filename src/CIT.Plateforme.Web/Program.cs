@@ -14,6 +14,10 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Durcissement : ne pas divulguer le serveur applicatif (« Server: Kestrel ») — information
+// d'empreinte inutile à un client légitime, utile à un attaquant pour cibler des CVE.
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // RECETTE UAT — chargement des secrets utilisateur hors Development.
 //
 // .NET n'ajoute les user-secrets qu'en Development. L'environnement de RECETTE (« UAT ») en a
@@ -131,10 +135,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 
     // ANTI-INJECTION D'EN-TÊTE HOST : le gestionnaire de cookie bâtit une URL de redirection
-    // ABSOLUE à partir de Request.Host (BuildRedirectUri). Un Host usurpé (« Host: evil.com »)
-    // produisait donc « Location: https://evil.com/comptes/connexion?ReturnUrl=… » — une
-    // redirection ouverte. On ne renvoie que le chemin + la query : la redirection reste sur
-    // l'origine réelle, quel que soit l'en-tête Host entrant.
+    // ABSOLUE à partir de Request.Host (BuildRedirectUri). Un Host usurpé (« Host: evil.example »)
+    // produisait donc un « Location » absolu vers ce domaine attaquant — une redirection ouverte.
+    // On ne renvoie que le chemin + la query : la redirection reste sur l'origine réelle, quel que
+    // soit l'en-tête Host entrant.
     static string RedirectionRelative(string cible) =>
         Uri.TryCreate(cible, UriKind.Absolute, out var absolue) ? absolue.PathAndQuery : cible;
 });
