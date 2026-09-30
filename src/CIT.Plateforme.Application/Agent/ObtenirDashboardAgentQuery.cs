@@ -54,11 +54,15 @@ public sealed class ObtenirDashboardAgentQuery(
         var toutesFiles = await fileRepository.ListerAsync(ct).ConfigureAwait(false);
         var filesHabilitees = toutesFiles.Where(f => fileIdsHabilitees.Contains(f.Id)).ToList();
 
-        var tousTickets = await ticketRepository.ListerTousAsync(ct).ConfigureAwait(false);
-        var ticketsEnCoursAgent = tousTickets
-            .Where(t => t.OperateurAssigneId == agentId && t.Statut == StatutTicket.EnCours)
+        // Anti-scan complet : uniquement les tickets de l'agent + ceux des files de son périmètre,
+        // au lieu de charger toute la table Tickets en mémoire.
+        var mesTickets = await ticketRepository.ListerParOperateurAsync(agentId, ct).ConfigureAwait(false);
+        var ticketsEnCoursAgent = mesTickets
+            .Where(t => t.Statut == StatutTicket.EnCours)
             .OrderByDescending(t => t.DateCreationUtc)
             .ToList();
+
+        var ticketsDuPerimetre = await ticketRepository.ListerParFilesAsync(fileIdsHabilitees, ct).ConfigureAwait(false);
 
         // Stats par file
         var fileStats = new List<FileStatistiqueVue>();
@@ -66,8 +70,8 @@ public sealed class ObtenirDashboardAgentQuery(
 
         foreach (var file in filesHabilitees)
         {
-            var enAttente = tousTickets.Count(t => t.FileCouranteId == file.Id && t.Statut == StatutTicket.EnAttenteDePriseEnCharge);
-            var enCours = tousTickets.Count(t => t.FileCouranteId == file.Id && t.Statut == StatutTicket.EnCours);
+            var enAttente = ticketsDuPerimetre.Count(t => t.FileCouranteId == file.Id && t.Statut == StatutTicket.EnAttenteDePriseEnCharge);
+            var enCours = ticketsDuPerimetre.Count(t => t.FileCouranteId == file.Id && t.Statut == StatutTicket.EnCours);
 
             totalAttentePerimetre += enAttente;
 

@@ -132,9 +132,10 @@ public sealed class ConsulterFileAvoirExonerationQuery
             throw new AccesRefuseException("Permission d'instruction Avoir ou Exonération requise pour consulter la file (SEC-AVE-03).");
         }
 
-        var tousLesTickets = await _ticketRepo.ListerTousAsync(ct);
-        var tickets = tousLesTickets
-            .Where(t => t.Module == "AvoirExoneration")
+        // Anti-scan complet : uniquement les tickets du module AvoirExoneration (au lieu de toute la
+        // table Tickets), filtrés ensuite selon les habilitations de l'agent.
+        var ticketsDuModule = await _ticketRepo.ListerParModuleAsync("AvoirExoneration", ct);
+        var tickets = ticketsDuModule
             .Where(t => (t.TypeDemande == "Avoir" && autoriseAvoir) || (t.TypeDemande == "Exoneration" && autoriseExoneration))
             .ToList();
 

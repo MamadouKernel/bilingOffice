@@ -81,6 +81,33 @@ public interface ITicketRepository
 
     Task<IReadOnlyList<Ticket>> ListerTousAsync(CancellationToken ct = default);
 
+    /// <summary>Tickets rattachés à un ensemble de files — évite un scan complet de la table pour les
+    /// tableaux de bord de périmètre. Default → filtre en mémoire ; le dépôt EF l'écrase par un
+    /// WHERE FileCouranteId IN (…).</summary>
+    async Task<IReadOnlyList<Ticket>> ListerParFilesAsync(IEnumerable<Guid> fileIds, CancellationToken ct = default)
+    {
+        var ensemble = fileIds.Distinct().ToHashSet();
+        return (await ListerTousAsync(ct).ConfigureAwait(false)).Where(t => ensemble.Contains(t.FileCouranteId)).ToList();
+    }
+
+    /// <summary>Tickets d'un module donné — évite un scan complet pour les files par module.
+    /// Default → filtre en mémoire ; le dépôt EF l'écrase par un WHERE Module = @module.</summary>
+    async Task<IReadOnlyList<Ticket>> ListerParModuleAsync(string module, CancellationToken ct = default) =>
+        (await ListerTousAsync(ct).ConfigureAwait(false)).Where(t => t.Module == module).ToList();
+
+    /// <summary>Tickets ARCHIVÉS filtrés (module, plage d'archivage, numéro) — évite un scan complet
+    /// pour la consultation des archives. Default → filtre en mémoire ; le dépôt EF l'écrase par un
+    /// WHERE EstArchive = 1 (+ critères) exécuté en base.</summary>
+    async Task<IReadOnlyList<Ticket>> ListerArchivesAsync(string? module = null, DateTime? dateDebutUtc = null, DateTime? dateFinUtc = null, string? numero = null, CancellationToken ct = default)
+    {
+        IEnumerable<Ticket> requete = (await ListerTousAsync(ct).ConfigureAwait(false)).Where(t => t.EstArchive);
+        if (!string.IsNullOrWhiteSpace(module)) { requete = requete.Where(t => string.Equals(t.Module, module, StringComparison.OrdinalIgnoreCase)); }
+        if (!string.IsNullOrWhiteSpace(numero)) { requete = requete.Where(t => t.Numero.Contains(numero, StringComparison.OrdinalIgnoreCase)); }
+        if (dateDebutUtc is DateTime debut) { requete = requete.Where(t => t.DateArchivageUtc >= debut); }
+        if (dateFinUtc is DateTime fin) { requete = requete.Where(t => t.DateArchivageUtc <= fin); }
+        return requete.ToList();
+    }
+
     /// <summary>FEATURE 003 (research.md D2/D3, UNI-01) : recherche un ticket **actif** (statut ∈
     /// {EnAttenteDePriseEnCharge, EnCours, EnAttenteClient}) pour un numéro de BL donné.
     /// </summary>

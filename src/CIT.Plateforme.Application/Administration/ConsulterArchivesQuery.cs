@@ -34,34 +34,12 @@ public sealed class ConsulterArchivesQuery(
     {
         await autorisation.ExigerAsync(appelantId, Permission.AuditConsulter, ct: ct).ConfigureAwait(false);
 
-        var tousLesTickets = await tickets.ListerTousAsync(ct).ConfigureAwait(false);
+        // Anti-scan complet : le filtre (EstArchive + module/plage/numéro) est poussé côté SQL au lieu
+        // de charger toute la table Tickets puis de filtrer en mémoire.
+        var archives = await tickets.ListerArchivesAsync(
+            filtre?.Module, filtre?.DateDebutUtc, filtre?.DateFinUtc, filtre?.Numero, ct).ConfigureAwait(false);
 
-        IEnumerable<Domain.Tickets.Ticket> requete = tousLesTickets.Where(t => t.EstArchive);
-
-        if (filtre is not null)
-        {
-            if (!string.IsNullOrWhiteSpace(filtre.Module))
-            {
-                requete = requete.Where(t => string.Equals(t.Module, filtre.Module, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (!string.IsNullOrWhiteSpace(filtre.Numero))
-            {
-                requete = requete.Where(t => t.Numero.Contains(filtre.Numero, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (filtre.DateDebutUtc is DateTime debut)
-            {
-                requete = requete.Where(t => t.DateArchivageUtc!.Value >= debut);
-            }
-
-            if (filtre.DateFinUtc is DateTime fin)
-            {
-                requete = requete.Where(t => t.DateArchivageUtc!.Value <= fin);
-            }
-        }
-
-        return requete
+        return archives
             .OrderByDescending(t => t.DateArchivageUtc)
             .Select(t => new TicketArchiveVue(
                 t.Id,

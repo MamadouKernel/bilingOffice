@@ -36,9 +36,11 @@ public sealed class ConsulterArchivesQueryTests
             .Returns(Task.CompletedTask);
 
         var archive = CreerTicketArchive("TCK-000001", "CustomerComplaint", Maintenant);
-        var nonArchive = Ticket.Creer("TCK-000002", "CustomerComplaint", "Reclamation", Guid.NewGuid(), Guid.NewGuid(), Maintenant);
 
-        _ticketRepo.Setup(r => r.ListerTousAsync(It.IsAny<CancellationToken>())).ReturnsAsync([archive, nonArchive]);
+        // Le filtre EstArchive est désormais poussé côté dépôt (SQL) : le dépôt ne renvoie que les
+        // tickets archivés. La correction du filtre lui-même est couverte par les tests Infrastructure.
+        _ticketRepo.Setup(r => r.ListerArchivesAsync(It.IsAny<string?>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([archive]);
 
         var resultat = await Construire().ExecuterAsync(appelantId, ct: CancellationToken.None);
 
@@ -64,9 +66,11 @@ public sealed class ConsulterArchivesQueryTests
             .Returns(Task.CompletedTask);
 
         var billing = CreerTicketArchive("TCK-000003", "BillingImport", Maintenant);
-        var complaint = CreerTicketArchive("TCK-000004", "CustomerComplaint", Maintenant);
 
-        _ticketRepo.Setup(r => r.ListerTousAsync(It.IsAny<CancellationToken>())).ReturnsAsync([billing, complaint]);
+        // Le module est transmis au dépôt (filtre SQL). Le setup ne matche QUE « BillingImport » :
+        // si la requête ne transmettait pas le module, le mock ne renverrait rien et le test échouerait.
+        _ticketRepo.Setup(r => r.ListerArchivesAsync("BillingImport", It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([billing]);
 
         var resultat = await Construire().ExecuterAsync(appelantId, new FiltreArchives(Module: "BillingImport"), CancellationToken.None);
 

@@ -57,6 +57,27 @@ public sealed class TicketRepository(PlateformeDbContext dbContext) : ITicketRep
     public async Task<IReadOnlyList<Ticket>> ListerTousAsync(CancellationToken ct = default) =>
         await dbContext.Tickets.ToListAsync(ct).ConfigureAwait(false);
 
+    public async Task<IReadOnlyList<Ticket>> ListerParFilesAsync(IEnumerable<Guid> fileIds, CancellationToken ct = default)
+    {
+        var ids = fileIds.Distinct().ToList();
+        return await dbContext.Tickets.Where(t => ids.Contains(t.FileCouranteId)).ToListAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Ticket>> ListerParModuleAsync(string module, CancellationToken ct = default) =>
+        await dbContext.Tickets.Where(t => t.Module == module).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Ticket>> ListerArchivesAsync(string? module = null, DateTime? dateDebutUtc = null, DateTime? dateFinUtc = null, string? numero = null, CancellationToken ct = default)
+    {
+        // EstArchive est une propriété calculée (non mappée) : on filtre sur la colonne sous-jacente
+        // DateArchivageUtc pour que le prédicat soit traduit en SQL.
+        var requete = dbContext.Tickets.Where(t => t.DateArchivageUtc != null);
+        if (!string.IsNullOrWhiteSpace(module)) { requete = requete.Where(t => t.Module == module); }
+        if (!string.IsNullOrWhiteSpace(numero)) { requete = requete.Where(t => t.Numero.Contains(numero)); }
+        if (dateDebutUtc is DateTime debut) { requete = requete.Where(t => t.DateArchivageUtc >= debut); }
+        if (dateFinUtc is DateTime fin) { requete = requete.Where(t => t.DateArchivageUtc <= fin); }
+        return await requete.ToListAsync(ct).ConfigureAwait(false);
+    }
+
     // FEATURE 003 (research.md D3, UNI-01, UNI-03) : pré-vérification applicative — statuts
     // bloquants par INCLUSION explicite, jamais NOT IN (cohérent avec le prédicat de l'index unique
     // filtré réel). Portée strictement limitée au module Billing IMPORT (UNI-03) : un même numéro
