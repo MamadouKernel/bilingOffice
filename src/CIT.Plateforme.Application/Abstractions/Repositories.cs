@@ -64,6 +64,19 @@ public interface ITicketRepository
 
     Task<IReadOnlyList<Ticket>> ListerParOperateurAsync(Guid operateurId, CancellationToken ct = default);
 
+    /// <summary>Lecture groupée par opérateurs — évite un N+1 (un ListerParOperateur par opérateur).
+    /// L'implémentation par défaut retombe sur des lectures unitaires ; le dépôt EF l'écrase par une
+    /// requête unique regroupée par opérateur.</summary>
+    async Task<IReadOnlyDictionary<Guid, IReadOnlyList<Ticket>>> ListerParOperateursAsync(IEnumerable<Guid> operateursIds, CancellationToken ct = default)
+    {
+        var map = new Dictionary<Guid, IReadOnlyList<Ticket>>();
+        foreach (var id in operateursIds.Distinct())
+        {
+            map[id] = await ListerParOperateurAsync(id, ct).ConfigureAwait(false);
+        }
+        return map;
+    }
+
     Task<IReadOnlyList<Ticket>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
 
     Task<IReadOnlyList<Ticket>> ListerTousAsync(CancellationToken ct = default);
@@ -91,6 +104,20 @@ public interface IDossierRepository
     /// <see cref="ListerParSocieteAsync"/> pour un propriétaire qui n'est pas une société
     /// (ex. Transporteur/Chauffeur, personne physique — CLAR-ENR-01).</summary>
     Task<IReadOnlyList<Dossier>> ListerParClientAsync(Guid clientId, CancellationToken ct = default);
+
+    /// <summary>Lecture groupée par identifiants — évite un N+1 (un ObtenirParIdAsync par élément).
+    /// L'implémentation par défaut retombe sur des lectures unitaires ; le dépôt EF l'écrase par une
+    /// requête unique.</summary>
+    async Task<IReadOnlyList<Dossier>> ListerParIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var resultats = new List<Dossier>();
+        foreach (var id in ids.Distinct())
+        {
+            var dossier = await ObtenirParIdAsync(id, ct).ConfigureAwait(false);
+            if (dossier is not null) { resultats.Add(dossier); }
+        }
+        return resultats;
+    }
 
     Task<IReadOnlyList<Dossier>> ListerTousAsync(CancellationToken ct = default) => Task.FromResult<IReadOnlyList<Dossier>>(Array.Empty<Dossier>());
 }
@@ -367,6 +394,20 @@ public interface ISocieteClienteRepository
     /// (CPT-01) — d'une personne physique qui n'a jamais depose de demande.
     /// </summary>
     Task<CIT.Plateforme.Domain.Comptes.SocieteCliente?> ObtenirParDemandeurAsync(Guid demandeurId, CancellationToken ct = default);
+
+    /// <summary>Lecture groupée par identifiants — évite un N+1 (un ObtenirParIdAsync par élément).
+    /// L'implémentation par défaut retombe sur des lectures unitaires ; le dépôt EF l'écrase par une
+    /// requête unique.</summary>
+    async Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.SocieteCliente>> ListerParIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var resultats = new List<CIT.Plateforme.Domain.Comptes.SocieteCliente>();
+        foreach (var id in ids.Distinct())
+        {
+            var societe = await ObtenirParIdAsync(id, ct).ConfigureAwait(false);
+            if (societe is not null) { resultats.Add(societe); }
+        }
+        return resultats;
+    }
 }
 
 /// <summary>FEATURE 002 (research.md D2) : port des rattachements utilisateur↔société (ENT-01,
@@ -388,6 +429,19 @@ public interface IHabilitationRepository
     Task AjouterAsync(CIT.Plateforme.Domain.Securite.HabilitationUtilisateur habilitation, CancellationToken ct = default);
 
     Task<IReadOnlyList<CIT.Plateforme.Domain.Securite.HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
+
+    /// <summary>Lecture groupée par utilisateurs — évite un N+1 (un ListerParUtilisateur par agent).
+    /// L'implémentation par défaut retombe sur des lectures unitaires ; le dépôt EF l'écrase par une
+    /// requête unique regroupée par utilisateur.</summary>
+    async Task<IReadOnlyDictionary<Guid, IReadOnlyList<CIT.Plateforme.Domain.Securite.HabilitationUtilisateur>>> ListerParUtilisateursAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default)
+    {
+        var map = new Dictionary<Guid, IReadOnlyList<CIT.Plateforme.Domain.Securite.HabilitationUtilisateur>>();
+        foreach (var id in utilisateursIds.Distinct())
+        {
+            map[id] = await ListerParUtilisateurAsync(id, ct).ConfigureAwait(false);
+        }
+        return map;
+    }
 
     /// <summary>CDC § 17.3 — retrait d'un rôle. Sans lui, une habilitation accordée par erreur
     /// serait définitive : l'attribution ne serait pas réellement administrable.</summary>

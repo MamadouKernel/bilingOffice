@@ -86,7 +86,8 @@ public sealed class ConsulterAvoirExoTests
 
         _dossierRepo.Setup(d => d.ListerParSocieteAsync(_societeId, It.IsAny<CancellationToken>()))
             .ReturnsAsync([dossierClient]);
-        _ticketRepo.Setup(t => t.ListerParDossierAsync(dossierClient.Id, It.IsAny<CancellationToken>()))
+        // Anti-N+1 : la requête lit désormais les tickets de la société en un seul appel.
+        _ticketRepo.Setup(t => t.ListerParSocieteAsync(_societeId, It.IsAny<CancellationToken>()))
             .ReturnsAsync([tckAvoir]);
 
         // Act

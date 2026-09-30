@@ -45,30 +45,29 @@ public sealed class ListerMesDemandesAvoirExonerationQuery
         var utilisateurSociete = await _utilisateurSocieteRepo.ObtenirParUtilisateurAsync(demandeurId, ct);
         var societeId = utilisateurSociete?.SocieteId ?? demandeurId;
 
+        // Anti-N+1 : les numéros de dossier viennent de la liste déjà chargée, et les tickets de la
+        // société sont lus en UNE requête (au lieu d'un ListerParDossier par dossier).
         var dossiers = await _dossierRepo.ListerParSocieteAsync(societeId, ct);
-        var resultats = new List<DemandeAvoirExoResumeDto>();
+        var numerosParDossier = dossiers.ToDictionary(d => d.Id, d => d.Numero);
 
-        foreach (var dossier in dossiers)
-        {
-            var tickets = await _ticketRepo.ListerParDossierAsync(dossier.Id, ct);
-            foreach (var t in tickets.Where(t => t.Module == "AvoirExoneration"))
-            {
-                resultats.Add(new DemandeAvoirExoResumeDto(
-                    t.Id,
-                    t.Numero,
-                    dossier.Numero,
-                    t.TypeDemande,
-                    t.Objet ?? string.Empty,
-                    t.Statut,
-                    t.MontantConteste,
-                    t.MontantAccorde,
-                    t.DecisionAvoirExo,
-                    t.DateCreationUtc,
-                    t.DateDerniereActiviteUtc));
-            }
-        }
+        var tickets = await _ticketRepo.ListerParSocieteAsync(societeId, ct);
 
-        return resultats.OrderByDescending(r => r.DateCreationUtc).ToList();
+        return tickets
+            .Where(t => t.Module == "AvoirExoneration")
+            .Select(t => new DemandeAvoirExoResumeDto(
+                t.Id,
+                t.Numero,
+                numerosParDossier.GetValueOrDefault(t.DossierId),
+                t.TypeDemande,
+                t.Objet ?? string.Empty,
+                t.Statut,
+                t.MontantConteste,
+                t.MontantAccorde,
+                t.DecisionAvoirExo,
+                t.DateCreationUtc,
+                t.DateDerniereActiviteUtc))
+            .OrderByDescending(r => r.DateCreationUtc)
+            .ToList();
     }
 }
 
@@ -149,28 +148,35 @@ public sealed class ConsulterFileAvoirExonerationQuery
             tickets = tickets.Where(t => t.Statut == criteres.Statut.Value).ToList();
         }
 
-        var resultats = new List<TicketFileAvoirExoDto>();
-        foreach (var ticket in tickets)
-        {
-            var dossier = await _dossierRepo.ObtenirParIdAsync(ticket.DossierId, ct);
-            var societe = dossier != null ? await _societeRepo.ObtenirParIdAsync(dossier.ClientId, ct) : null;
+        // Anti-N+1 : dossiers et sociétés résolus en DEUX requêtes groupées (au lieu de deux
+        // ObtenirParId par ticket).
+        var dossiers = await _dossierRepo.ListerParIdsAsync(tickets.Select(t => t.DossierId).Distinct(), ct);
+        var dossiersMap = dossiers.ToDictionary(d => d.Id);
+        var societes = await _societeRepo.ListerParIdsAsync(dossiers.Select(d => d.ClientId).Distinct(), ct);
+        var societesMap = societes.ToDictionary(s => s.Id);
 
-            resultats.Add(new TicketFileAvoirExoDto(
-                ticket.Id,
-                ticket.Numero,
-                dossier?.Numero,
-                ticket.TypeDemande,
-                societe?.InformationsDeclarees ?? "Client",
-                ticket.Objet ?? string.Empty,
-                ticket.Statut,
-                ticket.MontantConteste,
-                ticket.DateCreationUtc,
-                ticket.DateArriveeEnFileUtc,
-                ticket.OperateurAssigneId,
-                ticket.OperateurAssigneId.HasValue ? "Agent CIT" : null));
-        }
+        return tickets
+            .Select(ticket =>
+            {
+                var dossier = dossiersMap.GetValueOrDefault(ticket.DossierId);
+                var societe = dossier is not null ? societesMap.GetValueOrDefault(dossier.ClientId) : null;
 
-        return resultats.OrderByDescending(r => r.DateCreationUtc).ToList();
+                return new TicketFileAvoirExoDto(
+                    ticket.Id,
+                    ticket.Numero,
+                    dossier?.Numero,
+                    ticket.TypeDemande,
+                    societe?.InformationsDeclarees ?? "Client",
+                    ticket.Objet ?? string.Empty,
+                    ticket.Statut,
+                    ticket.MontantConteste,
+                    ticket.DateCreationUtc,
+                    ticket.DateArriveeEnFileUtc,
+                    ticket.OperateurAssigneId,
+                    ticket.OperateurAssigneId.HasValue ? "Agent CIT" : null);
+            })
+            .OrderByDescending(r => r.DateCreationUtc)
+            .ToList();
     }
 }
 

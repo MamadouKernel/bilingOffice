@@ -39,6 +39,15 @@ public sealed class TicketRepository(PlateformeDbContext dbContext) : ITicketRep
     public async Task<IReadOnlyList<Ticket>> ListerParOperateurAsync(Guid operateurId, CancellationToken ct = default) =>
         await dbContext.Tickets.Where(t => t.OperateurAssigneId == operateurId).ToListAsync(ct).ConfigureAwait(false);
 
+    public async Task<IReadOnlyDictionary<Guid, IReadOnlyList<Ticket>>> ListerParOperateursAsync(IEnumerable<Guid> operateursIds, CancellationToken ct = default)
+    {
+        var liste = operateursIds.Distinct().ToList();
+        var toutes = await dbContext.Tickets.Where(t => t.OperateurAssigneId != null && liste.Contains(t.OperateurAssigneId.Value)).ToListAsync(ct).ConfigureAwait(false);
+        return toutes
+            .GroupBy(t => t.OperateurAssigneId!.Value)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<Ticket>)g.ToList());
+    }
+
     public async Task<IReadOnlyList<Ticket>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default)
     {
         var dossierIds = await dbContext.Dossiers.Where(d => d.ClientId == societeId).Select(d => d.Id).ToListAsync(ct).ConfigureAwait(false);
@@ -96,6 +105,12 @@ public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierR
 
     public async Task<IReadOnlyList<Dossier>> ListerParClientAsync(Guid clientId, CancellationToken ct = default) =>
         await dbContext.Dossiers.Where(d => d.ClientId == clientId).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Dossier>> ListerParIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var liste = ids.Distinct().ToList();
+        return await dbContext.Dossiers.Where(d => liste.Contains(d.Id)).ToListAsync(ct).ConfigureAwait(false);
+    }
 
     public async Task<IReadOnlyList<Dossier>> ListerTousAsync(CancellationToken ct = default) =>
         await dbContext.Dossiers.ToListAsync(ct).ConfigureAwait(false);
@@ -518,6 +533,12 @@ public sealed class SocieteClienteRepository(PlateformeDbContext dbContext) : IS
 
     public async Task<IReadOnlyList<SocieteCliente>> ListerParEtatAsync(EtatSociete etat, CancellationToken ct = default) =>
         await dbContext.Societes.Where(s => s.Etat == etat).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<SocieteCliente>> ListerParIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var liste = ids.Distinct().ToList();
+        return await dbContext.Societes.Where(s => liste.Contains(s.Id)).ToListAsync(ct).ConfigureAwait(false);
+    }
 }
 
 /// <summary>FEATURE 002 (research.md D2).</summary>
@@ -544,6 +565,15 @@ public sealed class HabilitationRepository(PlateformeDbContext dbContext) : IHab
 
     public async Task<IReadOnlyList<HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default) =>
         await dbContext.Habilitations.Where(h => h.UtilisateurId == utilisateurId).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyDictionary<Guid, IReadOnlyList<HabilitationUtilisateur>>> ListerParUtilisateursAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default)
+    {
+        var liste = utilisateursIds.Distinct().ToList();
+        var toutes = await dbContext.Habilitations.Where(h => liste.Contains(h.UtilisateurId)).ToListAsync(ct).ConfigureAwait(false);
+        return toutes
+            .GroupBy(h => h.UtilisateurId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<HabilitationUtilisateur>)g.ToList());
+    }
 
     /// <summary>CDC art. 17.3 — retrait d'un role. Retire toutes les attributions correspondantes :
     /// s'il en subsistait une, la permission resterait effective alors que l'ecran la montrerait

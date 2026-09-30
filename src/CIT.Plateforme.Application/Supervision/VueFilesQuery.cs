@@ -61,6 +61,10 @@ public sealed class VueFilesQuery(
 
             var procheDepassement = 0;
             var enDepassement = 0;
+            // ponytail: N+1 SLA — DeterminerStatutSlaAsync fait ~3 requêtes/ticket (TypeClient dossier,
+            // ParametresSla, périodes d'attente), imbriquées dans la boucle des files. Lot dédié à
+            // prévoir : pré-charger périodes (batch) + ParametresSla/TypeClients, calcul en mémoire.
+            // Non fait ici car le calcul est partagé avec le service de fond SLA (fort rayon d'impact).
             foreach (var ticket in actifs)
             {
                 var statut = await surveillerEcheances.DeterminerStatutSlaAsync(ticket, ct).ConfigureAwait(false);

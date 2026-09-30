@@ -177,11 +177,15 @@ public sealed class ListerComptesAgentsQuery(
         await autorisation.ExigerAsync(appelantId, Permission.AdministrationComptes, ct: ct).ConfigureAwait(false);
 
         var agents = await comptes.ListerAgentsAsync(ct).ConfigureAwait(false);
-        var vues = new List<CompteAgentVue>(agents.Count);
 
+        // Anti-N+1 : habilitations de tous les agents en une seule requête regroupée.
+        var habilitationsParAgent = await habilitations
+            .ListerParUtilisateursAsync(agents.Select(a => a.Id), ct).ConfigureAwait(false);
+
+        var vues = new List<CompteAgentVue>(agents.Count);
         foreach (var agent in agents)
         {
-            var accordees = await habilitations.ListerParUtilisateurAsync(agent.Id, ct).ConfigureAwait(false);
+            var accordees = habilitationsParAgent.GetValueOrDefault(agent.Id) ?? [];
             vues.Add(new CompteAgentVue(
                 agent.Id,
                 agent.Email,

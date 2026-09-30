@@ -64,16 +64,10 @@ public sealed class ExporterTicketsExcelQuery(
         var tousLesNiveaux = await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false);
         var prioritesMap = tousLesNiveaux.ToDictionary(p => p.Id, p => p.Libelle);
 
+        // Anti-N+1 : tous les dossiers en une seule requête groupée (au lieu d'un ObtenirParId par ticket).
         var dossierIds = listeTickets.Select(t => t.DossierId).Distinct();
-        var dossiersMap = new Dictionary<Guid, string>();
-        foreach (var dId in dossierIds)
-        {
-            var d = await dossiers.ObtenirParIdAsync(dId, ct).ConfigureAwait(false);
-            if (d is not null)
-            {
-                dossiersMap[d.Id] = d.Numero;
-            }
-        }
+        var dossiersMap = (await dossiers.ListerParIdsAsync(dossierIds, ct).ConfigureAwait(false))
+            .ToDictionary(d => d.Id, d => d.Numero);
 
         using var classeur = new XLWorkbook();
         var feuille = classeur.Worksheets.Add("Tickets");

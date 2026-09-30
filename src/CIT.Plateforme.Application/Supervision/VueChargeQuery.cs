@@ -24,14 +24,19 @@ public sealed class VueChargeQuery(
         var toutesDisponibilites = await disponibilites.ListerAsync(ct).ConfigureAwait(false);
         var vues = new List<VueOperateur>();
 
+        var operateurIds = toutesDisponibilites.Select(d => d.OperateurId).ToList();
+
         // Résolution des noms en un seul appel : la vue affiche des personnes, pas des GUID.
         var infos = utilisateurs is null
             ? new Dictionary<Guid, UtilisateurInfo>()
-            : await utilisateurs.ObtenirInfosAsync(toutesDisponibilites.Select(d => d.OperateurId), ct).ConfigureAwait(false);
+            : await utilisateurs.ObtenirInfosAsync(operateurIds, ct).ConfigureAwait(false);
+
+        // Anti-N+1 : tickets de tous les opérateurs en une seule requête regroupée.
+        var ticketsParOperateur = await tickets.ListerParOperateursAsync(operateurIds, ct).ConfigureAwait(false);
 
         foreach (var disponibilite in toutesDisponibilites)
         {
-            var ticketsOperateur = await tickets.ListerParOperateurAsync(disponibilite.OperateurId, ct).ConfigureAwait(false);
+            var ticketsOperateur = ticketsParOperateur.GetValueOrDefault(disponibilite.OperateurId) ?? [];
             var ticketsEnCours = ticketsOperateur.Count(t => t.Statut == StatutTicket.EnCours);
             var info = infos.GetValueOrDefault(disponibilite.OperateurId);
             vues.Add(new VueOperateur(
