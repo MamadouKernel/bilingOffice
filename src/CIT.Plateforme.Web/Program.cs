@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Threading.RateLimiting;
 using CIT.Plateforme.Infrastructure;
 using CIT.Plateforme.Web.Components;
 using CIT.Plateforme.Web.Middlewares;
@@ -41,7 +42,48 @@ if (!builder.Environment.IsProduction())
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents(options =>
+    {
+        // Tenue en charge : libère plus tôt la mémoire des circuits déconnectés (chaque circuit
+        // conserve l'état de rendu en RAM serveur). Jamais de détails d'erreur exposés au client.
+        options.DetailedErrors = false;
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(2);
+        options.DisconnectedCircuitMaxRetained = 100;
+    })
+    .AddHubOptions(options =>
+    {
+        // Borne la taille des messages entrants du circuit (anti-abus / anti-DoS mémoire).
+        options.MaximumReceiveMessageSize = 64 * 1024;
+    });
+
+// TENUE EN CHARGE — limitation de débit par IP (anti-DoS / anti-flood). Le circuit Blazor, les
+// assets statiques et les sondes ne sont JAMAIS limités (sinon l'application casse) ; seules les
+// requêtes de pages/API dynamiques sont plafonnées. Complète, côté serveur applicatif, ce qu'un
+// pare-feu/L7 devrait faire en amont en production.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var chemin = httpContext.Request.Path;
+        if (chemin.StartsWithSegments("/_blazor") || chemin.StartsWithSegments("/_framework")
+            || chemin.StartsWithSegments("/_content") || chemin.StartsWithSegments("/css")
+            || chemin.StartsWithSegments("/js") || chemin.StartsWithSegments("/lib")
+            || chemin.StartsWithSegments("/fonts") || chemin.StartsWithSegments("/ready")
+            || chemin.StartsWithSegments("/healthz"))
+        {
+            return RateLimitPartition.GetNoLimiter("infra");
+        }
+
+        var cle = httpContext.Connection.RemoteIpAddress?.ToString() ?? "inconnu";
+        return RateLimitPartition.GetFixedWindowLimiter(cle, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 240,
+            Window = TimeSpan.FromSeconds(60),
+            QueueLimit = 0,
+        });
+    });
+});
 // Signal temps réel de la supervision : événement en mémoire partagé par tous les circuits.
 builder.Services.AddSingleton<CIT.Plateforme.Web.Services.SignalSupervision>();
 builder.Services.AddSingleton<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel>(sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.SignalSupervision>());
@@ -311,6 +353,10 @@ app.UseWhen(
     ctx => !ctx.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
     branche => branche.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
+
+// Limitation de débit par IP (voir AddRateLimiter). Placée tôt : le limiteur global n'a pas besoin
+// des métadonnées d'endpoint et protège ainsi tout le pipeline dynamique.
+app.UseRateLimiter();
 
 var locOptions = app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value;
 app.UseRequestLocalization(locOptions);
