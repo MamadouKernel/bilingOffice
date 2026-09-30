@@ -1,3 +1,8 @@
+# Fichiers locaux — non versionnés (outillage/instructions locales, documents)
+CLAUDE.md
+.agents/
+Cahier-v1.0.docx
+
 # Build results
 [Bb]in/
 [Oo]bj/

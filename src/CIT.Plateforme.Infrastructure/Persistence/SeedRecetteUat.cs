@@ -439,6 +439,20 @@ public sealed class SeedRecetteUat(
             }
         }
 
+        // ── Un BL en attente d'un complément du client : sans lui, « Mes actions requises » et
+        // l'assistant (« qu'attend-on de moi ? ») resteraient vides en recette. Ne s'applique
+        // qu'au ticket encore neuf : relancer l'amorçage ne rejoue rien.
+        var secondTicket = await context.Tickets
+            .FirstOrDefaultAsync(t => t.Numero == "UAT-TCK-UATBL0000000002", ct).ConfigureAwait(false);
+        if (secondTicket is { Statut: StatutTicket.EnAttenteDePriseEnCharge })
+        {
+            secondTicket.PrendreEnCharge(agent.Id, maintenant);
+            secondTicket.MettreEnAttenteClient(maintenant);
+            context.Messages.Add(Message.Publier(
+                secondTicket.Id, agent.Id, TypeMessage.Externe,
+                "UAT_Complément demandé : la copie du BL est illisible, merci de la déposer à nouveau.", maintenant));
+        }
+
         await context.SaveChangesAsync(ct).ConfigureAwait(false);
         return tickets;
     }
