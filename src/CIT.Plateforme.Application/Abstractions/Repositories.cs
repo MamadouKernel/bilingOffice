@@ -543,6 +543,8 @@ public interface IJustificatifDemandeCompteRepository
 {
     Task<IReadOnlyList<CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte>> ListerParSocieteAsync(Guid societeId, CancellationToken ct = default);
 
+    Task<CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
     Task AjouterAsync(CIT.Plateforme.Domain.Comptes.JustificatifDemandeCompte justificatif, CancellationToken ct = default);
 }
 

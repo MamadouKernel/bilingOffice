@@ -14,6 +14,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
+@inject Microsoft.JSInterop.IJSRuntime Js
 
 <PageTitle>@Loc["ValidDem.PageTitle"]</PageTitle>
 
@@ -22,12 +23,8 @@
         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
             <span>🛡️</span> @Loc["ValidDem.Pill"]
         </div>
-        <h1 class="cit-page-title fw-bold text-dark mb-1">
-            @Loc["ValidDem.Title"]
-        </h1>
-        <div class="cit-page-subtitle text-muted">
-            @Loc["ValidDem.Subtitle"]
-        </div>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">@Loc["ValidDem.Title"]</h1>
+        <div class="cit-page-subtitle text-muted">@Loc["ValidDem.Subtitle"]</div>
     </div>
     <div>
         <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
@@ -63,110 +60,117 @@ else
     }
     else
     {
-        <div class="cit-card p-0 overflow-hidden border-0 shadow-sm mb-4 u-r-lg">
-            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
-                <div class="fw-bold text-dark small text-uppercase tracking-wider">
-                    @Loc["ValidDem.ListTitle", demandes.Count]
-                </div>
-                <span class="badge bg-warning text-dark fw-bold px-2 py-1">@Loc["ValidDem.BadgeEnAttente"]</span>
-            </div>
-            <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-uppercase text-muted small fw-bold u-fs-xs">
-                        <tr>
-                            <th class="ps-4 py-3">@Loc["ValidDem.ColEntreprise"]</th>
-                            <th class="py-3">@Loc["ValidDem.ColJustif"]</th>
-                            <th class="py-3">@Loc["ValidDem.ColProfil"]</th>
-                            <th class="py-3">@Loc["ValidDem.ColDate"]</th>
-                            <th class="text-end pe-4 py-3">@Loc["ValidDem.ColDecision"]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var demande in _pagination1.Appliquer(demandes))
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="fw-bold text-dark small text-uppercase tracking-wider">@Loc["ValidDem.ListTitle", demandes.Count]</div>
+            <span class="badge bg-warning text-dark fw-bold px-2 py-1">@Loc["ValidDem.BadgeEnAttente"]</span>
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            @foreach (var demande in demandes)
+            {
+                <div class="cit-card border-0 shadow-sm u-r-lg overflow-hidden">
+                    @* En-tête : identité de l'entreprise + date *@
+                    <div class="p-3 p-md-4 d-flex flex-wrap align-items-start justify-content-between gap-3 border-bottom">
+                        <div class="min-w-0">
+                            <div class="fw-bold text-dark fs-6">
+                                @(string.IsNullOrWhiteSpace(demande.NomAffichable) ? Loc["ValidDem.InfoNonRenseignees"].Value : demande.NomAffichable)
+                            </div>
+                            @if (demande.RccmAffichable is { } rccm)
+                            {
+                                <div class="small"><span class="text-muted">RCCM</span> <span class="font-monospace fw-semibold">@rccm</span></div>
+                            }
+                            @if (demande.RaisonSociale is not null && !string.IsNullOrWhiteSpace(demande.InformationsDeclarees))
+                            {
+                                <div class="small text-muted" title="@demande.InformationsDeclarees">@demande.InformationsDeclarees</div>
+                            }
+                            <div class="small text-muted font-monospace mt-1">@Loc["ValidDem.IdLabel"] @demande.Id.ToString()[..8]...</div>
+                        </div>
+                        <div class="text-md-end small text-muted">
+                            <div>📅 @demande.DateCreationUtc.Horodate()</div>
+                        </div>
+                    </div>
+
+                    @* Pièces justificatives : cliquables (aperçu dans l'app) + téléchargement *@
+                    <div class="p-3 p-md-4 border-bottom">
+                        <div class="small text-uppercase text-muted fw-bold mb-2 u-fs-xs">@Loc["ValidDem.ColJustif"]</div>
+                        @if (justificatifs.TryGetValue(demande.Id, out var pieces) && pieces.Count > 0)
                         {
-                            <tr>
-                                <td class="ps-4 py-3">
-                                    <div class="fw-bold text-dark u-fs-md">
-                                        @(string.IsNullOrWhiteSpace(demande.NomAffichable)
-                                            ? Loc["ValidDem.InfoNonRenseignees"].Value
-                                            : demande.NomAffichable)
-                                    </div>
-                                    @if (demande.RccmAffichable is { } rccm)
-                                    {
-                                        <div class="small"><span class="text-muted">RCCM</span> <span class="font-monospace fw-semibold">@rccm</span></div>
-                                    }
-                                    @* Le texte déclaré complet reste visible : c'est la matière de la décision. *@
-                                    @if (demande.RaisonSociale is not null && !string.IsNullOrWhiteSpace(demande.InformationsDeclarees))
-                                    {
-                                        <div class="small text-muted text-truncate" style="max-width: 420px;" title="@demande.InformationsDeclarees">@demande.InformationsDeclarees</div>
-                                    }
-                                    <div class="small text-muted font-monospace">@Loc["ValidDem.IdLabel"] @demande.Id.ToString()[..8]...</div>
-                                </td>
-                                <td>
-                                    @if (justificatifs.TryGetValue(demande.Id, out var pieces) && pieces.Count > 0)
-                                    {
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach (var piece in pieces)
-                                            {
-                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small text-start">
-                                                    📎 @piece.PieceCode : @piece.NomFichier
-                                                </span>
-                                            }
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@Loc["ValidDem.AucunePiece"]</span>
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <select class="form-select form-select-sm border-0 shadow-sm fw-semibold" style="width: 10rem; background-color: var(--surface);"
-                                                @onchange="e => CorrigerProfilAsync(demande.Id, e.Value?.ToString())">
-                                            @foreach (var valeur in Enum.GetValues<TypeClient>())
-                                            {
-                                                <option value="@valeur" selected="@(valeur == demande.Profil)">@valeur</option>
-                                            }
-                                        </select>
-                                    </div>
-                                </td>
-                                <td class="small text-muted">
-                                    <span>📅 @demande.DateCreationUtc.Horodate()</span>
-                                </td>
-                                <td class="text-end pe-4 py-3">
-                                    <div class="d-flex justify-content-end align-items-center gap-2">
-                                        <button type="button" class="btn btn-success btn-sm px-3 py-1 fw-bold shadow-sm d-flex align-items-center gap-1" 
-                                                @onclick="() => ValiderAsync(demande.Id)">
-                                            <span>✓</span> @Loc["ValidDem.BtnValider"]
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var piece in pieces)
+                                {
+                                    <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                        <button type="button"
+                                                class="btn @(EstApercuActif(demande.Id, piece.Id) ? "btn-primary" : "btn-outline-primary") fw-semibold d-flex align-items-center gap-1"
+                                                @onclick="() => ApercuAsync(demande.Id, piece.Id)">
+                                            <span>📎</span> <span class="text-truncate" style="max-width: 15rem;">@piece.PieceCode : @piece.NomFichier</span>
                                         </button>
-                                        <input type="text" class="form-control form-control-sm border-0 shadow-sm"
-                                               style="width: 13rem; background-color: var(--surface);"
-                                               placeholder="@Loc["ValidDem.PlaceholderRejet"]"
-                                               @bind="motifsRejet[demande.Id]" />
-                                        <button type="button" class="btn btn-outline-danger btn-sm px-2 py-1 fw-semibold d-flex align-items-center gap-1"
-                                                @onclick="() => RejeterAsync(demande.Id)">
-                                            <span>✕</span> @Loc["ValidDem.BtnRejeter"]
-                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" title="@Loc["ValidDem.Telecharger"]"
+                                                @onclick="() => TelechargerAsync(piece.Id)">⬇</button>
                                     </div>
-                                </td>
-                            </tr>
+                                }
+                            </div>
+
+                            @* Panneau d'aperçu : présent dans le DOM, masqué tant qu'aucune pièce n'est ouverte. *@
+                            <div class="mt-3 @(_apercu.ContainsKey(demande.Id) ? "" : "d-none")">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="small text-muted font-monospace">@(_apercuNom.GetValueOrDefault(demande.Id) ?? "")</div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => FermerApercu(demande.Id)">✕ @Loc["ValidDem.FermerApercu"]</button>
+                                </div>
+                                <iframe id="apercu-@demande.Id" title="@Loc["ValidDem.Apercu"]" class="w-100 border rounded-3"
+                                        style="height: 70vh; background: var(--surface);"></iframe>
+                            </div>
                         }
-                    </tbody>
-                </table>
-                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
-            </div>
+                        else
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@Loc["ValidDem.AucunePiece"]</span>
+                        }
+                    </div>
+
+                    @* Décision : profil + valider + motif + rejeter, empilés et jamais tronqués *@
+                    <div class="p-3 p-md-4">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="form-label small fw-bold text-dark">@Loc["ValidDem.ColProfil"]</label>
+                                <select class="form-select form-select-sm fw-semibold"
+                                        @onchange="e => CorrigerProfilAsync(demande.Id, e.Value?.ToString())">
+                                    @foreach (var valeur in Enum.GetValues<TypeClient>())
+                                    {
+                                        <option value="@valeur" selected="@(valeur == demande.Profil)">@valeur</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-5">
+                                <label class="form-label small fw-bold text-dark">@Loc["ValidDem.PlaceholderRejet"]</label>
+                                <input type="text" class="form-control form-control-sm"
+                                       placeholder="@Loc["ValidDem.PlaceholderRejet"]"
+                                       @bind="motifsRejet[demande.Id]" />
+                            </div>
+                            <div class="col-12 col-md-4 d-flex gap-2">
+                                <button type="button" class="btn btn-success btn-sm fw-bold shadow-sm flex-fill d-flex align-items-center justify-content-center gap-1"
+                                        @onclick="() => ValiderAsync(demande.Id)">
+                                    <span>✓</span> @Loc["ValidDem.BtnValider"]
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm fw-semibold flex-fill d-flex align-items-center justify-content-center gap-1"
+                                        @onclick="() => RejeterAsync(demande.Id)">
+                                    <span>✕</span> @Loc["ValidDem.BtnRejeter"]
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
 }
 
 @code {
-    private readonly EtatPagination _pagination1 = new();
-
     private List<SocieteCliente> demandes = [];
     private readonly Dictionary<Guid, string> motifsRejet = [];
     private Guid _appelantId;
     private readonly Dictionary<Guid, IReadOnlyList<JustificatifVue>> justificatifs = new();
+    // Pièce actuellement prévisualisée par demande (clé = demande, valeur = justificatif).
+    private readonly Dictionary<Guid, Guid> _apercu = new();
+    private readonly Dictionary<Guid, string> _apercuNom = new();
     private bool _chargement = true;
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;
@@ -174,8 +178,9 @@ else
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
-    // ANTI-IDOR & THREAD-SAFE : Exécution dans un IServiceScope isolé pour garantir
-    // l'absence de collisions multi-threads DbContext en Blazor Server interactif.
+    private bool EstApercuActif(Guid demandeId, Guid justificatifId) =>
+        _apercu.TryGetValue(demandeId, out var id) && id == justificatifId;
+
     private async Task ChargerAsync()
     {
         _chargement = true;
@@ -198,6 +203,8 @@ else
 
             demandes = (await listerDemandesQuery.ExecuterAsync(_appelantId)).ToList();
             justificatifs.Clear();
+            _apercu.Clear();
+            _apercuNom.Clear();
             foreach (var demande in demandes)
             {
                 motifsRejet.TryAdd(demande.Id, string.Empty);
@@ -214,6 +221,64 @@ else
         finally
         {
             _chargement = false;
+        }
+    }
+
+    private async Task<ContenuJustificatif?> LireAsync(Guid justificatifId)
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var query = scope.ServiceProvider.GetRequiredService<TelechargerJustificatifQuery>();
+        return await query.ExecuterAsync(_appelantId, justificatifId);
+    }
+
+    /// <summary>Aperçu de la pièce DANS l'application (iframe), sans quitter l'écran de validation.</summary>
+    private async Task ApercuAsync(Guid demandeId, Guid justificatifId)
+    {
+        erreur = null;
+        try
+        {
+            if (EstApercuActif(demandeId, justificatifId))
+            {
+                FermerApercu(demandeId);
+                return;
+            }
+
+            var contenu = await LireAsync(justificatifId);
+            if (contenu is null) return;
+
+            _apercu[demandeId] = justificatifId;
+            _apercuNom[demandeId] = contenu.NomFichier;
+            StateHasChanged(); // l'iframe doit exister avant l'appel JS
+
+            var base64 = Convert.ToBase64String(contenu.Contenu);
+            await Js.InvokeVoidAsync("apercuDocument.ouvrir", $"apercu-{demandeId}", contenu.TypeContenu, base64);
+        }
+        catch (Exception ex)
+        {
+            erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private void FermerApercu(Guid demandeId)
+    {
+        _apercu.Remove(demandeId);
+        _apercuNom.Remove(demandeId);
+        _ = Js.InvokeVoidAsync("apercuDocument.fermer", $"apercu-{demandeId}");
+    }
+
+    private async Task TelechargerAsync(Guid justificatifId)
+    {
+        erreur = null;
+        try
+        {
+            var contenu = await LireAsync(justificatifId);
+            if (contenu is null) return;
+            var base64 = Convert.ToBase64String(contenu.Contenu);
+            await Js.InvokeVoidAsync("telechargerFichier", contenu.NomFichier, contenu.TypeContenu, base64);
+        }
+        catch (Exception ex)
+        {
+            erreur = MessagesUtilisateur.Pour(ex);
         }
     }
 

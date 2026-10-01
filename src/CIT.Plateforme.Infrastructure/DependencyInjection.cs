@@ -77,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<GererPiecesExigeesCommand>();
         services.AddScoped<ListerPiecesExigeesQuery>();
         services.AddScoped<ListerJustificatifsDemandeQuery>();
+        services.AddScoped<TelechargerJustificatifQuery>();
 
         // ENT-01 — parcours d'invitation d'un collaborateur vers une societe deja validee.
         services.AddScoped<IInvitationCollaborateurRepository, InvitationCollaborateurRepository>();

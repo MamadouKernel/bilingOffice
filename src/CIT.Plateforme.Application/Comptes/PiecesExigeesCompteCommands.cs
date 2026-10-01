@@ -1,6 +1,7 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.Comptes;
+using CIT.Plateforme.Domain.Documents;
 using CIT.Plateforme.Domain.Securite;
 
 namespace CIT.Plateforme.Application.Comptes;
@@ -129,5 +130,34 @@ public sealed class ListerJustificatifsDemandeQuery(
             .OrderBy(j => j.PieceCode, StringComparer.Ordinal)
             .Select(j => new JustificatifVue(j.Id, j.PieceCode, j.NomFichier, j.TailleOctets, j.DateDepotUtc))
             .ToList();
+    }
+}
+
+/// <summary>Contenu binaire d'un justificatif, pour aperçu ou téléchargement dans l'application.</summary>
+public sealed record ContenuJustificatif(byte[] Contenu, string TypeContenu, string NomFichier);
+
+/// <summary>
+/// CPT-01 — lecture du contenu d'un justificatif pour que l'administrateur fonctionnel instruise
+/// la demande « sur pièces » directement dans l'application. Même habilitation que la liste
+/// (<see cref="Permission.CompteValider"/>) : lire une pièce n'ouvre aucun accès que l'écran de
+/// validation n'aurait pas déjà.
+/// </summary>
+public sealed class TelechargerJustificatifQuery(
+    IJustificatifDemandeCompteRepository justificatifs,
+    IStockageDocuments stockage,
+    IAutorisationService autorisation)
+{
+    public async Task<ContenuJustificatif> ExecuterAsync(Guid appelantId, Guid justificatifId, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(appelantId, Permission.CompteValider, ct: ct).ConfigureAwait(false);
+
+        var justificatif = await justificatifs.ObtenirParIdAsync(justificatifId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Justificatif {justificatifId} introuvable.");
+
+        await using var flux = await stockage.LireAsync(justificatif.CleStockage, ct).ConfigureAwait(false);
+        using var memoire = new MemoryStream();
+        await flux.CopyToAsync(memoire, ct).ConfigureAwait(false);
+
+        return new ContenuJustificatif(memoire.ToArray(), justificatif.TypeContenu, justificatif.NomFichier);
     }
 }

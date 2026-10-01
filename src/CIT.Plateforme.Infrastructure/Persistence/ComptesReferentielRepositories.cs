@@ -38,6 +38,9 @@ public sealed class JustificatifDemandeCompteRepository(PlateformeDbContext dbCo
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
+    public Task<JustificatifDemandeCompte?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        dbContext.JustificatifsDemandeCompte.SingleOrDefaultAsync(j => j.Id == id, ct);
+
     public async Task AjouterAsync(JustificatifDemandeCompte justificatif, CancellationToken ct = default) =>
         await dbContext.JustificatifsDemandeCompte.AddAsync(justificatif, ct).ConfigureAwait(false);
 }
