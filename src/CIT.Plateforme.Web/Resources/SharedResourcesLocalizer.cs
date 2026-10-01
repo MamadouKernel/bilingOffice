@@ -1343,7 +1343,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // LOT 6b — Assistant virtuel (AssistantVirtuel)
         ["Asst.PageTitle"] = "Assistant virtuel — CIT",
         ["Asst.Pill"] = "Assistant en ligne",
-        ["Asst.Name"] = "Assistant YABA",
+        ["Asst.Name"] = "YABA Assistant",
         ["Asst.Status"] = "En ligne · répond en quelques secondes",
         ["Asst.SuggestTitle"] = "Pour démarrer",
         ["Asst.Suggest1"] = "Où en est ma demande ?",
