@@ -13,6 +13,8 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterVersionsGrillesTarifairesQueryHandler ConsulterVersions
 @inject ImporterGrilleTarifaireCsvCommandHandler ImporterCsv
+@inject ExporterGrilleTarifaireExcelQuery ExporterExcel
+@inject Microsoft.JSInterop.IJSRuntime Js
 
 <PageTitle>@Loc["TarifGrille.PageTitle"]</PageTitle>
 
@@ -106,6 +108,7 @@
                                 <th>@Loc["TarifGrille.ColCreeeLe"]</th>
                                 <th class="text-end">@Loc["TarifGrille.ColLignes"]</th>
                                 <th>@Loc["TarifGrille.ColStatut"]</th>
+                                <th class="text-end">@Loc["TarifGrille.ColActions"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,6 +128,12 @@
                                         {
                                             <span class="badge bg-secondary-subtle text-secondary">@Loc["TarifGrille.StInactive"]</span>
                                         }
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-success fw-semibold d-inline-flex align-items-center gap-1"
+                                                @onclick="() => ExporterAsync(v.Id)" disabled="@(_exportEnCours == v.Id)">
+                                            <span>📊</span> @(_exportEnCours == v.Id ? Loc["TarifGrille.Exporting"] : Loc["TarifGrille.Exporter"])
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -150,6 +159,35 @@
     private ResultatImportCsvVue? _resultatImport;
     private string? _erreur;
     private IReadOnlyList<VersionGrilleTarifaireSommaireVue> _versions = [];
+    private Guid? _exportEnCours;
+
+    private async Task ExporterAsync(Guid versionId)
+    {
+        _erreur = null;
+        _exportEnCours = versionId;
+        try
+        {
+            var export = await ExporterExcel.ExecuterAsync(_agentId, versionId);
+            await Js.InvokeVoidAsync(
+                "telechargerFichier",
+                export.NomFichier,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                Convert.ToBase64String(export.Contenu));
+        }
+        catch (AccesRefuseException)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = Loc["TarifGrille.ErrNoHabilitation"].Value;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _exportEnCours = null;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

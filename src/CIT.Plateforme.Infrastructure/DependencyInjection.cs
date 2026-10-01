@@ -395,6 +395,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Tarification.CreerVersionGrilleTarifaireCommandHandler>();
         services.AddScoped<Application.Tarification.ConsulterVersionsGrillesTarifairesQueryHandler>();
         services.AddScoped<Application.Tarification.ImporterGrilleTarifaireCsvCommandHandler>();
+        services.AddScoped<Application.Tarification.ExporterGrilleTarifaireExcelQuery>();
         services.AddScoped<Application.Tarification.ConsulterReferentielsTarifairesQueryHandler>();
         services.AddScoped<Application.Tarification.AdministrerReferentielsConteneurCommandHandler>();
         // F3 (audit sécurité) — lecture cloisonnée des référentiels conteneur (remplace l'accès
