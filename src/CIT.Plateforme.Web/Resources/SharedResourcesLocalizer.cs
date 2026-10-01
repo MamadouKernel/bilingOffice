@@ -1342,7 +1342,14 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // LOT 6b — Assistant virtuel (AssistantVirtuel)
         ["Asst.PageTitle"] = "Assistant virtuel — CIT",
-        ["Asst.Pill"] = "Assistance • IA-01 à IA-06",
+        ["Asst.Pill"] = "Assistant en ligne",
+        ["Asst.Name"] = "Assistant YABA",
+        ["Asst.Status"] = "En ligne · répond en quelques secondes",
+        ["Asst.SuggestTitle"] = "Pour démarrer",
+        ["Asst.Suggest1"] = "Où en est ma demande ?",
+        ["Asst.Suggest2"] = "Quelles pièces dois-je fournir ?",
+        ["Asst.Suggest3"] = "Comment simuler un tarif ?",
+        ["Asst.You"] = "Vous",
         ["Asst.Title"] = "Assistant virtuel",
         ["Asst.Subtitle"] = "Posez vos questions de premier niveau. Si l'assistant ne sait pas répondre, vous pouvez transmettre l'échange à un opérateur — il lui sera remis en entier.",
         ["Asst.Loading"] = "Ouverture de l'assistant...",
@@ -4297,7 +4304,14 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // LOT 6b — Virtual assistant (AssistantVirtuel)
         ["Asst.PageTitle"] = "Virtual assistant — CIT",
-        ["Asst.Pill"] = "Assistance • IA-01 to IA-06",
+        ["Asst.Pill"] = "Assistant online",
+        ["Asst.Name"] = "YABA Assistant",
+        ["Asst.Status"] = "Online · replies in seconds",
+        ["Asst.SuggestTitle"] = "To get started",
+        ["Asst.Suggest1"] = "Where is my request?",
+        ["Asst.Suggest2"] = "Which documents should I provide?",
+        ["Asst.Suggest3"] = "How do I simulate a rate?",
+        ["Asst.You"] = "You",
         ["Asst.Title"] = "Virtual assistant",
         ["Asst.Subtitle"] = "Ask your first-level questions. If the assistant cannot answer, you can hand the conversation over to an operator — it will be passed on in full.",
         ["Asst.Loading"] = "Opening the assistant...",

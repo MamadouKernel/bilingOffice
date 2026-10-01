@@ -38,98 +38,104 @@
     }
     else
     {
-        @if (_erreur is not null)
-        {
-            <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
-                <span class="me-2 fs-5">⚠️</span> @_erreur
-            </div>
-        }
+        <section class="cit-chat" aria-label="@Loc["Asst.Name"]">
+            <header class="cit-chat-entete">
+                <span class="cit-chat-avatar" aria-hidden="true">🤖</span>
+                <div class="cit-chat-ident">
+                    <div class="cit-chat-nom">@Loc["Asst.Name"]</div>
+                    <div class="cit-chat-statut"><span class="cit-chat-point" aria-hidden="true"></span>@Loc["Asst.Status"]</div>
+                </div>
+            </header>
 
-        <div class="cit-card mb-3">
-            @if (_conversation is null || _conversation.Messages.Count == 0)
-            {
-                <EtatVide Titre="@Loc["Asst.EmptyTitle"]" Icone="💬"
-                          Message="@Loc["Asst.EmptyMsg"]" />
-            }
-            else
-            {
-                <div class="d-flex flex-column gap-3">
+            <div class="cit-chat-corps">
+                @if (_erreur is not null)
+                {
+                    <div class="cit-chat-erreur" role="alert"><span aria-hidden="true">⚠️</span> @_erreur</div>
+                }
+
+                @if (_conversation is null || _conversation.Messages.Count == 0)
+                {
+                    <div class="cit-chat-vide">
+                        <span class="cit-chat-vide-avatar" aria-hidden="true">💬</span>
+                        <h2 class="cit-chat-vide-titre">@Loc["Asst.EmptyTitle"]</h2>
+                        <p class="cit-chat-vide-msg">@Loc["Asst.EmptyMsg"]</p>
+                        @if (_conversation?.EstEscaladee != true)
+                        {
+                            <div class="cit-chat-suggestions-titre">@Loc["Asst.SuggestTitle"]</div>
+                            <div class="cit-chat-suggestions">
+                                <button type="button" class="cit-chat-chip" @onclick="@(() => PoserSuggestionAsync(Loc["Asst.Suggest1"].Value))" disabled="@_envoi">@Loc["Asst.Suggest1"]</button>
+                                <button type="button" class="cit-chat-chip" @onclick="@(() => PoserSuggestionAsync(Loc["Asst.Suggest2"].Value))" disabled="@_envoi">@Loc["Asst.Suggest2"]</button>
+                                <button type="button" class="cit-chat-chip" @onclick="@(() => PoserSuggestionAsync(Loc["Asst.Suggest3"].Value))" disabled="@_envoi">@Loc["Asst.Suggest3"]</button>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
                     @foreach (var m in _conversation.Messages)
                     {
-                        var estClient = m.Auteur == "Vous";
-                        <div class="d-flex @(estClient ? "justify-content-end" : "justify-content-start")">
-                            <div class="rounded-3 p-3 shadow-sm @(estClient ? "bg-primary bg-opacity-10" : "bg-light")"
-                                 style="max-width: 75%; white-space: pre-wrap;">
-                                <div class="small fw-bold text-muted mb-1">@m.Auteur</div>
-                                <div class="text-dark">
-                                    @* Les liens vers un dossier (/tickets/<id>) deviennent cliquables ; tout le reste
-                                       reste du texte pur : aucun lien externe ne peut être injecté. *@
-                                    @foreach (var (texte, lien) in DecouperLiens(m.Contenu))
-                                    {
-                                        if (lien is null) { @texte }
-                                        else { <a href="@lien">@Loc["Asst.OpenFile"]</a> }
-                                    }
-                                </div>
+                        var estClient = m.Auteur == Loc["Asst.You"].Value || m.Auteur == "Vous";
+                        <div class="cit-chat-ligne @(estClient ? "cit-chat-ligne--moi" : "cit-chat-ligne--bot")">
+                            @if (!estClient)
+                            {
+                                <span class="cit-chat-bulle-avatar" aria-hidden="true">🤖</span>
+                            }
+                            <div class="cit-chat-bulle @(estClient ? "cit-chat-bulle--moi" : "cit-chat-bulle--bot")">
+                                @* Les liens vers un dossier (/tickets/<id>) deviennent cliquables ; tout le reste
+                                   reste du texte pur : aucun lien externe ne peut être injecté. *@
+                                @foreach (var (texte, lien) in DecouperLiens(m.Contenu))
+                                {
+                                    if (lien is null) { @texte }
+                                    else { <a href="@lien">@Loc["Asst.OpenFile"]</a> }
+                                }
                             </div>
                         </div>
                     }
+                }
+            </div>
+
+            @if (_conversation?.EstEscaladee == true)
+            {
+                <div class="cit-chat-escalade-info">
+                    <span aria-hidden="true">👤</span>
+                    <div>
+                        @Loc["Asst.EscaladeInfoBefore"]
+                        @if (_conversation.TicketId is Guid t)
+                        {
+                            <a href="@($"/tickets/{t}")" class="fw-semibold">@Loc["Asst.EscaladeInfoLink"]</a>
+                        }
+                        .
+                    </div>
                 </div>
             }
-        </div>
-
-        @if (_conversation?.EstEscaladee == true)
-        {
-            <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info-emphasis rounded-3 p-3">
-                <span class="me-2">👤</span>
-                @Loc["Asst.EscaladeInfoBefore"]
-                @if (_conversation.TicketId is Guid t)
-                {
-                    <a href="@($"/tickets/{t}")" class="fw-semibold">@Loc["Asst.EscaladeInfoLink"]</a>
-                }
-                .
-            </div>
-        }
-        else
-        {
-            @if (_escaladeRecommandee)
+            else
             {
-                <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning-emphasis rounded-3 p-3 mb-3">
-                    <div class="fw-semibold mb-2">
-                        <span class="me-2">🙋</span> @Loc["Asst.EscaladeNoResponse"]
-                    </div>
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-8">
-                            <label for="ticket-escalade" class="form-label small fw-semibold">@Loc["Asst.LblTicketEscalade"]</label>
+                @if (_escaladeRecommandee)
+                {
+                    <div class="cit-chat-escalade">
+                        <div class="fw-semibold mb-2"><span class="me-2" aria-hidden="true">🙋</span> @Loc["Asst.EscaladeNoResponse"]</div>
+                        <div class="cit-chat-escalade-saisie">
                             <input id="ticket-escalade" class="form-control form-control-sm font-monospace"
-                                   placeholder="@Loc["Asst.PlaceholderTicket"]" @bind="_ticketEscalade" />
-                        </div>
-                        <div class="col-md-4">
-                            <button type="button" class="btn btn-warning btn-sm w-100 fw-semibold"
+                                   placeholder="@Loc["Asst.PlaceholderTicket"]" aria-label="@Loc["Asst.LblTicketEscalade"]" @bind="_ticketEscalade" />
+                            <button type="button" class="btn btn-warning btn-sm fw-semibold text-nowrap"
                                     @onclick="EscaladerAsync" disabled="@_envoi">
                                 @Loc["Asst.BtnTransmettre"]
                             </button>
                         </div>
                     </div>
+                }
+
+                <div class="cit-chat-saisie">
+                    <input id="question" class="cit-chat-input" @bind="_question" @bind:event="oninput"
+                           @onkeydown="@(async e => { if (e.Key == "Enter") await PoserAsync(); })"
+                           placeholder="@Loc["Asst.PlaceholderQuestion"]" aria-label="@Loc["Asst.LblQuestion"]" />
+                    <button type="button" class="cit-chat-envoyer" @onclick="PoserAsync"
+                            disabled="@(_envoi || string.IsNullOrWhiteSpace(_question))" aria-label="@Loc["Asst.BtnEnvoyer"]" title="@Loc["Asst.BtnEnvoyer"]">
+                        <span aria-hidden="true">➤</span>
+                    </button>
                 </div>
             }
-
-            <div class="cit-card">
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-10">
-                        <label for="question" class="form-label small fw-semibold text-dark">@Loc["Asst.LblQuestion"]</label>
-                        <input id="question" class="form-control" @bind="_question" @bind:event="oninput"
-                               @onkeydown="@(async e => { if (e.Key == "Enter") await PoserAsync(); })"
-                               placeholder="@Loc["Asst.PlaceholderQuestion"]" />
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-primary w-100 fw-semibold" @onclick="PoserAsync"
-                                disabled="@(_envoi || string.IsNullOrWhiteSpace(_question))">
-                            @Loc["Asst.BtnEnvoyer"]
-                        </button>
-                    </div>
-                </div>
-            </div>
-        }
+        </section>
     }
 </div>
 
@@ -185,6 +191,13 @@
         {
             _chargement = false;
         }
+    }
+
+    /// <summary>Remplit la question avec une suggestion puis l'envoie directement.</summary>
+    private async Task PoserSuggestionAsync(string suggestion)
+    {
+        _question = suggestion;
+        await PoserAsync();
     }
 
     private async Task PoserAsync()

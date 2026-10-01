@@ -2916,6 +2916,105 @@ html { scroll-padding-top: var(--header-h); }
 @media (max-width: 575.98px) { .cit-fab-assistant { width: 3.1rem; height: 3.1rem; } .cit-fab-assistant-icone { font-size: 1.3rem; } }
 @media (prefers-reduced-motion: reduce) { .cit-fab-assistant { transition: none; } }
 
+/* ==========================================================================
+   Chatbox assistant (page /assistant) — version premium
+   ========================================================================== */
+.cit-chat {
+    display: flex; flex-direction: column;
+    max-width: 780px; margin: 0 auto;
+    min-height: min(68vh, 640px); max-height: 80vh;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--lift-2);
+    overflow: hidden;
+}
+.cit-chat-entete {
+    display: flex; align-items: center; gap: .8rem;
+    padding: .9rem 1.1rem;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+}
+.cit-chat-avatar {
+    flex: none; display: inline-grid; place-items: center;
+    width: 2.6rem; height: 2.6rem; border-radius: 50%;
+    background: var(--accent); color: var(--deep-900); font-size: 1.3rem;
+    box-shadow: var(--lift-1);
+}
+.cit-chat-ident { min-width: 0; }
+.cit-chat-nom { font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
+.cit-chat-statut { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--ink-3); }
+.cit-chat-point { width: .5rem; height: .5rem; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 25%, transparent); }
+
+.cit-chat-corps {
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column; gap: .7rem;
+    padding: 1.1rem; background: var(--surface-2);
+}
+.cit-chat-ligne { display: flex; align-items: flex-end; gap: .5rem; max-width: 100%; }
+.cit-chat-ligne--moi { justify-content: flex-end; }
+.cit-chat-ligne--bot { justify-content: flex-start; }
+.cit-chat-bulle-avatar {
+    flex: none; display: inline-grid; place-items: center;
+    width: 1.9rem; height: 1.9rem; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--line); font-size: 1rem;
+}
+.cit-chat-bulle {
+    max-width: 78%; padding: .65rem .9rem; border-radius: 1.1rem;
+    font-size: .92rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+    box-shadow: var(--lift-1);
+}
+.cit-chat-bulle--bot { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-bottom-left-radius: .35rem; }
+.cit-chat-bulle--moi { background: var(--accent); color: var(--deep-900); border-bottom-right-radius: .35rem; }
+.cit-chat-bulle--moi a { color: inherit; text-decoration: underline; }
+
+.cit-chat-vide { margin: auto; text-align: center; max-width: 440px; padding: 1.5rem 1rem; }
+.cit-chat-vide-avatar {
+    display: inline-grid; place-items: center; width: 4rem; height: 4rem; margin-bottom: .6rem;
+    border-radius: 50%; font-size: 2rem;
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface)); border: 1px solid var(--line);
+}
+.cit-chat-vide-titre { font-size: 1.1rem; font-weight: 800; margin: .2rem 0 .3rem; color: var(--ink); }
+.cit-chat-vide-msg { font-size: .9rem; color: var(--ink-3); margin: 0 0 1.1rem; }
+.cit-chat-suggestions-titre { font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: .5rem; }
+.cit-chat-suggestions { display: flex; flex-wrap: wrap; gap: .45rem; justify-content: center; }
+.cit-chat-chip {
+    padding: .45rem .8rem; border-radius: 999px; font-size: .82rem; font-weight: 600;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line); cursor: pointer;
+    transition: background .14s ease, border-color .14s ease, transform .14s ease;
+}
+.cit-chat-chip:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-color: var(--accent); transform: translateY(-1px); }
+.cit-chat-chip:disabled { opacity: .55; cursor: default; }
+
+.cit-chat-erreur { display: flex; align-items: center; gap: .5rem; padding: .6rem .8rem; border-radius: var(--r-md); background: color-mix(in srgb, #ef4444 12%, var(--surface)); border: 1px solid color-mix(in srgb, #ef4444 35%, var(--line)); color: var(--ink); font-size: .88rem; }
+
+.cit-chat-escalade, .cit-chat-escalade-info { padding: .85rem 1.1rem; border-top: 1px solid var(--line); background: var(--surface); }
+.cit-chat-escalade-info { display: flex; gap: .6rem; align-items: flex-start; font-size: .9rem; color: var(--ink); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+.cit-chat-escalade-saisie { display: flex; gap: .5rem; align-items: center; }
+.cit-chat-escalade-saisie .form-control { flex: 1; }
+
+.cit-chat-saisie {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .75rem .9rem; border-top: 1px solid var(--line); background: var(--surface);
+}
+.cit-chat-input {
+    flex: 1; min-width: 0;
+    padding: .7rem 1rem; border-radius: 999px;
+    background: var(--surface-2); color: var(--ink);
+    border: 1px solid var(--line); font-size: .92rem;
+    transition: border-color .14s ease, box-shadow .14s ease;
+}
+.cit-chat-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.cit-chat-envoyer {
+    flex: none; display: inline-grid; place-items: center;
+    width: 2.75rem; height: 2.75rem; border-radius: 50%;
+    background: var(--accent); color: var(--deep-900); border: none; cursor: pointer; font-size: 1.1rem;
+    transition: transform .14s ease, filter .14s ease;
+}
+.cit-chat-envoyer:hover:not(:disabled) { transform: scale(1.06); filter: brightness(1.03); }
+.cit-chat-envoyer:disabled { opacity: .45; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .cit-chat-chip, .cit-chat-input, .cit-chat-envoyer { transition: none; } }
+
 /* Centre d'aide : fiches repliables (<details> natif) et aperçu d'administration. */
 .cit-aide-fiche { padding: 0; }
 .cit-aide-fiche-titre { cursor: pointer; padding: .9rem 1.1rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
