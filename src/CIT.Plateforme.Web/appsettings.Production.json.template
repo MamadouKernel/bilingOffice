@@ -1,0 +1,53 @@
+{
+  "_README": "MODÈLE versionné. Copier en 'appsettings.Production.json' (NON versionné, voir .gitignore) et renseigner les valeurs réelles (BDD, SMTP, Navis). NE JAMAIS committer le fichier rempli : il contient des secrets.",
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Error"
+    }
+  },
+  "AllowedHosts": "REMPLACER_PAR_LE_DOMAINE (ex. portail.cit.ci)",
+  "ConnectionStrings": {
+    "PlateformeDb": "Server=IP_OU_HOTE;Database=NOM_BASE;User Id=UTILISATEUR;Password=MOT_DE_PASSE;TrustServerCertificate=True;Encrypt=True"
+  },
+  "Base": {
+    "MigrationAutomatiqueAuDemarrage": false
+  },
+  "Securite": {
+    "Fichiers": {
+      "ExtensionsAutorisees": [ ".pdf", ".jpg", ".jpeg", ".png", ".xlsx" ],
+      "TailleMaxOctets": 10485760
+    },
+    "Antivirus": {
+      "Mode": "Defender",
+      "FailClosed": true,
+      "TimeoutSecondes": 15
+    }
+  },
+  "Notifications": {
+    "Smtp": {
+      "Actif": true,
+      "Hote": "mail-relay.aglgroup.com",
+      "Port": 25,
+      "UtiliserSsl": false,
+      "Expediteur": "no-reply.yaba@cotedivoireterminal.com",
+      "ExpediteurNom": "Côte d'Ivoire Terminal — YABA",
+      "Utilisateur": "COMPTE_ENVOI",
+      "MotDePasse": "MOT_DE_PASSE_ENVOI"
+    }
+  },
+  "Navis": {
+    "Active": false,
+    "BaseUrl": "https://10.88.180.26:52150/apex",
+    "OperatorId": "BOLLORE",
+    "ComplexId": "CIABJ",
+    "FacilityId": "CIT",
+    "YardId": "CIT",
+    "TimeoutSecondes": 10,
+    "Utilisateur": "NAVIS_UTILISATEUR",
+    "MotDePasse": "NAVIS_MOT_DE_PASSE"
+  },
+  "Redis": {
+    "ConnexionString": ""
+  }
+}

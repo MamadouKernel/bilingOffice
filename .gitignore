@@ -60,3 +60,6 @@ scratch/
 
 # Fichiers verrous temporaires d Office (document ouvert)
 ~$*
+
+# Secrets de production (hors depot) — utiliser le .template
+src/CIT.Plateforme.Web/appsettings.Production.json
