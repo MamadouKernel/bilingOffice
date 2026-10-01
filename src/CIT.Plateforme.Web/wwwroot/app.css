@@ -3055,6 +3055,24 @@ html { scroll-padding-top: var(--header-h); }
 @keyframes cit-chat-ecrit-rebond { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-3px); opacity: .9; } }
 @media (prefers-reduced-motion: reduce) { .cit-chat-ecrit span { animation: none; } }
 
+.cit-chat-succes { display: flex; align-items: flex-start; gap: .5rem; padding: .6rem .8rem; border-radius: var(--r-md); background: color-mix(in srgb, #22c55e 10%, var(--surface)); border: 1px solid color-mix(in srgb, #22c55e 30%, var(--line-soft)); color: var(--ink); font-size: .86rem; margin-bottom: .5rem; }
+.cit-chat-succes a { color: inherit; }
+
+.cit-chat-plus {
+    flex: none; display: inline-grid; place-items: center;
+    width: 2.4rem; height: 2.4rem; border-radius: 50%;
+    background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); cursor: pointer; font-size: 1.15rem; line-height: 1;
+    transition: background .14s ease, border-color .14s ease;
+}
+.cit-chat-plus:hover:not(:disabled) { background: var(--surface); border-color: var(--deep-500); color: var(--ink); }
+.cit-chat-plus:disabled { opacity: .5; cursor: default; }
+
+.cit-chat-creation { padding: .9rem 1rem; border-top: 1px solid var(--line-soft); background: var(--surface-2); }
+.cit-chat-creation-titre { font-weight: 700; color: var(--ink); margin-bottom: .15rem; }
+.cit-chat-creation-intro { font-size: .82rem; color: var(--ink-3); margin: 0 0 .7rem; line-height: 1.45; }
+.cit-chat-creation-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .25rem; }
+@media (prefers-reduced-motion: reduce) { .cit-chat-plus { transition: none; } }
+
 /* Centre d'aide : fiches repliables (<details> natif) et aperçu d'administration. */
 .cit-aide-fiche { padding: 0; }
 .cit-aide-fiche-titre { cursor: pointer; padding: .9rem 1.1rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }

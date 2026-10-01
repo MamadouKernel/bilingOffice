@@ -1,5 +1,6 @@
 @rendermode InteractiveServer
 @using CIT.Plateforme.Application.Assistant
+@using CIT.Plateforme.Application.CustomerComplaint
 @using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
@@ -35,6 +36,17 @@ else
             @if (_erreur is not null)
             {
                 <div class="cit-chat-erreur" role="alert"><span aria-hidden="true">⚠️</span> @_erreur</div>
+            }
+
+            @if (_ticketCreeId is Guid tc)
+            {
+                <div class="cit-chat-succes" role="status">
+                    <span aria-hidden="true">✅</span>
+                    <div>
+                        @Loc["Asst.CreerSucces"]
+                        <a href="@($"/tickets/{tc}")" class="fw-semibold">@Loc["Asst.VoirTicket"]</a>
+                    </div>
+                </div>
             }
 
             @if (_conversation is null || _conversation.Messages.Count == 0)
@@ -122,7 +134,42 @@ else
                 </div>
             }
 
+            @if (_modeCreation)
+            {
+                <div class="cit-chat-creation">
+                    <div class="cit-chat-creation-titre">@Loc["Asst.CreerTitre"]</div>
+                    <p class="cit-chat-creation-intro">@Loc["Asst.CreerIntro"]</p>
+                    @if (!_societeId.HasValue)
+                    {
+                        <div class="cit-chat-erreur" role="alert"><span aria-hidden="true">⚠️</span> @Loc["Asst.CreerSansSociete"]</div>
+                    }
+                    else
+                    {
+                        <label class="form-label small fw-semibold mb-1" for="dem-cat">@Loc["Asst.CreerCategorie"]</label>
+                        <select id="dem-cat" class="form-select form-select-sm mb-2" @bind="_categorieChoisie">
+                            <option value="@Guid.Empty">—</option>
+                            @foreach (var c in _categories)
+                            {
+                                <option value="@c.Id">@c.Libelle</option>
+                            }
+                        </select>
+                        <label class="form-label small fw-semibold mb-1" for="dem-objet">@Loc["Asst.CreerObjet"]</label>
+                        <input id="dem-objet" class="form-control form-control-sm mb-2" @bind="_objet" maxlength="150" />
+                        <label class="form-label small fw-semibold mb-1" for="dem-desc">@Loc["Asst.CreerDescription"]</label>
+                        <textarea id="dem-desc" class="form-control form-control-sm mb-2" rows="2" @bind="_descriptionDemande" maxlength="1000"></textarea>
+                        <div class="cit-chat-creation-actions">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="AnnulerCreation" disabled="@_envoi">@Loc["Asst.Annuler"]</button>
+                            <button type="button" class="btn btn-sm btn-primary fw-semibold" @onclick="CreerDemandeAsync" disabled="@_envoi">@Loc["Asst.CreerValider"]</button>
+                        </div>
+                    }
+                </div>
+            }
+
             <div class="cit-chat-saisie">
+                <button type="button" class="cit-chat-plus" @onclick="OuvrirCreation"
+                        disabled="@_envoi" aria-label="@Loc["Asst.CreerDemande"]" title="@Loc["Asst.CreerDemande"]">
+                    <span aria-hidden="true">＋</span>
+                </button>
                 <input id="question" class="cit-chat-input" @bind="_question" @bind:event="oninput"
                        @onkeydown="@(async e => { if (e.Key == "Enter") await PoserAsync(); })"
                        placeholder="@Loc["Asst.PlaceholderQuestion"]" aria-label="@Loc["Asst.LblQuestion"]" />
@@ -166,6 +213,15 @@ else
     private string _question = string.Empty;
     private string _ticketEscalade = string.Empty;
 
+    // Création de demande guidée (réclamation → routée par la stratégie d'affectation de sa file).
+    private Guid? _societeId;
+    private bool _modeCreation;
+    private IReadOnlyList<CategorieReclamationVue> _categories = [];
+    private Guid _categorieChoisie;
+    private string _objet = string.Empty;
+    private string _descriptionDemande = string.Empty;
+    private Guid? _ticketCreeId;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -178,6 +234,7 @@ else
             }
 
             _utilisateurId = contexte.UtilisateurId;
+            _societeId = contexte.SocieteId;
 
             using var scope = ScopeFactory.CreateScope();
             var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
@@ -186,6 +243,62 @@ else
         finally
         {
             _chargement = false;
+        }
+    }
+
+    /// <summary>Ouvre le formulaire de création de demande et charge les catégories une seule fois.</summary>
+    private async Task OuvrirCreation()
+    {
+        _modeCreation = true;
+        _erreur = null;
+        if (_societeId.HasValue && _categories.Count == 0)
+        {
+            using var scope = ScopeFactory.CreateScope();
+            _categories = await scope.ServiceProvider.GetRequiredService<ListerCategoriesReclamationQuery>().ExecuterAsync();
+        }
+    }
+
+    private void AnnulerCreation()
+    {
+        _modeCreation = false;
+        _erreur = null;
+    }
+
+    /// <summary>Crée une demande (réclamation) : le ticket est routé vers un agent par la
+    /// stratégie d'affectation de la file cible de la catégorie choisie.</summary>
+    private async Task CreerDemandeAsync()
+    {
+        _erreur = null;
+
+        if (!_societeId.HasValue) { _erreur = Loc["Asst.CreerSansSociete"].Value; return; }
+        if (_categorieChoisie == Guid.Empty || string.IsNullOrWhiteSpace(_objet))
+        {
+            _erreur = Loc["Asst.CreerChampsRequis"].Value;
+            return;
+        }
+
+        _envoi = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<SoumettreReclamationCommand>();
+            var resultat = await commande.ExecuterAsync(
+                _utilisateurId,
+                new SoumettreReclamationRequete(_societeId.Value, _categorieChoisie, _objet.Trim(), _descriptionDemande?.Trim() ?? string.Empty));
+
+            _ticketCreeId = resultat.TicketId;
+            _modeCreation = false;
+            _categorieChoisie = Guid.Empty;
+            _objet = string.Empty;
+            _descriptionDemande = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _envoi = false;
         }
     }
 
