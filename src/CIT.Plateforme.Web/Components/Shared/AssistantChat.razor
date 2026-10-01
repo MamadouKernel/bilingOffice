@@ -1,0 +1,262 @@
+@rendermode InteractiveServer
+@using CIT.Plateforme.Application.Assistant
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* Chatbox réutilisable : rendu par la page /assistant ET par la coquille flottante
+   (AssistantFlottant). Toute la logique de conversation vit ici (SSR interactif). *@
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["Asst.Loading"]" />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@Loc["Asst.NonAutorise"]" />
+}
+else
+{
+    <section class="cit-chat" aria-label="@Loc["Asst.Name"]">
+        <header class="cit-chat-entete">
+            <span class="cit-chat-avatar" aria-hidden="true">🤖</span>
+            <div class="cit-chat-ident">
+                <div class="cit-chat-nom">@Loc["Asst.Name"]</div>
+                <div class="cit-chat-statut"><span class="cit-chat-point" aria-hidden="true"></span>@Loc["Asst.Status"]</div>
+            </div>
+        </header>
+
+        <div class="cit-chat-corps">
+            @if (_erreur is not null)
+            {
+                <div class="cit-chat-erreur" role="alert"><span aria-hidden="true">⚠️</span> @_erreur</div>
+            }
+
+            @if (_conversation is null || _conversation.Messages.Count == 0)
+            {
+                <div class="cit-chat-vide">
+                    <span class="cit-chat-vide-avatar" aria-hidden="true">💬</span>
+                    <h2 class="cit-chat-vide-titre">@Loc["Asst.EmptyTitle"]</h2>
+                    <p class="cit-chat-vide-msg">@Loc["Asst.EmptyMsg"]</p>
+                    @if (_conversation?.EstEscaladee != true)
+                    {
+                        <div class="cit-chat-suggestions-titre">@Loc["Asst.SuggestTitle"]</div>
+                        <div class="cit-chat-suggestions">
+                            <button type="button" class="cit-chat-chip" @onclick="@(() => PoserSuggestionAsync(Loc["Asst.Suggest1"].Value))" disabled="@_envoi">@Loc["Asst.Suggest1"]</button>
+                            <button type="button" class="cit-chat-chip" @onclick="@(() => PoserSuggestionAsync(Loc["Asst.Suggest2"].Value))" disabled="@_envoi">@Loc["Asst.Suggest2"]</button>
+                            <button type="button" class="cit-chat-chip" @onclick="@(() => PoserSuggestionAsync(Loc["Asst.Suggest3"].Value))" disabled="@_envoi">@Loc["Asst.Suggest3"]</button>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                @foreach (var m in _conversation.Messages)
+                {
+                    var estClient = m.Auteur == Loc["Asst.You"].Value || m.Auteur == "Vous";
+                    <div class="cit-chat-ligne @(estClient ? "cit-chat-ligne--moi" : "cit-chat-ligne--bot")">
+                        @if (!estClient)
+                        {
+                            <span class="cit-chat-bulle-avatar" aria-hidden="true">🤖</span>
+                        }
+                        <div class="cit-chat-bloc">
+                            <div class="cit-chat-bulle @(estClient ? "cit-chat-bulle--moi" : "cit-chat-bulle--bot")">
+                                @* Les liens vers un dossier (/tickets/<id>) deviennent cliquables ; tout le reste
+                                   reste du texte pur : aucun lien externe ne peut être injecté. *@
+                                @foreach (var (texte, lien) in DecouperLiens(m.Contenu))
+                                {
+                                    if (lien is null) { @texte }
+                                    else { <a href="@lien">@Loc["Asst.OpenFile"]</a> }
+                                }
+                            </div>
+                            <time class="cit-chat-heure">@m.HorodatageUtc.ToLocalTime().ToString("HH:mm")</time>
+                        </div>
+                    </div>
+                }
+
+                @if (_envoi)
+                {
+                    <div class="cit-chat-ligne cit-chat-ligne--bot">
+                        <span class="cit-chat-bulle-avatar" aria-hidden="true">🤖</span>
+                        <div class="cit-chat-bulle cit-chat-bulle--bot cit-chat-ecrit" aria-label="@Loc["Asst.Name"]">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        @if (_conversation?.EstEscaladee == true)
+        {
+            <div class="cit-chat-escalade-info">
+                <span aria-hidden="true">👤</span>
+                <div>
+                    @Loc["Asst.EscaladeInfoBefore"]
+                    @if (_conversation.TicketId is Guid t)
+                    {
+                        <a href="@($"/tickets/{t}")" class="fw-semibold">@Loc["Asst.EscaladeInfoLink"]</a>
+                    }
+                    .
+                </div>
+            </div>
+        }
+        else
+        {
+            @if (_escaladeRecommandee)
+            {
+                <div class="cit-chat-escalade">
+                    <div class="fw-semibold mb-2"><span class="me-2" aria-hidden="true">🙋</span> @Loc["Asst.EscaladeNoResponse"]</div>
+                    <div class="cit-chat-escalade-saisie">
+                        <input id="ticket-escalade" class="form-control form-control-sm font-monospace"
+                               placeholder="@Loc["Asst.PlaceholderTicket"]" aria-label="@Loc["Asst.LblTicketEscalade"]" @bind="_ticketEscalade" />
+                        <button type="button" class="btn btn-warning btn-sm fw-semibold text-nowrap"
+                                @onclick="EscaladerAsync" disabled="@_envoi">
+                            @Loc["Asst.BtnTransmettre"]
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <div class="cit-chat-saisie">
+                <input id="question" class="cit-chat-input" @bind="_question" @bind:event="oninput"
+                       @onkeydown="@(async e => { if (e.Key == "Enter") await PoserAsync(); })"
+                       placeholder="@Loc["Asst.PlaceholderQuestion"]" aria-label="@Loc["Asst.LblQuestion"]" />
+                <button type="button" class="cit-chat-envoyer" @onclick="PoserAsync"
+                        disabled="@(_envoi || string.IsNullOrWhiteSpace(_question))" aria-label="@Loc["Asst.BtnEnvoyer"]" title="@Loc["Asst.BtnEnvoyer"]">
+                    <span aria-hidden="true">➤</span>
+                </button>
+            </div>
+        }
+    </section>
+}
+
+@code {
+    /// <summary>Lien interne vers un dossier cité par l'assistant : seul motif rendu cliquable.</summary>
+    private static readonly System.Text.RegularExpressions.Regex LienDossier =
+        new(@"/tickets/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>Découpe un message en morceaux de texte et en liens vers des dossiers.</summary>
+    private static IEnumerable<(string Texte, string? Lien)> DecouperLiens(string contenu)
+    {
+        var position = 0;
+        foreach (System.Text.RegularExpressions.Match m in LienDossier.Matches(contenu))
+        {
+            yield return (contenu[position..m.Index], null);
+            yield return (string.Empty, m.Value);
+            position = m.Index + m.Length;
+        }
+
+        yield return (contenu[position..], null);
+    }
+
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private bool _envoi;
+    private string? _erreur;
+    private Guid _utilisateurId;
+
+    private ConversationAssistantVue? _conversation;
+    private bool _escaladeRecommandee;
+    private string _question = string.Empty;
+    private string _ticketEscalade = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (!contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                return;
+            }
+
+            _utilisateurId = contexte.UtilisateurId;
+
+            using var scope = ScopeFactory.CreateScope();
+            var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
+            _conversation = await query.ExecuterAsync(_utilisateurId);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    /// <summary>Remplit la question avec une suggestion puis l'envoie directement.</summary>
+    private async Task PoserSuggestionAsync(string suggestion)
+    {
+        _question = suggestion;
+        await PoserAsync();
+    }
+
+    private async Task PoserAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_question) || _envoi)
+        {
+            return;
+        }
+
+        _erreur = null;
+        _envoi = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<PoserQuestionAssistantCommand>();
+            _conversation = await commande.ExecuterAsync(_utilisateurId, _question);
+            _escaladeRecommandee = _conversation.EscaladeRecommandee;
+            _question = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _envoi = false;
+        }
+    }
+
+    private async Task EscaladerAsync()
+    {
+        _erreur = null;
+
+        if (!Guid.TryParse(_ticketEscalade, out var ticketId))
+        {
+            _erreur = Loc["Asst.ErrTicketInvalide"].Value;
+            return;
+        }
+
+        _envoi = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<EscaladerAssistantVersOperateurCommand>();
+            await commande.ExecuterAsync(
+                _utilisateurId, _conversation!.Id, ticketId,
+                _conversation.MotifEscaladeRecommandee ?? Loc["Asst.MotifDefaut"].Value);
+
+            var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
+            _conversation = await query.ExecuterAsync(_utilisateurId);
+            _escaladeRecommandee = false;
+        }
+        catch (AccesRefuseException)
+        {
+            _erreur = Loc["Asst.ErrPerimetreTicket"].Value;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _envoi = false;
+        }
+    }
+}

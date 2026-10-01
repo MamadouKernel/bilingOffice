@@ -47,9 +47,7 @@
    Simple lien vers la page /assistant (pas de dépendance JS : fonctionne en SSR). *@
 @if (_contexte?.EstAuthentifie == true && _contexte.Nature == NatureUtilisateur.Client)
 {
-    <a href="/assistant" class="cit-fab-assistant" title="@Loc["Help.Assistant"]" aria-label="@Loc["Help.Assistant"]">
-        <span class="cit-fab-assistant-icone" aria-hidden="true">💬</span>
-    </a>
+    <AssistantFlottant />
 }
 
 <div id="blazor-error-ui" data-nosnippet>

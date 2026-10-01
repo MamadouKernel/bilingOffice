@@ -1,0 +1,16 @@
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Lanceur flottant de l'assistant : <details> natif pour l'ouverture/fermeture (fonctionne en SSR),
+   le chat interactif à l'intérieur. Réservé aux clients (condition dans MainLayout). *@
+<details class="cit-fab-chat">
+    <summary class="cit-fab-assistant" title="@Loc["Help.Assistant"]" aria-label="@Loc["Help.Assistant"]">
+        <span class="cit-fab-assistant-icone cit-fab-ouvrir" aria-hidden="true">💬</span>
+        <span class="cit-fab-assistant-icone cit-fab-fermer" aria-hidden="true">✕</span>
+    </summary>
+    <div class="cit-fab-chat-panneau" role="dialog" aria-label="@Loc["Asst.Name"]">
+        <AssistantChat />
+    </div>
+</details>
