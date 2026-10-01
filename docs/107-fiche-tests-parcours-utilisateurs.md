@@ -4,6 +4,14 @@
 > travail de bout en bout. Pour chaque étape : faites l'action, regardez ce qui s'affiche, puis cochez
 > **OK** si le résultat correspond, ou **Problème** en écrivant ce qui ne va pas.
 
+> **De la première à la dernière page.** Ce document suit le parcours **complet** :
+> **① la page d'accueil publique** (sans être connecté) → **② la simulation de tarif** et
+> **③ la création d'un compte société** → **④ la validation du compte par CIT** → **⑤ la première
+> connexion et la sécurité à 6 chiffres** → **⑥ l'usage quotidien** par chaque rôle (client,
+> admin société, agent, superviseur, administration, support) → **⑦ la fin de vie d'une demande**
+> (traitement → clôture → archivage → enquête de satisfaction) → **⑧ la déconnexion**.
+> Le **Parcours 0** ci-dessous couvre ① à ⑤ ; les parcours 1 à 7 couvrent ⑥ à ⑧.
+
 ## Avant de commencer
 - **Adresse du site** : celle communiquée par l'équipe technique (ex. `https://…`).
 - **Se connecter** : saisir l'**e-mail**, le **mot de passe**, puis le **code de sécurité à 6 chiffres** affiché par l'application d'authentification sur le téléphone (il change toutes les 30 s).
@@ -20,6 +28,25 @@
 Mot de passe : celui communiqué par l'équipe technique. Cochez : **☐ OK  ☐ Problème**.
 
 ---
+
+## Parcours 0 — Découverte & création de compte (AVANT d'avoir un compte)
+*Le tout début : ce que voit un visiteur, puis comment une société obtient son accès.*
+**À faire sans être connecté** (ouvrir une fenêtre de navigation privée est idéal).
+
+| # | Ce que je fais | Ce que je dois voir | OK / Problème |
+|---|---|---|---|
+| 0.1 | J'ouvre l'adresse du site (page d'accueil) | La page publique YABA : présentation, et 3 boutons — **Se connecter**, **Créer un compte société**, **Simuler une proforma** | ☐ / ☐ |
+| 0.2 | Sur l'accueil, je passe Français ⇆ Anglais et clair ⇆ sombre | La page reste correcte et traduite, **sans être connecté** | ☐ / ☐ |
+| 0.3 | Je clique sur **Simuler une proforma** | J'accède au simulateur **sans me connecter** ; je saisis des conteneurs et j'obtiens un montant estimé | ☐ / ☐ |
+| 0.4 | Je reviens à l'accueil et je clique sur **Créer un compte société** | Un formulaire de demande de compte s'affiche (identité de la société, coordonnées, type de client) | ☐ / ☐ |
+| 0.5 | Je remplis et j'envoie la demande de compte | Un message confirme que la demande est **envoyée et en attente de validation par CIT** | ☐ / ☐ |
+| 0.6 | *(Côté CIT — compte Konate)* J'ouvre la **validation des comptes** et je valide la demande précédente | Le compte passe à **activé** ; le client peut désormais se connecter | ☐ / ☐ |
+| 0.7 | *(Client)* **Première connexion** : e-mail + mot de passe | On me demande d'**installer la sécurité à 6 chiffres** : un carré à scanner s'affiche, à ajouter dans l'application d'authentification du téléphone | ☐ / ☐ |
+| 0.8 | Je saisis le **code à 6 chiffres** affiché par le téléphone | Je suis connecté et j'arrive sur mon tableau de bord | ☐ / ☐ |
+| 0.9 | *(Collaborateur invité — voir 2.2)* J'ouvre le **lien d'invitation** reçu | Je peux créer mon accès et rejoindre la société | ☐ / ☐ |
+
+> À partir d'ici, le compte existe : les parcours 1 à 7 testent l'usage quotidien, puis la fin de vie
+> d'une demande (clôture + archivage) et la déconnexion.
 
 ## Parcours 1 — Client (compte : Awa)
 *Un client d'une société qui suit et dépose ses demandes.*
