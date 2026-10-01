@@ -21,6 +21,11 @@ public sealed record SimulationProformaDetailVue(
     string? NomNavire,
     string? NumeroVoyage,
     string? NumeroBlOuBooking,
+    string? ClientAFacturer,
+    string? TypeClientLibelle,
+    string? Escale,
+    string? PortChargement,
+    string? PortDechargement,
     decimal MontantTotalXof,
     IReadOnlyList<LigneResultatSimulationVue> Lignes,
     string MentionLegale);
@@ -96,6 +101,11 @@ public sealed class ConsulterSimulationProformaQueryHandler(
             simulation.NomNavire,
             simulation.NumeroVoyage,
             simulation.NumeroBlOuBooking,
+            simulation.ClientAFacturer,
+            simulation.TypeClientLibelle,
+            simulation.Escale,
+            simulation.PortChargement,
+            simulation.PortDechargement,
             simulation.MontantTotalXof,
             lignesVue,
             MoteurCalculProforma.MentionLegaleDefaut);

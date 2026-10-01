@@ -28,7 +28,12 @@ public sealed record CalculerSimulationProformaRequete(
     IReadOnlyList<ConteneurSimulationRequete> Conteneurs,
     string? NomNavire = null,
     string? NumeroVoyage = null,
-    string? NumeroBlOuBooking = null);
+    string? NumeroBlOuBooking = null,
+    string? ClientAFacturer = null,
+    string? TypeClientLibelle = null,
+    string? Escale = null,
+    string? PortChargement = null,
+    string? PortDechargement = null);
 
 public sealed record LigneResultatSimulationVue(
     string NumeroConteneur,
@@ -67,7 +72,12 @@ public sealed record ResultatSimulationProformaVue(
     string MentionLegale,
     string? NomNavire = null,
     string? NumeroVoyage = null,
-    string? NumeroBlOuBooking = null);
+    string? NumeroBlOuBooking = null,
+    string? ClientAFacturer = null,
+    string? TypeClientLibelle = null,
+    string? Escale = null,
+    string? PortChargement = null,
+    string? PortDechargement = null);
 
 public sealed class CalculerSimulationProformaQueryHandler(
     IVersionGrilleTarifaireRepository versionRepository,
@@ -114,7 +124,12 @@ internal static class ProjectionsSimulation
                 c.CategorieMarchandiseId))],
             requete.NomNavire,
             requete.NumeroVoyage,
-            requete.NumeroBlOuBooking);
+            requete.NumeroBlOuBooking,
+            requete.ClientAFacturer,
+            requete.TypeClientLibelle,
+            requete.Escale,
+            requete.PortChargement,
+            requete.PortDechargement);
 
     public static ResultatSimulationProformaVue VersVue(this ResultatSimulationProforma res) =>
         new(
@@ -145,5 +160,10 @@ internal static class ProjectionsSimulation
             res.MentionLegale,
             res.Dossier.NomNavire,
             res.Dossier.NumeroVoyage,
-            res.Dossier.NumeroBlOuBooking);
+            res.Dossier.NumeroBlOuBooking,
+            res.Dossier.ClientAFacturer,
+            res.Dossier.TypeClientLibelle,
+            res.Dossier.Escale,
+            res.Dossier.PortChargement,
+            res.Dossier.PortDechargement);
 }

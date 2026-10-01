@@ -39,6 +39,16 @@ public sealed class SimulationProforma
 
     public string? NumeroBlOuBooking { get; private set; }
 
+    public string? ClientAFacturer { get; private set; }
+
+    public string? TypeClientLibelle { get; private set; }
+
+    public string? Escale { get; private set; }
+
+    public string? PortChargement { get; private set; }
+
+    public string? PortDechargement { get; private set; }
+
     public decimal MontantTotalXof { get; private set; }
 
     /// <summary>SIM-08 — rattachement a posteriori à un ticket de parcours client.</summary>
@@ -80,6 +90,11 @@ public sealed class SimulationProforma
             NomNavire = dossier.NomNavire?.Trim(),
             NumeroVoyage = dossier.NumeroVoyage?.Trim(),
             NumeroBlOuBooking = dossier.NumeroBlOuBooking?.Trim(),
+            ClientAFacturer = dossier.ClientAFacturer?.Trim(),
+            TypeClientLibelle = dossier.TypeClientLibelle?.Trim(),
+            Escale = dossier.Escale?.Trim(),
+            PortChargement = dossier.PortChargement?.Trim(),
+            PortDechargement = dossier.PortDechargement?.Trim(),
             MontantTotalXof = lignesResultat.Sum(l => l.TotalLigne),
         };
 

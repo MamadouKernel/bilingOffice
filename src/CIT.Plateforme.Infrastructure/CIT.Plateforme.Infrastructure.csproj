@@ -20,6 +20,7 @@
          transmettait le secret TOTP à un tiers. Dépendance build-time, versionnée et
          restaurable hors ligne : aucun appel réseau au runtime. -->
     <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="QuestPDF" Version="2026.9.1" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -2025,6 +2025,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AuteurId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ClientAFacturer")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateOnly>("DateArrivee")
                         .HasColumnType("date");
 
@@ -2036,6 +2039,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("DureeSejourJours")
                         .HasColumnType("int");
+
+                    b.Property<string>("Escale")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("MontantTotalXof")
                         .HasPrecision(18, 2)
@@ -2053,6 +2059,12 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<string>("PortChargement")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PortDechargement")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -2066,6 +2078,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("TicketId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TypeClientLibelle")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VersionGrilleLibelle")
                         .IsRequired()

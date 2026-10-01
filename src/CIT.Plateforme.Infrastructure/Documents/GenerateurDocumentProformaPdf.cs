@@ -1,16 +1,30 @@
-using System.Text;
+using System.Globalization;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Domain.Tarification;
 using CIT.Plateforme.Domain.Tarification.Referentiels;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace CIT.Plateforme.Infrastructure.Documents;
 
 /// <summary>
-/// Générateur de document proforma au format PDF/Texte structuré (SIM-09, SIM-05).
-/// Produit un document complet avec décomposition des 7 postes, total et mention légale obligatoire.
+/// Générateur de la facture proforma au format PDF réel (SIM-09, SIM-05), au design officiel CIT
+/// (en-tête, méta dossier, rubriques agrégées, total, montant en toutes lettres, mention légale).
+/// Rend exactement les montants figés à la simulation — aucun recalcul.
 /// </summary>
 public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaPdf
 {
+    private static readonly CultureInfo Fr = CultureInfo.GetCultureInfo("fr-FR");
+    private const string Navy = "#1B3A6B";
+    private const string Gold = "#C9A84C";
+
+    static GenerateurDocumentProformaPdf()
+    {
+        // Licence Community (gratuite) — requise avant toute génération.
+        QuestPDF.Settings.License = LicenseType.Community;
+    }
+
     public Task<DocumentPdfProformaResultat> GenererPdfAsync(
         SimulationProforma simulation, ReferentielsTarifaires referentiels, CancellationToken ct = default)
     {
@@ -18,64 +32,230 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
         ArgumentNullException.ThrowIfNull(referentiels);
 
         var sens = referentiels.Sens(simulation.SensOperationId);
+        var trafic = sens.Libelle.StartsWith("Export", StringComparison.OrdinalIgnoreCase) ? "Export" : "Import";
+        var rubriques = ConstruireRubriques(simulation, referentiels, sens.Libelle);
+        var total = simulation.MontantTotalXof;
 
-        var sb = new StringBuilder();
-        sb.AppendLine("%PDF-1.4");
-        sb.AppendLine("% CÔTE D'IVOIRE TERMINAL (CIT) — SIMULATION DE PROFORMA");
-        sb.AppendLine("================================================================================");
-        sb.AppendLine($"RÉFÉRENCE SIMULATION : {simulation.Reference}");
-        sb.AppendLine($"DATE DE CRÉATION    : {simulation.DateCreationUtc:dd/MM/yyyy HH:mm:ss} UTC");
-        sb.AppendLine($"VERSION DE GRILLE   : {simulation.VersionGrilleLibelle}");
-        sb.AppendLine($"SENS DU TRAFIC      : {sens.Libelle}");
-        sb.AppendLine($"DURÉE DE SÉJOUR     : {simulation.DureeSejourJours} jours (du {simulation.DateArrivee:dd/MM/yyyy} au {simulation.DateEnlevementPrevisionnel:dd/MM/yyyy})");
-        if (!string.IsNullOrWhiteSpace(simulation.NomNavire))
-            sb.AppendLine($"NAVIRE / VOYAGE     : {simulation.NomNavire} / {simulation.NumeroVoyage}");
-        if (!string.IsNullOrWhiteSpace(simulation.NumeroBlOuBooking))
-            sb.AppendLine($"N° BL / BOOKING     : {simulation.NumeroBlOuBooking}");
-        sb.AppendLine("================================================================================");
-        sb.AppendLine("DÉTAIL PAR CONTENEUR :");
-        sb.AppendLine("--------------------------------------------------------------------------------");
-
-        var idx = 1;
-        foreach (var c in simulation.LignesConteneurs)
+        var document = Document.Create(conteneur =>
         {
-            var taille = referentiels.Taille(c.TailleConteneurId);
-            var type = referentiels.Type(c.TypeConteneurId);
-            var categorie = referentiels.Categorie(c.CategorieMarchandiseId);
+            conteneur.Page(page =>
+            {
+                page.Size(PageSizes.A4);
+                page.Margin(28);
+                page.DefaultTextStyle(t => t.FontSize(9).FontColor("#1a1a1a"));
 
-            sb.AppendLine($"Conteneur #{idx} : {c.NumeroConteneur} ({taille.Libelle}, {type.Libelle}, {c.PoidsTonnes:N2}t, Cat: {categorie.Code}, OOG: {(c.EstHorsGabarit ? "Oui" : "Non")}, Dang: {(c.EstDangereux ? "Oui" : "Non")})");
-            sb.AppendLine($"  - Acconage de base          : {c.MontantAcconage:N0} XOF");
-            sb.AppendLine($"  - Relevage                  : {c.MontantRelevage:N0} XOF");
-            sb.AppendLine($"  - Branchement Frigorifique  : {c.MontantBranchement:N0} XOF");
-            sb.AppendLine($"  - Majoration Lourd          : {c.MontantMajorationLourd:N0} XOF");
-            sb.AppendLine($"  - Majoration Dangereux      : {c.MontantMajorationDangereux:N0} XOF");
-            sb.AppendLine($"  - Majoration Hors Gabarit   : {c.MontantMajorationOog:N0} XOF");
+                page.Header().Column(col =>
+                {
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            c.Item().Text("CÔTE D'IVOIRE TERMINAL").Bold().FontSize(14).FontColor(Navy);
+                            c.Item().Text("ABIDJAN").FontSize(9).FontColor(Gold).LetterSpacing(0.2f);
+                        });
+                        row.RelativeItem().AlignRight().Column(c =>
+                        {
+                            c.Item().AlignRight().Text("FACTURE PROFORMA").Bold().FontSize(14);
+                            c.Item().AlignRight().Text("Simulation — document non contractuel").FontSize(8).FontColor("#666");
+                            c.Item().AlignRight().Text($"N° {simulation.Reference}").FontSize(9).FontColor("#333");
+                        });
+                    });
+                    col.Item().PaddingTop(6).BorderBottom(2).BorderColor(Navy);
+                });
 
-            // RG-SIM-09 — la ventilation est énumérée telle qu'elle a été figée : les
-            // bénéficiaires étant paramétrables, le document ne peut plus les nommer d'avance.
-            var ventilation = c.RepartitionStationnement.Count == 0
-                ? string.Empty
-                : " (" + string.Join(", ", c.RepartitionStationnement
-                    .OrderBy(p => p.Beneficiaire, StringComparer.Ordinal)
-                    .Select(p => $"{p.Beneficiaire}: {p.Montant:N0}")) + ")";
-            sb.AppendLine($"  - Stationnement             : {c.MontantStationnement:N0} XOF{ventilation}");
+                page.Content().PaddingVertical(10).Column(col =>
+                {
+                    col.Spacing(10);
 
-            sb.AppendLine($"  => SOUS-TOTAL CONTENEUR     : {c.TotalLigneXof:N0} XOF");
-            sb.AppendLine("--------------------------------------------------------------------------------");
-            idx++;
+                    // Méta — deux colonnes clé/valeur
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Column(c =>
+                        {
+                            Meta(c, "Client", Ou(simulation.ClientAFacturer));
+                            Meta(c, "Type client", Ou(simulation.TypeClientLibelle));
+                            Meta(c, "Trafic", trafic);
+                            Meta(c, "Port de chargement", Ou(simulation.PortChargement));
+                            Meta(c, "Port de déchargement", Ou(simulation.PortDechargement));
+                        });
+                        row.ConstantItem(20);
+                        row.RelativeItem().Column(c =>
+                        {
+                            Meta(c, "Date d'arrivée navire", simulation.DateArrivee.ToString("dd/MM/yyyy", Fr));
+                            Meta(c, "Date d'enlèvement", simulation.DateEnlevementPrevisionnel.ToString("dd/MM/yyyy", Fr));
+                            Meta(c, "Durée de séjour", $"{simulation.DureeSejourJours} jour(s)");
+                            Meta(c, "Escale", Ou(simulation.Escale));
+                            Meta(c, "Grille appliquée", Ou(simulation.VersionGrilleLibelle));
+                        });
+                    });
+
+                    // Escale : navire / voyage / BL
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); });
+                        t.Header(h =>
+                        {
+                            EnteteEscale(h, "Navire");
+                            EnteteEscale(h, "Voyage");
+                            EnteteEscale(h, "BL / Booking");
+                        });
+                        t.Cell().Border(0.5f).BorderColor("#cfd6e2").Padding(4).Text(Ou(simulation.NomNavire));
+                        t.Cell().Border(0.5f).BorderColor("#cfd6e2").Padding(4).Text(Ou(simulation.NumeroVoyage));
+                        t.Cell().Border(0.5f).BorderColor("#cfd6e2").Padding(4).Text(Ou(simulation.NumeroBlOuBooking));
+                    });
+
+                    // Rubriques
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(c => { c.RelativeColumn(4); c.RelativeColumn(1.4f); c.RelativeColumn(1.4f); });
+                        t.Header(h =>
+                        {
+                            h.Cell().Background(Navy).Padding(5).Text("Rubriques").FontColor("#fff").Bold();
+                            h.Cell().Background(Navy).Padding(5).AlignRight().Text("Montant CFA").FontColor("#fff").Bold();
+                            h.Cell().Background(Navy).Padding(5).AlignRight().Text("Total CFA").FontColor("#fff").Bold();
+                        });
+
+                        if (rubriques.Count == 0)
+                        {
+                            t.Cell().ColumnSpan(3).Padding(8).Text("Aucune rubrique facturable.").Italic().FontColor("#999");
+                        }
+                        foreach (var r in rubriques)
+                        {
+                            t.Cell().BorderBottom(0.5f).BorderColor("#e5e5e5").Padding(5).Column(c =>
+                            {
+                                c.Item().Text(r.Presta).Bold().FontColor("#111");
+                                c.Item().Text($"{r.Qte} Unité(s)  *  {Fmt(r.Pu)} XOF").FontSize(8).FontColor("#555");
+                            });
+                            t.Cell().BorderBottom(0.5f).BorderColor("#e5e5e5").Padding(5).AlignRight().Text(Fmt(r.Total));
+                            t.Cell().BorderBottom(0.5f).BorderColor("#e5e5e5").Padding(5).AlignRight().Text(Fmt(r.Total)).Bold().FontColor(Navy);
+                        }
+                    });
+
+                    // Totaux
+                    col.Item().AlignRight().Width(260).Column(c =>
+                    {
+                        LigneTotal(c, "Montant Total Hors Taxes Prestations", $"{Fmt(total)} CFA");
+                        LigneTotal(c, "Montant Total TVA", "0 CFA");
+                        c.Item().PaddingTop(4).BorderTop(2).BorderColor(Navy).PaddingTop(4).Row(row =>
+                        {
+                            row.RelativeItem().Text("Montant Total à Payer").Bold().FontColor(Navy).FontSize(11);
+                            row.ConstantItem(120).AlignRight().Text($"{Fmt(total)} CFA").Bold().FontColor(Navy).FontSize(11);
+                        });
+                    });
+
+                    if (total > 0)
+                    {
+                        col.Item().Background("#fafafa").Border(0.5f).BorderColor("#eee").Padding(6)
+                            .Text(MontantEnLettres(total).ToUpperInvariant()).Italic().FontSize(8.5f).FontColor("#333");
+                    }
+
+                    col.Item().PaddingTop(6).BorderTop(0.5f).BorderColor("#ddd").PaddingTop(6)
+                        .Text(MoteurCalculProforma.MentionLegaleDefaut).FontSize(7.5f).FontColor("#555");
+                });
+
+                page.Footer().AlignCenter().Text(x =>
+                {
+                    x.Span("Côte d'Ivoire Terminal — ").FontSize(7).FontColor("#999");
+                    x.Span($"{simulation.Reference} — {simulation.DateCreationUtc:dd/MM/yyyy}").FontSize(7).FontColor("#999");
+                });
+            });
+        });
+
+        var bytes = document.GeneratePdf();
+        var nomFichier = $"Proforma_{simulation.Reference}.pdf";
+        return Task.FromResult(new DocumentPdfProformaResultat(bytes, nomFichier, "application/pdf"));
+    }
+
+    private static void Meta(ColumnDescriptor c, string cle, string valeur) =>
+        c.Item().BorderBottom(0.5f).BorderColor("#ddd").PaddingVertical(1).Row(row =>
+        {
+            row.RelativeItem().Text(cle).Bold().FontColor("#333").FontSize(8.5f);
+            row.RelativeItem().AlignRight().Text(valeur).FontSize(8.5f);
+        });
+
+    private static void EnteteEscale(TableCellDescriptor h, string titre) =>
+        h.Cell().Background("#f0f3f8").Border(0.5f).BorderColor("#cfd6e2").Padding(4)
+            .Text(titre).FontColor(Navy).Bold().FontSize(8.5f);
+
+    private static void LigneTotal(ColumnDescriptor c, string libelle, string valeur) =>
+        c.Item().Row(row =>
+        {
+            row.RelativeItem().Text(libelle).FontSize(9);
+            row.ConstantItem(120).AlignRight().Text(valeur).FontSize(9);
+        });
+
+    private static string Ou(string? v) => string.IsNullOrWhiteSpace(v) ? "—" : v;
+
+    private static string Fmt(decimal n) => Math.Round(n).ToString("N0", Fr);
+
+    private sealed record Rubrique(string Presta, int Qte, decimal Pu, decimal Total, int Ordre);
+
+    private static IReadOnlyList<Rubrique> ConstruireRubriques(
+        SimulationProforma simulation, ReferentielsTarifaires referentiels, string sensLibelle)
+    {
+        var groupes = new Dictionary<string, (string Presta, int Qte, decimal Pu, decimal Total, int Ordre)>();
+
+        void Ajouter(string lib, string tailleCode, decimal pu, int ordre)
+        {
+            if (pu <= 0) return;
+            var cle = $"{lib}|{tailleCode}|{pu}";
+            var presta = $"{sensLibelle} - {lib} {tailleCode}";
+            if (groupes.TryGetValue(cle, out var g))
+                groupes[cle] = (presta, g.Qte + 1, pu, g.Total + pu, ordre);
+            else
+                groupes[cle] = (presta, 1, pu, pu, ordre);
         }
 
-        sb.AppendLine("================================================================================");
-        sb.AppendLine($"MONTANT TOTAL ESTIMÉ : {simulation.MontantTotalXof:N0} XOF");
-        sb.AppendLine("================================================================================");
-        sb.AppendLine();
-        sb.AppendLine("AVERTISSEMENT LÉGAL OBLIGATOIRE (SIM-05) :");
-        sb.AppendLine(MoteurCalculProforma.MentionLegaleDefaut);
-        sb.AppendLine("%%EOF");
+        foreach (var l in simulation.LignesConteneurs)
+        {
+            var t = referentiels.Taille(l.TailleConteneurId).Code;
+            Ajouter("Acconage Plein", t, l.MontantAcconage, 1);
+            Ajouter("Relevage Plein", t, l.MontantRelevage, 2);
+            Ajouter("Branchement Frigo", t, l.MontantBranchement, 3);
+            Ajouter("Majoration Lourd", t, l.MontantMajorationLourd, 4);
+            Ajouter("Majoration Dangereux", t, l.MontantMajorationDangereux, 5);
+            Ajouter("Majoration Hors Gabarit", t, l.MontantMajorationOog, 6);
+            foreach (var part in l.RepartitionStationnement)
+                Ajouter($"Stationnement {part.Beneficiaire}", t, part.Montant, 7);
+        }
 
-        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-        var nomFichier = $"Proforma_{simulation.Reference}.pdf";
+        return groupes.Values
+            .OrderBy(g => g.Ordre)
+            .ThenBy(g => g.Presta, StringComparer.Ordinal)
+            .Select(g => new Rubrique(g.Presta, g.Qte, g.Pu, g.Total, g.Ordre))
+            .ToList();
+    }
 
-        return Task.FromResult(new DocumentPdfProformaResultat(bytes, nomFichier, "application/pdf"));
+    private static readonly string[] U =
+        ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix",
+         "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
+    private static readonly string[] D =
+        ["", "", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante", "quatre-vingt", "quatre-vingt"];
+
+    private static string Tri(int x)
+    {
+        var s = "";
+        int c = x / 100, r = x % 100;
+        if (c > 0) s += (c > 1 ? U[c] + " " : "") + "cent" + (c > 1 && r == 0 ? "s" : "") + (r != 0 ? " " : "");
+        if (r < 20) s += U[r];
+        else
+        {
+            int di = r / 10, un = r % 10;
+            if (di == 7 || di == 9) s += D[di] + "-" + U[10 + un];
+            else s += D[di] + (un == 1 && di != 8 ? "-et-un" : (un != 0 ? "-" + U[un] : "")) + (di == 8 && un == 0 ? "s" : "");
+        }
+        return s.Trim();
+    }
+
+    private static string MontantEnLettres(decimal montant)
+    {
+        var n = (long)Math.Round(montant);
+        if (n == 0) return "zéro franc CFA";
+        var parts = new List<string>();
+        long m = n / 1_000_000, k = (n % 1_000_000) / 1000, rr = n % 1000;
+        if (m > 0) parts.Add((m > 1 ? Tri((int)m) + " " : "un ") + "million" + (m > 1 ? "s" : ""));
+        if (k > 0) parts.Add((k > 1 ? Tri((int)k) + " " : "") + "mille");
+        if (rr > 0) parts.Add(Tri((int)rr));
+        return string.Join(" ", parts).Trim() + " francs CFA";
     }
 }

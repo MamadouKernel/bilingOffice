@@ -27,7 +27,12 @@ public sealed record DossierSimulation(
     IReadOnlyList<ConteneurSimulation> Conteneurs,
     string? NomNavire = null,
     string? NumeroVoyage = null,
-    string? NumeroBlOuBooking = null)
+    string? NumeroBlOuBooking = null,
+    string? ClientAFacturer = null,
+    string? TypeClientLibelle = null,
+    string? Escale = null,
+    string? PortChargement = null,
+    string? PortDechargement = null)
 {
     /// <summary>RG-SIM-04 — durée de séjour, bornes incluses.</summary>
     public int DureeSejourJours => (DateEnlevementPrevisionnel.DayNumber - DateArrivee.DayNumber) + 1;
