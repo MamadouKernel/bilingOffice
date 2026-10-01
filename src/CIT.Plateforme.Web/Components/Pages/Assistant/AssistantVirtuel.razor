@@ -80,14 +80,27 @@
                             {
                                 <span class="cit-chat-bulle-avatar" aria-hidden="true">🤖</span>
                             }
-                            <div class="cit-chat-bulle @(estClient ? "cit-chat-bulle--moi" : "cit-chat-bulle--bot")">
-                                @* Les liens vers un dossier (/tickets/<id>) deviennent cliquables ; tout le reste
-                                   reste du texte pur : aucun lien externe ne peut être injecté. *@
-                                @foreach (var (texte, lien) in DecouperLiens(m.Contenu))
-                                {
-                                    if (lien is null) { @texte }
-                                    else { <a href="@lien">@Loc["Asst.OpenFile"]</a> }
-                                }
+                            <div class="cit-chat-bloc">
+                                <div class="cit-chat-bulle @(estClient ? "cit-chat-bulle--moi" : "cit-chat-bulle--bot")">
+                                    @* Les liens vers un dossier (/tickets/<id>) deviennent cliquables ; tout le reste
+                                       reste du texte pur : aucun lien externe ne peut être injecté. *@
+                                    @foreach (var (texte, lien) in DecouperLiens(m.Contenu))
+                                    {
+                                        if (lien is null) { @texte }
+                                        else { <a href="@lien">@Loc["Asst.OpenFile"]</a> }
+                                    }
+                                </div>
+                                <time class="cit-chat-heure">@m.HorodatageUtc.ToLocalTime().ToString("HH:mm")</time>
+                            </div>
+                        </div>
+                    }
+
+                    @if (_envoi)
+                    {
+                        <div class="cit-chat-ligne cit-chat-ligne--bot">
+                            <span class="cit-chat-bulle-avatar" aria-hidden="true">🤖</span>
+                            <div class="cit-chat-bulle cit-chat-bulle--bot cit-chat-ecrit" aria-label="@Loc["Asst.Name"]">
+                                <span></span><span></span><span></span>
                             </div>
                         </div>
                     }

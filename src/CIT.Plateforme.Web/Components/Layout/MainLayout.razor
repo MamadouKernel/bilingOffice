@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using CIT.Plateforme.Application.Web
+@using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.Extensions.Localization
@@ -44,7 +45,7 @@
 
 @* Lanceur flottant de l'assistant — visible sur toutes les pages une fois connecté.
    Simple lien vers la page /assistant (pas de dépendance JS : fonctionne en SSR). *@
-@if (_contexte?.EstAuthentifie == true)
+@if (_contexte?.EstAuthentifie == true && _contexte.Nature == NatureUtilisateur.Client)
 {
     <a href="/assistant" class="cit-fab-assistant" title="@Loc["Help.Assistant"]" aria-label="@Loc["Help.Assistant"]">
         <span class="cit-fab-assistant-icone" aria-hidden="true">💬</span>
