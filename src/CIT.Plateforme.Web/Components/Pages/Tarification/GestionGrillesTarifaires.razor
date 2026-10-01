@@ -38,8 +38,12 @@
     }
     else
     {
-        <div class="cit-card mb-4">
-            <h6 class="fw-bold text-dark mb-2">@Loc["TarifGrille.ImportTitle"]</h6>
+        <div class="cit-card p-0 overflow-hidden mb-4">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center gap-2">
+                <span>⬆️</span>
+                <h6 class="fw-bold text-dark mb-0">@Loc["TarifGrille.ImportTitle"]</h6>
+            </div>
+            <div class="p-3">
             <p class="text-muted small mb-3">
                 @((MarkupString)Loc["TarifGrille.ImportDesc"].Value)
             </p>
@@ -84,11 +88,16 @@
             {
                 <div class="alert alert-danger mt-2 mb-0" role="alert">@_erreur</div>
             }
+            </div>
         </div>
 
         <div class="cit-card p-0 overflow-hidden mb-4">
-            <div class="p-3 bg-light border-bottom">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between gap-2">
                 <h6 class="fw-bold text-dark mb-0">@Loc["TarifGrille.VersionsTitle"]</h6>
+                @if (_versions.Count > 0)
+                {
+                    <span class="badge bg-primary-subtle text-primary">@_versions.Count</span>
+                }
             </div>
             @if (_versions.Count == 0)
             {
