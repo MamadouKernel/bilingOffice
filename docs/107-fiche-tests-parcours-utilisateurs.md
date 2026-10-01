@@ -108,6 +108,8 @@ Mot de passe : celui communiqué par l'équipe technique. Cochez : **☐ OK  ☐
 | 5.4 | J'ouvre les modèles de notification | Je peux consulter/éditer les messages types | ☐ / ☐ |
 | 5.5 | J'ouvre le journal d'audit | Les actions importantes sont tracées (qui, quand) | ☐ / ☐ |
 | 5.6 | J'ouvre les archives | Les demandes archivées sont consultables (lecture seule) | ☐ / ☐ |
+| 5.7 | Un utilisateur a **perdu son téléphone ET ses codes de secours** : j'ouvre sa fiche (Comptes agents / Comptes utilisateurs) et je lance **Réinitialiser la double authentification** | Un message confirme la réinitialisation ; à sa prochaine connexion l'utilisateur devra réinstaller son code à 6 chiffres (mot de passe inchangé) | ☐ / ☐ |
+| 5.8 | J'essaie de réinitialiser **ma propre** double authentification | L'action est refusée (un admin ne peut pas le faire sur lui-même) | ☐ / ☐ |
 
 ## Parcours 6 — Support IT N1 (compte : Konate)
 *L'équipe support qui diagnostique.*
