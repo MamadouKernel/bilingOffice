@@ -61,63 +61,128 @@ else
     }
     else
     {
-        <div class="cit-card mb-4" style="max-width: 800px;">
-            <h6 class="fw-bold text-dark mb-3">@Loc["AdmStrat.ConfigTitle"]</h6>
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
-                    <label class="form-label small fw-semibold text-dark" for="file">@Loc["AdmStrat.FileLabel"]</label>
-                    <select id="file" class="form-select form-select-sm" @bind="_fileSelectionnee">
-                        @foreach (var file in _files)
-                        {
-                            <option value="@file.Id">@file.Nom — @file.Module</option>
-                        }
-                    </select>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-primary bg-opacity-10 text-primary">🗂️</div>
+                    <div>
+                        <div class="cit-stat-label">@Loc["AdmStrat.KpiFiles"]</div>
+                        <div class="cit-stat-value">@_files.Count</div>
+                    </div>
                 </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label small fw-semibold text-dark" for="strategie">@Loc["AdmStrat.StrategyLabel"]</label>
-                    <select id="strategie" class="form-select form-select-sm" @bind="_strategieSelectionnee">
-                        @foreach (var strategie in Enum.GetValues<StrategieAffectation>())
-                        {
-                            <option value="@strategie">@LibelleStrategie(strategie)</option>
-                        }
-                    </select>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-info bg-opacity-10 text-info">🧩</div>
+                    <div>
+                        <div class="cit-stat-label">@Loc["AdmStrat.KpiModules"]</div>
+                        <div class="cit-stat-value">@_files.Select(f => f.Module).Distinct().Count()</div>
+                    </div>
                 </div>
-                <div class="col-12">
-                    <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm" @onclick="ChangerAsync">
-                        @Loc["AdmStrat.Apply"]
-                    </button>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-warning bg-opacity-10 text-warning">🎯</div>
+                    <div>
+                        <div class="cit-stat-label">@Loc["AdmStrat.KpiSkill"]</div>
+                        <div class="cit-stat-value">@_files.Count(f => !string.IsNullOrWhiteSpace(f.CompetenceRequise))</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="cit-stat-card p-3 shadow-sm d-flex align-items-center gap-3">
+                    <div class="cit-stat-icon bg-success bg-opacity-10 text-success">@IconeStrategie(StrategieDominante)</div>
+                    <div>
+                        <div class="cit-stat-label">@Loc["AdmStrat.KpiDominant"]</div>
+                        <div class="fw-bold text-dark" style="line-height:1.2;">@LibelleStrategie(StrategieDominante)</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="cit-card p-0 overflow-hidden" style="max-width: 800px;">
-            <div class="p-3 bg-light border-bottom">
-                <h6 class="fw-bold text-dark mb-0">@Loc["AdmStrat.ConfiguredFiles", _files.Count]</h6>
+        <div class="row g-4">
+            <div class="col-12 col-xl-5">
+                <div class="cit-card h-100">
+                    <h6 class="fw-bold text-dark mb-3">@Loc["AdmStrat.ConfigTitle"]</h6>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark" for="file">@Loc["AdmStrat.FileLabel"]</label>
+                        <select id="file" class="form-select form-select-sm" @bind="_fileSelectionnee">
+                            @foreach (var file in _files)
+                            {
+                                <option value="@file.Id">@file.Nom — @file.Module</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark" for="strategie">@Loc["AdmStrat.StrategyLabel"]</label>
+                        <select id="strategie" class="form-select form-select-sm" @bind="_strategieSelectionnee">
+                            @foreach (var strategie in Enum.GetValues<StrategieAffectation>())
+                            {
+                                <option value="@strategie">@IconeStrategie(strategie) @LibelleStrategie(strategie)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="rounded-3 p-3 mb-3 border bg-light d-flex gap-3">
+                        <span class="fs-3 lh-1">@IconeStrategie(_strategieSelectionnee)</span>
+                        <div>
+                            <div class="text-uppercase fw-bold text-muted" style="font-size:.68rem;letter-spacing:.06em;">@Loc["AdmStrat.HowTitle"]</div>
+                            <div class="small text-dark">@DescriptionStrategie(_strategieSelectionnee)</div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm w-100" @onclick="ChangerAsync">
+                        @Loc["AdmStrat.Apply"]
+                    </button>
+                </div>
             </div>
-            <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>@Loc["AdmStrat.ColFile"]</th>
-                            <th>@Loc["AdmStrat.ColModule"]</th>
-                            <th>@Loc["AdmStrat.ColActiveStrategy"]</th>
-                            <th>@Loc["AdmStrat.ColSkill"]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var file in _pagination1.Appliquer(_files))
-                        {
-                            <tr>
-                                <td class="text-dark fw-semibold">@file.Nom</td>
-                                <td class="small text-muted">@file.Module</td>
-                                <td><span class="badge bg-primary-subtle text-primary">@LibelleStrategie(file.StrategieActive)</span></td>
-                                <td class="small text-muted">@(string.IsNullOrWhiteSpace(file.CompetenceRequise) ? "—" : file.CompetenceRequise)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
+
+            <div class="col-12 col-xl-7">
+                <div class="cit-card p-0 overflow-hidden h-100">
+                    <div class="p-3 bg-light border-bottom">
+                        <h6 class="fw-bold text-dark mb-0">@Loc["AdmStrat.ConfiguredFiles", _files.Count]</h6>
+                    </div>
+                    <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>@Loc["AdmStrat.ColFile"]</th>
+                                    <th>@Loc["AdmStrat.ColModule"]</th>
+                                    <th>@Loc["AdmStrat.ColActiveStrategy"]</th>
+                                    <th>@Loc["AdmStrat.ColSkill"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var file in _pagination1.Appliquer(_files))
+                                {
+                                    <tr>
+                                        <td class="text-dark fw-semibold">@file.Nom</td>
+                                        <td class="small text-muted">@file.Module</td>
+                                        <td>
+                                            <span class="cit-badge @ClasseBadge(file.StrategieActive)">
+                                                @IconeStrategie(file.StrategieActive) @LibelleStrategie(file.StrategieActive)
+                                            </span>
+                                        </td>
+                                        <td class="small">
+                                            @if (file.StrategieActive == StrategieAffectation.Competence && string.IsNullOrWhiteSpace(file.CompetenceRequise))
+                                            {
+                                                <span class="cit-badge cit-badge-warning" title="@Loc["AdmStrat.SkillMissingHint"]">
+                                                    ⚠️ @Loc["AdmStrat.SkillMissing"]
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">@(string.IsNullOrWhiteSpace(file.CompetenceRequise) ? "—" : file.CompetenceRequise)</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
+                    </div>
+                </div>
             </div>
         </div>
     }
@@ -151,6 +216,47 @@ else
         StrategieAffectation.Competence => Loc["AdmStrat.StratCompetence"].Value,
         _ => strategie.ToString()
     };
+
+    private string IconeStrategie(StrategieAffectation strategie) => strategie switch
+    {
+        StrategieAffectation.PriseLibre => "🙋",
+        StrategieAffectation.AffectationManuelle => "👤",
+        StrategieAffectation.RoundRobin => "🔄",
+        StrategieAffectation.Charge => "⚖️",
+        StrategieAffectation.Disponibilite => "🟢",
+        StrategieAffectation.Competence => "🎯",
+        _ => "⚙️"
+    };
+
+    private string ClasseBadge(StrategieAffectation strategie) => strategie switch
+    {
+        StrategieAffectation.PriseLibre => "cit-badge-info",
+        StrategieAffectation.AffectationManuelle => "cit-badge-dark",
+        StrategieAffectation.RoundRobin => "cit-badge-primary",
+        StrategieAffectation.Charge => "cit-badge-warning",
+        StrategieAffectation.Disponibilite => "cit-badge-success",
+        StrategieAffectation.Competence => "cit-badge-primary",
+        _ => "cit-badge"
+    };
+
+    private string DescriptionStrategie(StrategieAffectation strategie) => strategie switch
+    {
+        StrategieAffectation.PriseLibre => Loc["AdmStrat.DescPriseLibre"].Value,
+        StrategieAffectation.AffectationManuelle => Loc["AdmStrat.DescManuelle"].Value,
+        StrategieAffectation.RoundRobin => Loc["AdmStrat.DescRoundRobin"].Value,
+        StrategieAffectation.Charge => Loc["AdmStrat.DescCharge"].Value,
+        StrategieAffectation.Disponibilite => Loc["AdmStrat.DescDispo"].Value,
+        StrategieAffectation.Competence => Loc["AdmStrat.DescCompetence"].Value,
+        _ => string.Empty
+    };
+
+    /// <summary>Stratégie la plus fréquente parmi les files configurées (pour le KPI).</summary>
+    private StrategieAffectation StrategieDominante =>
+        _files is null || _files.Count == 0
+            ? StrategieAffectation.PriseLibre
+            : _files.GroupBy(f => f.StrategieActive)
+                    .OrderByDescending(g => g.Count())
+                    .First().Key;
 
     private async Task ChargerAsync()
     {
