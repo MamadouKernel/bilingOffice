@@ -1,114 +1,134 @@
 @using CIT.Plateforme.Application.Tarification
 
-@* Facture proforma — reprend le design de la maquette HTML officielle (en-tête CIT, méta dossier,
-   escale, rubriques agrégées, totaux, montant en toutes lettres, mention légale). Document de
-   présentation : toujours sur fond clair, y compris en thème sombre (une facture s'imprime en blanc). *@
+@* Facture proforma — design officiel CIT (maquette HTML). Composant paramétré, réutilisable par le
+   simulateur live et la page de détail. Document de présentation : toujours sur fond clair. *@
 
-@if (Resultat is not null)
-{
-    var trafic = (Resultat.Sens.Libelle ?? "").StartsWith("Export", StringComparison.OrdinalIgnoreCase) ? "Export" : "Import";
-    var rubriques = ConstruireRubriques(Resultat);
-    var total = Resultat.TotalGeneralXof;
-
-    <div class="facture">
-        <div class="f-top">
-            <div class="f-brand">
-                <div class="cit">CÔTE D'IVOIRE TERMINAL<small>ABIDJAN</small></div>
-            </div>
-            <div class="f-title">
-                <div class="t1">FACTURE PROFORMA</div>
-                <div class="t2">Simulation — document non contractuel</div>
-            </div>
-            <div class="f-num">
-                N° simulation<br />
-                <b>SIM-@(DateTime.UtcNow.Ticks.ToString()[^8..])</b>
-            </div>
-        </div>
-
-        <div class="f-meta">
-            <div>
-                <div class="line"><span class="k">Client</span><span>@(string.IsNullOrWhiteSpace(ClientNom) ? "—" : ClientNom)</span></div>
-                <div class="line"><span class="k">Type client</span><span>@(string.IsNullOrWhiteSpace(TypeClient) ? "—" : TypeClient)</span></div>
-                <div class="line"><span class="k">Trafic</span><span>@trafic</span></div>
-            </div>
-            <div>
-                <div class="line"><span class="k">Date d'arrivée navire</span><span>@Resultat.DateArrivee.ToString("dd/MM/yyyy")</span></div>
-                <div class="line"><span class="k">Date d'enlèvement</span><span>@Resultat.DateEnlevementPrevisionnel.ToString("dd/MM/yyyy")</span></div>
-                <div class="line"><span class="k">Durée de séjour</span><span>@Resultat.DureeSejourJours jour(s)</span></div>
-            </div>
-        </div>
-
-        <table class="f-esc">
-            <thead>
-                <tr><th>Navire</th><th>Voyage</th><th>BL / Booking</th><th>Grille</th></tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>@(string.IsNullOrWhiteSpace(Resultat.NomNavire) ? "—" : Resultat.NomNavire)</td>
-                    <td>@(string.IsNullOrWhiteSpace(Resultat.NumeroVoyage) ? "—" : Resultat.NumeroVoyage)</td>
-                    <td>@(string.IsNullOrWhiteSpace(Resultat.NumeroBlOuBooking) ? "—" : Resultat.NumeroBlOuBooking)</td>
-                    <td>@Resultat.VersionGrilleLibelle</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <table class="f-rub">
-            <thead>
-                <tr><th>Rubriques</th><th class="num">Montant CFA</th><th class="num">Total CFA</th></tr>
-            </thead>
-            <tbody>
-                @if (rubriques.Count == 0)
-                {
-                    <tr><td colspan="3" class="vide">Aucune rubrique facturable.</td></tr>
-                }
-                else
-                {
-                    @foreach (var r in rubriques)
-                    {
-                        <tr>
-                            <td>
-                                <div class="grp-title">@r.Presta</div>
-                                <div class="grp-calc">@r.Qte Unité(s) &nbsp;*&nbsp; @Fmt(r.Pu) XOF</div>
-                            </td>
-                            <td class="num">@Fmt(r.Total)</td>
-                            <td class="grp-total">@Fmt(r.Total)</td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-
-        <div class="f-totes">
-            <div class="l"><span>Montant Total Hors Taxes Prestations</span><span>@Fmt(total) CFA</span></div>
-            <div class="l"><span>Montant Total TVA</span><span>0 CFA</span></div>
-            <div class="l big"><span>Montant Total à Payer</span><span>@Fmt(total) CFA</span></div>
-        </div>
-
-        @if (total > 0)
-        {
-            <div class="f-lettres">@MontantEnLettres(total).ToUpperInvariant()</div>
-        }
-
-        <div class="f-legal">@Resultat.MentionLegale</div>
-    </div>
+@{
+    var trafic = (Sens?.Libelle ?? "").StartsWith("Export", StringComparison.OrdinalIgnoreCase) ? "Export" : "Import";
+    var rubriques = ConstruireRubriques();
 }
 
+<div class="facture">
+    <div class="f-top">
+        <div class="f-brand">
+            <div class="cit">CÔTE D'IVOIRE TERMINAL<small>ABIDJAN</small></div>
+        </div>
+        <div class="f-title">
+            <div class="t1">FACTURE PROFORMA</div>
+            <div class="t2">Simulation — document non contractuel</div>
+        </div>
+        <div class="f-num">
+            N° simulation<br />
+            <b>@(string.IsNullOrWhiteSpace(Reference) ? "SIM-" + DateTime.UtcNow.Ticks.ToString()[^8..] : Reference)</b>
+        </div>
+    </div>
+
+    <div class="f-meta">
+        <div>
+            <div class="line"><span class="k">Client</span><span>@Ou(ClientNom)</span></div>
+            <div class="line"><span class="k">Type client</span><span>@Ou(TypeClient)</span></div>
+            <div class="line"><span class="k">Trafic</span><span>@trafic</span></div>
+            <div class="line"><span class="k">Port de chargement</span><span>@Ou(PortChargement)</span></div>
+            <div class="line"><span class="k">Port de déchargement</span><span>@Ou(PortDechargement)</span></div>
+        </div>
+        <div>
+            <div class="line"><span class="k">Date d'arrivée navire</span><span>@DateArrivee.ToString("dd/MM/yyyy")</span></div>
+            <div class="line"><span class="k">Date d'enlèvement</span><span>@DateEnlevement.ToString("dd/MM/yyyy")</span></div>
+            <div class="line"><span class="k">Durée de séjour</span><span>@Duree jour(s)</span></div>
+            <div class="line"><span class="k">Escale</span><span>@Ou(Escale)</span></div>
+            <div class="line"><span class="k">Grille appliquée</span><span>@Ou(GrilleLibelle)</span></div>
+        </div>
+    </div>
+
+    <table class="f-esc">
+        <thead>
+            <tr><th>Navire</th><th>Voyage</th><th>BL / Booking</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Ou(Navire)</td>
+                <td>@Ou(Voyage)</td>
+                <td>@Ou(Bl)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="f-rub">
+        <thead>
+            <tr><th>Rubriques</th><th class="num">Montant CFA</th><th class="num">Total CFA</th></tr>
+        </thead>
+        <tbody>
+            @if (rubriques.Count == 0)
+            {
+                <tr><td colspan="3" class="vide">Aucune rubrique facturable.</td></tr>
+            }
+            else
+            {
+                @foreach (var r in rubriques)
+                {
+                    <tr>
+                        <td>
+                            <div class="grp-title">@r.Presta</div>
+                            <div class="grp-calc">@r.Qte Unité(s) &nbsp;*&nbsp; @Fmt(r.Pu) XOF</div>
+                        </td>
+                        <td class="num">@Fmt(r.Total)</td>
+                        <td class="grp-total">@Fmt(r.Total)</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <div class="f-totes">
+        <div class="l"><span>Montant Total Hors Taxes Prestations</span><span>@Fmt(Total) CFA</span></div>
+        <div class="l"><span>Montant Total TVA</span><span>0 CFA</span></div>
+        <div class="l big"><span>Montant Total à Payer</span><span>@Fmt(Total) CFA</span></div>
+    </div>
+
+    @if (Total > 0)
+    {
+        <div class="f-lettres">@MontantEnLettres(Total).ToUpperInvariant()</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(MentionLegale))
+    {
+        <div class="f-legal">@MentionLegale</div>
+    }
+</div>
+
 @code {
-    [Parameter, EditorRequired] public ResultatSimulationProformaVue? Resultat { get; set; }
+    [Parameter, EditorRequired] public ReferenceTarifaireVue? Sens { get; set; }
+    [Parameter] public DateOnly DateArrivee { get; set; }
+    [Parameter] public DateOnly DateEnlevement { get; set; }
+    [Parameter] public int Duree { get; set; }
+    [Parameter] public IReadOnlyList<LigneResultatSimulationVue> Lignes { get; set; } = [];
+    [Parameter] public decimal Total { get; set; }
+    [Parameter] public string? MentionLegale { get; set; }
+    [Parameter] public string? Reference { get; set; }
+    [Parameter] public string? GrilleLibelle { get; set; }
+    [Parameter] public string? Navire { get; set; }
+    [Parameter] public string? Voyage { get; set; }
+    [Parameter] public string? Bl { get; set; }
     [Parameter] public string? ClientNom { get; set; }
     [Parameter] public string? TypeClient { get; set; }
+    [Parameter] public string? Escale { get; set; }
+    [Parameter] public string? PortChargement { get; set; }
+    [Parameter] public string? PortDechargement { get; set; }
 
     private sealed record Rubrique(string Presta, int Qte, decimal Pu, decimal Total, int Ordre);
 
-    private static string Fmt(decimal n) => Math.Round(n).ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+    private static string Ou(string? v) => string.IsNullOrWhiteSpace(v) ? "—" : v;
+
+    private static string Fmt(decimal n) =>
+        Math.Round(n).ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
 
     /// <summary>
     /// Agrège les postes de tous les conteneurs par (libellé + taille + prix unitaire), comme la
     /// maquette : une même prestation au même tarif forme une ligne « Qté × PU ».
     /// </summary>
-    private static IReadOnlyList<Rubrique> ConstruireRubriques(ResultatSimulationProformaVue res)
+    private IReadOnlyList<Rubrique> ConstruireRubriques()
     {
-        var sens = res.Sens.Libelle;
+        var sens = Sens?.Libelle ?? "";
         var groupes = new Dictionary<string, (string Presta, int Qte, decimal Pu, decimal Total, int Ordre)>();
 
         void Ajouter(string lib, string tailleCode, decimal pu, int ordre)
@@ -126,7 +146,7 @@
             }
         }
 
-        foreach (var l in res.Lignes)
+        foreach (var l in Lignes)
         {
             var t = l.Taille.Code;
             Ajouter("Acconage Plein", t, l.Acconage, 1);

@@ -53,7 +53,28 @@
             </div>
         }
 
+        <div class="d-flex justify-content-end mb-2 no-print">
+            <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ImprimerAsync">
+                🖨️ @Loc["Sim.PrintPdf"]
+            </button>
+        </div>
+        <div id="facture-proforma" class="mb-4">
+            <ApercuProformaFacture Sens="_detail.Sens"
+                                   DateArrivee="_detail.DateArrivee"
+                                   DateEnlevement="_detail.DateEnlevementPrevisionnel"
+                                   Duree="_detail.DureeSejourJours"
+                                   Lignes="_detail.Lignes"
+                                   Total="_detail.MontantTotalXof"
+                                   MentionLegale="_detail.MentionLegale"
+                                   Reference="_detail.Reference"
+                                   GrilleLibelle="_detail.VersionGrilleLibelle"
+                                   Navire="_detail.NomNavire"
+                                   Voyage="_detail.NumeroVoyage"
+                                   Bl="_detail.NumeroBlOuBooking" />
+        </div>
+
         <div class="cit-card mb-4">
+            <div class="text-muted small text-uppercase fw-bold mb-2">@Loc["SimDet.TechBreakdown"]</div>
             <div class="row g-3 small mb-3 p-3 bg-light rounded-3 border">
                 <div class="col-md-3"><span class="text-muted">@Loc["SimDet.RefLabel"]</span> <strong class="font-monospace text-primary">@_detail.Reference</strong></div>
                 <div class="col-md-3"><span class="text-muted">@Loc["SimDet.DateLabel"]</span> <strong class="font-monospace">@_detail.DateCreationUtc.Horodate()</strong></div>
@@ -153,6 +174,9 @@
     private bool _telechargementEnCours;
     private string? _erreur;
     private PdfGenere? _apercu;
+
+    // Impression navigateur de la facture proforma = export PDF au design officiel.
+    private async Task ImprimerAsync() => await Js.InvokeVoidAsync("window.print");
 
     protected override async Task OnInitializedAsync()
     {

@@ -1568,6 +1568,19 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
     a { text-decoration: none !important; color: #000 !important; }
 }
 
+/* Impression « facture proforma seule » : quand la page contient l'aperçu facture,
+   seul ce bloc est imprimé (export PDF au design officiel), le reste de l'écran est masqué. */
+@media print {
+    body:has(#facture-proforma) * { visibility: hidden !important; }
+    body:has(#facture-proforma) #facture-proforma,
+    body:has(#facture-proforma) #facture-proforma * { visibility: visible !important; }
+    body:has(#facture-proforma) #facture-proforma {
+        position: absolute;
+        inset: 0 auto auto 0;
+        width: 100%;
+    }
+}
+
 /* ==========================================================================
    MENU MOBILE — <details>/<summary> natif
    --------------------------------------------------------------------------
