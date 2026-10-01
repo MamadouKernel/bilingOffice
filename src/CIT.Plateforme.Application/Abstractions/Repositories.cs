@@ -320,6 +320,16 @@ public interface IDisponibiliteRepository
     Task<IReadOnlyList<Disponibilite>> ListerAsync(CancellationToken ct = default);
 }
 
+/// <summary>DIS-03 (reporting) — trace append-only des transitions de disponibilité.</summary>
+public interface IHistoriqueDisponibiliteRepository
+{
+    Task AjouterAsync(HistoriqueDisponibilite entree, CancellationToken ct = default);
+
+    /// <summary>Toutes les transitions depuis une borne (incluse), tous agents confondus, ordonnées.
+    /// ponytail: balayage simple borné par date ; filtrer par agent si le volume le justifie.</summary>
+    Task<IReadOnlyList<HistoriqueDisponibilite>> ListerDepuisAsync(DateTime depuisUtc, CancellationToken ct = default);
+}
+
 /// <summary>REMÉDIATION AUDIT (post-implementation-audit.md §3.C) : port des compétences
 /// administrées par opérateur (AFF-06).</summary>
 public interface ICompetenceOperateurRepository

@@ -79,6 +79,39 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Affectation.HistoriqueDisponibilite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AncienStatut")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("HorodatageUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NouveauStatut")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("OperateurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OperateurId", "HorodatageUtc");
+
+                    b.ToTable("HistoriquesDisponibilite", t =>
+                        {
+                            t.HasCheckConstraint("CK_HistoriquesDisponibilite_AncienStatut", "[AncienStatut] IN (N'Disponible', N'Indisponible', N'Absent')");
+
+                            t.HasCheckConstraint("CK_HistoriquesDisponibilite_NouveauStatut", "[NouveauStatut] IN (N'Disponible', N'Indisponible', N'Absent')");
+                        });
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Aide.ArticleAide", b =>
                 {
                     b.Property<Guid>("Id")

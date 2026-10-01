@@ -246,6 +246,7 @@ public static class DependencyInjection
 
         // User Story 9 — disponibilité et affectation automatique.
         services.AddScoped<IDisponibiliteRepository, DisponibiliteRepository>();
+        services.AddScoped<IHistoriqueDisponibiliteRepository, HistoriqueDisponibiliteRepository>();
         services.AddScoped<ICompetenceOperateurRepository, CompetenceOperateurRepository>();
         services.AddScoped<Application.Affectation.ICandidatsAffectationProvider, CandidatsAffectationProvider>();
         services.AddScoped<Application.Affectation.GererDisponibiliteCommand>();
@@ -270,6 +271,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Supervision.ActionsSuperviseurCommand>();
         services.AddScoped<Application.Supervision.ActionDeMasseCommand>();
         services.AddScoped<Application.Supervision.ExporterIndicateursQuery>();
+        services.AddScoped<Application.Supervision.RapportPerformanceAgentsQuery>();
 
         // User Story 11 — audit des actions.
         services.AddScoped<Application.Securite.IJournalAuditLecture, JournalAuditLecture>();

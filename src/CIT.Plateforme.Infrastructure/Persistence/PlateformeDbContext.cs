@@ -49,6 +49,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     public DbSet<Domain.Affectation.Disponibilite> Disponibilites => Set<Domain.Affectation.Disponibilite>();
 
+    /// <summary>DIS-03 (reporting) — historique append-only des transitions de disponibilité.</summary>
+    public DbSet<Domain.Affectation.HistoriqueDisponibilite> HistoriquesDisponibilite => Set<Domain.Affectation.HistoriqueDisponibilite>();
+
     /// <summary>REMÉDIATION AUDIT (post-implementation-audit.md §3.C) : compétences administrées
     /// par opérateur (AFF-06).</summary>
     public DbSet<Domain.Affectation.CompetenceOperateur> CompetencesOperateur => Set<Domain.Affectation.CompetenceOperateur>();
@@ -614,6 +617,17 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         {
             b.HasKey(d => d.Id);
             b.HasIndex(d => d.OperateurId).IsUnique();
+        });
+
+        // DIS-03 (reporting) : historique append-only des transitions de disponibilité. Entité
+        // satellite autonome (aucune FK vers Disponibilite) ; les statuts sont stockés en chaîne
+        // comme les autres énums du socle. L'index couvre la lecture « par agent, dans le temps ».
+        builder.Entity<Domain.Affectation.HistoriqueDisponibilite>(b =>
+        {
+            b.HasKey(h => h.Id);
+            b.Property(h => h.AncienStatut).HasConversion<string>().HasMaxLength(32);
+            b.Property(h => h.NouveauStatut).HasConversion<string>().HasMaxLength(32).IsRequired();
+            b.HasIndex(h => new { h.OperateurId, h.HorodatageUtc });
         });
 
         builder.Entity<Domain.Supervision.Alerte>(b =>

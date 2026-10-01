@@ -1,0 +1,178 @@
+@page "/administration/performance-agents"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Application.Supervision
+@using CIT.Plateforme.Domain.Affectation
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject RapportPerformanceAgentsQuery Rapport
+
+<PageTitle>@Loc["Perf.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>📊</span> @Loc["Perf.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Perf.Subtitle"]</div>
+    </div>
+</div>
+
+<div class="cit-card mb-4 p-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold text-dark" for="perf-debut">@Loc["Perf.Debut"]</label>
+            <input id="perf-debut" type="date" class="form-control form-control-sm" @bind="_debut" @bind:format="yyyy-MM-dd" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold text-dark" for="perf-fin">@Loc["Perf.Fin"]</label>
+            <input id="perf-fin" type="date" class="form-control form-control-sm" @bind="_fin" @bind:format="yyyy-MM-dd" />
+        </div>
+        <div class="col-12 col-md-3 d-grid">
+            <button type="button" class="btn btn-sm btn-primary" @onclick="ChargerAsync" disabled="@_chargement">
+                @Loc["Perf.Appliquer"]
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["Perf.Loading"]" />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
+    }
+
+    @if (_lignes is not null)
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="cit-stat-card">
+                    <div class="cit-stat-valeur">@_lignes.Count</div>
+                    <div class="cit-stat-libelle">@Loc["Perf.KpiAgents"]</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="cit-stat-card">
+                    <div class="cit-stat-valeur">@_lignes.Sum(l => l.NombreIndisponibilites)</div>
+                    <div class="cit-stat-libelle">@Loc["Perf.KpiTotalIndispos"]</div>
+                </div>
+            </div>
+        </div>
+
+        @if (_lignes.Count == 0)
+        {
+            <div class="cit-card p-5 text-center text-muted">
+                <div class="fs-1 mb-2" aria-hidden="true">🗂️</div>
+                <div class="fw-semibold text-dark">@Loc["Perf.VideTitre"]</div>
+                <div class="small">@Loc["Perf.VideDesc"]</div>
+            </div>
+        }
+        else
+        {
+            <div class="cit-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>@Loc["Perf.ColAgent"]</th>
+                                <th>@Loc["Perf.ColStatut"]</th>
+                                <th class="text-end">@Loc["Perf.ColNbIndispos"]</th>
+                                <th class="text-end">@Loc["Perf.ColTempsIndispo"]</th>
+                                <th class="text-end">@Loc["Perf.ColTempsAbsent"]</th>
+                                <th class="text-end">@Loc["Perf.ColPctDispo"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ligne in _lignes)
+                            {
+                                <tr>
+                                    <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(ligne.Nom) ? Loc["Perf.AgentNonId"].Value : ligne.Nom)</td>
+                                    <td>
+                                        <span class="badge @(ligne.StatutActuel == StatutDisponibilite.Disponible ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning")">
+                                            @ligne.StatutActuel
+                                        </span>
+                                    </td>
+                                    <td class="text-end font-monospace @(ligne.NombreIndisponibilites > 0 ? "text-warning fw-bold" : "text-muted")">@ligne.NombreIndisponibilites</td>
+                                    <td class="text-end small text-muted font-monospace">@FormaterDuree(ligne.TempsIndisponible)</td>
+                                    <td class="text-end small text-muted font-monospace">@FormaterDuree(ligne.TempsAbsent)</td>
+                                    <td class="text-end font-monospace fw-bold @(ligne.PourcentageDisponible >= 80 ? "text-success" : "text-danger")">@ligne.PourcentageDisponible.ToString("0.0")%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private IReadOnlyList<LignePerformanceAgent>? _lignes;
+
+    // Période par défaut : les 30 derniers jours.
+    private DateTime _debut = DateTime.UtcNow.Date.AddDays(-30);
+    private DateTime _fin = DateTime.UtcNow.Date;
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["Perf.LoginRequis"].Value;
+                return;
+            }
+
+            // Fin incluse : on borne au dernier instant de la journée choisie.
+            var debutUtc = DateTime.SpecifyKind(_debut.Date, DateTimeKind.Utc);
+            var finUtc = DateTime.SpecifyKind(_fin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+
+            _lignes = await Rapport.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
+            _nonAutorise = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private static string FormaterDuree(TimeSpan duree)
+    {
+        if (duree <= TimeSpan.Zero) return "—";
+        return duree.TotalDays >= 1
+            ? $"{(int)duree.TotalDays}j {duree.Hours}h"
+            : $"{(int)duree.TotalHours}h {duree.Minutes}min";
+    }
+}

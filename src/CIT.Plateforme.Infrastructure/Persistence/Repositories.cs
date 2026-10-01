@@ -327,6 +327,19 @@ public sealed class DisponibiliteRepository(PlateformeDbContext dbContext) : IDi
         await dbContext.Disponibilites.ToListAsync(ct).ConfigureAwait(false);
 }
 
+public sealed class HistoriqueDisponibiliteRepository(PlateformeDbContext dbContext) : IHistoriqueDisponibiliteRepository
+{
+    public async Task AjouterAsync(HistoriqueDisponibilite entree, CancellationToken ct = default) =>
+        await dbContext.HistoriquesDisponibilite.AddAsync(entree, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<HistoriqueDisponibilite>> ListerDepuisAsync(DateTime depuisUtc, CancellationToken ct = default) =>
+        await dbContext.HistoriquesDisponibilite
+            .Where(h => h.HorodatageUtc >= depuisUtc)
+            .OrderBy(h => h.HorodatageUtc)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+}
+
 /// <summary>Fournit les candidats à la distribution automatique : agents habilités
 /// (TicketPrendreEnCharge) sur la file, avec leur disponibilité, leur charge actuelle et leurs
 /// compétences administrées (REMÉDIATION AUDIT §3.C — AFF-06 est désormais alimentée par des

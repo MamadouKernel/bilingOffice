@@ -22,7 +22,10 @@ public sealed class GererDisponibiliteCommand(
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    // Optionnel : la DI de production le fournit toujours (reporting DIS-03) ; null uniquement
+    // dans les tests qui construisent la commande à la main sans se soucier de l'historique.
+    IHistoriqueDisponibiliteRepository? historiques = null)
 {
     public async Task DefinirAsync(Guid appelantId, Guid operateurId, StatutDisponibilite nouveauStatut, CancellationToken ct = default)
     {
@@ -54,6 +57,16 @@ public sealed class GererDisponibiliteCommand(
         await journalisation.ConsignerAuditAsync(
             appelantId, "DisponibiliteChangee", nameof(Disponibilite), disponibilite.Id,
             ancienStatut?.ToString(), nouveauStatut.ToString(), ct).ConfigureAwait(false);
+
+        // DIS-03 (reporting) : trace append-only exposant l'avant/après pour le calcul de
+        // performance. On n'écrit que lors d'un changement effectif — un re-déclaration du même
+        // statut n'est pas une transition et fausserait le comptage des indisponibilités.
+        if (historiques is not null && ancienStatut != nouveauStatut)
+        {
+            await historiques.AjouterAsync(
+                HistoriqueDisponibilite.Creer(operateurId, ancienStatut, nouveauStatut, maintenant), ct)
+                .ConfigureAwait(false);
+        }
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
