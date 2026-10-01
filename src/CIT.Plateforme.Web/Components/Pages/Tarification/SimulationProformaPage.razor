@@ -12,6 +12,7 @@
 @inject SauvegarderSimulationProformaCommandHandler Sauvegarder
 @inject ConsulterReferentielsTarifairesQueryHandler Referentiels
 @inject NavigationManager Navigation
+@inject IJSRuntime Js
 
 <PageTitle>@Loc["Simulation.Title"] — @Loc["Common.AppTitle"]</PageTitle>
 
@@ -221,52 +222,15 @@
                 <span class="cit-sim-total-badge">✓ @Loc["Sim.Calculated"]</span>
             </div>
 
-            <div class="cit-sim-breakdown mb-4">
-                <div class="cit-sim-breakdown-head">@Loc["Sim.BreakdownTitle"]</div>
-                <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>@Loc["Sim.ColContainer"]</th>
-                                <th class="text-end">@Loc["Sim.ColAcconage"]</th>
-                                <th class="text-end">@Loc["Sim.ColRelevage"]</th>
-                                <th class="text-end">@Loc["Sim.ColBranchement"]</th>
-                                <th class="text-end">@Loc["Sim.ColMajLourd"]</th>
-                                <th class="text-end">@Loc["Sim.ColMajDanger"]</th>
-                                <th class="text-end">@Loc["Sim.ColMajOog"]</th>
-                                <th class="text-end">@Loc["Sim.ColStationnement"]</th>
-                                <th class="text-end fw-bold">@Loc["Sim.ColTotalLine"]</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var l in _pagination1.Appliquer(_resultat.Lignes))
-                            {
-                                <tr>
-                                    <td class="fw-bold font-monospace text-dark">@l.NumeroConteneur</td>
-                                    <td class="text-end font-monospace">@l.Acconage.ToString("N0") XOF</td>
-                                    <td class="text-end font-monospace">@l.Relevage.ToString("N0") XOF</td>
-                                    <td class="text-end font-monospace">@l.BranchementFrigorifique.ToString("N0") XOF</td>
-                                    <td class="text-end font-monospace">@l.MajorationLourd.ToString("N0") XOF</td>
-                                    <td class="text-end font-monospace">@l.MajorationDangereux.ToString("N0") XOF</td>
-                                    <td class="text-end font-monospace">@l.MajorationHorsGabarit.ToString("N0") XOF</td>
-                                    <td class="text-end font-monospace">@l.Stationnement.ToString("N0") XOF</td>
-                                    <td class="text-end fw-bold font-monospace text-dark">@l.TotalLigne.ToString("N0") XOF</td>
-                                </tr>
-                            }
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-light border-top">
-                                <td colspan="8" class="text-end fw-bold">@Loc["Sim.TotalLabel"]</td>
-                                <td class="text-end fw-bold fs-5 text-primary font-monospace">@_resultat.TotalGeneralXof.ToString("N0") XOF</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
-                </div>
+            <div class="d-flex justify-content-end mb-2 no-print">
+                <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ImprimerAsync">
+                    🖨️ @Loc["Sim.PrintPdf"]
+                </button>
             </div>
 
-            <div class="cit-sim-legal">@_resultat.MentionLegale</div>
+            <div id="facture-proforma" class="mb-4">
+                <ApercuProformaFacture Resultat="_resultat" />
+            </div>
 
             <div class="d-flex justify-content-end mt-3 mb-4">
                 @* REMÉDIATION UI-R01 : l'enregistrement — donc l'historique — n'a de sens que
@@ -435,6 +399,13 @@
         {
             _calculEnCours = false;
         }
+    }
+
+    private async Task ImprimerAsync()
+    {
+        // Impression navigateur = export PDF (même geste que la maquette). Le document officiel
+        // reste le PDF serveur disponible après enregistrement (écran détail).
+        await Js.InvokeVoidAsync("window.print");
     }
 
     private async Task SauvegarderAsync()

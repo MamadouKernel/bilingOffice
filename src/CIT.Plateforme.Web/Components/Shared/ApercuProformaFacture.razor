@@ -1,0 +1,184 @@
+@using CIT.Plateforme.Application.Tarification
+
+@* Facture proforma — reprend le design de la maquette HTML officielle (en-tête CIT, méta dossier,
+   escale, rubriques agrégées, totaux, montant en toutes lettres, mention légale). Document de
+   présentation : toujours sur fond clair, y compris en thème sombre (une facture s'imprime en blanc). *@
+
+@if (Resultat is not null)
+{
+    var trafic = (Resultat.Sens.Libelle ?? "").StartsWith("Export", StringComparison.OrdinalIgnoreCase) ? "Export" : "Import";
+    var rubriques = ConstruireRubriques(Resultat);
+    var total = Resultat.TotalGeneralXof;
+
+    <div class="facture">
+        <div class="f-top">
+            <div class="f-brand">
+                <div class="cit">CÔTE D'IVOIRE TERMINAL<small>ABIDJAN</small></div>
+            </div>
+            <div class="f-title">
+                <div class="t1">FACTURE PROFORMA</div>
+                <div class="t2">Simulation — document non contractuel</div>
+            </div>
+            <div class="f-num">
+                N° simulation<br />
+                <b>SIM-@(DateTime.UtcNow.Ticks.ToString()[^8..])</b>
+            </div>
+        </div>
+
+        <div class="f-meta">
+            <div>
+                <div class="line"><span class="k">Client</span><span>@(string.IsNullOrWhiteSpace(ClientNom) ? "—" : ClientNom)</span></div>
+                <div class="line"><span class="k">Type client</span><span>@(string.IsNullOrWhiteSpace(TypeClient) ? "—" : TypeClient)</span></div>
+                <div class="line"><span class="k">Trafic</span><span>@trafic</span></div>
+            </div>
+            <div>
+                <div class="line"><span class="k">Date d'arrivée navire</span><span>@Resultat.DateArrivee.ToString("dd/MM/yyyy")</span></div>
+                <div class="line"><span class="k">Date d'enlèvement</span><span>@Resultat.DateEnlevementPrevisionnel.ToString("dd/MM/yyyy")</span></div>
+                <div class="line"><span class="k">Durée de séjour</span><span>@Resultat.DureeSejourJours jour(s)</span></div>
+            </div>
+        </div>
+
+        <table class="f-esc">
+            <thead>
+                <tr><th>Navire</th><th>Voyage</th><th>BL / Booking</th><th>Grille</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(Resultat.NomNavire) ? "—" : Resultat.NomNavire)</td>
+                    <td>@(string.IsNullOrWhiteSpace(Resultat.NumeroVoyage) ? "—" : Resultat.NumeroVoyage)</td>
+                    <td>@(string.IsNullOrWhiteSpace(Resultat.NumeroBlOuBooking) ? "—" : Resultat.NumeroBlOuBooking)</td>
+                    <td>@Resultat.VersionGrilleLibelle</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="f-rub">
+            <thead>
+                <tr><th>Rubriques</th><th class="num">Montant CFA</th><th class="num">Total CFA</th></tr>
+            </thead>
+            <tbody>
+                @if (rubriques.Count == 0)
+                {
+                    <tr><td colspan="3" class="vide">Aucune rubrique facturable.</td></tr>
+                }
+                else
+                {
+                    @foreach (var r in rubriques)
+                    {
+                        <tr>
+                            <td>
+                                <div class="grp-title">@r.Presta</div>
+                                <div class="grp-calc">@r.Qte Unité(s) &nbsp;*&nbsp; @Fmt(r.Pu) XOF</div>
+                            </td>
+                            <td class="num">@Fmt(r.Total)</td>
+                            <td class="grp-total">@Fmt(r.Total)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="f-totes">
+            <div class="l"><span>Montant Total Hors Taxes Prestations</span><span>@Fmt(total) CFA</span></div>
+            <div class="l"><span>Montant Total TVA</span><span>0 CFA</span></div>
+            <div class="l big"><span>Montant Total à Payer</span><span>@Fmt(total) CFA</span></div>
+        </div>
+
+        @if (total > 0)
+        {
+            <div class="f-lettres">@MontantEnLettres(total).ToUpperInvariant()</div>
+        }
+
+        <div class="f-legal">@Resultat.MentionLegale</div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public ResultatSimulationProformaVue? Resultat { get; set; }
+    [Parameter] public string? ClientNom { get; set; }
+    [Parameter] public string? TypeClient { get; set; }
+
+    private sealed record Rubrique(string Presta, int Qte, decimal Pu, decimal Total, int Ordre);
+
+    private static string Fmt(decimal n) => Math.Round(n).ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"));
+
+    /// <summary>
+    /// Agrège les postes de tous les conteneurs par (libellé + taille + prix unitaire), comme la
+    /// maquette : une même prestation au même tarif forme une ligne « Qté × PU ».
+    /// </summary>
+    private static IReadOnlyList<Rubrique> ConstruireRubriques(ResultatSimulationProformaVue res)
+    {
+        var sens = res.Sens.Libelle;
+        var groupes = new Dictionary<string, (string Presta, int Qte, decimal Pu, decimal Total, int Ordre)>();
+
+        void Ajouter(string lib, string tailleCode, decimal pu, int ordre)
+        {
+            if (pu <= 0) return;
+            var cle = $"{lib}|{tailleCode}|{pu}";
+            var presta = $"{sens} - {lib} {tailleCode}";
+            if (groupes.TryGetValue(cle, out var g))
+            {
+                groupes[cle] = (presta, g.Qte + 1, pu, g.Total + pu, ordre);
+            }
+            else
+            {
+                groupes[cle] = (presta, 1, pu, pu, ordre);
+            }
+        }
+
+        foreach (var l in res.Lignes)
+        {
+            var t = l.Taille.Code;
+            Ajouter("Acconage Plein", t, l.Acconage, 1);
+            Ajouter("Relevage Plein", t, l.Relevage, 2);
+            Ajouter("Branchement Frigo", t, l.BranchementFrigorifique, 3);
+            Ajouter("Majoration Lourd", t, l.MajorationLourd, 4);
+            Ajouter("Majoration Dangereux", t, l.MajorationDangereux, 5);
+            Ajouter("Majoration Hors Gabarit", t, l.MajorationHorsGabarit, 6);
+            foreach (var part in l.RepartitionStationnement)
+            {
+                Ajouter($"Stationnement {part.Beneficiaire}", t, part.Montant, 7);
+            }
+        }
+
+        return groupes.Values
+            .OrderBy(g => g.Ordre)
+            .ThenBy(g => g.Presta, StringComparer.Ordinal)
+            .Select(g => new Rubrique(g.Presta, g.Qte, g.Pu, g.Total, g.Ordre))
+            .ToList();
+    }
+
+    // Conversion en toutes lettres (français), portée depuis la maquette — montants entiers en XOF.
+    private static readonly string[] U =
+        ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix",
+         "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
+    private static readonly string[] D =
+        ["", "", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante", "quatre-vingt", "quatre-vingt"];
+
+    private static string Tri(int x)
+    {
+        var s = "";
+        int c = x / 100, r = x % 100;
+        if (c > 0) s += (c > 1 ? U[c] + " " : "") + "cent" + (c > 1 && r == 0 ? "s" : "") + (r != 0 ? " " : "");
+        if (r < 20) s += U[r];
+        else
+        {
+            int di = r / 10, un = r % 10;
+            if (di == 7 || di == 9) s += D[di] + "-" + U[10 + un];
+            else s += D[di] + (un == 1 && di != 8 ? "-et-un" : (un != 0 ? "-" + U[un] : "")) + (di == 8 && un == 0 ? "s" : "");
+        }
+        return s.Trim();
+    }
+
+    private static string MontantEnLettres(decimal montant)
+    {
+        var n = (long)Math.Round(montant);
+        if (n == 0) return "zéro franc CFA";
+        var parts = new List<string>();
+        long m = n / 1_000_000, k = (n % 1_000_000) / 1000, rr = n % 1000;
+        if (m > 0) parts.Add((m > 1 ? Tri((int)m) + " " : "un ") + "million" + (m > 1 ? "s" : ""));
+        if (k > 0) parts.Add((k > 1 ? Tri((int)k) + " " : "") + "mille");
+        if (rr > 0) parts.Add(Tri((int)rr));
+        return string.Join(" ", parts).Trim() + " francs CFA";
+    }
+}
