@@ -42,6 +42,15 @@
     </div>
 </div>
 
+@* Lanceur flottant de l'assistant — visible sur toutes les pages une fois connecté.
+   Simple lien vers la page /assistant (pas de dépendance JS : fonctionne en SSR). *@
+@if (_contexte?.EstAuthentifie == true)
+{
+    <a href="/assistant" class="cit-fab-assistant" title="@Loc["Help.Assistant"]" aria-label="@Loc["Help.Assistant"]">
+        <span class="cit-fab-assistant-icone" aria-hidden="true">💬</span>
+    </a>
+}
+
 <div id="blazor-error-ui" data-nosnippet>
     @Loc["Layout.UnexpectedError"]
     <a href="." class="reload">@Loc["Layout.Reload"]</a>
