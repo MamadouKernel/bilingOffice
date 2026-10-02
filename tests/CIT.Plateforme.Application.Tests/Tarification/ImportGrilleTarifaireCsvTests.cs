@@ -169,4 +169,38 @@ public sealed class ImportGrilleTarifaireCsvTests
         Assert.False(res.EstValide);
         Assert.Contains(res.Erreurs, e => e.Contains("doublon"));
     }
+
+    [Fact]
+    public void Un_classeur_excel_passe_par_les_memes_controles_que_le_csv()
+    {
+        using var classeur = new ClosedXML.Excel.XLWorkbook();
+        var feuille = classeur.Worksheets.Add("Grille tarifaire");
+        string[] entetes = ["Sens", "Taille", "Categorie", "Acconage", "Relevage", "BranchementJour"];
+        for (var c = 0; c < entetes.Length; c++)
+        {
+            feuille.Cell(1, c + 1).Value = entetes[c];
+        }
+        feuille.Cell(2, 1).Value = A.SensImportLocal;
+        feuille.Cell(2, 2).Value = "20";
+        feuille.Cell(2, 3).Value = "C1";
+        feuille.Cell(2, 4).Value = 66800.5m;
+        feuille.Cell(2, 5).Value = 25000;
+        feuille.Cell(2, 6).Value = 35000;
+        feuille.Cell(3, 1).Value = A.SensImportLocal;
+        feuille.Cell(3, 2).Value = "40";
+        feuille.Cell(3, 3).Value = "C1";
+        feuille.Cell(3, 4).Value = -1;
+        feuille.Cell(3, 5).Value = 0;
+        feuille.Cell(3, 6).Value = 0;
+        using var xlsx = new MemoryStream();
+        classeur.SaveAs(xlsx);
+        xlsx.Position = 0;
+
+        var res = new ImportateurGrilleTarifaireCsv().AnalyserEtValider(ImportateurGrilleTarifaireCsv.ConvertirExcelEnCsv(xlsx));
+
+        // Le montant négatif est refusé exactement comme en CSV ; le décimal est lu sans perte.
+        Assert.False(res.EstValide);
+        Assert.Contains(res.Erreurs, e => e.Contains("Ligne 3") && e.Contains("acconage"));
+        Assert.DoesNotContain(res.Erreurs, e => e.Contains("Ligne 2"));
+    }
 }

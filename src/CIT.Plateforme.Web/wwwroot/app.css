@@ -2851,7 +2851,10 @@ html { scroll-padding-top: var(--header-h); }
     position: fixed;
     top: calc(env(safe-area-inset-top, 0px) + .75rem);
     right: .75rem;
-    bottom: .75rem;
+    /* Hauteur calculée sur l'écran, et non « bottom » : la barre du haut porte un backdrop-filter,
+       qui fait d'elle le cadre des éléments fixed qu'elle contient — avec bottom, le panneau
+       prenait la hauteur de la barre (~60 px) et paraissait vide. */
+    height: calc(100dvh - 1.5rem - env(safe-area-inset-top, 0px));
     z-index: var(--z-menu-utilisateur);
     width: min(420px, calc(100vw - 1.5rem));
     display: flex;

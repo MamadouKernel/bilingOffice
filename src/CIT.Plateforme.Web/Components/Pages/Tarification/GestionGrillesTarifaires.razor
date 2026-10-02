@@ -58,7 +58,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-semibold text-dark">@Loc["TarifGrille.LblFichierCsv"]</label>
-                    <InputFile class="form-control form-control-sm" OnChange="ImporterAsync" />
+                    <InputFile class="form-control form-control-sm" accept=".csv,.xlsx" OnChange="ImporterAsync" />
                 </div>
             </div>
 
@@ -251,13 +251,18 @@
             await flux.CopyToAsync(memoire);
             memoire.Position = 0;
 
+            // Excel (.xlsx) : converti en CSV, puis mêmes contrôles que le CSV.
+            await using var contenu = e.File.Name.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase)
+                ? ImportateurGrilleTarifaireCsv.ConvertirExcelEnCsv(memoire)
+                : memoire;
+
             // Paramètres non renseignés : la commande applique le paramétrage initial de
             // l'Annexe A. Le fichier CSV porte les tarifs, jamais les taux ni les tranches.
             _resultatImport = await ImporterCsv.HandleAsync(new ImporterGrilleTarifaireCsvCommande(
                 _agentId,
                 _numeroVersion,
                 DateTime.SpecifyKind(_dateEffet, DateTimeKind.Utc),
-                memoire));
+                contenu));
 
             if (_resultatImport.Succes)
             {

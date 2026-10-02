@@ -33,6 +33,31 @@ public sealed class ImportateurGrilleTarifaireCsv
 {
     private const string EnteteAttendue = "Sens;Taille;Categorie;Acconage;Relevage;BranchementJour";
 
+    /// <summary>
+    /// Convertit la première feuille d'un classeur Excel (.xlsx) en CSV au format attendu : un fichier
+    /// Excel passe ainsi par EXACTEMENT les mêmes contrôles que le CSV. Les montants sont écrits en
+    /// culture invariante (point décimal), quel que soit le format d'affichage du classeur. Un
+    /// classeur produit par l'export Excel de la grille se réimporte tel quel.
+    /// </summary>
+    public static MemoryStream ConvertirExcelEnCsv(Stream fluxXlsx)
+    {
+        ArgumentNullException.ThrowIfNull(fluxXlsx);
+
+        using var classeur = new ClosedXML.Excel.XLWorkbook(fluxXlsx);
+        var feuille = classeur.Worksheets.First();
+        var csv = new StringBuilder();
+        foreach (var ligne in feuille.RowsUsed())
+        {
+            csv.AppendLine(string.Join(';', Enumerable.Range(1, 6).Select(c => Texte(ligne.Cell(c)))));
+        }
+
+        return new MemoryStream(Encoding.UTF8.GetBytes(csv.ToString()));
+
+        static string Texte(ClosedXML.Excel.IXLCell cellule) => cellule.Value.IsNumber
+            ? cellule.Value.GetNumber().ToString(CultureInfo.InvariantCulture)
+            : cellule.GetString().Trim();
+    }
+
     public ResultatAnalyseCsv AnalyserEtValider(Stream fluxCsv)
     {
         ArgumentNullException.ThrowIfNull(fluxCsv);
