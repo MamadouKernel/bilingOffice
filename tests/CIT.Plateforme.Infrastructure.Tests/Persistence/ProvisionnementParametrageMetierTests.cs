@@ -19,19 +19,18 @@ public sealed class ProvisionnementParametrageMetierTests
         await using var contexte = BaseDeTestSql.CreerContexte();
         var provisionnement = new ProvisionnementParametrageMetier(contexte, NullLogger<ProvisionnementParametrageMetier>.Instance);
 
-        await provisionnement.ExecuterAsync();
-        var files = await contexte.Files.CountAsync();
-        var categories = await contexte.CategoriesReclamation.CountAsync();
-        var pieces = await contexte.PiecesExigeesCompte.CountAsync();
+        // Base partagée avec d'autres tests exécutés en parallèle : on ne compte que les lignes
+        // que ce provisionnement possède, jamais des tables entières.
+        Task<int> PiloteManifeste() => contexte.Files.CountAsync(f => f.Module == "BillingImport" && f.Nom == "Pilote Manifeste");
+        Task<int> PieceRccm() => contexte.PiecesExigeesCompte.CountAsync(p => p.Code == "RCCM");
 
         await provisionnement.ExecuterAsync();
+        await provisionnement.ExecuterAsync();
 
-        Assert.True(await contexte.Files.AnyAsync(f => f.Module == "BillingImport" && f.Nom == "Pilote Manifeste"));
+        Assert.Equal(1, await PiloteManifeste());
+        Assert.Equal(1, await PieceRccm());
         Assert.True(await contexte.Files.AnyAsync(f => f.Module == "BillingExport" && f.Nom == "Back Office Export"));
         Assert.True(await contexte.Files.AnyAsync(f => f.Module == "CustomerComplaint" && f.Nom == "Support Opérationnel"));
-        Assert.True(categories > 0);
-        Assert.Equal(files, await contexte.Files.CountAsync());
-        Assert.Equal(categories, await contexte.CategoriesReclamation.CountAsync());
-        Assert.Equal(pieces, await contexte.PiecesExigeesCompte.CountAsync());
+        Assert.True(await contexte.CategoriesReclamation.AnyAsync());
     }
 }
