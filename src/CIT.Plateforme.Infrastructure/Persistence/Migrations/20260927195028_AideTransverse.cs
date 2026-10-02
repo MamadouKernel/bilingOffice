@@ -18,7 +18,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                 defaultValue: false);
 
             // Articles de départ déjà installés : les écrans ouverts à tous hors menu.
-            migrationBuilder.Sql("UPDATE [ArticlesAide] SET [Transverse] = 1 WHERE [Route] IN (N'/tickets', N'/notifications');");
+            // EXEC : dans un script idempotent, SQL Server compile tout le lot avant de l'exécuter, à un
+            // moment où la colonne Transverse (ajoutée juste au-dessus) n'existe pas encore.
+            migrationBuilder.Sql("EXEC(N'UPDATE [ArticlesAide] SET [Transverse] = 1 WHERE [Route] IN (N''/tickets'', N''/notifications'');');");
         }
 
         /// <inheritdoc />
