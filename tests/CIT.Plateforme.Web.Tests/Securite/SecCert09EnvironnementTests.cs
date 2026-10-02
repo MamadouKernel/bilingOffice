@@ -56,7 +56,7 @@ public sealed class SecCert09EnvironnementTests
 
             var estChaineConnexion = cle.StartsWith("ConnectionStrings:", StringComparison.Ordinal);
             Assert.False(
-                estChaineConnexion && System.Text.RegularExpressions.Regex.IsMatch(valeur, @"(?i)(password|pwd)\s*=\s*[^;\s]"),
+                estChaineConnexion && System.Text.RegularExpressions.Regex.IsMatch(valeur, @"(?i)(password|pwd)\s*=\s*[^;\s]"),
                 $"{fichier} : la chaîne {cle} contient un mot de passe — le déplacer hors des fichiers versionnés.");
             Assert.False(
                 cle.EndsWith("MotDePasse", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(valeur),
