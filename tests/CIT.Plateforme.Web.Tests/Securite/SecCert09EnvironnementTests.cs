@@ -31,6 +31,57 @@ public sealed class SecCert09EnvironnementTests
             "Le modèle de production ne doit contenir qu'un mot de passe fictif.");
     }
 
+    /// <summary>
+    /// SEC-09 — garde-fou contre le scénario du 02/10/2026 : la chaîne de production (compte sa,
+    /// mot de passe réel) avait été recopiée dans appsettings.json, fichier VERSIONNÉ. Aucune
+    /// configuration suivie par git ne doit porter de mot de passe : ils vivent dans les
+    /// user-secrets, les variables d'environnement ou appsettings.Production.json (non versionné).
+    /// </summary>
+    [Theory]
+    [InlineData("appsettings.json")]
+    [InlineData("appsettings.Development.json")]
+    [InlineData("appsettings.Staging.json")]
+    [InlineData("appsettings.UAT.json")]
+    public void SecCert09_03_AucuneConfigurationVersionneeNePorteDeMotDePasse(string fichier)
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(DossierWeb(), fichier)),
+            new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+
+        foreach (var (cle, valeur) in Feuilles(doc.RootElement, string.Empty))
+        {
+            if (cle.StartsWith("_", StringComparison.Ordinal) || cle.Contains(":_", StringComparison.Ordinal))
+            {
+                continue; // commentaires documentaires (« _Commentaire »), jamais lus comme configuration
+            }
+
+            var estChaineConnexion = cle.StartsWith("ConnectionStrings:", StringComparison.Ordinal);
+            Assert.False(
+                estChaineConnexion && System.Text.RegularExpressions.Regex.IsMatch(valeur, @"(?i)(password|pwd)\s*=\s*[^;\s]"),
+                $"{fichier} : la chaîne {cle} contient un mot de passe — le déplacer hors des fichiers versionnés.");
+            Assert.False(
+                cle.EndsWith("MotDePasse", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(valeur),
+                $"{fichier} : la clé {cle} porte une valeur — les mots de passe ne se versionnent pas.");
+        }
+    }
+
+    private static IEnumerable<(string Cle, string Valeur)> Feuilles(JsonElement element, string prefixe)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var p in element.EnumerateObject())
+            {
+                foreach (var f in Feuilles(p.Value, prefixe.Length == 0 ? p.Name : $"{prefixe}:{p.Name}"))
+                {
+                    yield return f;
+                }
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.String)
+        {
+            yield return (prefixe, element.GetString() ?? string.Empty);
+        }
+    }
+
     [Fact]
     public void SecCert09_01_ConfigurationsStagingEtProductionSontHermetiques()
     {
