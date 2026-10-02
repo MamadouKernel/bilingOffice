@@ -60,6 +60,15 @@
     }
     else
     {
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        @if (_estAdminTarif)
+        {
+            <a href="/admin/tarification" class="btn btn-outline-secondary btn-sm fw-semibold">⚙️ @Loc["Sim.ConfigureTariffs"]</a>
+        }
+        <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ChargerExempleAsync">📄 @Loc["Sim.LoadExample"]</button>
+        <button type="button" class="btn btn-warning btn-sm fw-semibold text-dark ms-auto" disabled="@(_resultat is null)" @onclick="ImprimerAsync">🖨️ @Loc["Sim.ExportPdf"]</button>
+    </div>
+
     <div class="row g-4">
       <div class="col-12 col-xl-5">
         <section class="cit-card cit-sim-panel mb-4">
@@ -71,45 +80,35 @@
                 </div>
             </div>
             <div class="row g-3">
-                <div class="col-12 col-sm-6 col-lg-3">
-                    <label for="sens-du-trafic" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.TrafficDirection"]</label>
-                    <select id="sens-du-trafic" class="form-select"
-                            @bind="_sensOperationId" @bind:after="SensChangeAsync">
-                        @foreach (var s in _referentiels.Sens)
-                        {
-                            <option value="@s.Id">@s.Libelle</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="date-d-arrivee" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.ArrivalDate"]</label>
                     <input id="date-d-arrivee" type="date" class="form-control" @bind="_dateArrivee" @bind:after="RecalculerAsync" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="date-d-enlevement-previsionnel" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.PickupDate"]</label>
                     <input id="date-d-enlevement-previsionnel" type="date" class="form-control" @bind="_dateEnlevement" @bind:after="RecalculerAsync" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-navire-optionnel" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.VesselOptional"]</label>
                     <input id="n-navire-optionnel" class="form-control" placeholder="@Loc["Sim.VesselPlaceholder"]" @bind="_nomNavire" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-voyage" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Voyage"]</label>
                     <input id="n-voyage" class="form-control" @bind="_numeroVoyage" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-bl" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.BlBooking"]</label>
                     <input id="n-bl" class="form-control" @bind="_numeroBl" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-escale" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Escale"]</label>
                     <input id="n-escale" class="form-control" @bind="_escale" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-client" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Client"]</label>
                     <input id="n-client" class="form-control" @bind="_client" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-typeclient" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.ClientType"]</label>
                     <select id="n-typeclient" class="form-select" @bind="_typeClient">
                         <option value="Client Comptant">Client Comptant</option>
@@ -118,11 +117,11 @@
                         <option value="Client IES">Client IES</option>
                     </select>
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-pchg" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.PortChargement"]</label>
                     <input id="n-pchg" class="form-control" @bind="_portChargement" />
                 </div>
-                <div class="col-12 col-sm-6 col-lg-3">
+                <div class="col-12 col-md-6">
                     <label for="n-pdch" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.PortDechargement"]</label>
                     <input id="n-pdch" class="form-control" @bind="_portDechargement" />
                 </div>
@@ -136,6 +135,16 @@
                 <div><h2 class="cit-sim-section-title">@Loc["Sim.AddContainerPanel"]</h2></div>
             </div>
             <div class="row g-3">
+                <div class="col-12">
+                    <label for="sens-du-trafic" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.TrafficDirection"]</label>
+                    <select id="sens-du-trafic" class="form-select" @bind="_sensOperationId" @bind:after="SensChangeAsync">
+                        @foreach (var s in _referentiels.Sens)
+                        {
+                            <option value="@s.Id">@s.Libelle</option>
+                        }
+                    </select>
+                    <div class="form-text small">@Loc["Sim.SensDossierHint"]</div>
+                </div>
                 <div class="col-6 col-md-4">
                     <label for="b-taille" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Size"]</label>
                     <select id="b-taille" class="form-select" @bind="_brouillon.TailleConteneurId">
@@ -230,22 +239,8 @@
             }
         </section>
 
-        <div class="cit-sim-actionbar mb-4">
-            <span class="cit-sim-actionbar-info">
-                @(_calculEnCours ? Loc["Sim.Calculating"].Value : Loc["Sim.AutoCalc"].Value)
-            </span>
-            <div class="d-flex gap-2 flex-wrap">
-                <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ChargerExempleAsync">
-                    📄 @Loc["Sim.LoadExample"]
-                </button>
-                @if (_estAdminTarif)
-                {
-                    <a href="/admin/tarification" class="btn btn-outline-secondary btn-sm fw-semibold">⚙️ @Loc["Sim.ConfigureTariffs"]</a>
-                }
-                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" disabled="@(_conteneurs.Count == 0 || _calculEnCours)" @onclick="RecalculerAsync">
-                    🔄 @Loc["Sim.Recalculate"]
-                </button>
-            </div>
+        <div class="small text-muted mb-3">
+            @(_calculEnCours ? Loc["Sim.Calculating"].Value : Loc["Sim.AutoCalc"].Value)
         </div>
 
         @* SIM-11 — « contrôles de cohérence à la saisie, avec messages d'aide contextuels ».
@@ -288,9 +283,6 @@
                 @if (_resultat is not null)
                 {
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ImprimerAsync">
-                            🖨️ @Loc["Sim.PrintPdf"]
-                        </button>
                         @if (_peutEnregistrer)
                         {
                             <button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" disabled="@_sauvegardeEnCours" @onclick="SauvegarderAsync">
