@@ -39,6 +39,8 @@ public sealed class MainLayoutIntegrationTests : BunitContext
         // l'état des comptes est éprouvé par GardeIdentiteSurfacesPersonnellesTests.
         Services.AddSingleton(new GardeIdentiteService(new Support.UtilisateurInfoToujoursActif()));
         Services.AddSingleton<CompterNonLuesQuery>();
+        // L'assistant flottant du layout lit la conversation en cours : aucune pour ce test.
+        Services.AddSingleton(new CIT.Plateforme.Application.Assistant.ConsulterConversationAssistantQuery(new DepotConversationsVide()));
 
         var cut = Render<MainLayout>(parameters => parameters
             .Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "Contenu de test"))));
@@ -73,3 +75,16 @@ internal sealed class DepotNotificationsVide : INotificationRepository
         Task.FromResult(false);
 }
 
+internal sealed class DepotConversationsVide : CIT.Plateforme.Application.Abstractions.IConversationAssistantRepository
+{
+    public Task AjouterAsync(CIT.Plateforme.Domain.Assistant.ConversationAssistant conversation, CancellationToken ct = default) => Task.CompletedTask;
+
+    public Task<CIT.Plateforme.Domain.Assistant.ConversationAssistant?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        Task.FromResult<CIT.Plateforme.Domain.Assistant.ConversationAssistant?>(null);
+
+    public Task<CIT.Plateforme.Domain.Assistant.ConversationAssistant?> ObtenirOuverteParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default) =>
+        Task.FromResult<CIT.Plateforme.Domain.Assistant.ConversationAssistant?>(null);
+
+    public Task<IReadOnlyList<CIT.Plateforme.Domain.Assistant.ConversationAssistant>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<CIT.Plateforme.Domain.Assistant.ConversationAssistant>>([]);
+}

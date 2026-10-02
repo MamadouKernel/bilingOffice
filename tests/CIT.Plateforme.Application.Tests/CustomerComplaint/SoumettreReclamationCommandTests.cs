@@ -79,8 +79,9 @@ public class SoumettreReclamationCommandTests
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
 
         // H. Audit de création présent
-        _journalisation.Verify(j => j.ConsignerHistoriqueAsync(It.IsAny<Guid>(), "TicketCree", "Réclamation soumise", userId, It.IsAny<CancellationToken>()), Times.Once);
-        _journalisation.Verify(j => j.ConsignerAuditAsync(userId, "TicketCree", "Ticket", It.IsAny<Guid>(), null, null, It.IsAny<CancellationToken>()), Times.Once);
+        // L'origine de la réclamation (canal de dépôt) est tracée à l'historique et à l'audit.
+        _journalisation.Verify(j => j.ConsignerHistoriqueAsync(It.IsAny<Guid>(), "TicketCree", "Réclamation soumise (origine : Portail)", userId, It.IsAny<CancellationToken>()), Times.Once);
+        _journalisation.Verify(j => j.ConsignerAuditAsync(userId, "TicketCree", "Ticket", It.IsAny<Guid>(), null, "Portail", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

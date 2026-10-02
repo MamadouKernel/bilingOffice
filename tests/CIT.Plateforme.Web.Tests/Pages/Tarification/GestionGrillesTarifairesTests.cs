@@ -31,6 +31,7 @@ public sealed class GestionGrillesTarifairesTests : BunitContext
         var autorisation = new AutorisationService(db);
         Services.AddScoped(_ => new ConsulterVersionsGrillesTarifairesQueryHandler(versions, referentiels, autorisation));
         Services.AddScoped(_ => new ImporterGrilleTarifaireCsvCommandHandler(versions, referentiels, importateur, autorisation));
+        Services.AddScoped(_ => new ExporterGrilleTarifaireExcelQuery(versions, referentiels, autorisation));
     }
 
     private static void DefinirContexte(FakeContexteUtilisateurWeb fakeContexte, Guid utilisateurId)
