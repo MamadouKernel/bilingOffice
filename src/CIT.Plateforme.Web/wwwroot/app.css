@@ -3141,3 +3141,6 @@ html { scroll-padding-top: var(--header-h); }
 .cit-visite-actions { display: flex; align-items: center; gap: .5rem; }
 .cit-visite-passer { margin-right: auto; padding-left: 0; }
 @media (prefers-reduced-motion: reduce) { .cit-visite-halo { transition: none; } .cit-visite-carte { animation: none; } }
+
+/* Comptes agents : un libellé de bouton ne se coupe jamais à l'intérieur de sa pastille. */
+.cit-actions-compte .btn { white-space: nowrap; }
