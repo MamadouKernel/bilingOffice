@@ -119,10 +119,10 @@ else
         }
         else
         {
-            @if (_escaladeRecommandee)
+            @if (_escaladeRecommandee || _demandeHumaine)
             {
                 <div class="cit-chat-escalade">
-                    <div class="fw-semibold mb-2"><span class="me-2" aria-hidden="true">🙋</span> @Loc["Asst.EscaladeNoResponse"]</div>
+                    <div class="fw-semibold mb-2"><span class="me-2" aria-hidden="true">🙋</span> @(_escaladeRecommandee ? Loc["Asst.EscaladeNoResponse"] : Loc["Asst.EscaladeDemandee"])</div>
                     <div class="cit-chat-escalade-saisie">
                         <input id="ticket-escalade" class="form-control form-control-sm font-monospace"
                                placeholder="@Loc["Asst.PlaceholderTicket"]" aria-label="@Loc["Asst.LblTicketEscalade"]" @bind="_ticketEscalade" />
@@ -163,6 +163,15 @@ else
                         </div>
                     }
                 </div>
+            }
+
+            @if (DemandeHumaineAutorisee && !_escaladeRecommandee && !_demandeHumaine && _conversation is { Messages.Count: > 0 })
+            {
+                @* IA-07 — le client peut toujours demander un humain : l'assistant ne doit jamais
+                   être une barrière entre CIT et le client. Désactivable par configuration. *@
+                <button type="button" class="btn btn-link btn-sm align-self-start px-3" @onclick="@(() => _demandeHumaine = true)" disabled="@_envoi">
+                    🙋 @Loc["Asst.DemanderHumain"]
+                </button>
             }
 
             <div class="cit-chat-saisie">
@@ -210,6 +219,10 @@ else
 
     private ConversationAssistantVue? _conversation;
     private bool _escaladeRecommandee;
+    private bool _demandeHumaine;
+
+    /// <summary>IA-07 : règle « le client peut demander un humain » (Assistant:DemandeHumaineAutorisee, vrai par défaut).</summary>
+    private bool DemandeHumaineAutorisee { get; set; } = true;
     private string _question = string.Empty;
     private string _ticketEscalade = string.Empty;
 
@@ -237,6 +250,10 @@ else
             _societeId = contexte.SocieteId;
 
             using var scope = ScopeFactory.CreateScope();
+            DemandeHumaineAutorisee = Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue(
+                scope.ServiceProvider.GetService<Microsoft.Extensions.Configuration.IConfiguration>()
+                    ?? new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build(),
+                "Assistant:DemandeHumaineAutorisee", true);
             var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
             _conversation = await query.ExecuterAsync(_utilisateurId);
         }
@@ -341,7 +358,7 @@ else
     {
         _erreur = null;
 
-        if (!Guid.TryParse(_ticketEscalade, out var ticketId))
+        if (string.IsNullOrWhiteSpace(_ticketEscalade))
         {
             _erreur = Loc["Asst.ErrTicketInvalide"].Value;
             return;
@@ -353,12 +370,13 @@ else
             using var scope = ScopeFactory.CreateScope();
             var commande = scope.ServiceProvider.GetRequiredService<EscaladerAssistantVersOperateurCommand>();
             await commande.ExecuterAsync(
-                _utilisateurId, _conversation!.Id, ticketId,
+                _utilisateurId, _conversation!.Id, _ticketEscalade,
                 _conversation.MotifEscaladeRecommandee ?? Loc["Asst.MotifDefaut"].Value);
 
             var query = scope.ServiceProvider.GetRequiredService<ConsulterConversationAssistantQuery>();
             _conversation = await query.ExecuterAsync(_utilisateurId);
             _escaladeRecommandee = false;
+            _demandeHumaine = false;
         }
         catch (AccesRefuseException)
         {

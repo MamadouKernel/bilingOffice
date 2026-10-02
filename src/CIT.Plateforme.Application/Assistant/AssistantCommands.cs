@@ -106,12 +106,30 @@ public sealed class PoserQuestionAssistantCommand(
 /// </summary>
 public sealed class EscaladerAssistantVersOperateurCommand(
     IConversationAssistantRepository conversations,
+    ITicketRepository tickets,
     PublierMessageCommand messages,
     CloisonnementService cloisonnement,
     IJournalisationService journalisation,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
+    /// <summary>
+    /// IA-07 — le client désigne le dossier par le NUMÉRO qu'il connaît (celui affiché dans
+    /// « Mes demandes »), l'identifiant technique restant accepté. Un numéro inconnu est refusé
+    /// exactement comme un ticket d'autrui : la réponse ne révèle pas si le numéro existe.
+    /// </summary>
+    public async Task ExecuterAsync(
+        Guid utilisateurId, Guid conversationId, string referenceTicket, string motif, CancellationToken ct = default)
+    {
+        var reference = referenceTicket?.Trim() ?? string.Empty;
+        var ticketId = Guid.TryParse(reference, out var id)
+            ? id
+            : (await tickets.ObtenirParNumeroAsync(reference, ct).ConfigureAwait(false))?.Id
+              ?? throw new AccesRefuseException($"Ticket « {reference} » hors du périmètre de l'utilisateur {utilisateurId} (CPT-04).");
+
+        await ExecuterAsync(utilisateurId, conversationId, ticketId, motif, ct).ConfigureAwait(false);
+    }
+
     public async Task ExecuterAsync(
         Guid utilisateurId, Guid conversationId, Guid ticketId, string motif, CancellationToken ct = default)
     {

@@ -71,7 +71,7 @@ public sealed class AssistantApplicationTests
             cloisonnement, journalisation, horloge, uniteDeTravail);
 
         var escalader = new EscaladerAssistantVersOperateurCommand(
-            conversations, publier, cloisonnement, journalisation, horloge, uniteDeTravail);
+            conversations, ticketRepo, publier, cloisonnement, journalisation, horloge, uniteDeTravail);
 
         return (db, poser, escalader, clientId, ticket);
     }
@@ -140,6 +140,22 @@ public sealed class AssistantApplicationTests
     }
 
     // --- Cas interdits ---
+
+    /// <summary>IA-07 : le client demande un humain en donnant le numéro de ticket qu'il connaît ;
+    /// un numéro inconnu est refusé comme un ticket d'autrui.</summary>
+    [Fact]
+    public async Task Le_client_escalade_par_numero_de_ticket_et_un_numero_inconnu_est_refuse()
+    {
+        var (db, poser, escalader, clientId, ticket) = Construire();
+        var vue = await poser.ExecuterAsync(clientId, "Bonjour");
+
+        await Assert.ThrowsAsync<AccesRefuseException>(
+            () => escalader.ExecuterAsync(clientId, vue.Id, "BIL-IMP-INCONNU", "motif"));
+
+        await escalader.ExecuterAsync(clientId, vue.Id, " " + ticket.Numero + " ", "Demande d'un conseiller");
+
+        Assert.Equal(ticket.Id, db.ConversationsAssistant.Single().TicketId);
+    }
 
     [Fact]
     public async Task Un_utilisateur_ne_peut_pas_escalader_le_fil_d_un_autre()
