@@ -33,8 +33,12 @@ public class NfrCert03DisponibiliteTests : IClassFixture<PlateformeWebApplicatio
     [Fact]
     public async Task NfrCert03_02_ReadinessProbe_Ready_InspecteDependancesCritiquesEtRenvoieRapportJson()
     {
-        // Arrange
-        var client = _factory.CreateClient();
+        // Arrange — environnement complet : clé de chiffrement des pièces fournie (SEC-04), sans
+        // quoi la sonde dédiée rapporte, à juste titre, un état « Degraded ».
+        var client = _factory
+            .WithWebHostBuilder(b => b.UseSetting("Stockage:CleChiffrement",
+                Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))))
+            .CreateClient();
 
         // Act
         var response = await client.GetAsync("/ready");
