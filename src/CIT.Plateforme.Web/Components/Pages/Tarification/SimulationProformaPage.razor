@@ -60,6 +60,8 @@
     }
     else
     {
+    <div class="row g-4">
+      <div class="col-12 col-xl-5">
         <section class="cit-card cit-sim-panel mb-4">
             <div class="cit-sim-section-head">
                 <span class="cit-sim-section-icon" aria-hidden="true">📋</span>
@@ -215,7 +217,10 @@
             <span class="cit-sim-actionbar-info">
                 @(_calculEnCours ? Loc["Sim.Calculating"].Value : Loc["Sim.AutoCalc"].Value)
             </span>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ChargerExempleAsync">
+                    📄 @Loc["Sim.LoadExample"]
+                </button>
                 @if (_estAdminTarif)
                 {
                     <a href="/admin/tarification" class="btn btn-outline-secondary btn-sm fw-semibold">⚙️ @Loc["Sim.ConfigureTariffs"]</a>
@@ -255,64 +260,72 @@
             </div>
         }
 
-        @if (_erreur is not null)
-        {
-            <div class="alert alert-danger mb-4" role="alert">@_erreur</div>
-        }
+      </div>
 
-        @if (_resultat is not null)
-        {
-            <div class="cit-sim-total">
-                <div>
-                    <div class="cit-sim-total-label">@Loc["Sim.TotalLabel"]</div>
-                    <div class="cit-sim-total-value">@_resultat.TotalGeneralXof.ToString("N0") XOF</div>
+      <div class="col-12 col-xl-7">
+        <div style="position:sticky;top:1rem;">
+            <div class="d-flex justify-content-between align-items-center mb-2 no-print gap-2 flex-wrap">
+                <span class="small text-muted">
+                    @(_calculEnCours ? Loc["Sim.Calculating"].Value : (_resultat is not null ? "✓ " + Loc["Sim.Calculated"].Value : ""))
+                </span>
+                @if (_resultat is not null)
+                {
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ImprimerAsync">
+                            🖨️ @Loc["Sim.PrintPdf"]
+                        </button>
+                        @if (_peutEnregistrer)
+                        {
+                            <button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" disabled="@_sauvegardeEnCours" @onclick="SauvegarderAsync">
+                                @(_sauvegardeEnCours ? Loc["Sim.Saving"].Value : "💾 " + Loc["Sim.Save"].Value)
+                            </button>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-primary btn-sm fw-bold" href="/comptes/connexion?returnUrl=/simulation/proforma">
+                                🔒 @Loc["Sim.LoginToSave"]
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+
+            @if (_erreur is not null)
+            {
+                <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
+            }
+
+            @if (_resultat is not null)
+            {
+                <div id="facture-proforma">
+                    <ApercuProformaFacture Sens="_resultat.Sens"
+                                           DateArrivee="_resultat.DateArrivee"
+                                           DateEnlevement="_resultat.DateEnlevementPrevisionnel"
+                                           Duree="_resultat.DureeSejourJours"
+                                           Lignes="_resultat.Lignes"
+                                           Total="_resultat.TotalGeneralXof"
+                                           MentionLegale="_resultat.MentionLegale"
+                                           GrilleLibelle="_resultat.VersionGrilleLibelle"
+                                           Navire="_nomNavire"
+                                           Voyage="_numeroVoyage"
+                                           Bl="_numeroBl"
+                                           ClientNom="_client"
+                                           TypeClient="_typeClient"
+                                           Escale="_escale"
+                                           PortChargement="_portChargement"
+                                           PortDechargement="_portDechargement" />
                 </div>
-                <span class="cit-sim-total-badge">✓ @Loc["Sim.Calculated"]</span>
-            </div>
-
-            <div class="d-flex justify-content-end mb-2 no-print">
-                <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold" @onclick="ImprimerAsync">
-                    🖨️ @Loc["Sim.PrintPdf"]
-                </button>
-            </div>
-
-            <div id="facture-proforma" class="mb-4">
-                <ApercuProformaFacture Sens="_resultat.Sens"
-                                       DateArrivee="_resultat.DateArrivee"
-                                       DateEnlevement="_resultat.DateEnlevementPrevisionnel"
-                                       Duree="_resultat.DureeSejourJours"
-                                       Lignes="_resultat.Lignes"
-                                       Total="_resultat.TotalGeneralXof"
-                                       MentionLegale="_resultat.MentionLegale"
-                                       GrilleLibelle="_resultat.VersionGrilleLibelle"
-                                       Navire="_nomNavire"
-                                       Voyage="_numeroVoyage"
-                                       Bl="_numeroBl"
-                                       ClientNom="_client"
-                                       TypeClient="_typeClient"
-                                       Escale="_escale"
-                                       PortChargement="_portChargement"
-                                       PortDechargement="_portDechargement" />
-            </div>
-
-            <div class="d-flex justify-content-end mt-3 mb-4">
-                @* REMÉDIATION UI-R01 : l'enregistrement — donc l'historique — n'a de sens que
-                   pour un compte. L'anonyme voit son résultat, et une invitation à se connecter
-                   s'il veut le conserver ; jamais un bouton qui échouerait. *@
-                @if (_peutEnregistrer)
-                {
-                    <button type="button" class="btn btn-success px-4 fw-bold shadow-sm" disabled="@_sauvegardeEnCours" @onclick="SauvegarderAsync">
-                        @(_sauvegardeEnCours ? Loc["Sim.Saving"].Value : "💾 " + Loc["Sim.Save"].Value)
-                    </button>
-                }
-                else
-                {
-                    <a class="btn btn-outline-primary px-4 fw-bold" href="/comptes/connexion?returnUrl=/simulation/proforma">
-                        🔒 @Loc["Sim.LoginToSave"]
-                    </a>
-                }
-            </div>
-        }
+            }
+            else if (_erreur is null)
+            {
+                <div class="cit-card p-5 text-center text-muted">
+                    <div class="fs-1 mb-2" aria-hidden="true">🧾</div>
+                    <div>@Loc["Sim.PreviewEmpty"]</div>
+                </div>
+            }
+        </div>
+      </div>
+    </div>
     }
 </div>
 
@@ -445,6 +458,45 @@
             return;
         }
         await CalculerAsync();
+    }
+
+    /// <summary>Pré-remplit un exemple (cas de recette Annexe A test06) — comme « Charger un exemple »
+    /// de la maquette — puis recalcule en direct.</summary>
+    private async Task ChargerExempleAsync()
+    {
+        Guid IdParCode(IReadOnlyList<ReferenceTarifaireVue> liste, string code) =>
+            liste.FirstOrDefault(x => string.Equals(x.Code, code, StringComparison.OrdinalIgnoreCase))?.Id ?? Guid.Empty;
+
+        var sensImportLocal = IdParCode(_referentiels.Sens, "IMPORT_LOCAL");
+        if (sensImportLocal != Guid.Empty)
+        {
+            _sensOperationId = sensImportLocal;
+            RafraichirCategories();
+        }
+
+        _nomNavire = "CMA CGM CORTE REAL";
+        _numeroVoyage = "0W10HE1MA";
+        _escale = "260708CCCRE";
+        _numeroBl = "269869426";
+        _portChargement = "Singapore";
+        _portDechargement = "Abidjan";
+        _client = "SITRACOM";
+        _typeClient = "Client en compte";
+        _dateArrivee = new DateTime(2026, 2, 10);
+        _dateEnlevement = new DateTime(2026, 3, 10);
+
+        _conteneurs.Clear();
+        _conteneurs.Add(new ConteneurSaisie
+        {
+            NumeroConteneur = "MRKU9725291",
+            Nombre = 1,
+            TailleConteneurId = IdParCode(_referentiels.Tailles, "40"),
+            TypeConteneurId = IdParCode(_referentiels.Types, "REEFER"),
+            CategorieMarchandiseId = IdParCode(_categoriesDuSens, "C3"),
+            PoidsTonnes = 300m,
+        });
+
+        await RecalculerAsync();
     }
 
     private CalculerSimulationProformaRequete ConstruireRequete() => new(
