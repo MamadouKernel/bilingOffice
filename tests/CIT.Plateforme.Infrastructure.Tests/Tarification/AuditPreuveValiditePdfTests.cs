@@ -59,47 +59,22 @@ public sealed class AuditPreuveValiditePdfTests
     }
 
     /// <summary>
-    /// PREUVE CENTRALE : un fichier PDF valide selon ISO 32000 doit contenir, en plus d'un en-tête
-    /// %PDF-x.y, au minimum un objet indirect (« N 0 obj » / « endobj »), une table de références
-    /// croisées (« xref ») et une bande-annonce (« trailer » / « startxref »). Leur absence signifie
-    /// qu'aucun lecteur PDF conforme (Adobe Reader, moteur PDF de navigateur, etc.) ne pourra ouvrir
-    /// ce fichier — malgré son extension « .pdf » et son Content-Type « application/pdf ».
+    /// ÉCART F005 CORRIGÉ : le générateur produit désormais un PDF réel (QuestPDF, commit 2992d39).
+    /// Ce test, qui constatait autrefois l'ABSENCE de structure PDF, vérifie maintenant sa présence
+    /// au sens ISO 32000 : objets indirects, table de références croisées et bande-annonce. Le
+    /// contenu étant compressé, les champs normatifs ne sont plus lisibles en texte brut ; ils
+    /// sont couverts côté rendu par les tests de la proforma.
     /// </summary>
     [Fact]
-    public async Task Document_genere_NE_CONTIENT_PAS_la_structure_minimale_d_un_PDF_valide()
+    public async Task Document_genere_contient_la_structure_minimale_d_un_PDF_valide()
     {
         var resultat = await new GenerateurDocumentProformaPdf()
             .GenererPdfAsync(ConstruireSimulationMinimale(), Ref.Index);
-        var texte = Encoding.UTF8.GetString(resultat.Contenu);
+        var texte = Encoding.Latin1.GetString(resultat.Contenu);
 
-        var contientObjetIndirect = texte.Contains(" 0 obj") && texte.Contains("endobj");
-        var contientXref = texte.Contains("\nxref");
-        var contientTrailer = texte.Contains("trailer") && texte.Contains("startxref");
-
-        // PREUVE : au 30/08/2026 (état du code audité), aucun de ces trois marqueurs structurels
-        // n'est présent — le fichier produit est un texte brut lisible (StringBuilder simple), pas
-        // un PDF binaire structuré. Si une future implémentation utilisait une bibliothèque PDF
-        // réelle, ce test échouerait — signe que l'écart aurait été corrigé.
-        Assert.False(contientObjetIndirect, "Aucun objet indirect PDF (« N 0 obj » / « endobj ») ne devrait être trouvé — confirmé.");
-        Assert.False(contientXref, "Aucune table xref ne devrait être trouvée — confirmé.");
-        Assert.False(contientTrailer, "Aucun trailer PDF ne devrait être trouvé — confirmé.");
-    }
-
-    [Fact]
-    public async Task Document_genere_contient_neanmoins_les_champs_normatifs_attendus()
-    {
-        var sim = ConstruireSimulationMinimale();
-        var resultat = await new GenerateurDocumentProformaPdf().GenererPdfAsync(sim, Ref.Index);
-        var texte = Encoding.UTF8.GetString(resultat.Contenu);
-
-        Assert.Contains(sim.Reference, texte);
-        Assert.Contains("v1.0", texte);
-        Assert.Contains(sim.MontantTotalXof.ToString("N0"), texte);
-        Assert.Contains(MoteurCalculProforma.MentionLegaleDefaut, texte);
-
-        // Les libellés du référentiel remplacent les valeurs d'énumération autrefois imprimées
-        // telles quelles (« VingtPieds », « Dry »).
-        Assert.Contains("Import local", texte);
-        Assert.Contains("20 pieds", texte);
+        Assert.Contains(" 0 obj", texte);
+        Assert.Contains("endobj", texte);
+        Assert.Contains("xref", texte);
+        Assert.Contains("startxref", texte);
     }
 }
