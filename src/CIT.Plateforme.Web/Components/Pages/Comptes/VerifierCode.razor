@@ -133,6 +133,11 @@
     private async Task ValiderAsync()
     {
         erreur = null;
+        // Le code est consommé puis VIDÉ du modèle : sinon la page réaffichée après un échec
+        // contient encore 6 chiffres, js/otp.js la resoumet automatiquement, et chaque resoumission
+        // compte un échec — 5 en quelques secondes verrouillaient le compte (incident 02/10/2026).
+        var code = Modele.Code;
+        Modele.Code = string.Empty;
         // Message générique : ne révèle jamais si le code était incorrect vs. l'absence de défi en
         // attente (mêmes principes que Connexion.razor).
         var messageRefusGenerique = Loc["Auth.TwoFactorInvalid"].Value;
@@ -162,8 +167,8 @@
 
         // Code de secours : Identity le compare à l'empreinte stockée puis le CONSOMME (usage unique).
         var resultat = ModeSecours
-            ? await SignInManager.TwoFactorRecoveryCodeSignInAsync(Modele.Code.Replace(" ", string.Empty))
-            : await SignInManager.TwoFactorAuthenticatorSignInAsync(Modele.Code, isPersistent: false, rememberClient: false);
+            ? await SignInManager.TwoFactorRecoveryCodeSignInAsync(code.Replace(" ", string.Empty))
+            : await SignInManager.TwoFactorAuthenticatorSignInAsync(code, isPersistent: false, rememberClient: false);
 
         if (!resultat.Succeeded)
         {
