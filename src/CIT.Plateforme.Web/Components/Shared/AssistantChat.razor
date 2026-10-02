@@ -284,7 +284,8 @@ else
             var commande = scope.ServiceProvider.GetRequiredService<SoumettreReclamationCommand>();
             var resultat = await commande.ExecuterAsync(
                 _utilisateurId,
-                new SoumettreReclamationRequete(_societeId.Value, _categorieChoisie, _objet.Trim(), _descriptionDemande?.Trim() ?? string.Empty));
+                new SoumettreReclamationRequete(_societeId.Value, _categorieChoisie, _objet.Trim(), _descriptionDemande?.Trim() ?? string.Empty),
+                origine: "Assistant");
 
             _ticketCreeId = resultat.TicketId;
             _modeCreation = false;

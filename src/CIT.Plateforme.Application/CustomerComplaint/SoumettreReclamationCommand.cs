@@ -29,7 +29,7 @@ public sealed class SoumettreReclamationCommand(
     /// </summary>
     public const string Module = "CustomerComplaint";
 
-    public async Task<SoumettreReclamationResultat> ExecuterAsync(Guid appelantId, SoumettreReclamationRequete requete, CancellationToken ct = default)
+    public async Task<SoumettreReclamationResultat> ExecuterAsync(Guid appelantId, SoumettreReclamationRequete requete, CancellationToken ct = default, string origine = "Portail")
     {
         // 1. Autorisation (ENT-02, même contrôle que BillingImport/BillingExport) : le droit de
         // soumettre pour une société est individuel et porté par le rattachement lui-même
@@ -92,9 +92,9 @@ public sealed class SoumettreReclamationCommand(
         await ticketRepository.AjouterAsync(ticket, ct).ConfigureAwait(false);
 
         // 7. Audit de création (SOC-13)
-        await journalisationService.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", "Réclamation soumise", appelantId, ct).ConfigureAwait(false);
-        await journalisationService.ConsignerAuditAsync(appelantId, "TicketCree", "Ticket", ticket.Id, null, null, ct).ConfigureAwait(false);
-        await journalisationService.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"CustomerComplaint\"}}", ct).ConfigureAwait(false);
+        await journalisationService.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", $"Réclamation soumise (origine : {origine})", appelantId, ct).ConfigureAwait(false);
+        await journalisationService.ConsignerAuditAsync(appelantId, "TicketCree", "Ticket", ticket.Id, null, origine, ct).ConfigureAwait(false);
+        await journalisationService.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"CustomerComplaint\",\"origine\":\"{origine}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

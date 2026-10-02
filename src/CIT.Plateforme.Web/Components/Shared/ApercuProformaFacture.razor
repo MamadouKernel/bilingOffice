@@ -87,7 +87,7 @@
 
     @if (Total > 0)
     {
-        <div class="f-lettres">@MontantEnLettres(Total).ToUpperInvariant()</div>
+        <div class="f-lettres">@MontantFrancsCfa.EnLettres(Total).ToUpperInvariant()</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(MentionLegale))
@@ -166,39 +166,5 @@
             .ThenBy(g => g.Presta, StringComparer.Ordinal)
             .Select(g => new Rubrique(g.Presta, g.Qte, g.Pu, g.Total, g.Ordre))
             .ToList();
-    }
-
-    // Conversion en toutes lettres (français), portée depuis la maquette — montants entiers en XOF.
-    private static readonly string[] U =
-        ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix",
-         "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
-    private static readonly string[] D =
-        ["", "", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante", "quatre-vingt", "quatre-vingt"];
-
-    private static string Tri(int x)
-    {
-        var s = "";
-        int c = x / 100, r = x % 100;
-        if (c > 0) s += (c > 1 ? U[c] + " " : "") + "cent" + (c > 1 && r == 0 ? "s" : "") + (r != 0 ? " " : "");
-        if (r < 20) s += U[r];
-        else
-        {
-            int di = r / 10, un = r % 10;
-            if (di == 7 || di == 9) s += D[di] + "-" + U[10 + un];
-            else s += D[di] + (un == 1 && di != 8 ? "-et-un" : (un != 0 ? "-" + U[un] : "")) + (di == 8 && un == 0 ? "s" : "");
-        }
-        return s.Trim();
-    }
-
-    private static string MontantEnLettres(decimal montant)
-    {
-        var n = (long)Math.Round(montant);
-        if (n == 0) return "zéro franc CFA";
-        var parts = new List<string>();
-        long m = n / 1_000_000, k = (n % 1_000_000) / 1000, rr = n % 1000;
-        if (m > 0) parts.Add((m > 1 ? Tri((int)m) + " " : "un ") + "million" + (m > 1 ? "s" : ""));
-        if (k > 0) parts.Add((k > 1 ? Tri((int)k) + " " : "") + "mille");
-        if (rr > 0) parts.Add(Tri((int)rr));
-        return string.Join(" ", parts).Trim() + " francs CFA";
     }
 }
