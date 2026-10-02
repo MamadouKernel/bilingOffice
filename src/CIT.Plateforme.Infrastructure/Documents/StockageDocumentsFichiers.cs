@@ -15,6 +15,34 @@ public sealed class StockageDocumentsFichiers(IConfiguration configuration, IHos
     public const string CleRepertoire = "Stockage:RepertoireDocuments";
 
     /// <summary>
+    /// SEC-04 — clé AES-256 (32 octets en Base64) de chiffrement des pièces au repos. Fournie par
+    /// l'exploitation comme tout secret (variable d'environnement Stockage__CleChiffrement), et
+    /// SAUVEGARDÉE dans le coffre de la DSI : la perdre rend les pièces chiffrées illisibles.
+    /// Absente : les pièces restent écrites en clair (comportement antérieur) et /ready le signale.
+    /// </summary>
+    public const string CleChiffrement = "Stockage:CleChiffrement";
+
+    /// <summary>En-tête des fichiers chiffrés ; un fichier sans lui est une pièce historique en clair.</summary>
+    private static readonly byte[] EnTete = "YABAENC1"u8.ToArray();
+    private const int TailleNonce = 12;
+    private const int TailleTag = 16;
+
+    /// <summary>La clé configurée, ou null. Une valeur présente mais invalide est une erreur franche.</summary>
+    public static byte[]? LireCle(IConfiguration configuration)
+    {
+        var valeur = configuration[CleChiffrement];
+        if (string.IsNullOrWhiteSpace(valeur))
+        {
+            return null;
+        }
+
+        var cle = Convert.FromBase64String(valeur);
+        return cle.Length == 32
+            ? cle
+            : throw new InvalidOperationException($"« {CleChiffrement} » doit contenir 32 octets encodés en Base64 (AES-256).");
+    }
+
+    /// <summary>
     /// Répertoire racine des pièces déposées.
     ///
     /// FAIL-SAFE : hors développement, l'absence de configuration lève une erreur explicite au
@@ -68,16 +96,57 @@ public sealed class StockageDocumentsFichiers(IConfiguration configuration, IHos
             contenu.Position = 0;
         }
 
+        var cleChiffrement = LireCle(configuration);
         await using var fichier = File.Create(chemin);
-        await contenu.CopyToAsync(fichier, ct).ConfigureAwait(false);
+        if (cleChiffrement is null)
+        {
+            await contenu.CopyToAsync(fichier, ct).ConfigureAwait(false);
+            return cle;
+        }
 
+        // ponytail: chiffrement en mémoire, borné par la taille maximale des dépôts (10 Mo par
+        // défaut) ; passer à un chiffrement par blocs si de très gros fichiers deviennent admis.
+        using var tampon = new MemoryStream();
+        await contenu.CopyToAsync(tampon, ct).ConfigureAwait(false);
+        var clair = tampon.ToArray();
+        var nonce = System.Security.Cryptography.RandomNumberGenerator.GetBytes(TailleNonce);
+        var chiffre = new byte[clair.Length];
+        var tag = new byte[TailleTag];
+        using (var aes = new System.Security.Cryptography.AesGcm(cleChiffrement, TailleTag))
+        {
+            aes.Encrypt(nonce, clair, chiffre, tag);
+        }
+
+        await fichier.WriteAsync(EnTete, ct).ConfigureAwait(false);
+        await fichier.WriteAsync(nonce, ct).ConfigureAwait(false);
+        await fichier.WriteAsync(tag, ct).ConfigureAwait(false);
+        await fichier.WriteAsync(chiffre, ct).ConfigureAwait(false);
         return cle;
     }
 
-    public Task<Stream> LireAsync(string cleStockage, CancellationToken ct = default)
+    public async Task<Stream> LireAsync(string cleStockage, CancellationToken ct = default)
     {
-        Stream flux = File.OpenRead(CheminDansLaRacine(cleStockage));
-        return Task.FromResult(flux);
+        var octets = await File.ReadAllBytesAsync(CheminDansLaRacine(cleStockage), ct).ConfigureAwait(false);
+        if (!octets.AsSpan().StartsWith(EnTete))
+        {
+            return new MemoryStream(octets, writable: false); // pièce historique, déposée en clair
+        }
+
+        var cleChiffrement = LireCle(configuration)
+            ?? throw new InvalidOperationException(
+                $"Pièce chiffrée mais « {CleChiffrement} » n'est pas configurée : restaurer la clé depuis le coffre de la DSI.");
+
+        var corps = octets.AsSpan(EnTete.Length);
+        var nonce = corps[..TailleNonce];
+        var tag = corps.Slice(TailleNonce, TailleTag);
+        var chiffre = corps[(TailleNonce + TailleTag)..];
+        var clair = new byte[chiffre.Length];
+        using (var aes = new System.Security.Cryptography.AesGcm(cleChiffrement, TailleTag))
+        {
+            aes.Decrypt(nonce, chiffre, tag, clair); // lève si la pièce a été altérée (intégrité)
+        }
+
+        return new MemoryStream(clair, writable: false);
     }
 
     /// <summary>

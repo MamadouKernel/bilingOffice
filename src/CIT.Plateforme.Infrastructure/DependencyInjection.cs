@@ -572,6 +572,7 @@ public static class DependencyInjection
             .AddCheck<HealthChecks.DatabaseHealthCheck>("database", tags: ["ready"])
             .AddCheck<HealthChecks.StorageHealthCheck>("storage", tags: ["ready"])
             .AddCheck<HealthChecks.AntivirusHealthCheck>("antivirus", tags: ["ready"])
+            .AddCheck<HealthChecks.ChiffrementDocumentsHealthCheck>("chiffrement-documents", tags: ["ready"])
             .AddCheck<HealthChecks.MaintenanceHealthCheck>("maintenance", tags: ["ready"]);
 
         // ====================================================================================
