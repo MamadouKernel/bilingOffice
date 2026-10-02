@@ -13,23 +13,24 @@ namespace CIT.Plateforme.Domain.Tests.Affectation;
 public sealed class StrategiesAffectationComportementTests
 {
     [Fact]
-    public void RoundRobinStrategy_AFF03_choisit_le_candidat_le_moins_charge()
+    public void RoundRobinStrategy_AFF03_sert_d_abord_l_operateur_jamais_servi_puis_le_moins_recent()
     {
-        var leMoinsCharge = Guid.NewGuid();
+        var jamaisServi = Guid.NewGuid();
+        var servi9h = Guid.NewGuid();
+        var servi8h = Guid.NewGuid();
         var candidats = new List<CandidatAffectation>
         {
-            new(Guid.NewGuid(), StatutDisponibilite.Disponible, 5, []),
-            new(leMoinsCharge, StatutDisponibilite.Disponible, 1, []),
-            new(Guid.NewGuid(), StatutDisponibilite.Disponible, 3, []),
+            new(servi9h, StatutDisponibilite.Disponible, 0, [], new DateTime(2026, 10, 2, 9, 0, 0, DateTimeKind.Utc)),
+            new(jamaisServi, StatutDisponibilite.Disponible, 7, []),
+            new(servi8h, StatutDisponibilite.Disponible, 0, [], new DateTime(2026, 10, 2, 8, 0, 0, DateTimeKind.Utc)),
         };
 
-        var choisi = new RoundRobinStrategy().Choisir(candidats);
-
-        Assert.Equal(leMoinsCharge, choisi);
+        Assert.Equal(jamaisServi, new RoundRobinStrategy().Choisir(candidats));
+        Assert.Equal(servi8h, new RoundRobinStrategy().Choisir(candidats.Where(c => c.OperateurId != jamaisServi).ToList()));
     }
 
     [Fact]
-    public void RoundRobinStrategy_AFF03_departage_par_identifiant_operateur_a_charge_egale()
+    public void RoundRobinStrategy_AFF03_departage_par_identifiant_operateur_entre_jamais_servis()
     {
         var operateurA = Guid.Parse("00000000-0000-0000-0000-000000000001");
         var operateurB = Guid.Parse("00000000-0000-0000-0000-000000000002");
@@ -39,38 +40,29 @@ public sealed class StrategiesAffectationComportementTests
             new(operateurA, StatutDisponibilite.Disponible, 2, []),
         };
 
-        var choisi = new RoundRobinStrategy().Choisir(candidats);
-
-        Assert.Equal(operateurA, choisi);
+        Assert.Equal(operateurA, new RoundRobinStrategy().Choisir(candidats));
     }
 
     [Fact]
-    public void RoundRobinStrategy_AFF03_repartit_successivement_vers_lagent_le_moins_charge_a_chaque_tour()
+    public void RoundRobinStrategy_AFF03_tourne_A_B_C_A_meme_si_les_charges_restent_inegales()
     {
-        // Identifiants fixes : le départage à charge égale se fait par OperateurId (voir test
-        // ci-dessus), donc des Guid.NewGuid() aléatoires rendraient ce test non déterministe.
-        var agentA = Guid.Parse("00000000-0000-0000-0000-0000000000a1");
-        var agentB = Guid.Parse("00000000-0000-0000-0000-0000000000b2");
-        var strategie = new RoundRobinStrategy();
-        var chargeA = 0;
-        var chargeB = 0;
+        // Vraie rotation : la charge n'intervient pas (c'est le rôle d'AFF-04). Chaque tour
+        // enregistre la prise en charge comme le ferait le passage en file.
+        var agents = new[] { Guid.Parse("00000000-0000-0000-0000-0000000000a1"), Guid.Parse("00000000-0000-0000-0000-0000000000b2"), Guid.Parse("00000000-0000-0000-0000-0000000000c3") };
+        var charges = new Dictionary<Guid, int> { [agents[0]] = 9, [agents[1]] = 0, [agents[2]] = 4 };
+        var derniers = new Dictionary<Guid, DateTime?>();
+        var horloge = new DateTime(2026, 10, 2, 8, 0, 0, DateTimeKind.Utc);
+        var ordre = new List<Guid>();
 
-        var ordreChoisi = new List<Guid>();
         for (var tour = 0; tour < 4; tour++)
         {
-            var candidats = new List<CandidatAffectation>
-            {
-                new(agentA, StatutDisponibilite.Disponible, chargeA, []),
-                new(agentB, StatutDisponibilite.Disponible, chargeB, []),
-            };
-            var choisi = strategie.Choisir(candidats)!.Value;
-            ordreChoisi.Add(choisi);
-            if (choisi == agentA) chargeA++; else chargeB++;
+            var candidats = agents.Select(a => new CandidatAffectation(a, StatutDisponibilite.Disponible, charges[a], [], derniers.GetValueOrDefault(a))).ToList();
+            var choisi = new RoundRobinStrategy().Choisir(candidats)!.Value;
+            ordre.Add(choisi);
+            derniers[choisi] = horloge.AddMinutes(tour);
         }
 
-        Assert.Equal([agentA, agentB, agentA, agentB], ordreChoisi);
-        Assert.Equal(2, chargeA);
-        Assert.Equal(2, chargeB);
+        Assert.Equal([agents[0], agents[1], agents[2], agents[0]], ordre);
     }
 
     [Fact]

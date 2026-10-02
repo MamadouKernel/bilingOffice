@@ -368,7 +368,12 @@ public sealed class CandidatsAffectationProvider(PlateformeDbContext dbContext) 
                 .ToListAsync(ct)
                 .ConfigureAwait(false);
 
-            candidats.Add(new CandidatAffectation(operateurId, statut, chargeActuelle, competences));
+            var derniereAffectation = await dbContext.PassagesEnFile
+                .Where(p => p.FileId == fileId && p.OperateurId == operateurId && p.DatePriseEnChargeUtc != null)
+                .MaxAsync(p => p.DatePriseEnChargeUtc, ct)
+                .ConfigureAwait(false);
+
+            candidats.Add(new CandidatAffectation(operateurId, statut, chargeActuelle, competences, derniereAffectation));
         }
 
         return candidats;
