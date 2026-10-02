@@ -75,6 +75,65 @@ public static class ParametrageInitialAnnexeA
         (SensExportTransit, "C5", "Catégorie 5 — export transit"),
     ];
 
+    /// <summary>
+    /// Annexe A.1 — grille tarifaire de base : acconage, relevage et tarif journalier de
+    /// branchement frigorifique par clé (sens, taille, catégorie). Valeurs de <b>départ</b>
+    /// (chargées à l'approvisionnement initial), jamais des constantes de calcul : l'administrateur
+    /// tarifaire peut les remplacer par une nouvelle version (import CSV ou saisie).
+    /// </summary>
+    public static readonly (string SensCode, string TailleCode, string CategorieCode, decimal Acconage, decimal Relevage, decimal Branchement)[] GrilleInitiale =
+    [
+        (SensImportLocal, TailleVingtPieds, "C1", 66_800m, 25_000m, 35_000m),
+        (SensImportLocal, TailleVingtPieds, "C2", 95_000m, 25_000m, 35_000m),
+        (SensImportLocal, TailleVingtPieds, "C3", 140_000m, 25_000m, 35_000m),
+        (SensImportLocal, TailleQuarantePieds, "C1", 133_600m, 50_000m, 67_000m),
+        (SensImportLocal, TailleQuarantePieds, "C2", 190_000m, 50_000m, 67_000m),
+        (SensImportLocal, TailleQuarantePieds, "C3", 280_000m, 50_000m, 67_000m),
+        (SensExportLocal, TailleVingtPieds, "C1", 69_500m, 25_000m, 35_000m),
+        (SensExportLocal, TailleVingtPieds, "C2", 122_500m, 25_000m, 35_000m),
+        (SensExportLocal, TailleVingtPieds, "C3", 130_000m, 25_000m, 35_000m),
+        (SensExportLocal, TailleQuarantePieds, "C1", 139_000m, 50_000m, 65_000m),
+        (SensExportLocal, TailleQuarantePieds, "C2", 245_000m, 50_000m, 65_000m),
+        (SensExportLocal, TailleQuarantePieds, "C3", 260_000m, 50_000m, 65_000m),
+        (SensImportTransit, TailleVingtPieds, "C4", 72_230m, 25_000m, 35_000m),
+        (SensImportTransit, TailleQuarantePieds, "C4", 144_460m, 50_000m, 67_000m),
+        (SensExportTransit, TailleVingtPieds, "C5", 69_000m, 25_000m, 35_000m),
+        (SensExportTransit, TailleQuarantePieds, "C5", 138_000m, 50_000m, 65_000m),
+    ];
+
+    /// <summary>
+    /// Construit une version de grille initiale ACTIVE à partir des référentiels en base : lignes
+    /// de prix (A.1) + paramètres (A.2/A.4/A.5). Date d'effet volontairement ancienne pour que la
+    /// grille soit active dès maintenant. Une combinaison dont un code est absent est ignorée
+    /// plutôt que de faire échouer tout l'approvisionnement.
+    /// </summary>
+    public static VersionGrilleTarifaire CreerVersionInitiale(
+        ReferentielsTarifaires referentiels, Guid auteurId, DateTime maintenantUtc)
+    {
+        ArgumentNullException.ThrowIfNull(referentiels);
+
+        var grille = VersionGrilleTarifaire.Creer(
+            "A.1-initiale",
+            new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            auteurId,
+            maintenantUtc,
+            FranchiseBranchementJours);
+
+        foreach (var (sensCode, tailleCode, categorieCode, acconage, relevage, branchement) in GrilleInitiale)
+        {
+            var sens = referentiels.SensParCode(sensCode);
+            var taille = referentiels.TailleParCode(tailleCode);
+            if (sens is null || taille is null) continue;
+            var categorie = referentiels.CategorieParCode(sens.Id, categorieCode);
+            if (categorie is null) continue;
+
+            grille.AjouterLigne(sens.Id, taille.Id, categorie.Id, acconage, relevage, branchement);
+        }
+
+        AppliquerParametres(grille, referentiels);
+        return grille;
+    }
+
     /// <summary>Construit un jeu de référentiels neuf, avec des identifiants frais.</summary>
     public static ReferentielsAnnexeA CreerReferentiels()
     {

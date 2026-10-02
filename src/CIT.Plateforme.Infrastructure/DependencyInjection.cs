@@ -203,6 +203,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Administration.ListerReferentielQuery>();
         services.AddScoped<Application.Administration.ModifierValeurReferentielleCommand>();
         services.AddScoped<Persistence.ProvisionnementReferentielsTarifaires>();
+        services.AddScoped<Persistence.ProvisionnementGrilleTarifaireInitiale>();
         // IA-04 : base de connaissances de départ de l'assistant simulé (additif, si base vide).
         services.AddScoped<Persistence.ProvisionnementSujetsAssistant>();
         // Support IT : file « Support IT » + catégories d'incident de départ (additif).

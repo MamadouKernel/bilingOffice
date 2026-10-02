@@ -1,6 +1,8 @@
 @page "/simulation/proforma"
 @rendermode InteractiveServer
+@using CIT.Plateforme.Application.Securite
 @using CIT.Plateforme.Application.Tarification
+@using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Domain.Tarification
 @using CIT.Plateforme.Domain.Tarification.Exceptions
 @using CIT.Plateforme.Web.Components.Shared
@@ -11,6 +13,7 @@
 @inject ValiderCoherenceSimulationQuery ValiderCoherence
 @inject SauvegarderSimulationProformaCommandHandler Sauvegarder
 @inject ConsulterReferentielsTarifairesQueryHandler Referentiels
+@inject IAutorisationService Autorisation
 @inject NavigationManager Navigation
 @inject IJSRuntime Js
 
@@ -69,7 +72,7 @@
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="sens-du-trafic" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.TrafficDirection"]</label>
                     <select id="sens-du-trafic" class="form-select"
-                            @bind="_sensOperationId" @bind:after="RafraichirCategories">
+                            @bind="_sensOperationId" @bind:after="SensChangeAsync">
                         @foreach (var s in _referentiels.Sens)
                         {
                             <option value="@s.Id">@s.Libelle</option>
@@ -78,11 +81,11 @@
                 </div>
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="date-d-arrivee" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.ArrivalDate"]</label>
-                    <input id="date-d-arrivee" type="date" class="form-control" @bind="_dateArrivee" />
+                    <input id="date-d-arrivee" type="date" class="form-control" @bind="_dateArrivee" @bind:after="RecalculerAsync" />
                 </div>
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="date-d-enlevement-previsionnel" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.PickupDate"]</label>
-                    <input id="date-d-enlevement-previsionnel" type="date" class="form-control" @bind="_dateEnlevement" />
+                    <input id="date-d-enlevement-previsionnel" type="date" class="form-control" @bind="_dateEnlevement" @bind:after="RecalculerAsync" />
                 </div>
                 <div class="col-12 col-sm-6 col-lg-3">
                     <label for="n-navire-optionnel" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.VesselOptional"]</label>
@@ -152,9 +155,13 @@
                             <label for="num-@index" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.ContainerNumber"]</label>
                             <input id="num-@index" class="form-control font-monospace" @bind="c.NumeroConteneur" />
                         </div>
+                        <div class="col-6 col-lg-1">
+                            <label for="nb-@index" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Quantity"]</label>
+                            <input id="nb-@index" type="number" min="1" step="1" class="form-control" @bind="c.Nombre" @bind:after="RecalculerAsync" />
+                        </div>
                         <div class="col-6 col-lg-2">
                             <label for="taille-@index" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Size"]</label>
-                            <select id="taille-@index" class="form-select" @bind="c.TailleConteneurId">
+                            <select id="taille-@index" class="form-select" @bind="c.TailleConteneurId" @bind:after="RecalculerAsync">
                                 @foreach (var t in _referentiels.Tailles)
                                 {
                                     <option value="@t.Id">@t.Libelle</option>
@@ -163,23 +170,23 @@
                         </div>
                         <div class="col-6 col-lg-2">
                             <label for="type-@index" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Type"]</label>
-                            <select id="type-@index" class="form-select" @bind="c.TypeConteneurId">
+                            <select id="type-@index" class="form-select" @bind="c.TypeConteneurId" @bind:after="RecalculerAsync">
                                 @foreach (var t in _referentiels.Types)
                                 {
                                     <option value="@t.Id">@t.Libelle</option>
                                 }
                             </select>
                         </div>
-                        <div class="col-6 col-lg-2">
+                        <div class="col-6 col-lg-1">
                             <label for="poids-@index" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Weight"]</label>
-                            <input id="poids-@index" type="number" step="0.01" class="form-control" @bind="c.PoidsTonnes" />
+                            <input id="poids-@index" type="number" step="0.01" class="form-control" @bind="c.PoidsTonnes" @bind:after="RecalculerAsync" />
                         </div>
                         <div class="col-12 col-lg-3">
                             @* La catégorie était un champ texte libre : une faute de frappe donnait
                                « tarif non trouvé » au lieu d'un tarif. Elle se choisit désormais
                                dans le référentiel, restreint au sens du dossier (Annexe A.6). *@
                             <label for="categorie-@index" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.Category"]</label>
-                            <select id="categorie-@index" class="form-select" @bind="c.CategorieMarchandiseId">
+                            <select id="categorie-@index" class="form-select" @bind="c.CategorieMarchandiseId" @bind:after="RecalculerAsync">
                                 @foreach (var cat in _categoriesDuSens)
                                 {
                                     <option value="@cat.Id">@cat.Code — @cat.Libelle</option>
@@ -189,10 +196,10 @@
                     </div>
                     <div class="cit-sim-toggles">
                         <label class="cit-sim-toggle" for="dang-@index">
-                            <input type="checkbox" id="dang-@index" @bind="c.EstDangereux" /> ⚠️ @Loc["Sim.Danger"]
+                            <input type="checkbox" id="dang-@index" @bind="c.EstDangereux" @bind:after="RecalculerAsync" /> ⚠️ @Loc["Sim.Danger"]
                         </label>
                         <label class="cit-sim-toggle" for="oog-@index">
-                            <input type="checkbox" id="oog-@index" @bind="c.EstHorsGabarit" /> 📐 OOG
+                            <input type="checkbox" id="oog-@index" @bind="c.EstHorsGabarit" @bind:after="RecalculerAsync" /> 📐 OOG
                         </label>
                     </div>
                 </div>
@@ -205,10 +212,18 @@
         </section>
 
         <div class="cit-sim-actionbar mb-4">
-            <span class="cit-sim-actionbar-info">@_conteneurs.Count @Loc["Sim.ActionbarReady"]</span>
-            <button type="button" class="cit-sim-calc" disabled="@(_conteneurs.Count == 0 || _calculEnCours)" @onclick="CalculerAsync">
-                @(_calculEnCours ? Loc["Sim.Calculating"].Value : "🧮 " + Loc["Sim.Calculate"].Value)
-            </button>
+            <span class="cit-sim-actionbar-info">
+                @(_calculEnCours ? Loc["Sim.Calculating"].Value : Loc["Sim.AutoCalc"].Value)
+            </span>
+            <div class="d-flex gap-2">
+                @if (_estAdminTarif)
+                {
+                    <a href="/admin/tarification" class="btn btn-outline-secondary btn-sm fw-semibold">⚙️ @Loc["Sim.ConfigureTariffs"]</a>
+                }
+                <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" disabled="@(_conteneurs.Count == 0 || _calculEnCours)" @onclick="RecalculerAsync">
+                    🔄 @Loc["Sim.Recalculate"]
+                </button>
+            </div>
         </div>
 
         @* SIM-11 — « contrôles de cohérence à la saisie, avec messages d'aide contextuels ».
@@ -314,6 +329,7 @@
     // l'ENREGISTREMENT — donc l'historique personnel — reste réservé à un compte rattaché à une
     // société : c'est lui, et lui seul, qui a besoin d'une identité et d'une portée.
     private bool _peutEnregistrer;
+    private bool _estAdminTarif;
     private Guid _auteurId;
 
     // Les référentiels sont chargés une fois et servent à la fois les listes de saisie et les
@@ -352,6 +368,8 @@
             // l'enregistrer : un compte authentifié ET rattaché à une société active.
             _peutEnregistrer = contexte.EstAuthentifie && contexte.SocieteId.HasValue;
             _auteurId = contexte.UtilisateurId;
+            _estAdminTarif = contexte.EstAuthentifie
+                && await Autorisation.EstAutoriseAsync(_auteurId, Permission.TarificationAdministrer);
 
             _referentiels = await Referentiels.HandleAsync();
 
@@ -364,7 +382,7 @@
 
             _sensOperationId = _referentiels.Sens[0].Id;
             RafraichirCategories();
-            AjouterConteneur();
+            await AjouterConteneur();
         }
         finally
         {
@@ -388,23 +406,58 @@
         }
     }
 
-    private void AjouterConteneur() => _conteneurs.Add(new ConteneurSaisie
+    private async Task AjouterConteneur()
     {
-        NumeroConteneur = $"CONT{_conteneurs.Count + 1:00}",
-        TailleConteneurId = _referentiels.Tailles.Count > 0 ? _referentiels.Tailles[0].Id : Guid.Empty,
-        TypeConteneurId = _referentiels.Types.Count > 0 ? _referentiels.Types[0].Id : Guid.Empty,
-        CategorieMarchandiseId = _categoriesDuSens.Count > 0 ? _categoriesDuSens[0].Id : Guid.Empty,
-    });
+        _conteneurs.Add(new ConteneurSaisie
+        {
+            NumeroConteneur = $"CONT{_conteneurs.Count + 1:00}",
+            Nombre = 1,
+            TailleConteneurId = _referentiels.Tailles.Count > 0 ? _referentiels.Tailles[0].Id : Guid.Empty,
+            TypeConteneurId = _referentiels.Types.Count > 0 ? _referentiels.Types[0].Id : Guid.Empty,
+            CategorieMarchandiseId = _categoriesDuSens.Count > 0 ? _categoriesDuSens[0].Id : Guid.Empty,
+        });
+        await RecalculerAsync();
+    }
 
-    private void SupprimerConteneur(int index) => _conteneurs.RemoveAt(index);
+    private async Task SupprimerConteneur(int index)
+    {
+        _conteneurs.RemoveAt(index);
+        await RecalculerAsync();
+    }
+
+    /// <summary>Changement de sens : réaligne les catégories (Annexe A.6) puis recalcule en direct.</summary>
+    private async Task SensChangeAsync()
+    {
+        RafraichirCategories();
+        await RecalculerAsync();
+    }
+
+    /// <summary>Calcul en direct, comme la maquette : relancé à chaque modification. Sans conteneur,
+    /// la facture est vidée plutôt que de laisser un résultat périmé.</summary>
+    private async Task RecalculerAsync()
+    {
+        if (_conteneurs.Count == 0)
+        {
+            _resultat = null;
+            _erreur = null;
+            _alertesCoherence = [];
+            _aidesCoherence = [];
+            return;
+        }
+        await CalculerAsync();
+    }
 
     private CalculerSimulationProformaRequete ConstruireRequete() => new(
         _sensOperationId,
         DateOnly.FromDateTime(_dateArrivee),
         DateOnly.FromDateTime(_dateEnlevement),
-        _conteneurs.Select(c => new ConteneurSimulationRequete(
-            c.NumeroConteneur, c.TailleConteneurId, c.TypeConteneurId, c.PoidsTonnes,
-            c.EstDangereux, c.EstHorsGabarit, c.CategorieMarchandiseId)).ToList(),
+        // Expansion par quantité (comme la maquette : « n × conteneur ») — chaque unité devient une
+        // ligne ; la facture les regroupe ensuite en « n Unité(s) × PU ».
+        _conteneurs.SelectMany(c => Enumerable.Range(1, Math.Max(1, c.Nombre)).Select(i =>
+            new ConteneurSimulationRequete(
+                c.Nombre > 1 ? $"{c.NumeroConteneur}-{i}" : c.NumeroConteneur,
+                c.TailleConteneurId, c.TypeConteneurId, c.PoidsTonnes,
+                c.EstDangereux, c.EstHorsGabarit, c.CategorieMarchandiseId))).ToList(),
         _nomNavire,
         _numeroVoyage,
         _numeroBl,
@@ -500,6 +553,7 @@
     private sealed class ConteneurSaisie
     {
         public string NumeroConteneur { get; set; } = string.Empty;
+        public int Nombre { get; set; } = 1;
         public Guid TailleConteneurId { get; set; }
         public Guid TypeConteneurId { get; set; }
         public decimal PoidsTonnes { get; set; }

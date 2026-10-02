@@ -337,6 +337,12 @@ using (var scope = app.Services.CreateScope())
     var referentiels = scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementReferentielsTarifaires>();
     await referentiels.ExecuterAsync();
+
+    // Grille tarifaire active initiale (Annexe A.1) : sans elle, « Aucune version de grille active »
+    // et toute simulation échoue. Idempotent — ne touche pas une grille déjà administrée.
+    var grilleInitiale = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementGrilleTarifaireInitiale>();
+    await grilleInitiale.ExecuterAsync();
 }
 
 // IA-04 : base de connaissances de départ de l'assistant simulé, dans TOUS les environnements.
