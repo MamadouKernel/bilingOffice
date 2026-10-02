@@ -37,7 +37,7 @@
 | 18 | Sécurité SEC-01→12 | 12 | 9 | 3 | | | Certificat, antivirus, environnements |
 | 19 | Non fonctionnelles NFR-01→11 | 11 | 4 | | | 7 | Preuves sur l'environnement réel |
 | 21 | Erreurs et continuité | 4 | 4 | | | | |
-| | **Total** | **≈185** | **≈167 (90 %)** | **≈8** | **≈2** | **≈7** | |
+| | **Total** | **189** | **172 (91 %)** | **8** | **2** | **7** | Corrigé le 02/10 : la 1re version annonçait 185/167 par erreur d'addition |
 
 ## Écarts détaillés (toutes les lignes qui ne sont pas ✅)
 
