@@ -45,14 +45,15 @@
 |---|---|---|---|
 | COM-01, ENR-04, IA-05 | ⛔/🟡 | Seuls l'e-mail et le portail existent. Le SMS et WhatsApp ont été retirés le 25/09, faute de fournisseur. | Souscrire un fournisseur SMS/WhatsApp (docs/44), puis développer le connecteur. |
 | IA-01, IA-02, IA-04 | 🟡 | L'assistant répond avec les **données YABA réelles** (tickets, statuts, FAQ administrable). Ce n'est pas une IA générative : il ne comprend que les formulations prévues. | Valider un LLM avec la DSI, puis le brancher derrière l'abstraction existante. |
-| IA-07 | ⛔ | L'escalade vers un opérateur existe (IA-06), mais pas de règle paramétrable « le client demande un humain ». | À confirmer en recette, puis compléter. |
-| AFF-03 | 🟡 | Le « Round-Robin » est approché par l'ordre d'ancienneté, pas par une vraie rotation. | Accepter l'approximation ou ajouter un pointeur de rotation. |
+| IA-07 | ✅ (02/10) | Bouton « Parler à un conseiller » toujours disponible, saisie du numéro de ticket, règle `Assistant:DemandeHumaineAutorisee` (commit 8bb35ef). | — |
+| AFF-03 | ✅ (02/10) | Vraie rotation : l'opérateur servi le moins récemment sur la file passe en premier (commit c327306). | — |
 | SEC-04 | 🟡 | La prod (`https://10.88.179.103:8443`) s'affiche « Non sécurisé » : le certificat n'est pas reconnu. | Installer un certificat signé par une AC (DSI). |
-| SEC-07 | 🟡 | Le scanner Defender existe, mais un repli « aucune analyse » s'applique s'il n'est pas configuré. | Vérifier le health check antivirus sur le serveur IIS. |
-| SEC-09 | 🟡 | Les configurations Recette et Prod sont séparées, mais aucune instance de recette distincte n'est prouvée. Le mot de passe `sa` de prod figure dans `appsettings.json`, suivi par git. | Instance de recette ; compte SQL dédié au lieu de `sa` ; changer le mot de passe. |
-| NFR-03, 04, 10 | 🏗️ | Disponibilité, temps de réponse < 3 s et accès 24/7 : non mesurés en production. | Mesures réelles. |
-| NFR-05, 06, 09 | 🏗️ | Volumétrie, sauvegardes, hébergement : procédures écrites (docs/41-43), mais aucune restauration testée. | DSI. |
-| NFR-08 | 🟡 | Une API minimale existe (`Api/ApiEndpoints.cs`), sans documentation publiée. | Publier l'OpenAPI. |
+| SEC-07 | ✅ code (02/10) | Correction de l'évaluation initiale : le scanner Defender est bien celui enregistré et il est fail-closed. Seul le health check mentait ; il vérifie désormais la présence réelle de MpCmdRun.exe (commit 0992036). | Consulter `/ready` sur le serveur IIS. |
+| SEC-09 | 🟡 → exploitation | Le mot de passe n'a jamais été commité (il n'était que dans une copie locale). Un test bloque désormais tout mot de passe dans une configuration versionnée (commit ccfc672). Le script `deploy/sql/creer-compte-applicatif.sql` remplace `sa`. | Exécuter le script ; changer le mot de passe `sa` ; instance de recette distincte. |
+| NFR-03, 04, 10 | 🏗️ outillé (02/10) | Script de mesure `deploy/mesurer-disponibilite-et-temps-reponse.ps1` (CSV, rapport dispo % et p95). | Planifier la tâche ; le rapport constitue la preuve. |
+| NFR-06 | 🏗️ outillé (02/10) | `deploy/sql/sauvegarde-et-test-restauration.sql` : sauvegarde, VERIFYONLY, restauration réelle dans une base jetable, comparaison des volumes. | Planifier dans SQL Agent ; conserver la sortie. |
+| NFR-05, 09 | 🏗️ | Volumétrie et hébergement : décisions DSI (docs/42-43). Aucun code ne peut les trancher. | DSI. |
+| NFR-08 | ✅ (02/10) | Spécification OpenAPI 3.1 publiée : `docs/api/openapi-v1.json` (commit bea3abb). | — |
 | §22 Recette | ⛔ | Le cahier de recette v1.4 et les guides sont prêts, mais **aucun scénario n'a été joué ni signé**. | Campagne de recette et PV. |
 | §24 Livrables | 🟡 | Conception, MOT, cahier de recette et guides : livrés. PV et documentation d'exploitation validée : manquants. | |
 
