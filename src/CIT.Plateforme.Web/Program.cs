@@ -356,6 +356,16 @@ using (var scope = app.Services.CreateScope())
     await sujets.ExecuterAsync();
 }
 
+// PARAMÉTRAGE MÉTIER : files de traitement, catégories de réclamation et pièces exigées, dans
+// TOUS les environnements (incident prod 02/10/2026 : sans elles, toute soumission échouait).
+// Strictement additif — ne crée que ce qui manque.
+using (var scope = app.Services.CreateScope())
+{
+    var parametrage = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementParametrageMetier>();
+    await parametrage.ExecuterAsync();
+}
+
 // SUPPORT IT : la file « Support IT » et les catégories d'incident de départ doivent exister dans
 // TOUS les environnements, sans quoi aucun incident technique ne peut être routé ni instruit.
 // Strictement additif — inerte dès que l'administrateur a touché au référentiel des catégories.

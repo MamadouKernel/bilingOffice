@@ -50,9 +50,9 @@ public sealed partial class DevelopmentSeeder(
         }
 
         // Données de référence : additives et idempotentes, sans effet destructif.
-        await SeedFilesAsync();
-        await SeedCategoriesReclamationAsync();
-        await SeedPiecesExigeesAsync();
+        // Paramétrage métier commun à tous les environnements (files, catégories, pièces).
+        await new ProvisionnementParametrageMetier(
+            context, Microsoft.Extensions.Logging.Abstractions.NullLogger<ProvisionnementParametrageMetier>.Instance).ExecuterAsync();
         // Les sujets de l'assistant sont amorcés (FR+EN) par ProvisionnementSujetsAssistant, seule
         // source pour tous les environnements — plus de doublon FR-only ici.
 
@@ -147,93 +147,6 @@ public sealed partial class DevelopmentSeeder(
         {
             logger.LogWarning(ex, "Erreur lors de la purge des données de test (non bloquante) : {Message}", ex.Message);
         }
-    }
-
-    /// <summary>
-    /// Initialise les 10 files de traitement opérationnelles standard.
-    /// </summary>
-    private async Task SeedFilesAsync()
-    {
-        // INCIDENT CORRIGÉ (constaté en recette manuelle) : ce seeder regroupait toutes les files
-        // Billing sous un module générique "Billing Office", alors que chaque commande de
-        // soumission (SoumettreDemandeImportCommand.Module = "BillingImport",
-        // SoumettreDemandeExportCommand.Module = "BillingExport") recherche sa file d'entrée par
-        // COUPLE (Module, Nom) exact. Résultat : la soumission d'un BL/booking échouait
-        // systématiquement en environnement fraîchement amorcé ("File « Pilote Manifeste »
-        // (module BillingImport) non paramétrée"). Chaque module Billing a donc besoin de son
-        // propre jeu de files, même quand le nom (« Facturation », « Contrôle Documentaire »...)
-        // est partagé entre Import et Export — ce sont deux files distinctes, pas une file
-        // mutualisée.
-        var files = new[]
-        {
-            (Nom: "Pilote Manifeste", Module: "BillingImport"),
-            (Nom: "Facturation", Module: "BillingImport"),
-            (Nom: "Validation Paiement", Module: "BillingImport"),
-            (Nom: "Contrôle Documentaire", Module: "BillingImport"),
-            (Nom: "Comptabilité Client", Module: "BillingImport"),
-            (Nom: "File IES", Module: "BillingImport"),
-            (Nom: "Back Office Export", Module: "BillingExport"),
-            (Nom: "Facturation", Module: "BillingExport"),
-            (Nom: "Validation Paiement", Module: "BillingExport"),
-            (Nom: "Contrôle Documentaire", Module: "BillingExport"),
-            (Nom: "Comptabilité Client", Module: "BillingExport"),
-            (Nom: "File IES", Module: "BillingExport"),
-            (Nom: "Support Opérationnel", Module: "CustomerComplaint"),
-            (Nom: "Avoir & Exonération", Module: "AvoirExoneration"),
-            (Nom: "Agent Gate", Module: "Enrolement")
-        };
-
-        foreach (var f in files)
-        {
-            if (!await context.Files.AnyAsync(x => x.Nom == f.Nom && x.Module == f.Module))
-            {
-                context.Files.Add(FileDeTraitement.Creer(f.Module, f.Nom));
-            }
-        }
-        await context.SaveChangesAsync();
-    }
-
-    /// <summary>
-    /// Initialise les catégories de réclamations standard reliées à la file Support Opérationnel.
-    /// </summary>
-
-    private async Task SeedCategoriesReclamationAsync()
-    {
-        if (!await context.CategoriesReclamation.AnyAsync())
-        {
-            var fileSupportId = await context.Files
-                .Where(f => f.Nom == "Support Opérationnel")
-                .Select(f => f.Id)
-                .FirstOrDefaultAsync();
-
-            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("FACT", "Problème de facturation", fileSupportId));
-            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("TECH", "Problème technique", fileSupportId));
-            context.CategoriesReclamation.Add(Domain.Reclamations.CategorieReclamation.Creer("INFO", "Demande d'information", fileSupportId));
-            await context.SaveChangesAsync();
-        }
-    }
-
-    /// <summary>
-    /// Initialise le référentiel des 4 pièces justificatives officielles pour les créations de compte.
-    /// </summary>
-    private async Task SeedPiecesExigeesAsync()
-    {
-        var piecesInitiales = new[]
-        {
-            (Code: "RCCM", Libelle: "Registre du Commerce et du Crédit Mobilier (RCCM)", Obligatoire: false, Ordre: 1),
-            (Code: "DFE", Libelle: "Déclaration Fiscale d'Existence (DFE / Fiche Contribuable)", Obligatoire: false, Ordre: 2),
-            (Code: "CNI_REP", Libelle: "Pièce d'Identité du Représentant Légal (CNI / Passeport)", Obligatoire: false, Ordre: 3),
-            (Code: "RIB", Libelle: "Relevé d'Identité Bancaire (RIB) Entreprise", Obligatoire: false, Ordre: 4)
-        };
-
-        foreach (var (code, libelle, obligatoire, ordre) in piecesInitiales)
-        {
-            if (!await context.PiecesExigeesCompte.AnyAsync(p => p.Code == code))
-            {
-                context.PiecesExigeesCompte.Add(PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre));
-            }
-        }
-        await context.SaveChangesAsync();
     }
 
     /// <summary>
