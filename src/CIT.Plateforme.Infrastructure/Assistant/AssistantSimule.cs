@@ -29,11 +29,14 @@ namespace CIT.Plateforme.Infrastructure.Assistant;
 /// </summary>
 public sealed class AssistantSimule(ISujetAssistantRepository sujets, ILogger<AssistantSimule> journal) : IAssistantConversationnel
 {
-    private static string Signature(bool en) => en
-        ? "\n\n(Response produced by the platform's demonstration assistant. "
-          + "The conversational assistant provider has not been selected yet.)"
-        : "\n\n(Réponse produite par l'assistant de démonstration de la plateforme. "
-          + "Le fournisseur d'assistant conversationnel n'est pas encore arbitré.)";
+    /// <summary>IA-04 — chaque réponse cite le sujet de la base de connaissances dont elle provient.</summary>
+    private static string Source(bool en, SujetAssistant sujet)
+    {
+        var nom = sujet.MotsClesListe().FirstOrDefault() ?? "?";
+        return en
+            ? $"\n\nSource: YABA knowledge base, topic « {nom} »."
+            : $"\n\nSource : base de connaissances YABA, sujet « {nom} ».";
+    }
 
     public async Task<ReponseAssistant> RepondreAsync(
         IReadOnlyList<MessageAssistant> historique, string question, CancellationToken ct = default)
@@ -42,20 +45,17 @@ public sealed class AssistantSimule(ISujetAssistantRepository sujets, ILogger<As
 
         var langue = CultureInfo.CurrentUICulture.Name;
         var en = Langue.EstAnglais(langue);
-        var normalisee = (question ?? string.Empty).ToLowerInvariant();
         var sujetsActifs = await sujets.ListerAsync(activesUniquement: true, ct).ConfigureAwait(false);
 
-        foreach (var sujet in sujetsActifs.OrderBy(s => s.Ordre))
+        var meilleur = ComprehensionQuestion.MeilleurSujet(question ?? string.Empty, sujetsActifs);
+        if (meilleur is not null)
         {
-            if (sujet.MotsClesListe().Any(m => normalisee.Contains(m.ToLowerInvariant(), StringComparison.Ordinal)))
-            {
-                return new ReponseAssistant(sujet.Texte(langue) + Signature(en), EscaladeRecommandee: false);
-            }
+            return new ReponseAssistant(meilleur.Texte(langue) + Source(en, meilleur), EscaladeRecommandee: false);
         }
 
         // IA-03 — hors des sujets de premier niveau, l'assistant passe la main plutôt que de deviner.
         journal.LogInformation(
-            "Assistant simulé : sujet non couvert, escalade recommandée après {Tours} tour(s).",
+            "Assistant : sujet non couvert, escalade recommandée après {Tours} tour(s).",
             historique.Count / 2);
 
         var incertitude = en
@@ -65,8 +65,69 @@ public sealed class AssistantSimule(ISujetAssistantRepository sujets, ILogger<As
               + "vous pouvez transmettre cet échange, il lui sera remis en entier.";
 
         return new ReponseAssistant(
-            incertitude + Signature(en),
+            incertitude,
             EscaladeRecommandee: true,
             MotifEscalade: "Question hors des sujets traités par l'assistant.");
+    }
+}
+
+/// <summary>
+/// IA-01 — compréhension du français courant SANS IA externe (décision du 02/10/2026) : la
+/// question et les mots-clés sont normalisés (casse, accents, ponctuation), les mots sont comparés
+/// entiers (« bl » ne correspond plus à « possible »), une faute de frappe est tolérée sur les mots
+/// de 5 lettres et plus, et le sujet retenu est le PLUS pertinent, plus le premier venu.
+/// ponytail: score lexical simple ; un modèle de langue local remplacerait cette classe seule.
+/// </summary>
+public static class ComprehensionQuestion
+{
+    private const int LongueurMinFauteTolere = 5;
+
+    public static SujetAssistant? MeilleurSujet(string question, IEnumerable<SujetAssistant> sujets)
+    {
+        var mots = Mots(question);
+        var texte = " " + string.Join(' ', mots) + " ";
+
+        return sujets
+            .Select(s => (Sujet: s, Score: s.MotsClesListe().Sum(m => Score(m, mots, texte))))
+            .Where(x => x.Score > 0)
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Sujet.Ordre)
+            .Select(x => x.Sujet)
+            .FirstOrDefault();
+    }
+
+    private static int Score(string motCle, IReadOnlyList<string> mots, string texte)
+    {
+        var cle = Mots(motCle);
+        if (cle.Count == 0) return 0;
+        if (cle.Count > 1) return texte.Contains(" " + string.Join(' ', cle) + " ", StringComparison.Ordinal) ? 3 : 0;
+
+        var c = cle[0];
+        if (mots.Contains(c)) return 2;
+        return c.Length >= LongueurMinFauteTolere && mots.Any(m => Math.Abs(m.Length - c.Length) <= 1 && UneErreurAuPlus(m, c)) ? 1 : 0;
+    }
+
+    internal static IReadOnlyList<string> Mots(string texte)
+    {
+        var sansAccents = new string(texte.ToLowerInvariant().Normalize(System.Text.NormalizationForm.FormD)
+            .Where(ch => CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
+            .Select(ch => char.IsLetterOrDigit(ch) ? ch : ' ')
+            .ToArray());
+        return sansAccents.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    /// <summary>Distance d'édition ≤ 1 (substitution, insertion ou suppression d'une lettre).</summary>
+    private static bool UneErreurAuPlus(string a, string b)
+    {
+        if (a.Length > b.Length) (a, b) = (b, a);
+        int i = 0, j = 0, ecarts = 0;
+        while (i < a.Length && j < b.Length)
+        {
+            if (a[i] == b[j]) { i++; j++; continue; }
+            if (++ecarts > 1) return false;
+            if (a.Length == b.Length) i++;
+            j++;
+        }
+        return ecarts + (b.Length - j) + (a.Length - i) <= 1;
     }
 }

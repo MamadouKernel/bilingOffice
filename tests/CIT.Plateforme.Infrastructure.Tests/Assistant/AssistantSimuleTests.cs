@@ -52,6 +52,45 @@ public sealed class AssistantSimuleTests
         Assert.Contains("An operator can help you", reponse.Texte);
     }
 
+    private static readonly SujetAssistant SujetImport =
+        SujetAssistant.Definir("import, bl, connaissement", "Pour un import, soumettez vos BL.", 5);
+
+    private static readonly SujetAssistant SujetReclamation =
+        SujetAssistant.Definir("réclamation, problème de facture, litige", "Créez une réclamation.", 2);
+
+    [Fact]
+    public async Task IA01_comprend_sans_accents_et_avec_une_faute_de_frappe()
+    {
+        CultureInfo.CurrentUICulture = new CultureInfo("fr-FR");
+        var assistant = Creer(SujetSuivi, SujetImport, SujetReclamation);
+
+        Assert.Contains("Créez une réclamation", (await assistant.RepondreAsync([], "je veux faire une RECLAMATION")).Texte);
+        Assert.Contains("Créez une réclamation", (await assistant.RepondreAsync([], "comment faire une reclammation ?")).Texte);
+    }
+
+    [Fact]
+    public async Task IA01_retient_le_sujet_le_plus_pertinent_et_compare_des_mots_entiers()
+    {
+        CultureInfo.CurrentUICulture = new CultureInfo("fr-FR");
+        var assistant = Creer(SujetSuivi, SujetImport, SujetReclamation);
+
+        // « possible » contient « bl » : l'ancien test par sous-chaîne répondait « import ».
+        Assert.True((await assistant.RepondreAsync([], "est-ce possible ?")).EscaladeRecommandee);
+
+        // Deux sujets évoqués : l'expression « problème de facture » pèse plus qu'un mot isolé.
+        Assert.Contains("Créez une réclamation",
+            (await assistant.RepondreAsync([], "problème de facture sur mon import")).Texte);
+    }
+
+    [Fact]
+    public async Task IA04_la_reponse_cite_sa_source()
+    {
+        CultureInfo.CurrentUICulture = new CultureInfo("fr-FR");
+        var reponse = await Creer(SujetImport).RepondreAsync([], "mon connaissement");
+
+        Assert.Contains("Source : base de connaissances YABA, sujet « import »", reponse.Texte);
+    }
+
     private sealed class RepoFake(params SujetAssistant[] sujets) : ISujetAssistantRepository
     {
         public Task<IReadOnlyList<SujetAssistant>> ListerAsync(bool activesUniquement, CancellationToken ct = default) =>
