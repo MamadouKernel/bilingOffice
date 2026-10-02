@@ -1,0 +1,158 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "CIT.Plateforme.Web | v1",
+    "version": "1.0.0",
+    "description": "API YABA v1 (NFR-08) — authentification par cookie de session, toutes les routes exigent une connexion. Document exporté depuis l'environnement de développement (non exposé en production)."
+  },
+  "servers": [
+    {
+      "url": "https://localhost:7097/"
+    }
+  ],
+  "paths": {
+    "/api/v1/tickets/{numero}": {
+      "get": {
+        "tags": [
+          "CIT.Plateforme.Web"
+        ],
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/dossiers/{reference}": {
+      "get": {
+        "tags": [
+          "CIT.Plateforme.Web"
+        ],
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/simulations/calculer": {
+      "post": {
+        "tags": [
+          "CIT.Plateforme.Web"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculerSimulationRequeteDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CalculerSimulationRequeteDto": {
+        "required": [
+          "sens",
+          "dateArrivee",
+          "dateEnlevement",
+          "conteneurs"
+        ],
+        "type": "object",
+        "properties": {
+          "sens": {
+            "type": "string"
+          },
+          "dateArrivee": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dateEnlevement": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "conteneurs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConteneurSimulationDto"
+            }
+          }
+        }
+      },
+      "ConteneurSimulationDto": {
+        "required": [
+          "taille",
+          "type",
+          "categorieMarchandise",
+          "poids",
+          "estDangereux",
+          "estHorsGabarit",
+          "estReefer"
+        ],
+        "type": "object",
+        "properties": {
+          "taille": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "categorieMarchandise": {
+            "type": "string"
+          },
+          "poids": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "estDangereux": {
+            "type": "boolean"
+          },
+          "estHorsGabarit": {
+            "type": "boolean"
+          },
+          "estReefer": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "CIT.Plateforme.Web"
+    }
+  ]
+}
