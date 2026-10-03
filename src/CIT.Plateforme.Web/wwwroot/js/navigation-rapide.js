@@ -3,16 +3,26 @@
 // compte : on ne peut atteindre que les écrans que ce compte voit déjà. Écouteurs délégués sur le
 // document (CSP sans 'unsafe-inline', et valables après la navigation améliorée de Blazor).
 (function () {
-    function routePour(champ) {
+    // Comparaison sans casse ni accents : « proforma » trouve « Simulation Proforma ».
+    function normaliser(texte) {
+        return texte.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+
+    // Libellé exact d'abord (choix dans la liste) ; sinon, à la validation par Entrée, le premier
+    // écran qui contient la saisie — quelques lettres puis Entrée suffisent.
+    function routePour(champ, partielle) {
         const liste = champ.list;
         if (!liste) { return null; }
-        const saisie = champ.value.trim().toLowerCase();
-        const option = Array.from(liste.options).find(function (o) { return o.value.toLowerCase() === saisie; });
+        const saisie = normaliser(champ.value);
+        if (!saisie) { return null; }
+        const options = Array.from(liste.options);
+        const option = options.find(function (o) { return normaliser(o.value) === saisie; })
+            || (partielle ? options.find(function (o) { return normaliser(o.value).indexOf(saisie) !== -1; }) : null);
         return option ? option.getAttribute('data-route') : null;
     }
 
-    function naviguer(champ) {
-        const route = routePour(champ);
+    function naviguer(champ, partielle) {
+        const route = routePour(champ, partielle);
         // Chemin interne uniquement : jamais d'URL absolue ni de schéma, même si le DOM était altéré.
         if (route && route.startsWith('/') && !route.startsWith('//')) {
             champ.value = '';
@@ -43,7 +53,7 @@
     document.addEventListener('keydown', function (e) {
         if (e.target.matches && e.target.matches('[data-recherche-ecran]') && e.key === 'Enter') {
             e.preventDefault();
-            naviguer(e.target);
+            naviguer(e.target, true);
             return;
         }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
