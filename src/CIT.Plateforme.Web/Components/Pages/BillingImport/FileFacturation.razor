@@ -40,7 +40,7 @@
             <option value="">@Loc["File.FilterStatusAll"]</option>
             @foreach (var statut in _statutsFiltrables)
             {
-                <option value="@statut">@statut</option>
+                <option value="@statut">@Loc[$"Statut.Ticket.{statut}"]</option>
             }
         </select>
     </div>
