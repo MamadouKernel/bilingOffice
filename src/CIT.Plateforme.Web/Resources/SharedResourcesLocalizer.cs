@@ -1965,6 +1965,12 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // ===== LOT 3 - Composants partagés (feature) =====
         ["Chrono.NoEvents"] = "Aucun événement enregistré dans la chronologie.",
         ["Chrono.By"] = "Par :",
+        ["Chrono.Ev.TicketCree"] = "Dossier créé",
+        ["Chrono.Ev.EnrolementValide"] = "Enrôlement validé",
+        ["Chrono.Ev.ConvocationDeclenchee"] = "Convocation déclenchée",
+        ["Chrono.Ev.BadgeRemisEtDossierCloture"] = "Badge remis, dossier clôturé",
+        ["Chrono.Ev.DemandeRenouvellementBadgeInitiee"] = "Demande de renouvellement du badge",
+        ["Chrono.Ev.RappelEcheanceDocument"] = "Rappel d'échéance d'un document",
         ["Zar.TitlePrefix"] = "Mes actions requises",
         ["Zar.Badge"] = "Action client requise",
 
@@ -4999,6 +5005,12 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // ===== LOT 3 - Shared feature components =====
         ["Chrono.NoEvents"] = "No event recorded in the timeline.",
         ["Chrono.By"] = "By:",
+        ["Chrono.Ev.TicketCree"] = "File created",
+        ["Chrono.Ev.EnrolementValide"] = "Enrolment approved",
+        ["Chrono.Ev.ConvocationDeclenchee"] = "Summons issued",
+        ["Chrono.Ev.BadgeRemisEtDossierCloture"] = "Badge handed over, file closed",
+        ["Chrono.Ev.DemandeRenouvellementBadgeInitiee"] = "Badge renewal requested",
+        ["Chrono.Ev.RappelEcheanceDocument"] = "Document expiry reminder",
         ["Zar.TitlePrefix"] = "My required actions",
         ["Zar.Badge"] = "Client action required",
 

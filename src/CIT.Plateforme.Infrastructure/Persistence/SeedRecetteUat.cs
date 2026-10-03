@@ -183,6 +183,7 @@ public sealed class SeedRecetteUat(
         var societes = await SeedSocietesAsync(maintenant, ct).ConfigureAwait(false);
         var (crees, presents) = await SeedComptesAsync(motDePasse!, ct).ConfigureAwait(false);
         await SeedRattachementsAsync(societes, maintenant, ct).ConfigureAwait(false);
+        await SeedPerimetreSuperviseurAsync(ct).ConfigureAwait(false);
         var tickets = await SeedDonneesMetierAsync(societes, maintenant, ct).ConfigureAwait(false);
 
         await context.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -296,6 +297,22 @@ public sealed class SeedRecetteUat(
         }
 
         return (crees, presents);
+    }
+
+    /// <summary>Sans périmètre, la supervision ne montre rien (fermée par défaut) : le superviseur de
+    /// recette reçoit un périmètre global (liste vide = toutes les files), modifiable ensuite par
+    /// l'administration.</summary>
+    private async Task SeedPerimetreSuperviseurAsync(CancellationToken ct)
+    {
+        var superviseur = await userManager.FindByEmailAsync(Superviseur).ConfigureAwait(false);
+        if (superviseur is null
+            || await context.PerimetresSupervision.AnyAsync(p => p.SuperviseurId == superviseur.Id, ct).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        context.PerimetresSupervision.Add(Domain.Supervision.PerimetreSupervision.Definir(superviseur.Id, []));
+        await context.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     private async Task SeedRattachementsAsync(

@@ -101,7 +101,7 @@ else if (_fiche is not null)
                 }
                 @if (f.PeutConstaterBadge)
                 {
-                    <button type="button" class="btn btn-outline-dark btn-sm fw-semibold" @onclick="() => _afficherFormulaireBadge = !_afficherFormulaireBadge">@Loc["FicheEnrol.BtnBadge"]</button>
+                    <button type="button" class="btn btn-outline-dark btn-sm fw-semibold @(_afficherFormulaireBadge ? "active" : null)" aria-pressed="@_afficherFormulaireBadge" @onclick="() => _afficherFormulaireBadge = !_afficherFormulaireBadge">@Loc["FicheEnrol.BtnBadge"]</button>
                 }
             </div>
 

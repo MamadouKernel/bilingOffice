@@ -1070,7 +1070,7 @@ details:not([open]) > .cit-accordion-body { display: none; }
 .btn-outline-info:hover, .btn-outline-info:focus { background: var(--info-600); border-color: var(--info-600); color: #fff; }
 
 .btn-outline-dark { color: var(--ink); border-color: var(--steel-300); background: transparent; }
-.btn-outline-dark:hover, .btn-outline-dark:focus { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.btn-outline-dark:hover, .btn-outline-dark:focus, .btn-outline-dark:active, .btn-outline-dark.active { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 
 /* Employé sur fond sombre uniquement (sélecteur d'espace du rail) */
 .btn-outline-light { color: #fff; border-color: rgba(255, 255, 255, .22); background: transparent; }

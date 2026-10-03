@@ -307,22 +307,22 @@
             @if (_resultat is not null)
             {
                 <div id="facture-proforma">
-                    <ApercuProformaFacture Sens="_resultat.Sens"
-                                           DateArrivee="_resultat.DateArrivee"
-                                           DateEnlevement="_resultat.DateEnlevementPrevisionnel"
-                                           Duree="_resultat.DureeSejourJours"
-                                           Lignes="_resultat.Lignes"
-                                           Total="_resultat.TotalGeneralXof"
-                                           MentionLegale="_resultat.MentionLegale"
-                                           GrilleLibelle="_resultat.VersionGrilleLibelle"
-                                           Navire="_nomNavire"
-                                           Voyage="_numeroVoyage"
-                                           Bl="_numeroBl"
-                                           ClientNom="_client"
-                                           TypeClient="_typeClient"
-                                           Escale="_escale"
-                                           PortChargement="_portChargement"
-                                           PortDechargement="_portDechargement" />
+                    <ApercuProformaFacture Sens="@_resultat.Sens"
+                                           DateArrivee="@_resultat.DateArrivee"
+                                           DateEnlevement="@_resultat.DateEnlevementPrevisionnel"
+                                           Duree="@_resultat.DureeSejourJours"
+                                           Lignes="@_resultat.Lignes"
+                                           Total="@_resultat.TotalGeneralXof"
+                                           MentionLegale="@_resultat.MentionLegale"
+                                           GrilleLibelle="@_resultat.VersionGrilleLibelle"
+                                           Navire="@_nomNavire"
+                                           Voyage="@_numeroVoyage"
+                                           Bl="@_numeroBl"
+                                           ClientNom="@_client"
+                                           TypeClient="@_typeClient"
+                                           Escale="@_escale"
+                                           PortChargement="@_portChargement"
+                                           PortDechargement="@_portDechargement" />
                 </div>
             }
             else if (_erreur is null)
@@ -549,7 +549,7 @@
             TailleConteneurId = IdParCode(_referentiels.Tailles, "40"),
             TypeConteneurId = IdParCode(_referentiels.Types, "REEFER"),
             CategorieMarchandiseId = IdParCode(_categoriesDuSens, "C3"),
-            PoidsTonnes = 300m,
+            PoidsTonnes = 28m,
         });
 
         await RecalculerAsync();

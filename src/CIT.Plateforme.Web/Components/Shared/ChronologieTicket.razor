@@ -19,7 +19,7 @@
 
                     <div class="cit-card p-3 mb-1">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-bold text-dark small">@ev.Evenement</span>
+                            <span class="fw-bold text-dark small">@Libelle(ev.Evenement)</span>
                             <span class="badge bg-light text-muted border font-monospace u-fs-2xs">@ev.HorodatageUtc.Horodate() UTC</span>
                         </div>
                         @if (!string.IsNullOrWhiteSpace(ev.Detail))
@@ -39,4 +39,13 @@
 @code {
     [Parameter]
     public IReadOnlyList<ChronologieItemVue> Evenements { get; set; } = new List<ChronologieItemVue>();
+
+    /// <summary>Libellé lisible d'un code d'événement : traduction si connue, sinon « CodePascal » découpé en mots.</summary>
+    private string Libelle(string code)
+    {
+        var traduit = Loc[$"Chrono.Ev.{code}"];
+        if (!traduit.ResourceNotFound) return traduit.Value;
+        var mots = System.Text.RegularExpressions.Regex.Replace(code, "(?<=[a-z0-9])(?=[A-Z])", " ").ToLowerInvariant();
+        return mots.Length == 0 ? code : char.ToUpperInvariant(mots[0]) + mots[1..];
+    }
 }
