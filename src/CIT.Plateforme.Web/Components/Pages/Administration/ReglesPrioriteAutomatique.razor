@@ -138,8 +138,8 @@ else
                         {
                             <tr>
                                 <td class="ps-4 font-monospace fw-bold text-muted">#@regle.Ordre</td>
-                                <td>@(regle.Module ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
-                                <td>@(regle.TypeDemande ?? Loc["AdmReglePrio.AnyValue"].Value)</td>
+                                <td>@(regle.Module is null ? Loc["AdmReglePrio.AnyValue"].Value : Loc.Module(regle.Module))</td>
+                                <td>@(regle.TypeDemande is null ? Loc["AdmReglePrio.AnyValue"].Value : Loc.TypeDemande(regle.TypeDemande))</td>
                                 <td>@LibelleTypeClient(regle.TypeClient)</td>
                                 <td>@LibellePriorite(regle.PrioriteId)</td>
                                 <td>

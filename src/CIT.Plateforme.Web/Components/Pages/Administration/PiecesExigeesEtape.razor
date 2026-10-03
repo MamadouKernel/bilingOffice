@@ -126,7 +126,7 @@ else
                                 <td><code>@p.Code</code></td>
                                 <td class="fw-semibold">@p.Libelle</td>
                                 <td>@p.NomEtape</td>
-                                <td>@(p.Module ?? Loc["AdmPieceE.ModuleAll"].Value)</td>
+                                <td>@(p.Module is null ? Loc["AdmPieceE.ModuleAll"].Value : Loc.Module(p.Module))</td>
                                 <td>@(p.Obligatoire ? Loc["Common.Yes"] : Loc["Common.No"])</td>
                                 <td>
                                     @if (p.EstActif)

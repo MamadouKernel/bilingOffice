@@ -96,7 +96,7 @@ else
                                 <td class="ps-3 font-monospace fw-bold text-primary">@t.NumeroTicket</td>
                                 <td>
                                     <span class="badge @(t.TypeDemande == "Avoir" ? "bg-info text-dark" : "bg-warning text-dark")">
-                                        @t.TypeDemande
+                                        @Loc.TypeDemande(t.TypeDemande)
                                     </span>
                                 </td>
                                 <td class="fw-semibold">@t.ClientNom</td>

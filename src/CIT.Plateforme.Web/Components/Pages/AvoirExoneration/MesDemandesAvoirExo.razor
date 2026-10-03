@@ -70,7 +70,7 @@ else
                             <td class="ps-3 font-monospace fw-bold text-primary">@d.NumeroTicket</td>
                             <td>
                                 <span class="badge @(d.TypeDemande == "Avoir" ? "bg-info text-dark" : "bg-warning text-dark")">
-                                    @d.TypeDemande
+                                    @Loc.TypeDemande(d.TypeDemande)
                                 </span>
                             </td>
                             <td class="fw-semibold text-truncate" style="max-width: 250px;" title="@d.Objet">@d.Objet</td>

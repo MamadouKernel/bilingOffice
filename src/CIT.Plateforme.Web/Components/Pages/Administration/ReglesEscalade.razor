@@ -133,8 +133,8 @@ else
                         {
                             <tr class="@(r.EstActive ? "" : "opacity-50")">
                                 <td class="fw-semibold">@Libelle(r.Action)</td>
-                                <td>@(r.Module ?? Loc["AdmEsc.ModuleAll"].Value)</td>
-                                <td>@(r.TypeDemande ?? Loc["AdmEsc.TypeAll"].Value)</td>
+                                <td>@(r.Module is null ? Loc["AdmEsc.ModuleAll"].Value : Loc.Module(r.Module))</td>
+                                <td>@(r.TypeDemande is null ? Loc["AdmEsc.TypeAll"].Value : Loc.TypeDemande(r.TypeDemande))</td>
                                 <td>@r.NomFile</td>
                                 <td>@r.LibellePrioriteCible</td>
                                 <td>

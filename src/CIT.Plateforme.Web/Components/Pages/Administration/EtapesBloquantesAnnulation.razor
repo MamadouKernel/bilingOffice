@@ -110,8 +110,8 @@ else
                         @foreach (var s in _pagination1.Appliquer(_seuils))
                         {
                             <tr>
-                                <td class="fw-semibold">@s.Module</td>
-                                <td>@(s.TypeDemande ?? Loc["AdmSeuil.TypeAll"].Value)</td>
+                                <td class="fw-semibold">@Loc.Module(s.Module)</td>
+                                <td>@(s.TypeDemande is null ? Loc["AdmSeuil.TypeAll"].Value : Loc.TypeDemande(s.TypeDemande))</td>
                                 <td>@s.FileNom</td>
                                 <td class="text-muted small">@s.Motif</td>
                                 <td>

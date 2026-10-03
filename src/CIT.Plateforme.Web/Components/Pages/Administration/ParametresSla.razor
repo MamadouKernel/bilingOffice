@@ -148,8 +148,8 @@ else
                         @foreach (var p in _pagination1.Appliquer(_parametres.OrderByDescending(x => x.Specificite).ThenBy(x => x.Module)))
                         {
                             <tr>
-                                <td class="fw-semibold">@p.Module</td>
-                                <td>@p.TypeDemande</td>
+                                <td class="fw-semibold">@Loc.Module(p.Module)</td>
+                                <td>@Loc.TypeDemande(p.TypeDemande)</td>
                                 <td>@NomFile(p.FileId)</td>
                                 <td>@LibellePriorite(p.PrioriteId)</td>
                                 <td class="text-end">@p.DureeCible.TotalHours.ToString("0.##") h</td>

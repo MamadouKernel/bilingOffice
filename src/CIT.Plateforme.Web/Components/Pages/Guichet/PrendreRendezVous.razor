@@ -74,7 +74,7 @@ else
                     </div>
                     <div class="mb-2">
                         <span class="text-muted small">@Loc["PrdRdv.FieldModule"]</span>
-                        <div><span class="badge bg-secondary">@_ticket.Module</span></div>
+                        <div><span class="badge bg-secondary">@Loc.Module(_ticket.Module)</span></div>
                     </div>
                     @if (!string.IsNullOrEmpty(_ticket.NumeroBl))
                     {
@@ -92,7 +92,7 @@ else
                     }
                     <div class="mb-2">
                         <span class="text-muted small">@Loc["PrdRdv.FieldStatus"]</span>
-                        <div><span class="badge bg-info text-dark">@_ticket.Statut</span></div>
+                        <div><span class="badge bg-info text-dark">@Loc.StatutTicket(_ticket.Statut)</span></div>
                     </div>
                 </div>
             </div>

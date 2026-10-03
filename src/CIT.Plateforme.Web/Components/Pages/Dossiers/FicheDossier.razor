@@ -122,8 +122,8 @@ else if (_fiche is not null)
                                 <div class="small text-muted font-monospace">@Loc["DosF.RefWord"] @t.NumeroTicket</div>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border">@t.Module</span>
-                                <span class="small text-muted ms-1">@t.TypeDemande</span>
+                                <span class="badge bg-light text-dark border">@Loc.Module(t.Module)</span>
+                                <span class="small text-muted ms-1">@Loc.TypeDemande(t.TypeDemande)</span>
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark border">@t.FileNom</span>

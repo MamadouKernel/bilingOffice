@@ -107,7 +107,7 @@ else
         <div class="card shadow border-primary mb-4">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                    @Loc["GuiRech.DossierTitle", _dossierConsulte.NumeroTicket, _dossierConsulte.Module]
+                    @Loc["GuiRech.DossierTitle", _dossierConsulte.NumeroTicket, Loc.Module(_dossierConsulte.Module)]
                 </h5>
                 <button type="button" class="btn btn-sm btn-light" @onclick="FermerDossier">@Loc["GuiRech.BtnFermerVue"]</button>
             </div>
@@ -130,7 +130,7 @@ else
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <div class="text-muted small">@Loc["GuiRech.LblStatutTicket"]</div>
-                        <span class="badge bg-info text-dark">@_dossierConsulte.Statut</span>
+                        <span class="badge bg-info text-dark">@Loc.StatutTicket(_dossierConsulte.Statut)</span>
                     </div>
                     <div class="col-md-8">
                         <div class="text-muted small">@Loc["GuiRech.LblRdvActif"]</div>
@@ -260,10 +260,10 @@ else
                                     <tr>
                                         <td class="fw-bold">@r.NumeroTicket</td>
                                         <td>@(r.NumeroDossier ?? "—")</td>
-                                        <td><span class="badge bg-secondary">@r.Module</span></td>
+                                        <td><span class="badge bg-secondary">@Loc.Module(r.Module)</span></td>
                                         <td>@r.ClientNom</td>
                                         <td class="text-primary fw-bold">@(r.ReferenceBlOuBooking ?? "—")</td>
-                                        <td><span class="badge bg-info text-dark">@r.StatutTicket</span></td>
+                                        <td><span class="badge bg-info text-dark">@Loc.StatutTicket(r.StatutTicket)</span></td>
                                         <td>
                                             @if (r.PossedeRendezVousActif)
                                             {

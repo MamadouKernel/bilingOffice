@@ -110,7 +110,7 @@ else if (_dashboard is not null)
                                     </a>
                                 </td>
                                 <td class="text-muted small">@d.DateCreationUtc.Horodate()</td>
-                                <td><span class="badge bg-light text-dark border">@d.Module</span></td>
+                                <td><span class="badge bg-light text-dark border">@Loc.Module(d.Module)</span></td>
                                 <td>
                                     @if (d.Tickets.Count == 0)
                                     {

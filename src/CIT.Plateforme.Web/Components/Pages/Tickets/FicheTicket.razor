@@ -200,7 +200,7 @@
                         </li>
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">@Loc["Ticket.ModuleLabel"]</span>
-                            <span class="fw-semibold">@_fiche.Module</span>
+                            <span class="fw-semibold">@Loc.Module(_fiche.Module)</span>
                         </li>
                         @if (_fiche.Module == "CustomerComplaint" && !string.IsNullOrWhiteSpace(_fiche.CategorieReclamationLibelle))
                         {
@@ -324,7 +324,7 @@
                                 <a href="@($"/tickets/{liaison.TicketId}")" class="text-decoration-none fw-semibold">
                                     @liaison.Numero
                                 </a>
-                                <span class="small text-muted">@liaison.Module · @liaison.Statut</span>
+                                <span class="small text-muted">@Loc.Module(liaison.Module) · @Loc.StatutTicket(liaison.Statut)</span>
                             </li>
                         }
                     </ul>

@@ -95,8 +95,8 @@ else
                         {
                             <tr>
                                 <td class="ps-4 font-monospace fw-bold text-muted">@archive.Numero</td>
-                                <td>@archive.Module</td>
-                                <td>@archive.Statut</td>
+                                <td>@Loc.Module(archive.Module)</td>
+                                <td>@Loc.StatutTicket(archive.Statut)</td>
                                 <td>@archive.DateArchivageUtc.Horodate()</td>
                                 <td class="text-end pe-4">
                                     @if (archive.EstAnonymise)
