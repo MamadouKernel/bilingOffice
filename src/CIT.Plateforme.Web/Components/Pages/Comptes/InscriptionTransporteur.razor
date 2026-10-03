@@ -8,6 +8,8 @@
 @using Microsoft.Extensions.Localization
 @inject UserManager<ApplicationUser> UserManager
 @inject InscrireTransporteurCommand InscrireTransporteur
+@inject CIT.Plateforme.Web.Services.PasserelleConnexionInitiale Passerelle
+@inject NavigationManager Navigation
 @inject IStringLocalizer<SharedResources> Loc
 
 <PageTitle>@Loc["Account.CarrierPageTitle"]</PageTitle>
@@ -244,6 +246,10 @@
         {
             await InscrireTransporteur.ExecuterAsync(transporteur.Id);
             _termine = true;
+
+            // Aucune validation CIT n'est requise : session ouverte d'emblée, direction le tableau
+            // de bord (la page interactive ne peut pas poser le cookie, d'où la passerelle).
+            Navigation.NavigateTo($"/comptes/connexion-initiale/{Passerelle.Emettre(transporteur.Id)}", forceLoad: true);
         }
         catch (Exception ex)
         {

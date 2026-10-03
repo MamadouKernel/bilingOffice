@@ -116,6 +116,11 @@ else
 builder.Services.AddSingleton<CIT.Plateforme.Application.Abstractions.INotificateurTempsReel>(
     sp => sp.GetRequiredService<CIT.Plateforme.Web.Services.ISignalSupervision>());
 
+// Connexion automatique juste après la création d'un compte sans validation CIT (transporteur,
+// collaborateur invité) : voir PasserelleConnexionInitiale et /comptes/connexion-initiale.
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<CIT.Plateforme.Web.Services.PasserelleConnexionInitiale>();
+
 // Localisation bilingue (NFR-07) : fr-FR par défaut, en-US secondaire
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddSingleton<IStringLocalizer<SharedResources>, SharedResourcesLocalizer>();
@@ -366,6 +371,15 @@ using (var scope = app.Services.CreateScope())
     await parametrage.ExecuterAsync();
 }
 
+// NOTIFICATIONS : règles de diffusion et modèles de départ, dans TOUS les environnements (sans
+// elles, aucune notification n'est émise). Inerte dès qu'une règle existe.
+using (var scope = app.Services.CreateScope())
+{
+    var notifications = scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementNotifications>();
+    await notifications.ExecuterAsync();
+}
+
 // SUPPORT IT : la file « Support IT » et les catégories d'incident de départ doivent exister dans
 // TOUS les environnements, sans quoi aucun incident technique ne peut être routé ni instruit.
 // Strictement additif — inerte dès que l'administrateur a touché au référentiel des catégories.
@@ -463,6 +477,31 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// CONNEXION À LA CRÉATION DU COMPTE — consomme le jeton à usage unique émis par l'écran de
+// création, applique LA MÊME règle d'accès que la connexion par mot de passe (compte actif,
+// rattachement société pour un client), ouvre la session et mène au tableau de bord. Tout échec
+// renvoie simplement vers l'écran de connexion, sans rien révéler.
+app.MapGet("/comptes/connexion-initiale/{jeton}", async (
+    string jeton,
+    CIT.Plateforme.Web.Services.PasserelleConnexionInitiale passerelle,
+    SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,
+    UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
+    CIT.Plateforme.Application.Comptes.RegleAccesConnexion regleAcces,
+    CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    HttpContext contexteHttp) =>
+{
+    if (passerelle.Consommer(jeton) is not Guid utilisateurId
+        || await userManager.FindByIdAsync(utilisateurId.ToString()) is not { } utilisateur
+        || !await regleAcces.AccesAutoriseAsync(utilisateur.Id, utilisateur.Nature, utilisateur.EstActif))
+    {
+        return Results.Redirect("/comptes/connexion");
+    }
+
+    await signInManager.SignInAsync(utilisateur, isPersistent: false);
+    await journalConnexion.ConnexionReussieAsync(utilisateur.Id, contexteHttp.Connection.RemoteIpAddress?.ToString());
+    return Results.Redirect("/");
+});
 
 app.MapPost("/comptes/deconnexion", async (
     SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,

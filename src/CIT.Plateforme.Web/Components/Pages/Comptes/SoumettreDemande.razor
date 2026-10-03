@@ -116,10 +116,11 @@
                                     <span class="small text-muted d-block mb-1">@Loc["Account.TrackingNumberLabel"]</span>
                                     <code class="fs-6 fw-bold text-primary font-monospace">@societeCreee</code>
                                 </div>
-                                <div>
-                                    <a href="/comptes/connexion" class="btn btn-success px-4 py-2 fw-bold shadow-sm rounded-pill">
-                                        @Loc["Account.GoToLogin"] ➔
-                                    </a>
+                                @* CPT-01 : le compte n'est actif qu'après validation par CIT. Proposer « Se
+                                   connecter » ici menait à un refus déroutant ; le demandeur est prévenu
+                                   par e-mail de la décision. *@
+                                <div class="alert alert-info border-0 small mb-0 text-start" role="status">
+                                    📧 @Loc["Account.CompanyPendingActivation"]
                                 </div>
                             </div>
                         }

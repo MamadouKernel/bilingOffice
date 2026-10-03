@@ -8,6 +8,7 @@
 @inject AccepterInvitationCommand AccepterInvitationCommande
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
+@inject CIT.Plateforme.Web.Services.PasserelleConnexionInitiale Passerelle
 @using CIT.Plateforme.Web.Resources
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
@@ -131,6 +132,10 @@
         {
             await AccepterInvitationCommande.ExecuterAsync(Jeton, collaborateur.Id, _invitation.Email);
             _termine = true;
+
+            // L'invitation prouve déjà l'identité et la société est validée : session ouverte
+            // d'emblée, direction le tableau de bord.
+            Navigation.NavigateTo($"/comptes/connexion-initiale/{Passerelle.Emettre(collaborateur.Id)}", forceLoad: true);
         }
         catch (Exception ex)
         {

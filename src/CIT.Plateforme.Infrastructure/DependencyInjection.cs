@@ -209,6 +209,7 @@ public static class DependencyInjection
         // Support IT : file « Support IT » + catégories d'incident de départ (additif).
         services.AddScoped<Persistence.ProvisionnementSupportIt>();
         services.AddScoped<Persistence.ProvisionnementParametrageMetier>();
+        services.AddScoped<Persistence.ProvisionnementNotifications>();
         services.AddScoped<AttenteClientCommand>();
         services.AddScoped<RelancesAbsenceReponseUseCase>();
         services.AddHostedService<TraitementsDeFond.RelancesAbsenceReponseService>();
