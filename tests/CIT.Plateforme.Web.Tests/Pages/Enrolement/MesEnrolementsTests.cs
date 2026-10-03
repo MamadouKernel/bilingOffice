@@ -61,6 +61,31 @@ public sealed class MesEnrolementsTests : BunitContext
         Assert.DoesNotContain("ENR-B", cut.Markup);
     }
 
+    /// <summary>03/10/2026 : un compte transporteur INDIVIDUEL (sans société) est invité à ouvrir
+    /// le compte de son entreprise ; un membre de société ne voit pas ce bandeau.</summary>
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public void Le_bandeau_de_bascule_ne_s_affiche_que_pour_un_compte_individuel(bool aUneSociete, bool bandeauAttendu)
+    {
+        var db = new PlateformeDbContext(new DbContextOptionsBuilder<PlateformeDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var fakeContexte = new FakeContexteUtilisateurWeb();
+        fakeContexte.Contexte = fakeContexte.Contexte with
+        {
+            UtilisateurId = Guid.NewGuid(),
+            Nature = NatureUtilisateur.Client,
+            EstAuthentifie = true,
+            EspaceActif = EspaceFonctionnel.Client,
+            SocieteId = aUneSociete ? Guid.NewGuid() : null,
+        };
+        Services.AddSingleton<IContexteUtilisateurWeb>(fakeContexte);
+        Services.AddSingleton(new ListerMesEnrolementsQuery(new DossierRepository(db), new TicketRepository(db)));
+
+        var cut = Render<MesEnrolements>();
+
+        Assert.Equal(bandeauAttendu, cut.Markup.Contains("/comptes/soumettre?profil=Transporteur"));
+    }
+
     [Fact]
     public void AucunEnrolement_AfficheEtatVide()
     {

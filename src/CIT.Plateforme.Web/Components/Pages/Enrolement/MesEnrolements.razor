@@ -29,6 +29,16 @@
     </div>
 </div>
 
+@if (_compteIndividuel)
+{
+    @* Décision du 03/10/2026 : les transporteurs passent désormais par un compte ENTREPRISE validé
+       par CIT. Les comptes individuels existants restent utilisables ; ils sont invités à basculer. *@
+    <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+        <div><strong>@Loc["EnrolList.MigrationTitre"]</strong> @Loc["EnrolList.MigrationTexte"]</div>
+        <a href="/comptes/soumettre?profil=Transporteur" class="btn btn-warning btn-sm fw-semibold text-dark">@Loc["EnrolList.MigrationCta"]</a>
+    </div>
+}
+
 @if (_messageRenouvellement is not null)
 {
     @* Message local : _erreur remplace toute la page, et un renouvellement qui échoue ne doit
@@ -103,6 +113,7 @@ else
     private string? _erreur;
     private IReadOnlyList<Ticket> _enrolements = [];
     private Guid _utilisateurId;
+    private bool _compteIndividuel;
     private Guid? _renouvellementEnCours;
     private string? _messageRenouvellement;
     private bool _renouvellementEchoue;
@@ -119,6 +130,7 @@ else
             }
 
             _utilisateurId = contexte.UtilisateurId;
+            _compteIndividuel = contexte.SocieteId is null;
             _enrolements = await ListerMesEnrolements.ExecuterAsync(contexte.UtilisateurId);
         }
         catch (Exception ex)
