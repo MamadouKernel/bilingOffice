@@ -460,6 +460,7 @@
                                                 <th>@Loc["Ticket.ColType"]</th>
                                                 <th>@Loc["Ticket.ColSize"]</th>
                                                 <th>@Loc["Ticket.ColDepositDate"]</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -470,6 +471,7 @@
                                                     <td><span class="badge bg-secondary">@doc.TypeContenu</span></td>
                                                     <td>@((doc.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
                                                     <td class="small text-muted">@doc.DateDepotUtc.Horodate()</td>
+                                                    <td class="text-end"><ActionsDocument DocumentId="doc.Id" NomFichier="@doc.NomFichier" TypeContenu="@doc.TypeContenu" /></td>
                                                 </tr>
                                             }
                                         </tbody>

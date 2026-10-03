@@ -164,6 +164,30 @@ public sealed class ObtenirFicheTicketQueryTests
         Assert.Equal("Le montant facturé ne correspond pas au devis signé.", fiche.Description);
     }
 
+    [Fact]
+    public async Task Le_depot_de_piece_n_est_propose_a_un_agent_que_s_il_peut_deposer()
+    {
+        var (db, query, socId, clientUserId, agentUserId) = ConstruireContexte();
+        var fileId = Guid.NewGuid();
+        var file = FileDeTraitement.Creer("BillingImport", "Pilote Manifeste");
+        typeof(FileDeTraitement).GetProperty("Id")!.SetValue(file, fileId);
+        db.Files.Add(file);
+        var dossier = Dossier.Creer("DOS-DEP-01", socId, DateTime.UtcNow, clientUserId);
+        var ticket = Ticket.Creer("TCK-DEP-01", "BillingImport", "Import", fileId, dossier.Id, DateTime.UtcNow);
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentUserId, Permission.TicketPrendreEnCharge, fileId));
+        await db.SaveChangesAsync();
+
+        // L'écran ne propose pas une action que le dépôt refuserait ensuite.
+        Assert.False((await query.ExecuterAsync(agentUserId, ticket.Id)).PeutDeposerDocument);
+
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentUserId, Permission.DocumentDeposer, fileId));
+        await db.SaveChangesAsync();
+        Assert.True((await query.ExecuterAsync(agentUserId, ticket.Id)).PeutDeposerDocument);
+        Assert.True((await query.ExecuterAsync(clientUserId, ticket.Id)).PeutDeposerDocument);
+    }
+
     // T030 (closure-review.md "DÉCISION FINALE T030 / REC-02") — critère E : désactiver une
     // catégorie ne doit jamais rendre illisibles les tickets historiques qui la référencent.
     [Fact]

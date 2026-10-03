@@ -56,6 +56,7 @@ public sealed class SoumettreDemandeAvoirExonerationCommand
     private readonly ILiaisonTicketRepository _liaisonRepo;
     private readonly IDocumentRepository _documentRepo;
     private readonly IStockageDocuments _stockage;
+    private readonly IAnalyseAntivirus _antivirus;
     private readonly IUtilisateurSocieteRepository _utilisateurSocieteRepo;
     private readonly IServiceNumerotation _numerotation;
     private readonly IJournalisationService _journalisation;
@@ -70,6 +71,7 @@ public sealed class SoumettreDemandeAvoirExonerationCommand
         ILiaisonTicketRepository liaisonRepo,
         IDocumentRepository documentRepo,
         IStockageDocuments stockage,
+        IAnalyseAntivirus antivirus,
         IUtilisateurSocieteRepository utilisateurSocieteRepo,
         IServiceNumerotation numerotation,
         IJournalisationService journalisation,
@@ -83,6 +85,7 @@ public sealed class SoumettreDemandeAvoirExonerationCommand
         _liaisonRepo = liaisonRepo;
         _documentRepo = documentRepo;
         _stockage = stockage;
+        _antivirus = antivirus;
         _utilisateurSocieteRepo = utilisateurSocieteRepo;
         _numerotation = numerotation;
         _journalisation = journalisation;
@@ -147,17 +150,8 @@ public sealed class SoumettreDemandeAvoirExonerationCommand
         // Sauvegarde des pièces jointes
         foreach (var piece in requete.PiecesJointes)
         {
-            using var stream = new MemoryStream(piece.Contenu);
-            var cleStockage = await _stockage.EnregistrerAsync(stream, piece.NomFichier, ct);
-            var document = Document.Deposer(
-                ticket.Id,
-                demandeurId,
-                piece.NomFichier,
-                piece.TypeContenu,
-                piece.Contenu.LongLength,
-                cleStockage,
-                maintenantUtc);
-
+            var document = await PiecesAvoirExo.StockerEtAnalyserAsync(
+                _stockage, _antivirus, ticket.Id, demandeurId, piece.NomFichier, piece.TypeContenu, piece.Contenu, maintenantUtc, ct);
             await _documentRepo.AjouterAsync(document, ct);
         }
 
@@ -367,6 +361,7 @@ public sealed class DeciderDemandeAvoirExoCommand
     private readonly ITicketRepository _ticketRepo;
     private readonly IDocumentRepository _documentRepo;
     private readonly IStockageDocuments _stockage;
+    private readonly IAnalyseAntivirus _antivirus;
     private readonly IJournalisationService _journalisation;
     private readonly IHorloge _horloge;
     private readonly IAutorisationService _autorisation;
@@ -376,6 +371,7 @@ public sealed class DeciderDemandeAvoirExoCommand
         ITicketRepository ticketRepo,
         IDocumentRepository documentRepo,
         IStockageDocuments stockage,
+        IAnalyseAntivirus antivirus,
         IJournalisationService journalisation,
         IHorloge horloge,
         IAutorisationService autorisation,
@@ -384,6 +380,7 @@ public sealed class DeciderDemandeAvoirExoCommand
         _ticketRepo = ticketRepo;
         _documentRepo = documentRepo;
         _stockage = stockage;
+        _antivirus = antivirus;
         _journalisation = journalisation;
         _horloge = horloge;
         _autorisation = autorisation;
@@ -413,17 +410,9 @@ public sealed class DeciderDemandeAvoirExoCommand
         // Dépôt du document officiel de décision si présent (AVE-03)
         if (requete.DocumentDecision != null && requete.DocumentDecision.Contenu.Length > 0)
         {
-            using var stream = new MemoryStream(requete.DocumentDecision.Contenu);
-            var cleStockage = await _stockage.EnregistrerAsync(stream, requete.DocumentDecision.NomFichier, ct);
-            var document = Document.Deposer(
-                ticket.Id,
-                agentId,
-                requete.DocumentDecision.NomFichier,
-                requete.DocumentDecision.TypeContenu,
-                requete.DocumentDecision.Contenu.LongLength,
-                cleStockage,
-                maintenantUtc);
-
+            var document = await PiecesAvoirExo.StockerEtAnalyserAsync(
+                _stockage, _antivirus, ticket.Id, agentId, requete.DocumentDecision.NomFichier,
+                requete.DocumentDecision.TypeContenu, requete.DocumentDecision.Contenu, maintenantUtc, ct);
             await _documentRepo.AjouterAsync(document, ct);
         }
 
@@ -483,5 +472,26 @@ public sealed class DeciderDemandeAvoirExoCommand
 
         await _journalisation.PublierEvenementAsync(eventName, payload, ct);
         await _uniteDeTravail.EnregistrerAsync(ct);
+    }
+}
+
+/// <summary>
+/// SEC-07 : une pièce du module Avoir &amp; Exonération est analysée par l'antivirus avant d'être
+/// accessible, comme toute pièce déposée sur un ticket. Sans cela elle restait « non analysée »,
+/// donc illisible pour l'agent qui instruit la demande.
+/// </summary>
+internal static class PiecesAvoirExo
+{
+    public static async Task<Document> StockerEtAnalyserAsync(
+        IStockageDocuments stockage, IAnalyseAntivirus antivirus, Guid ticketId, Guid deposantId,
+        string nomFichier, string typeContenu, byte[] contenu, DateTime maintenantUtc, CancellationToken ct)
+    {
+        using var flux = new MemoryStream(contenu);
+        var cle = await stockage.EnregistrerAsync(flux, nomFichier, ct);
+        var document = Document.Deposer(ticketId, deposantId, nomFichier, typeContenu, contenu.LongLength, cle, maintenantUtc);
+
+        flux.Position = 0;
+        document.MarquerResultatAntivirus(await antivirus.AnalyserAsync(flux, ct));
+        return document;
     }
 }

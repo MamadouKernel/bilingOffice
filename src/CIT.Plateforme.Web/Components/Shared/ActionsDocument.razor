@@ -1,0 +1,109 @@
+@using CIT.Plateforme.Application.Documents
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+@inject Microsoft.JSInterop.IJSRuntime Js
+
+@* Lire une pièce sans quitter l'écran : « Ouvrir » (aperçu dans l'application) et « Télécharger ».
+   Mêmes contrôles qu'à l'écran des documents (SEC-12) : la voie client ou agent est décidée par
+   la nature de l'utilisateur authentifié, jamais par un paramètre. *@
+<div class="btn-group btn-group-sm">
+    <button type="button" class="btn btn-primary" @onclick="OuvrirAsync" disabled="@_chargement">
+        👁 @Loc["Preview.Open"]
+    </button>
+    <button type="button" class="btn btn-outline-primary" @onclick="TelechargerAsync" disabled="@_chargement">
+        @(_chargement ? Loc["Docs.Preparing"].Value : Loc["Docs.Download"].Value)
+    </button>
+</div>
+@if (_erreur is not null)
+{
+    <div class="small text-danger mt-1" role="alert">@_erreur</div>
+}
+
+<ApercuDocument EstOuvert="@_apercuOuvert"
+                NomFichier="@NomFichier"
+                TypeContenu="@TypeContenu"
+                Base64="@_base64"
+                OnFermer="Fermer"
+                OnTelecharger="TelechargerDepuisApercuAsync" />
+
+@code {
+    [Parameter, EditorRequired] public Guid DocumentId { get; set; }
+    [Parameter, EditorRequired] public string NomFichier { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string TypeContenu { get; set; } = string.Empty;
+
+    private bool _chargement;
+    private bool _apercuOuvert;
+    private string? _base64;
+    private string? _erreur;
+
+    private async Task<string> LireAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        using var scope = ScopeFactory.CreateScope();
+        var telecharger = scope.ServiceProvider.GetRequiredService<TelechargerDocumentQuery>();
+
+        await using var flux = contexte.Nature == NatureUtilisateur.Client
+            ? await telecharger.TelechargerPourClientAsync(contexte.UtilisateurId, DocumentId)
+            : await telecharger.TelechargerPourAgentAsync(contexte.UtilisateurId, DocumentId);
+
+        await using var memoire = new MemoryStream();
+        await flux.CopyToAsync(memoire);
+        return Convert.ToBase64String(memoire.ToArray());
+    }
+
+    private async Task ExecuterAsync(Func<Task> action)
+    {
+        _erreur = null;
+        _chargement = true;
+        try
+        {
+            await action();
+        }
+        catch (Exception ex) when (ex is AccesRefuseException or DocumentNonAccessibleException)
+        {
+            _apercuOuvert = false;
+            _erreur = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _apercuOuvert = false;
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private Task OuvrirAsync() => ExecuterAsync(async () =>
+    {
+        _apercuOuvert = true;
+        _base64 = null; // indicateur de chargement dans la fenêtre
+        StateHasChanged();
+        _base64 = await LireAsync();
+    });
+
+    private Task TelechargerAsync() => ExecuterAsync(async () =>
+        await Js.InvokeVoidAsync("telechargerFichier", NomFichier, TypeContenu, await LireAsync()));
+
+    private async Task TelechargerDepuisApercuAsync()
+    {
+        if (_base64 is not null)
+        {
+            await Js.InvokeVoidAsync("telechargerFichier", NomFichier, TypeContenu, _base64);
+        }
+    }
+
+    private void Fermer()
+    {
+        _apercuOuvert = false;
+        _base64 = null;
+    }
+}

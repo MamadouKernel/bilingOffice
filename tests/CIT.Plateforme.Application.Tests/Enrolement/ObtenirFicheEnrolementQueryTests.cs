@@ -91,6 +91,31 @@ public sealed class ObtenirFicheEnrolementQueryTests
         Assert.True(fiche.PeutConstaterBadge);
     }
 
+    [Fact]
+    public async Task Le_depot_de_piece_n_est_propose_a_un_agent_que_s_il_peut_deposer()
+    {
+        var db = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var transporteurId = Guid.NewGuid();
+        var agentSansDepot = Guid.NewGuid();
+        var agentAvecDepot = Guid.NewGuid();
+
+        var dossier = Dossier.Creer("DOS-ENR-000004", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, transporteurId, CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client), horloge.MaintenantUtc);
+        var ticket = Ticket.Creer("TCK-ENR-000004", "Enrolement", "Enrolement", Guid.NewGuid(), dossier.Id, horloge.MaintenantUtc);
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentSansDepot), Permission.EnrolementInstruire, ticket.FileCouranteId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentAvecDepot), Permission.EnrolementInstruire, ticket.FileCouranteId));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, agentAvecDepot), Permission.DocumentDeposer, null));
+        await db.SaveChangesAsync();
+
+        var query = ConstruireQuery(db);
+
+        // L'écran ne propose pas une action que le dépôt refuserait ensuite.
+        Assert.False((await query.ExecuterAsync(agentSansDepot, ticket.Id)).PeutDeposerDocument);
+        Assert.True((await query.ExecuterAsync(agentAvecDepot, ticket.Id)).PeutDeposerDocument);
+    }
+
     private static ObtenirFicheEnrolementQuery ConstruireQuery(PlateformeDbContext db)
     {
         var ticketRepo = new TicketRepository(db);

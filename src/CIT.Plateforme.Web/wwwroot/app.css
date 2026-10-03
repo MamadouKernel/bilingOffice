@@ -1404,6 +1404,9 @@ textarea.form-control { min-height: 5rem; line-height: 1.55; }
     animation: cit-pop var(--dur-base, 220ms) var(--ease-out, ease) both;
 }
 .cit-apercu:focus { outline: none; }
+/* Conteneur <dialog> de l'aperçu : transparent et plein écran, le voile et la carte gardent leur style. */
+dialog.cit-apercu-dialogue { padding: 0; margin: 0; border: 0; background: transparent; width: 100vw; height: 100vh; max-width: none; max-height: none; overflow: visible; }
+dialog.cit-apercu-dialogue::backdrop { background: transparent; }
 .cit-apercu-entete { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .625rem 1rem; border-bottom: 1px solid var(--line); }
 .cit-apercu-titre { font-size: .95rem; font-weight: 700; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cit-apercu-corps { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; background: var(--surface-sunken); overflow: auto; }

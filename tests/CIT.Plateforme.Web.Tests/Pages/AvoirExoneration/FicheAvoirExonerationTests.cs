@@ -92,7 +92,7 @@ public sealed class FicheAvoirExonerationTests : BunitContext
 
         var prendreEnChargeCmd = new PrendreEnChargeAvoirExoCommand(ticketRepo, journalisation, horloge, auto, uow);
         var demanderComplementCmd = new DemanderComplementAvoirExoCommand(ticketRepo, journalisation, horloge, auto, uow);
-        var deciderCmd = new DeciderDemandeAvoirExoCommand(ticketRepo, docRepo, stockage, journalisation, horloge, auto, uow);
+        var deciderCmd = new DeciderDemandeAvoirExoCommand(ticketRepo, docRepo, stockage, Moq.Mock.Of<CIT.Plateforme.Domain.Documents.IAnalyseAntivirus>(), journalisation, horloge, auto, uow);
 
         Services.AddSingleton(ficheQuery);
         Services.AddSingleton(prendreEnChargeCmd);

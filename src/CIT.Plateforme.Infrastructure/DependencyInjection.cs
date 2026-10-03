@@ -193,6 +193,7 @@ public static class DependencyInjection
         services.AddScoped<Persistence.ProvisionnementReferentiels>();
         // Aide contextuelle (bouton « ? »).
         services.AddScoped<Persistence.ProvisionnementAide>();
+        services.AddScoped<Persistence.RattrapageAnalyseAntivirus>();
         services.AddScoped<Application.Aide.IArticleAideRepository, Persistence.ArticleAideRepository>();
         services.AddScoped<Application.Aide.ObtenirAideContextuelleQuery>();
         services.AddScoped<Application.Aide.ConsulterCentreAideQuery>();

@@ -91,7 +91,7 @@ public sealed class NouvelleDemandeAvoirExoTests : BunitContext
 
         var soumettreCmd = new SoumettreDemandeAvoirExonerationCommand(
             ticketRepo, dossierRepo, fileRepo, liaisonRepo, docRepo,
-            stockage, userSocRepo, numerotation, journalisation, horloge, auto, uow);
+            stockage, Moq.Mock.Of<CIT.Plateforme.Domain.Documents.IAnalyseAntivirus>(), userSocRepo, numerotation, journalisation, horloge, auto, uow);
 
         Services.AddSingleton(soumettreCmd);
 

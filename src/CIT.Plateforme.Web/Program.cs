@@ -331,6 +331,11 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementAide>()
         .ExecuterAsync();
+    // SEC-07 : pièces restées « non analysées » (stockées hors du dépôt standard) analysées
+    // avant d'être lisibles. Idempotent, borné, sans blocage du démarrage en cas d'échec.
+    await scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.RattrapageAnalyseAntivirus>()
+        .ExecuterAsync();
 }
 
 // SIM-06 / Annexe A.6 : les référentiels tarifaires (sens, taille, type, catégorie de

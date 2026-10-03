@@ -14,6 +14,7 @@ public sealed class DeciderAvoirExoTests
     private readonly Mock<ITicketRepository> _ticketRepo = new();
     private readonly Mock<IDocumentRepository> _documentRepo = new();
     private readonly Mock<IStockageDocuments> _stockage = new();
+    private readonly Mock<IAnalyseAntivirus> _antivirus = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
     private readonly Mock<IHorloge> _horloge = new();
     private readonly Mock<IAutorisationService> _autorisation = new();
@@ -30,12 +31,14 @@ public sealed class DeciderAvoirExoTests
             _ticketRepo.Object,
             _documentRepo.Object,
             _stockage.Object,
+            _antivirus.Object,
             _journalisation.Object,
             _horloge.Object,
             _autorisation.Object,
             _uniteDeTravail.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(_maintenantUtc);
+        _antivirus.Setup(a => a.AnalyserAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>())).ReturnsAsync(StatutAnalyseAntivirus.Sain);
         // AVE-02 (remédiation) : la permission de décision est propre au type de demande.
         _autorisation.Setup(a => a.EstAutoriseAsync(_agentId, Permission.AvoirDecider, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);

@@ -19,6 +19,7 @@ public sealed class SoumettreDemandeAvoirExoTests
     private readonly Mock<ILiaisonTicketRepository> _liaisonRepo = new();
     private readonly Mock<IDocumentRepository> _documentRepo = new();
     private readonly Mock<IStockageDocuments> _stockage = new();
+    private readonly Mock<IAnalyseAntivirus> _antivirus = new();
     private readonly Mock<IUtilisateurSocieteRepository> _utilisateurSocieteRepo = new();
     private readonly Mock<IServiceNumerotation> _numerotation = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
@@ -41,6 +42,7 @@ public sealed class SoumettreDemandeAvoirExoTests
             _liaisonRepo.Object,
             _documentRepo.Object,
             _stockage.Object,
+            _antivirus.Object,
             _utilisateurSocieteRepo.Object,
             _numerotation.Object,
             _journalisation.Object,
@@ -49,6 +51,7 @@ public sealed class SoumettreDemandeAvoirExoTests
             _uniteDeTravail.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(_maintenantUtc);
+        _antivirus.Setup(a => a.AnalyserAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>())).ReturnsAsync(StatutAnalyseAntivirus.Sain);
         _numerotation.Setup(n => n.ProchainNumeroTicketAsync("AvoirExoneration", "Avoir", It.IsAny<CancellationToken>()))
             .ReturnsAsync("AVO-2026-00001");
         _numerotation.Setup(n => n.ProchainNumeroTicketAsync("AvoirExoneration", "Exoneration", It.IsAny<CancellationToken>()))
@@ -98,8 +101,9 @@ public sealed class SoumettreDemandeAvoirExoTests
                 tck.Statut == StatutTicket.EnAttenteDePriseEnCharge),
             It.IsAny<CancellationToken>()), Times.Once);
 
+        // SEC-07 : la pièce jointe est analysée par l'antivirus avant d'être accessible.
         _documentRepo.Verify(d => d.AjouterAsync(
-            It.IsAny<Document>(),
+            It.Is<Document>(doc => doc.StatutAntivirus == StatutAnalyseAntivirus.Sain),
             It.IsAny<CancellationToken>()), Times.Once);
 
         _journalisation.Verify(j => j.PublierEvenementAsync(

@@ -14,6 +14,14 @@ window.apercuDocument = (() => {
         return new Blob([tampon], { type: typeContenu });
     };
     return {
+        // Ouvre la fenêtre d'aperçu en modal natif (couche supérieure) ; Échap reste géré par le
+        // composant Blazor, qui retire la fenêtre — le navigateur ne la ferme pas de lui-même.
+        afficher(dialogueId) {
+            const dialogue = document.getElementById(dialogueId);
+            if (!dialogue || dialogue.open) { return; }
+            dialogue.addEventListener('cancel', (e) => e.preventDefault());
+            dialogue.showModal();
+        },
         ouvrir(elementId, typeContenu, base64) {
             const element = document.getElementById(elementId);
             if (!element) { return; }

@@ -149,6 +149,7 @@ else if (_fiche is not null)
                                     <div class="fw-semibold">📄 @doc.NomFichier</div>
                                     <div class="text-muted small">@Loc["FicheAvoirExo.DocCategory"] @doc.Categorie • @(doc.TailleOctets / 1024) @Loc["Common.KoUnit"] • @Loc["FicheAvoirExo.DocDepositedOn"] @doc.DateDepotUtc.Horodate()</div>
                                 </div>
+                                <ActionsDocument DocumentId="doc.Id" NomFichier="@doc.NomFichier" TypeContenu="@doc.TypeContenu" />
                             </div>
                         }
                     </div>

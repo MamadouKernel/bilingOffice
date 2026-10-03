@@ -146,7 +146,10 @@ public sealed class ObtenirFicheTicketQuery(
         bool peutCloturer = !estClient && ticket.Statut == StatutTicket.EnCours && aDroitCloturer;
         bool peutAnnuler = estClient && ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule && !ticket.EstEnEtatEngageant;
         bool peutAjouterMessage = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
-        bool peutDeposerDocument = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
+        // Un agent ne se voit proposer le dépôt que s'il détient DocumentDeposer sur la file : sinon
+        // l'écran offrirait une action que le dépôt refuserait aussitôt.
+        bool aDroitDepot = estClient || habilitations.Any(h => h.PermissionCode == Permission.DocumentDeposer && (h.FileId == null || h.FileId == ticket.FileCouranteId));
+        bool peutDeposerDocument = aDroitDepot && ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
 
         // IMP-10 — la demande de facture appartient au CLIENT, sur un ticket Billing encore actif.
         // La commande vérifie en outre la propriété du ticket (cloisonnement) : ce droit ne fait

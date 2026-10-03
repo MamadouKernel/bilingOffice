@@ -162,7 +162,7 @@ else if (_fiche is not null)
         <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
         <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
-                <thead class="table-light"><tr><th>@Loc["FicheEnrol.ColPiece"]</th><th>@Loc["FicheEnrol.ColSize"]</th><th>@Loc["FicheEnrol.ColAntivirus"]</th><th>@Loc["FicheEnrol.ColDepositedOn"]</th></tr></thead>
+                <thead class="table-light"><tr><th>@Loc["FicheEnrol.ColPiece"]</th><th>@Loc["FicheEnrol.ColSize"]</th><th>@Loc["FicheEnrol.ColAntivirus"]</th><th>@Loc["FicheEnrol.ColDepositedOn"]</th><th></th></tr></thead>
                 <tbody>
                     @foreach (var d in _pagination1.Appliquer(f.Documents))
                     {
@@ -171,6 +171,7 @@ else if (_fiche is not null)
                             <td class="small text-muted">@((d.TailleOctets / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</td>
                             <td><span class="badge bg-success-subtle text-success">@d.StatutAntivirus</span></td>
                             <td class="small text-muted font-monospace">@d.DateDepotUtc.Horodate()</td>
+                            <td class="text-end"><ActionsDocument DocumentId="d.Id" NomFichier="@d.NomFichier" TypeContenu="@d.TypeContenu" /></td>
                         </tr>
                     }
                 </tbody>

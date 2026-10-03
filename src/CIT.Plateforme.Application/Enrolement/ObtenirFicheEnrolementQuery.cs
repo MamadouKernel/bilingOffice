@@ -160,7 +160,10 @@ public sealed class ObtenirFicheEnrolementQuery(
         var peutConvoquer = !estClient && aDroitInstruction && ticket.Statut == StatutTicket.EnCours;
         var peutConstaterBadge = !estClient && aDroitInstruction && ticket.Statut == StatutTicket.EnCours;
         var peutRepondreComplement = estClient && ticket.Statut == StatutTicket.EnAttenteClient;
-        var peutDeposerDocument = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
+        // Un agent ne se voit proposer le dépôt que s'il détient DocumentDeposer sur la file : sinon
+        // l'écran offrirait une action que le dépôt refuserait aussitôt.
+        var aDroitDepot = estClient || habilitations.Any(h => h.PermissionCode == Permission.DocumentDeposer && (h.FileId == null || h.FileId == ticket.FileCouranteId));
+        var peutDeposerDocument = aDroitDepot && ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
         var peutAjouterMessage = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
 
         return new FicheEnrolementVue(

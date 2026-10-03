@@ -10,6 +10,10 @@
    invitation à télécharger. Échap ou clic sur le voile ferment l'aperçu. *@
 @if (EstOuvert)
 {
+    @* <dialog> ouvert en modal (showModal) : il s'affiche dans la couche supérieure du navigateur,
+       à l'abri des transform/animations des ancêtres (ligne de tableau, entrée de page) qui
+       piègeraient un simple position:fixed placé dans un tableau. *@
+    <dialog id="@_idDialogue" class="cit-apercu-dialogue">
     <div class="cit-modal-backdrop cit-voile-confirmation" @onclick="FermerAsync">
         <div class="cit-apercu" role="dialog" aria-modal="true" aria-labelledby="@_idTitre"
              tabindex="-1" @onclick:stopPropagation="true" @onkeydown="ToucheAsync">
@@ -56,6 +60,7 @@
             </div>
         </div>
     </div>
+    </dialog>
 }
 
 @code {
@@ -71,6 +76,7 @@
 
     private readonly string _idCadre = $"apercu-{Guid.NewGuid():N}";
     private readonly string _idTitre = $"apercu-titre-{Guid.NewGuid():N}";
+    private readonly string _idDialogue = $"apercu-dialogue-{Guid.NewGuid():N}";
     private string? _base64Affiche;
 
     private bool EstPdf => TypeContenu.Contains("pdf", StringComparison.OrdinalIgnoreCase)
@@ -83,6 +89,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (EstOuvert)
+        {
+            await Js.InvokeVoidAsync("apercuDocument.afficher", _idDialogue);
+        }
+
         // Le contenu est injecté dans le cadre une fois rendu, et une seule fois par fichier.
         if (EstOuvert && Base64 is not null && (EstPdf || EstImage) && !ReferenceEquals(_base64Affiche, Base64))
         {
