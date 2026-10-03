@@ -23,7 +23,7 @@ else
         <!-- 1. HERO BANNER PRINCIPAL : PRÉSENTATION DE CÔTE D'IVOIRE TERMINAL -->
         <div class="cit-card cit-hero-gradient p-4 p-lg-5 mb-5 text-white border-0 shadow-lg overflow-hidden position-relative u-r-2xl">
             
-            <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center opacity-10 pe-5 pointer-events-none" style="font-size: 15rem;">
+            <div class="position-absolute end-0 top-0 bottom-0 d-none d-lg-flex align-items-center pe-5 pointer-events-none" style="font-size: 15rem; opacity: .06;" aria-hidden="true">
                 ⚓
             </div>
 
@@ -42,7 +42,7 @@ else
                         @Loc["Home.HeroTitlePart1"] <span style="color: var(--signal-500);">@Loc["Home.HeroTitleAccent"]</span>
                     </h1>
 
-                    <p class="lead mb-4 text-white-50 fs-6 u-lh-relaxed">
+                    <p class="lead mb-4 fs-6 u-lh-relaxed" style="color: rgba(255,255,255,.85); max-width: 62ch;">
                         @((MarkupString)Loc["Home.HeroLead"].Value)
                     </p>
 
@@ -75,7 +75,7 @@ else
                 <div class="col-12 col-lg-4 d-none d-lg-block text-center">
                     <img src="images/login-illustration.jpg" alt="@Loc["Home.IllustrationAlt"]"
                          class="img-fluid rounded-4 shadow" 
-                         style="max-height: 280px; mix-blend-mode: luminosity; opacity: 0.85; border: 2px solid rgba(255,255,255,0.2);" />
+                         style="max-height: 320px; width: 100%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2);" />
                 </div>
             </div>
         </div>

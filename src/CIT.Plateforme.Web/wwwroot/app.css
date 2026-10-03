@@ -3147,3 +3147,6 @@ html { scroll-padding-top: var(--header-h); }
 
 /* Comptes agents : un libellé de bouton ne se coupe jamais à l'intérieur de sa pastille. */
 .cit-actions-compte .btn { white-space: nowrap; }
+
+/* FocusOnNavigate place le focus sur le h1 pour les lecteurs d'écran ; ce focus programmatique ne doit pas dessiner de cadre. */
+h1:focus { outline: none; }
