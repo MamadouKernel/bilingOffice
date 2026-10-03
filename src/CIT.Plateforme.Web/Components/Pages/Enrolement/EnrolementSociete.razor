@@ -92,7 +92,7 @@ else
                                 @foreach (var document in EcheanceDocumentEnrolement.DocumentsAttendus(ligne.Type))
                                 {
                                     <label class="small text-muted d-block mb-0">@Loc[$"EnrolSoc.Doc.{document}"]</label>
-                                    <input type="date" class="form-control form-control-sm mb-1"
+                                    <input type="date" required class="form-control form-control-sm mb-1"
                                            value="@(ligne.Echeances.TryGetValue(document, out var d) ? d.ToString("yyyy-MM-dd") : string.Empty)"
                                            @onchange="e => ligne.DefinirEcheance(document, e.Value?.ToString())" />
                                 }
@@ -157,7 +157,9 @@ else
 
     private bool PeutSoumettre =>
         _lignes.Count > 0 &&
-        _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet) && !string.IsNullOrWhiteSpace(l.Description));
+        _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet) && !string.IsNullOrWhiteSpace(l.Description)
+                         // Dates d'expiration obligatoires pour chaque document attendu (03/10/2026).
+                         && EcheanceDocumentEnrolement.DocumentsAttendus(l.Type).All(l.Echeances.ContainsKey));
 
     protected override async Task OnInitializedAsync()
     {

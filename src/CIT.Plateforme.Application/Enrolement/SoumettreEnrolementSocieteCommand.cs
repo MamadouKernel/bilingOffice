@@ -106,6 +106,17 @@ public sealed class SoumettreEnrolementSocieteCommand(
             {
                 _ = EcheanceDocumentEnrolement.Declarer(Guid.Empty, objet.Type, e.Document, e.DateExpiration, DateOnly.FromDateTime(horloge.MaintenantUtc));
             }
+
+            // OBLIGATOIRES (décision du 03/10/2026) : chaque document attendu pour le type d'objet
+            // doit porter sa date — permis pour un chauffeur, assurance et visite technique pour un camion.
+            var manquants = EcheanceDocumentEnrolement.DocumentsAttendus(objet.Type)
+                .Except((objet.Echeances ?? []).Select(e => e.Document))
+                .ToList();
+            if (manquants.Count > 0)
+            {
+                throw new ArgumentException(
+                    $"Date d'expiration obligatoire pour « {objet.Objet.Trim()} » : {string.Join(", ", manquants)}.", nameof(requete));
+            }
         }
 
         // 3. Résolution de la file « Agent Gate » — donnée paramétrée, jamais codée en dur.

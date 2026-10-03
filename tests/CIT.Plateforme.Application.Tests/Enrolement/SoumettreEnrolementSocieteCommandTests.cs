@@ -75,10 +75,39 @@ public class SoumettreEnrolementSocieteCommandTests
     private static SoumettreEnrolementSocieteRequete RequeteFlotte(Guid societeId) => new(
         societeId,
         [
-            new ObjetEnrolementSoumission(TypeObjetEnrolement.Chauffeur, "KONE Ali", "Permis B, dépôt Abidjan."),
-            new ObjetEnrolementSoumission(TypeObjetEnrolement.Chauffeur, "DIALLO Sekou", "Permis C, dépôt San-Pédro."),
-            new ObjetEnrolementSoumission(TypeObjetEnrolement.Camion, "AA-123-BC", "Semi-remorque frigorifique."),
+            new ObjetEnrolementSoumission(TypeObjetEnrolement.Chauffeur, "KONE Ali", "Permis B, dépôt Abidjan.", Permis),
+            new ObjetEnrolementSoumission(TypeObjetEnrolement.Chauffeur, "DIALLO Sekou", "Permis C, dépôt San-Pédro.", Permis),
+            new ObjetEnrolementSoumission(TypeObjetEnrolement.Camion, "AA-123-BC", "Semi-remorque frigorifique.", DocumentsCamion),
         ]);
+
+    private static readonly EcheanceDocumentSaisie[] Permis =
+        [new(DocumentEnrolement.PermisConduire, new DateOnly(2028, 1, 31))];
+
+    private static readonly EcheanceDocumentSaisie[] DocumentsCamion =
+    [
+        new(DocumentEnrolement.AssuranceVehicule, new DateOnly(2027, 6, 30)),
+        new(DocumentEnrolement.VisiteTechnique, new DateOnly(2027, 3, 31)),
+    ];
+
+    /// <summary>03/10/2026 : les dates d'expiration des documents sont obligatoires — un camion
+    /// sans date de visite technique est refusé, et rien n'est écrit.</summary>
+    [Fact]
+    public async Task Un_document_sans_date_d_expiration_est_refuse_sans_rien_creer()
+    {
+        var userId = Guid.NewGuid();
+        var societeId = Guid.NewGuid();
+        RattacherAvecDroit(userId, societeId);
+        var requete = new SoumettreEnrolementSocieteRequete(societeId,
+        [
+            new ObjetEnrolementSoumission(TypeObjetEnrolement.Camion, "AA-123-BC", "Semi-remorque.",
+                [new(DocumentEnrolement.AssuranceVehicule, new DateOnly(2027, 6, 30))]),
+        ]);
+
+        var erreur = await Assert.ThrowsAsync<ArgumentException>(() => _command.ExecuterAsync(userId, requete, CancellationToken.None));
+
+        Assert.Contains("VisiteTechnique", erreur.Message);
+        _ticketRepo.Verify(r => r.AjouterAsync(It.IsAny<Ticket>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 
     [Fact]
     public async Task Societe_habilitee_cree_un_dossier_unique_et_un_ticket_par_objet()
