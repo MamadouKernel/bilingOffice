@@ -292,6 +292,7 @@ public sealed class CatalogueProfilsUatTests
             Assert.Contains(SeedRecetteUat.Profils, p => p.Email == email);
         }
 
-        Assert.Equal(4, Enum.GetValues<TypeClient>().Length);
+        // Les 4 profils Billing Office ; « Transporteur » (03/10/2026) n'a pas de parcours Billing.
+        Assert.Equal(4, Enum.GetValues<TypeClient>().Count(t => t != TypeClient.Transporteur));
     }
 }
