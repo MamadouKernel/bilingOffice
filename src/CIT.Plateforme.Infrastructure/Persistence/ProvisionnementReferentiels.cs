@@ -73,6 +73,7 @@ public static class ValeursInitiales
     [
         new(CategorieDocumentBillingImport.DeclarationDouane, "Déclaration en douane", "Customs declaration", 10),
         new(CategorieDocumentBillingImport.CopieDuBl, "Copie du BL", "Copy of the B/L", 20),
+        new(CategorieDocumentBillingImport.PreuvePaiement, "Preuve de paiement", "Proof of payment", 25),
         new(CategorieDocumentBillingImport.AutresPieces, "Autres pièces", "Other documents", 30),
     ];
 

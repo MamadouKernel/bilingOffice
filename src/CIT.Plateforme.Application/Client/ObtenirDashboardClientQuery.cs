@@ -14,7 +14,8 @@ public sealed class ObtenirDashboardClientQuery(
     IDossierRepository dossierRepository,
     ITicketRepository ticketRepository,
     ISocieteClienteRepository societeRepository,
-    IUtilisateurSocieteRepository utilisateurSocieteRepository)
+    IUtilisateurSocieteRepository utilisateurSocieteRepository,
+    IHistoriqueTicketRepository? historique = null)
 {
     public async Task<DashboardClientVue> ExecuterAsync(Guid utilisateurId, Guid societeId, CancellationToken ct = default)
     {
@@ -81,7 +82,7 @@ public sealed class ObtenirDashboardClientQuery(
                     NumeroBl: ticket.NumeroBl,
                     TypeAction: typeAction,
                     Titre: titre,
-                    Description: $"{roleInstructeur} a sollicité un complément d'information ou des pièces justificatives.",
+                    Description: await DescriptionComplementAsync(ticket.Id, roleInstructeur, ct).ConfigureAwait(false),
                     ActionLibelle: "Déposer le complément",
                     UrlCible: $"/tickets/{ticket.Id}#complement",
                     DateDeclenchementUtc: ticket.DateCreationUtc,
@@ -156,4 +157,16 @@ public sealed class ObtenirDashboardClientQuery(
         return StatutVisuelDossier.EnAttentePriseEnCharge;
     }
 
+    /// <summary>Ce que l'agent attend du client (dernière demande de complément consignée), à défaut
+    /// une mention générique. Lu ticket par ticket : seuls les tickets en attente client sont concernés.</summary>
+    private async Task<string> DescriptionComplementAsync(Guid ticketId, string roleInstructeur, CancellationToken ct)
+    {
+        var demande = historique is null ? null : (await historique.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false))
+            .Where(e => e.Evenement.StartsWith("ComplementDemande", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(e.Detail))
+            .MaxBy(e => e.HorodatageUtc);
+
+        return demande is null
+            ? $"{roleInstructeur} a sollicité un complément d'information ou des pièces justificatives."
+            : $"{roleInstructeur} attend : {demande.Detail}";
+    }
 }

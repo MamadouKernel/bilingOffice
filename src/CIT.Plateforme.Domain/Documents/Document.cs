@@ -18,6 +18,9 @@ public enum CategorieDocumentBillingImport
     DeclarationDouane,
     CopieDuBl,
     AutresPieces,
+
+    /// <summary>Justificatif de virement ou de chèque déposé par le client avant la validation en caisse.</summary>
+    PreuvePaiement,
 }
 
 /// <summary>

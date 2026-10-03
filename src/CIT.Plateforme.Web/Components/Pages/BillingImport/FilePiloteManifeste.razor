@@ -104,7 +104,7 @@ else
                                         <button type="button" class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="@Loc["FileManif.ValidateTitle"]">
                                             @Loc["FileManif.Validate"]
                                         </button>
-                                        <button type="button" class="btn btn-outline-warning" @onclick="() => DemanderComplementAsync(t.Id)" title="@Loc["FileManif.ComplementTitle"]">
+                                        <button type="button" class="btn btn-outline-warning" @onclick="() => OuvrirComplement(t.Id)" title="@Loc["FileManif.ComplementTitle"]">
                                             @Loc["FileManif.Complement"]
                                         </button>
                                         <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModaleRejet(t.Id)" title="@Loc["FileManif.RejectTitle"]">
@@ -113,6 +113,22 @@ else
                                     </div>
                                 </td>
                             </tr>
+                            @if (_ticketEnComplement == t.Id)
+                            {
+                                <tr class="table-warning">
+                                    <td colspan="5" class="p-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input class="form-control form-control-sm" placeholder="@Loc["FileManif.ComplementPlaceholder"]" aria-label="@Loc["FileManif.ComplementPlaceholder"]" @bind="_elementsComplement" @bind:event="oninput" />
+                                            <button type="button" class="btn btn-warning btn-sm text-nowrap fw-semibold" @onclick="() => ConfirmerComplementAsync(t.Id)" disabled="@string.IsNullOrWhiteSpace(_elementsComplement)">
+                                                @Loc["FileManif.ConfirmComplement"]
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AnnulerComplement">
+                                                @Loc["Common.Cancel"]
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
                             @if (_ticketEnRejet == t.Id)
                             {
                                 <tr class="table-danger">
@@ -227,11 +243,34 @@ else
     private Task ValiderAsync(Guid ticketId) =>
         ExecuterActionAsync(() => Valider.ExecuterAsync(_agentId, ticketId), Loc["FileManif.MsgValidated"].Value);
 
-    private Task DemanderComplementAsync(Guid ticketId) =>
-        ExecuterActionAsync(() => Complement.DemanderComplementAsync(_agentId, ticketId, Loc["Ticket.HoldReason"].Value), Loc["FileManif.MsgComplement"].Value);
+    // Demande de complément : l'agent précise ce qu'il attend, que le client verra tel quel.
+    private Guid? _ticketEnComplement;
+    private string _elementsComplement = string.Empty;
+
+    private void OuvrirComplement(Guid ticketId)
+    {
+        _ticketEnRejet = null;
+        _ticketEnComplement = ticketId;
+        _elementsComplement = string.Empty;
+    }
+
+    private void AnnulerComplement()
+    {
+        _ticketEnComplement = null;
+        _elementsComplement = string.Empty;
+    }
+
+    private async Task ConfirmerComplementAsync(Guid ticketId)
+    {
+        if (string.IsNullOrWhiteSpace(_elementsComplement)) return;
+        var elements = _elementsComplement.Trim();
+        AnnulerComplement();
+        await ExecuterActionAsync(() => Complement.DemanderComplementAsync(_agentId, ticketId, elements), Loc["FileManif.MsgComplement"].Value);
+    }
 
     private void OuvrirModaleRejet(Guid ticketId)
     {
+        _ticketEnComplement = null;
         _ticketEnRejet = ticketId;
         _motifRejet = string.Empty;
     }

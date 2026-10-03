@@ -21,6 +21,12 @@ public sealed class GestionComplementManifesteCommand(
 {
     public async Task DemanderComplementAsync(Guid agentId, Guid ticketId, string elementsAttendus, CancellationToken ct = default)
     {
+        // Le client doit savoir quoi fournir : pas de demande de complément sans contenu.
+        if (string.IsNullOrWhiteSpace(elementsAttendus))
+        {
+            throw new ArgumentException("Les éléments attendus du client sont obligatoires.", nameof(elementsAttendus));
+        }
+
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 

@@ -1,3 +1,4 @@
+using CIT.Plateforme.Domain.Audit;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ public sealed class ObtenirDashboardClientQueryTests
         var userSocRepo = new UtilisateurSocieteRepository(db);
         var socRepo = new SocieteClienteRepository(db);
 
-        var query = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo);
+        var query = new ObtenirDashboardClientQuery(dossierRepo, ticketRepo, socRepo, userSocRepo, new HistoriqueTicketRepository(db));
 
         return (db, query, socId, userId);
     }
@@ -92,6 +93,26 @@ public sealed class ObtenirDashboardClientQueryTests
         Assert.Equal("BL-1001", action.NumeroBl);
         Assert.Contains("BL-1001", action.Titre);
         Assert.Equal($"/tickets/{ticket.Id}#complement", action.UrlCible);
+    }
+
+    [Fact]
+    public async Task ACR01_La_carte_de_complement_reprend_les_elements_attendus_par_l_agent()
+    {
+        var (db, query, socId, userId) = ConstruireContexte();
+
+        var dossier = Dossier.Creer("DOS-2026-002", socId, DateTime.UtcNow, userId);
+        var ticket = Ticket.Creer("TCK-002", "BillingImport", "Import", Guid.NewGuid(), dossier.Id, DateTime.UtcNow, "BL-1002");
+        var agentId = Guid.NewGuid();
+        ticket.PrendreEnCharge(agentId, DateTime.UtcNow);
+        ticket.MettreEnAttenteClient(DateTime.UtcNow);
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        db.HistoriqueTickets.Add(EntreeHistorique.Creer(ticket.Id, "ComplementDemandeImport", "Copie lisible de la déclaration en douane", agentId, DateTime.UtcNow));
+        await db.SaveChangesAsync();
+
+        var dashboard = await query.ExecuterAsync(userId, socId);
+
+        Assert.Contains("Copie lisible de la déclaration en douane", Assert.Single(dashboard.ActionsRequises).Description);
     }
 
     [Fact]

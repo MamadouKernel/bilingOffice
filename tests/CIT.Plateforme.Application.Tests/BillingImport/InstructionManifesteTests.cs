@@ -105,6 +105,20 @@ public sealed class InstructionManifesteTests
     }
 
     [Fact]
+    public async Task Demander_complement_sans_elements_attendus_est_refuse()
+    {
+        var c = await ConstruireContexteAsync();
+        var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-C0"]));
+        var ticketId = soumission.TicketsCrees[0].Id;
+
+        // Le client doit savoir quoi fournir : une demande de complément sans contenu est refusée.
+        await Assert.ThrowsAsync<ArgumentException>(() => c.Complement.DemanderComplementAsync(c.AgentId, ticketId, "  "));
+
+        var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
+        Assert.NotEqual(StatutTicket.EnAttenteClient, ticket!.Statut);
+    }
+
+    [Fact]
     public async Task Demander_complement_met_le_ticket_en_attente_client()
     {
         var c = await ConstruireContexteAsync();
