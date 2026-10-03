@@ -12,17 +12,32 @@ namespace CIT.Plateforme.Application.Enrolement;
 /// </summary>
 public sealed class ListerMesEnrolementsQuery(
     IDossierRepository dossiers,
-    ITicketRepository tickets)
+    ITicketRepository tickets,
+    IUtilisateurSocieteRepository? rattachements = null)
 {
     public async Task<IReadOnlyList<Ticket>> ExecuterAsync(Guid appelantId, CancellationToken ct = default)
     {
-        var dossiersDuClient = await dossiers.ListerParClientAsync(appelantId, ct).ConfigureAwait(false);
+        var dossiersDuClient = (await dossiers.ListerParClientAsync(appelantId, ct).ConfigureAwait(false)).ToList();
+
+        // Dossiers de FLOTTE (enrôlement société) : ils appartiennent à la société (ClientId =
+        // société, AuteurId = représentant). Sans ce complément, une entreprise de transport ne
+        // retrouvait aucun de ses enrôlements. Visibilité identique au reste de l'application
+        // (ENT-03) : administrateur ou droit « toute la société » => tout ; sinon ses propres dossiers.
+        if (rattachements is not null
+            && await rattachements.ObtenirParUtilisateurAsync(appelantId, ct).ConfigureAwait(false) is { EstActif: true } rattachement)
+        {
+            var voitToutLaSociete = rattachement.EstAdministrateur
+                || rattachement.DroitConsultation == CIT.Plateforme.Domain.Comptes.DroitConsultation.ToutesDemandesSociete;
+            var deLaSociete = await dossiers.ListerParClientAsync(rattachement.SocieteId, ct).ConfigureAwait(false);
+            dossiersDuClient.AddRange(deLaSociete.Where(d => voitToutLaSociete || d.AuteurId == appelantId));
+        }
+
         if (dossiersDuClient.Count == 0)
         {
             return [];
         }
 
-        var dossierIds = dossiersDuClient.Select(d => d.Id);
+        var dossierIds = dossiersDuClient.Select(d => d.Id).Distinct();
         var ticketsDesDossiers = await tickets.ListerParDossiersAsync(dossierIds, ct).ConfigureAwait(false);
 
         return [.. ticketsDesDossiers.Where(t => t.Module == "Enrolement")];

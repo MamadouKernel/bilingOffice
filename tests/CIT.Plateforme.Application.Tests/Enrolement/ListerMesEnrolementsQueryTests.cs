@@ -81,4 +81,34 @@ public class ListerMesEnrolementsQueryTests
         Assert.Empty(resultat);
         _ticketRepo.Verify(r => r.ListerParDossiersAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    /// <summary>03/10/2026 : les dossiers de FLOTTE appartiennent à la société. Le représentant
+    /// qui les a soumis et l'administrateur les voient ; un collaborateur limité à ses propres
+    /// demandes ne voit pas ceux des autres.</summary>
+    [Theory]
+    [InlineData("auteur", true)]
+    [InlineData("administrateur", true)]
+    [InlineData("collegue", false)]
+    public async Task Les_dossiers_de_flotte_de_la_societe_suivent_les_droits_de_consultation(string profil, bool visible)
+    {
+        var societeId = Guid.NewGuid();
+        var auteur = Guid.NewGuid();
+        var appelant = profil == "auteur" ? auteur : Guid.NewGuid();
+        var dossierFlotte = Dossier.Creer("DOS-FLOTTE", societeId, DateTime.UtcNow, auteur);
+        var ticket = Ticket.Creer("ENR-1", "Enrolement", "Enrolement", Guid.NewGuid(), dossierFlotte.Id, DateTime.UtcNow);
+
+        _dossierRepo.Setup(r => r.ListerParClientAsync(appelant, It.IsAny<CancellationToken>())).ReturnsAsync([]);
+        _dossierRepo.Setup(r => r.ListerParClientAsync(societeId, It.IsAny<CancellationToken>())).ReturnsAsync([dossierFlotte]);
+        _ticketRepo.Setup(r => r.ListerParDossiersAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<Guid> ids, CancellationToken _) => ids.Contains(dossierFlotte.Id) ? [ticket] : []);
+        var rattachements = new Mock<IUtilisateurSocieteRepository>();
+        rattachements.Setup(r => r.ObtenirParUtilisateurAsync(appelant, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CIT.Plateforme.Domain.Comptes.UtilisateurSociete.Rattacher(
+                appelant, societeId, DateTime.UtcNow, estAdministrateur: profil == "administrateur"));
+
+        var resultat = await new ListerMesEnrolementsQuery(_dossierRepo.Object, _ticketRepo.Object, rattachements.Object)
+            .ExecuterAsync(appelant);
+
+        Assert.Equal(visible, resultat.Any(t => t.Id == ticket.Id));
+    }
 }
