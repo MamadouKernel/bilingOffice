@@ -1,5 +1,6 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Application.SupportTechnique;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 
@@ -29,6 +30,11 @@ public sealed class PrendreEnChargeCommand(
         else if (ticket.Module == "Enrolement")
         {
             await autorisation.ExigerAsync(operateurId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
+        else if (ticket.Module == SupportItConstantes.Module)
+        {
+            // Incident : habilitation d'instruction N1 ou N2 selon la file, comme pour le résoudre.
+            await SupportItConstantes.ExigerInstructionSurFileAsync(autorisation, operateurId, ticket.FileCouranteId, ct).ConfigureAwait(false);
         }
         else
         {
