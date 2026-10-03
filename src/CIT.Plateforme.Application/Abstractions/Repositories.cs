@@ -321,6 +321,15 @@ public interface IDisponibiliteRepository
 }
 
 /// <summary>DIS-03 (reporting) — trace append-only des transitions de disponibilité.</summary>
+/// <summary>Échéances des documents déclarés à l'enrôlement (permis, assurance, visite technique).</summary>
+public interface IEcheanceDocumentEnrolementRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Enrolement.EcheanceDocumentEnrolement echeance, CancellationToken ct = default);
+
+    /// <summary>Échéances atteignant le seuil (incluse) et dont le rappel n'est pas encore parti.</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Enrolement.EcheanceDocumentEnrolement>> ListerARappelerAsync(DateOnly seuil, CancellationToken ct = default);
+}
+
 /// <summary>Badges remis à l'issue des enrôlements (numéro, date d'expiration).</summary>
 public interface IBadgeEnrolementRepository
 {

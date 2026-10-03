@@ -64,6 +64,7 @@ else
                         <th style="width: 160px;">@Loc["EnrolSoc.ColType"]</th>
                         <th>@Loc["EnrolSoc.ColObjet"]</th>
                         <th>@Loc["EnrolSoc.ColDesc"]</th>
+                        <th style="width: 220px;">@Loc["EnrolSoc.ColEcheances"]</th>
                         <th style="width: 100px;">@Loc["EnrolSoc.ColActions"]</th>
                     </tr>
                 </thead>
@@ -85,6 +86,16 @@ else
                             <td>
                                 <input class="form-control form-control-sm" @bind="ligne.Description" @bind:event="oninput"
                                        placeholder="@Loc["EnrolSoc.DescPlaceholder"]" maxlength="500" />
+                            </td>
+                            <td>
+                                @* Dates d'expiration facultatives : permis (chauffeur), assurance et visite technique (camion). *@
+                                @foreach (var document in EcheanceDocumentEnrolement.DocumentsAttendus(ligne.Type))
+                                {
+                                    <label class="small text-muted d-block mb-0">@Loc[$"EnrolSoc.Doc.{document}"]</label>
+                                    <input type="date" class="form-control form-control-sm mb-1"
+                                           value="@(ligne.Echeances.TryGetValue(document, out var d) ? d.ToString("yyyy-MM-dd") : string.Empty)"
+                                           @onchange="e => ligne.DefinirEcheance(document, e.Value?.ToString())" />
+                                }
                             </td>
                             <td>
                                 <BoutonSupprimer Discret="true" Libelle="@Loc["EnrolSoc.RemoveObjectBtn"]" Desactive="@(_lignes.Count == 1)" OnSupprimer="() => RetirerLigne(ligne)" />
@@ -113,6 +124,24 @@ else
         public TypeObjetEnrolement Type { get; set; } = TypeObjetEnrolement.Chauffeur;
         public string Objet { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public Dictionary<DocumentEnrolement, DateOnly> Echeances { get; } = [];
+
+        public void DefinirEcheance(DocumentEnrolement document, string? valeur)
+        {
+            if (DateOnly.TryParse(valeur, System.Globalization.CultureInfo.InvariantCulture, out var date))
+            {
+                Echeances[document] = date;
+            }
+            else
+            {
+                Echeances.Remove(document);
+            }
+        }
+
+        /// <summary>Seules les dates du type courant partent (la ligne a pu changer de type).</summary>
+        public IReadOnlyList<EcheanceDocumentSaisie> EcheancesPertinentes() =>
+            [.. Echeances.Where(e => EcheanceDocumentEnrolement.DocumentsAttendus(Type).Contains(e.Key))
+                .Select(e => new EcheanceDocumentSaisie(e.Key, e.Value))];
     }
 
     private bool _chargement = true;
@@ -185,7 +214,7 @@ else
         try
         {
             var objets = _lignes
-                .Select(l => new ObjetEnrolementSoumission(l.Type, l.Objet.Trim(), l.Description.Trim()))
+                .Select(l => new ObjetEnrolementSoumission(l.Type, l.Objet.Trim(), l.Description.Trim(), l.EcheancesPertinentes()))
                 .ToList();
             _resultat = await SoumettreEnrolementSociete.ExecuterAsync(
                 _utilisateurId,

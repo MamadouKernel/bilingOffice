@@ -251,6 +251,8 @@ public static class DependencyInjection
         services.AddScoped<IDisponibiliteRepository, DisponibiliteRepository>();
         services.AddScoped<IHistoriqueDisponibiliteRepository, HistoriqueDisponibiliteRepository>();
         services.AddScoped<IBadgeEnrolementRepository, BadgeEnrolementRepository>();
+        services.AddScoped<IEcheanceDocumentEnrolementRepository, EcheanceDocumentEnrolementRepository>();
+        services.AddScoped<Application.Enrolement.RappelerEcheancesDocumentsCommand>();
         services.AddScoped<ICompetenceOperateurRepository, CompetenceOperateurRepository>();
         services.AddScoped<Application.Affectation.ICandidatsAffectationProvider, CandidatsAffectationProvider>();
         services.AddScoped<Application.Affectation.GererDisponibiliteCommand>();

@@ -64,9 +64,19 @@ else
                 <label class="form-label small fw-bold text-dark" for="code">@Loc["AdmPieceC.CodeLabel"]</label>
                 <input id="code" class="form-control" @bind="_code" placeholder="@Loc["AdmPieceC.CodePlaceholder"]" />
             </div>
-            <div class="col-12 col-md-5">
+            <div class="col-12 col-md-3">
                 <label class="form-label small fw-bold text-dark" for="libelle">@Loc["AdmPieceC.LibelleLabel"]</label>
                 <input id="libelle" class="form-control" @bind="_libelle" placeholder="@Loc["AdmPieceC.LibellePlaceholder"]" />
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label small fw-bold text-dark" for="type-cible">@Loc["AdmPieceC.TypeCible"]</label>
+                <select id="type-cible" class="form-select" @bind="_typeCible">
+                    <option value="">@Loc["AdmPieceC.TousTypes"]</option>
+                    @foreach (var type in Enum.GetValues<CIT.Plateforme.Domain.Comptes.TypeClient>())
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
             </div>
             <div class="col-12 col-md-2">
                 <label class="form-label small fw-bold text-dark" for="ordre">@Loc["AdmPieceC.OrdreLabel"]</label>
@@ -128,7 +138,13 @@ else
                                         @piece.Code
                                     </span>
                                 </td>
-                                <td class="fw-semibold text-dark">@piece.Libelle</td>
+                                <td class="fw-semibold text-dark">
+                                    @piece.Libelle
+                                    @if (piece.TypeClientCible is { } cible)
+                                    {
+                                        <span class="badge bg-warning bg-opacity-25 text-dark ms-1">@cible</span>
+                                    }
+                                </td>
                                 <td>
                                     @if (piece.Obligatoire)
                                     {
@@ -188,6 +204,7 @@ else
     private string _libelle = string.Empty;
     private bool _obligatoire = true;
     private int _ordre = 1;
+    private string _typeCible = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -241,7 +258,9 @@ else
     private Task AjouterAsync() => ExecuterAsync(async sp =>
     {
         var gererPieces = sp.GetRequiredService<GererPiecesExigeesCommand>();
-        await gererPieces.DefinirAsync(_appelantId, _code, _libelle, _obligatoire, _ordre);
+        await gererPieces.DefinirAsync(_appelantId, _code, _libelle, _obligatoire, _ordre,
+            Enum.TryParse<CIT.Plateforme.Domain.Comptes.TypeClient>(_typeCible, out var cible) ? cible : null);
+        _typeCible = string.Empty;
         _code = string.Empty;
         _libelle = string.Empty;
         _obligatoire = true;

@@ -52,6 +52,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>DIS-03 (reporting) — historique append-only des transitions de disponibilité.</summary>
     public DbSet<Domain.Affectation.HistoriqueDisponibilite> HistoriquesDisponibilite => Set<Domain.Affectation.HistoriqueDisponibilite>();
     public DbSet<Domain.Enrolement.BadgeEnrolement> BadgesEnrolement => Set<Domain.Enrolement.BadgeEnrolement>();
+    public DbSet<Domain.Enrolement.EcheanceDocumentEnrolement> EcheancesDocumentEnrolement => Set<Domain.Enrolement.EcheanceDocumentEnrolement>();
 
     /// <summary>REMÉDIATION AUDIT (post-implementation-audit.md §3.C) : compétences administrées
     /// par opérateur (AFF-06).</summary>
@@ -642,6 +643,15 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasIndex(x => x.DateExpirationUtc);
         });
 
+        // Échéances des documents de flotte : la lecture du rappel porte sur (rappel non émis, date).
+        builder.Entity<Domain.Enrolement.EcheanceDocumentEnrolement>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Document).HasConversion<string>().HasMaxLength(32);
+            b.HasIndex(x => x.TicketId);
+            b.HasIndex(x => new { x.RappelEmisUtc, x.DateExpiration });
+        });
+
         builder.Entity<Domain.Supervision.Alerte>(b =>
         {
             b.HasKey(a => a.Id);
@@ -711,6 +721,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasKey(p => p.Id);
             b.Property(p => p.Code).IsRequired().HasMaxLength(64);
             b.Property(p => p.Libelle).IsRequired().HasMaxLength(256);
+            b.Property(p => p.TypeClientCible).HasConversion<string>().HasMaxLength(32);
             // Le code identifie la piece de facon stable : deux definitions homonymes rendraient
             // le controle de completude ambigu.
             b.HasIndex(p => p.Code).IsUnique();

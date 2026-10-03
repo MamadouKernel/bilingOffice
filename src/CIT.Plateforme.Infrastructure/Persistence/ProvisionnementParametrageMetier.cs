@@ -50,12 +50,14 @@ public sealed class ProvisionnementParametrageMetier(
         ("INFO", "Demande d'information"),
     ];
 
-    private static readonly (string Code, string Libelle, bool Obligatoire, int Ordre)[] PiecesExigees =
+    private static readonly (string Code, string Libelle, bool Obligatoire, int Ordre, Domain.Comptes.TypeClient? Type)[] PiecesExigees =
     [
-        ("RCCM", "Registre du Commerce et du Crédit Mobilier (RCCM)", false, 1),
-        ("DFE", "Déclaration Fiscale d'Existence (DFE / Fiche Contribuable)", false, 2),
-        ("CNI_REP", "Pièce d'Identité du Représentant Légal (CNI / Passeport)", false, 3),
-        ("RIB", "Relevé d'Identité Bancaire (RIB) Entreprise", false, 4),
+        ("RCCM", "Registre du Commerce et du Crédit Mobilier (RCCM)", false, 1, null),
+        ("DFE", "Déclaration Fiscale d'Existence (DFE / Fiche Contribuable)", false, 2, null),
+        ("CNI_REP", "Pièce d'Identité du Représentant Légal (CNI / Passeport)", false, 3, null),
+        ("RIB", "Relevé d'Identité Bancaire (RIB) Entreprise", false, 4, null),
+        // Propre aux entreprises de transport (03/10/2026) ; rendue obligatoire au besoin par l'administration.
+        ("AGREMENT_TRANSPORT", "Agrément / autorisation de transport routier de marchandises", false, 5, Domain.Comptes.TypeClient.Transporteur),
     ];
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -87,11 +89,11 @@ public sealed class ProvisionnementParametrageMetier(
             journal.LogInformation("Catégories de réclamation de départ approvisionnées.");
         }
 
-        foreach (var (code, libelle, obligatoire, ordre) in PiecesExigees)
+        foreach (var (code, libelle, obligatoire, ordre, type) in PiecesExigees)
         {
             if (!await contexte.PiecesExigeesCompte.AnyAsync(p => p.Code == code, ct).ConfigureAwait(false))
             {
-                contexte.PiecesExigeesCompte.Add(PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre));
+                contexte.PiecesExigeesCompte.Add(PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre, type));
             }
         }
 

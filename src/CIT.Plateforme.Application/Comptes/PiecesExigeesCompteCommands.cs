@@ -7,7 +7,7 @@ using CIT.Plateforme.Domain.Securite;
 namespace CIT.Plateforme.Application.Comptes;
 
 /// <summary>Une pièce attendue à l'ouverture d'un compte, telle que présentée au demandeur.</summary>
-public sealed record PieceExigeeVue(Guid Id, string Code, string Libelle, bool Obligatoire, bool EstActif, int Ordre);
+public sealed record PieceExigeeVue(Guid Id, string Code, string Libelle, bool Obligatoire, bool EstActif, int Ordre, TypeClient? TypeClientCible = null);
 
 /// <summary>
 /// CPT-01 — « les informations et justificatifs exigés sont PARAMÉTRABLES », et § 17.3
@@ -24,7 +24,12 @@ public sealed class GererPiecesExigeesCommand(
     IUniteDeTravail uniteDeTravail)
 {
     public async Task<Guid> DefinirAsync(
-        Guid appelantId, string code, string libelle, bool obligatoire, int ordre, CancellationToken ct = default)
+        Guid appelantId, string code, string libelle, bool obligatoire, int ordre, CancellationToken ct = default) =>
+        await DefinirAsync(appelantId, code, libelle, obligatoire, ordre, typeClientCible: null, ct).ConfigureAwait(false);
+
+    /// <summary>Définit une pièce réservée à un type de compte (null = tous les types).</summary>
+    public async Task<Guid> DefinirAsync(
+        Guid appelantId, string code, string libelle, bool obligatoire, int ordre, TypeClient? typeClientCible, CancellationToken ct = default)
     {
         await autorisation.ExigerAsync(appelantId, Permission.AdministrationComptes, ct: ct).ConfigureAwait(false);
 
@@ -33,7 +38,7 @@ public sealed class GererPiecesExigeesCommand(
             throw new InvalidOperationException($"Une pièce portant le code « {code.Trim()} » existe déjà.");
         }
 
-        var piece = PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre);
+        var piece = PieceExigeeCompte.Definir(code, libelle, obligatoire, ordre, typeClientCible);
         await pieces.AjouterAsync(piece, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerAuditAsync(
@@ -105,7 +110,7 @@ public sealed class ListerPiecesExigeesQuery(IPieceExigeeCompteRepository pieces
         return toutes
             .OrderBy(p => p.Ordre)
             .ThenBy(p => p.Libelle, StringComparer.CurrentCulture)
-            .Select(p => new PieceExigeeVue(p.Id, p.Code, p.Libelle, p.Obligatoire, p.EstActif, p.Ordre))
+            .Select(p => new PieceExigeeVue(p.Id, p.Code, p.Libelle, p.Obligatoire, p.EstActif, p.Ordre, p.TypeClientCible))
             .ToList();
     }
 }

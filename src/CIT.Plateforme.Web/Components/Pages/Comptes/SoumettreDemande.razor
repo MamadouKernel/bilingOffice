@@ -278,7 +278,7 @@
                                 </div>
 
                                 <!-- BLOC 3 : PIÈCES JUSTIFICATIVES -->
-                                @if (piecesExigees is not null && piecesExigees.Count > 0)
+                                @if (PiecesDuProfil.Any())
                                 {
                                     <div class="mb-4 pb-2">
                                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -287,7 +287,7 @@
                                         </div>
 
                                         <div class="row g-2">
-                                            @foreach (var piece in piecesExigees)
+                                            @foreach (var piece in PiecesDuProfil)
                                             {
                                                 <div class="col-12 col-md-6">
                                                     <div class="p-2 border rounded-3 bg-light d-flex flex-column justify-content-between h-100">
@@ -366,6 +366,10 @@
     private bool _afficherGuideProfils;
 
     private IReadOnlyList<PieceExigeeVue>? piecesExigees;
+
+    /// <summary>Pièces applicables au profil choisi : communes + propres à ce type de compte.</summary>
+    private IEnumerable<PieceExigeeVue> PiecesDuProfil =>
+        (piecesExigees ?? []).Where(p => p.TypeClientCible is null || p.TypeClientCible == modele.Profil);
     private readonly Dictionary<string, IBrowserFile> fichiers = new(StringComparer.Ordinal);
 
     private const long TailleMaxOctets = 10L * 1024 * 1024;
@@ -434,7 +438,10 @@
         }
 
         var justificatifs = new List<JustificatifDepose>();
-        foreach (var (pieceCode, fichier) in fichiers)
+        // Un fichier choisi pour une pièce d'un autre profil (l'utilisateur a changé de profil
+        // entre-temps) n'est pas transmis.
+        var codesDuProfil = PiecesDuProfil.Select(p => p.Code).ToHashSet(StringComparer.Ordinal);
+        foreach (var (pieceCode, fichier) in fichiers.Where(f => codesDuProfil.Contains(f.Key)))
         {
             await using var flux = fichier.OpenReadStream(TailleMaxOctets);
             var cle = await StockageDocuments.EnregistrerAsync(flux, fichier.Name);

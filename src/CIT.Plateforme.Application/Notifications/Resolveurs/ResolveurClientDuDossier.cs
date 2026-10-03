@@ -35,6 +35,11 @@ public sealed class ResolveurClientDuDossier(
         "TicketTransfere",       // TRF-05 — CDC-EXIGENCE
         "RelanceEmise",          // CYC-04 (mécanisme F001) + COM-06 (canal, Could)
         "TicketIncidentResolu",  // Support IT — le déclarant est informé de la résolution de son incident
+        // Enrôlement (03/10/2026) : ces règles existaient mais aucun résolveur ne les servait —
+        // badge remis, badge bientôt expiré, document de flotte bientôt expiré.
+        "BadgeRemisEtDossierCloture",
+        "RappelExpirationBadge",
+        "RappelEcheanceDocument",
     };
 
     public bool PeutResoudre(string typeEvenement) => TypesClient.Contains(typeEvenement);
@@ -64,15 +69,30 @@ public sealed class ResolveurClientDuDossier(
             return [];
         }
 
-        var destinataires = new List<Guid> { dossier.ClientId };
-
         // Cloisonnement inter-sociétés (CPT-04, SEC-01) : le rattachement du propriétaire du
         // dossier détermine la société, et SEULS ses collaborateurs habilités sont ajoutés.
+        //
+        // Un dossier d'enrôlement de FLOTTE appartient à la société elle-même (ClientId = société,
+        // AuteurId = représentant) : sans ce cas, la notification partait vers un identifiant qui
+        // n'est pas un compte, et aucun collaborateur ne la recevait.
         var rattachement = await utilisateursSociete.ObtenirParUtilisateurAsync(dossier.ClientId, ct).ConfigureAwait(false);
-        if (rattachement is not null)
-        {
-            var collaborateurs = await utilisateursSociete.ListerParSocieteAsync(rattachement.SocieteId, ct).ConfigureAwait(false);
+        var collaborateurs = await utilisateursSociete
+            .ListerParSocieteAsync(rattachement?.SocieteId ?? dossier.ClientId, ct).ConfigureAwait(false) ?? [];
+        var dossierDeSociete = rattachement is null && collaborateurs.Count > 0;
 
+        var destinataires = new List<Guid>();
+        if (!dossierDeSociete)
+        {
+            destinataires.Add(dossier.ClientId);
+        }
+
+        if (dossier.AuteurId is Guid auteur)
+        {
+            destinataires.Add(auteur);
+        }
+
+        if (rattachement is not null || dossierDeSociete)
+        {
             destinataires.AddRange(collaborateurs
                 .Where(c => c.EstActif)
                 // Le droit existant est lu tel quel. Un administrateur de société voit toujours

@@ -13,7 +13,11 @@ namespace CIT.Plateforme.Application.Enrolement;
 public sealed record ObjetEnrolementSoumission(
     TypeObjetEnrolement Type,
     string Objet,
-    string Description);
+    string Description,
+    IReadOnlyList<EcheanceDocumentSaisie>? Echeances = null);
+
+/// <summary>Date d'expiration déclarée pour un document du chauffeur ou du camion (03/10/2026).</summary>
+public sealed record EcheanceDocumentSaisie(DocumentEnrolement Document, DateOnly DateExpiration);
 
 /// <summary>
 /// LOT 2 — Demande d'enrôlement d'une flotte par une société cliente : un dossier unique regroupant
@@ -53,7 +57,8 @@ public sealed class SoumettreEnrolementSocieteCommand(
     IServiceNumerotation numerotation,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    IEcheanceDocumentEnrolementRepository? echeances = null)
 {
     public const string Module = "Enrolement";
     public const string TypeDemande = "Enrolement";
@@ -95,6 +100,12 @@ public sealed class SoumettreEnrolementSocieteCommand(
             {
                 throw new ArgumentException("La description de chaque enrôlement est obligatoire (ENR-01).", nameof(requete));
             }
+
+            // Échéances : contrôlées AVANT toute écriture (document pertinent, pas déjà expiré).
+            foreach (var e in objet.Echeances ?? [])
+            {
+                _ = EcheanceDocumentEnrolement.Declarer(Guid.Empty, objet.Type, e.Document, e.DateExpiration, DateOnly.FromDateTime(horloge.MaintenantUtc));
+            }
         }
 
         // 3. Résolution de la file « Agent Gate » — donnée paramétrée, jamais codée en dur.
@@ -118,6 +129,15 @@ public sealed class SoumettreEnrolementSocieteCommand(
             ticket.DefinirTypeEnrolement(objet.Type, SensEnrolement.Ajout);
             ticket.DefinirInformationsEnrolement(objet.Objet, objet.Description);
             await tickets.AjouterAsync(ticket, ct).ConfigureAwait(false);
+
+            if (echeances is not null)
+            {
+                foreach (var e in objet.Echeances ?? [])
+                {
+                    await echeances.AjouterAsync(
+                        EcheanceDocumentEnrolement.Declarer(ticket.Id, objet.Type, e.Document, e.DateExpiration, DateOnly.FromDateTime(maintenant)), ct).ConfigureAwait(false);
+                }
+            }
 
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", "Enrôlement société soumis", appelantId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(appelantId, "TicketCree", nameof(Ticket), ticket.Id, null, ticket.Numero, ct).ConfigureAwait(false);

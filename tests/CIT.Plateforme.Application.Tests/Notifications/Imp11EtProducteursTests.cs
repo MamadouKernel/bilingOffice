@@ -101,7 +101,10 @@ public class Imp11EtProducteursTests
         // pour que sa disparition soit à son tour détectée.
         // 30e producteur — SUPPORT IT : IncidentCommands.cs publie TicketCree à la déclaration d'un
         // incident technique, comme toute création de ticket. Producteur délibéré, nommé ci-dessous.
-        Assert.Equal(30, fichiersProducteurs.Count);
+        // 31e producteur (03/10/2026) — RappelerEcheancesDocumentsCommand : rappel avant échéance
+        // du permis, de l'assurance ou de la visite technique déclarés à l'enrôlement de flotte.
+        Assert.Equal(31, fichiersProducteurs.Count);
+        Assert.Contains("RappelerEcheancesDocumentsCommand.cs", fichiersProducteurs);
         Assert.Contains("IncidentCommands.cs", fichiersProducteurs);
         Assert.Contains("SoumettreEnrolementSocieteCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreRetraitEnrolementSocieteCommand.cs", fichiersProducteurs);

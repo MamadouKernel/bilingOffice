@@ -506,6 +506,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<int>("Ordre")
                         .HasColumnType("int");
 
+                    b.Property<string>("TypeClientCible")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -513,7 +517,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("EstActif");
 
-                    b.ToTable("PiecesExigeesCompte");
+                    b.ToTable("PiecesExigeesCompte", t =>
+                        {
+                            t.HasCheckConstraint("CK_PiecesExigeesCompte_TypeClientCible", "[TypeClientCible] IN (N'Normal', N'EnCompte', N'Deposit', N'IES', N'Transporteur')");
+                        });
                 });
 
             modelBuilder.Entity("CIT.Plateforme.Domain.Comptes.SocieteCliente", b =>
@@ -791,6 +798,38 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("ChampsFormulaireEnrolement", t =>
                         {
                             t.HasCheckConstraint("CK_ChampsFormulaireEnrolement_TypeObjet", "[TypeObjet] IN (N'Chauffeur', N'Camion')");
+                        });
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Enrolement.EcheanceDocumentEnrolement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("DateExpiration")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime?>("RappelEmisUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.HasIndex("RappelEmisUtc", "DateExpiration");
+
+                    b.ToTable("EcheancesDocumentEnrolement", t =>
+                        {
+                            t.HasCheckConstraint("CK_EcheancesDocumentEnrolement_Document", "[Document] IN (N'PermisConduire', N'AssuranceVehicule', N'VisiteTechnique')");
                         });
                 });
 

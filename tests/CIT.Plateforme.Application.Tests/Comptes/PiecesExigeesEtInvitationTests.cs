@@ -101,6 +101,24 @@ public sealed class PiecesExigeesEtInvitationTests
         Assert.Empty(c.DbContext.Societes);
     }
 
+    /// <summary>03/10/2026 : une pièce réservée à un type de compte n'est exigée que de ce type.</summary>
+    [Fact]
+    public async Task Une_piece_reservee_aux_transporteurs_ne_concerne_que_les_transporteurs()
+    {
+        var c = Construire();
+        var adminId = AjouterAdministrateurCit(c.DbContext);
+        await c.GererPieces.DefinirAsync(adminId, "agrement", "Agrément de transport", obligatoire: true, ordre: 1, TypeClient.Transporteur);
+
+        var importateur = await c.Soumettre.ExecuterAsync(
+            new SoumettreDemandeCompteRequete(Guid.NewGuid(), "Importateur", TypeClient.Normal));
+        Assert.NotNull(importateur);
+
+        var exception = await Assert.ThrowsAsync<DossierIncompletException>(
+            () => c.Soumettre.ExecuterAsync(
+                new SoumettreDemandeCompteRequete(Guid.NewGuid(), "Transporteur", TypeClient.Transporteur)));
+        Assert.Contains("Agrément de transport", exception.PiecesManquantes);
+    }
+
     [Fact]
     public async Task Une_piece_obligatoire_fournie_rend_le_dossier_recevable_et_conserve_le_depot()
     {

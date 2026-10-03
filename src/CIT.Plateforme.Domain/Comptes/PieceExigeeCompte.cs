@@ -31,9 +31,19 @@ public sealed class PieceExigeeCompte
 
     public int Ordre { get; private set; }
 
+    /// <summary>
+    /// Type de compte concerné (03/10/2026) : null = tous les types ; sinon la pièce n'est
+    /// demandée — et contrôlée — que pour ce profil (ex. agrément de transport pour un
+    /// transporteur, sans l'imposer à un importateur).
+    /// </summary>
+    public TypeClient? TypeClientCible { get; private set; }
+
+    /// <summary>La pièce s'applique-t-elle à une demande de ce profil ?</summary>
+    public bool ConcerneLeProfil(TypeClient profil) => TypeClientCible is null || TypeClientCible == profil;
+
     private PieceExigeeCompte() { }
 
-    public static PieceExigeeCompte Definir(string code, string libelle, bool obligatoire, int ordre)
+    public static PieceExigeeCompte Definir(string code, string libelle, bool obligatoire, int ordre, TypeClient? typeClientCible = null)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -53,6 +63,7 @@ public sealed class PieceExigeeCompte
             Obligatoire = obligatoire,
             EstActif = true,
             Ordre = ordre,
+            TypeClientCible = typeClientCible,
         };
     }
 

@@ -50,6 +50,8 @@ public sealed class ProvisionnementNotifications(
         ("RelanceEmise", CanalNotification.Email, false, "Rappel concernant votre dossier"),
         ("RappelExpirationBadge", CanalNotification.InApp, false, "Votre badge arrive à expiration"),
         ("RappelExpirationBadge", CanalNotification.Email, false, "Votre badge arrive à expiration"),
+        ("RappelEcheanceDocument", CanalNotification.InApp, false, "Un document de votre flotte arrive à échéance"),
+        ("RappelEcheanceDocument", CanalNotification.Email, false, "Un document de votre flotte arrive à échéance"),
         ("BadgeRemisEtDossierCloture", CanalNotification.InApp, false, "Vos cartes / BAT sont prêts"),
         ("BadgeRemisEtDossierCloture", CanalNotification.Email, false, "Vos cartes / BAT sont prêts"),
         ("TicketIncidentResolu", CanalNotification.InApp, false, "Votre incident technique a été résolu"),

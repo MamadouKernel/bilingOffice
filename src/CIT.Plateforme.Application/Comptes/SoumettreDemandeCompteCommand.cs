@@ -63,7 +63,7 @@ public sealed class SoumettreDemandeCompteCommand(
         var codesDeposes = deposes.Select(j => j.PieceCode).ToHashSet(StringComparer.Ordinal);
 
         var manquantes = attendues
-            .Where(p => p.Obligatoire && !codesDeposes.Contains(p.Code))
+            .Where(p => p.Obligatoire && p.ConcerneLeProfil(requete.ProfilDeclare) && !codesDeposes.Contains(p.Code))
             .OrderBy(p => p.Ordre)
             .Select(p => p.Libelle)
             .ToList();

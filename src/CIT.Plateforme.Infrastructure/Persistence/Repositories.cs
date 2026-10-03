@@ -327,6 +327,18 @@ public sealed class DisponibiliteRepository(PlateformeDbContext dbContext) : IDi
         await dbContext.Disponibilites.ToListAsync(ct).ConfigureAwait(false);
 }
 
+public sealed class EcheanceDocumentEnrolementRepository(PlateformeDbContext dbContext) : IEcheanceDocumentEnrolementRepository
+{
+    public async Task AjouterAsync(Domain.Enrolement.EcheanceDocumentEnrolement echeance, CancellationToken ct = default) =>
+        await dbContext.EcheancesDocumentEnrolement.AddAsync(echeance, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Domain.Enrolement.EcheanceDocumentEnrolement>> ListerARappelerAsync(DateOnly seuil, CancellationToken ct = default) =>
+        await dbContext.EcheancesDocumentEnrolement
+            .Where(e => e.RappelEmisUtc == null && e.DateExpiration <= seuil)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+}
+
 public sealed class BadgeEnrolementRepository(PlateformeDbContext dbContext) : IBadgeEnrolementRepository
 {
     public async Task AjouterAsync(Domain.Enrolement.BadgeEnrolement badge, CancellationToken ct = default) =>

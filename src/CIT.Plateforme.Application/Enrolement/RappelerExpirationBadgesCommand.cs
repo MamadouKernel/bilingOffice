@@ -53,7 +53,7 @@ public sealed class RappelerExpirationBadgesCommand(
             // Si le badge expire dans la fenêtre de préavis et n'est pas encore totalement expiré depuis plus de 30 jours
             if (dateExpiration <= dateSeuilRappel && dateExpiration >= maintenant.AddDays(-30))
             {
-                var payload = $"{{\"dossierId\":\"{dossier.Id}\",\"clientId\":\"{dossier.ClientId}\",\"dateExpirationUtc\":\"{dateExpiration:O}\"}}";
+                var payload = $"{{\"ticketId\":\"{dernierTicketEnrolement.Id}\",\"dossierId\":\"{dossier.Id}\",\"clientId\":\"{dossier.ClientId}\",\"dateExpirationUtc\":\"{dateExpiration:O}\"}}";
                 await journalisation.PublierEvenementAsync("RappelExpirationBadge", payload, ct).ConfigureAwait(false);
                 nbRappels++;
             }

@@ -56,6 +56,11 @@ public sealed class RappelExpirationBadgesService(
     {
         using var scope = scopeFactory.CreateScope();
 
+        // Échéances des documents de flotte (03/10/2026) : indépendantes du paramétrage des badges.
+        var echeances = await scope.ServiceProvider.GetRequiredService<RappelerEcheancesDocumentsCommand>()
+            .ExecuterAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("Rappel d'échéance des documents de flotte : {NombreRappels} rappel(s) émis.", echeances);
+
         // Tant que les deux paramètres ne sont pas administrés, il n'y a rien à faire : ce n'est
         // pas une panne, et cela ne doit pas remplir le journal d'erreurs à chaque réveil.
         var parametres = scope.ServiceProvider.GetRequiredService<IParametresEnrolementProvider>();
