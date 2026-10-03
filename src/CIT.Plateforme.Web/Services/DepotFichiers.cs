@@ -1,5 +1,8 @@
+using CIT.Plateforme.Application.Documents;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Domain.Documents;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CIT.Plateforme.Web.Services;
 
@@ -10,6 +13,22 @@ namespace CIT.Plateforme.Web.Services;
 public static class DepotFichiers
 {
     public const int MaxParDepot = 10;
+
+    /// <summary>Formats et taille acceptés pour une pièce jointe à une demande (mêmes règles que les documents d'un ticket).</summary>
+    public static readonly ReglesDepotDocument ReglesStandard =
+        new([".pdf", ".jpg", ".jpeg", ".png", ".xlsx"], ValidateurFichierDocument.TailleMaxDefaut);
+
+    /// <summary>Joint les pièces choisies dans un formulaire au ticket qu'il vient de créer. La
+    /// commande de dépôt est résolue dans une portée dédiée, seulement quand il y a des pièces.</summary>
+    public static async Task<ResultatDepot> JoindreAsync(
+        IServiceScopeFactory portees, IReadOnlyList<IBrowserFile> fichiers, Guid ticketId, Guid appelantId, bool estClient)
+    {
+        using var portee = portees.CreateScope();
+        var deposer = portee.ServiceProvider.GetRequiredService<DeposerDocumentCommand>();
+        return await DeposerTousAsync(fichiers, ReglesStandard.TailleMaxOctets, (nom, type, contenu) => estClient
+            ? deposer.DeposerPourClientAsync(appelantId, ticketId, nom, type, contenu, contenu.Length, ReglesStandard)
+            : deposer.DeposerPourAgentAsync(appelantId, ticketId, nom, type, contenu, contenu.Length, ReglesStandard));
+    }
 
     /// <summary>Fichiers choisis, ou <c>null</c> si la sélection dépasse le plafond.</summary>
     public static IReadOnlyList<IBrowserFile>? Lire(InputFileChangeEventArgs e) =>

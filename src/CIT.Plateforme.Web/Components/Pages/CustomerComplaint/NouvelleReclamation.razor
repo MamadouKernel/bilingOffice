@@ -8,6 +8,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreReclamationCommand SoumettreReclamation
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 @inject ListerCategoriesReclamationQuery ListerCategories
 @inject NavigationManager Navigation
 
@@ -42,6 +43,10 @@
                 <div>
                     <h5 class="fw-bold mb-0">@Loc["Complaint.SubmitSuccess"]</h5>
                     <div class="text-muted small">@Loc["Complaint.TrackingNumber"] <strong class="font-monospace text-primary">@_ticketCreeNumero</strong></div>
+                    @if (_messagePieces is not null)
+                    {
+                        <div class="small mt-1">📎 @Loc["PJ.Attached"] @_messagePieces</div>
+                    }
                 </div>
             </div>
             <a href="/reclamations/mes-reclamations" class="btn btn-primary fw-bold px-4">@Loc["Complaint.MyComplaintsTitle"] ➔</a>
@@ -76,6 +81,8 @@
                 <textarea id="description" class="form-control" rows="5" placeholder="@Loc["Complaint.DescPlaceholder"]" @bind="_description" @bind:event="oninput"></textarea>
             </div>
 
+            <PiecesJointesFormulaire Fichiers="_pieces" />
+
             <div class="d-flex justify-content-end gap-2">
                 <a href="/reclamations/mes-reclamations" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
                 <div class="d-flex flex-column align-items-end">
@@ -101,6 +108,8 @@
     private string? _erreur;
     private bool _envoiEnCours;
     private string? _ticketCreeNumero;
+    private readonly List<Microsoft.AspNetCore.Components.Forms.IBrowserFile> _pieces = [];
+    private string? _messagePieces;
 
     private Guid _utilisateurId;
     private Guid _societeId;
@@ -155,6 +164,11 @@
                 new SoumettreReclamationRequete(_societeId, categorieId, _objet, _description));
 
             _ticketCreeNumero = resultat.NumeroTicket;
+            if (_pieces.Count > 0)
+            {
+                _messagePieces = (await DepotFichiers.JoindreAsync(ScopeFactory, _pieces, resultat.TicketId, _utilisateurId, estClient: true)).Message(Loc);
+                _pieces.Clear();
+            }
         }
         catch (Exception ex)
         {

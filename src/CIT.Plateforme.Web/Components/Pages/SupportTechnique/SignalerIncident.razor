@@ -9,6 +9,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreIncidentCommand SoumettreIncident
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 @inject ListerCategoriesIncidentQuery ListerCategories
 @inject LibellesReferentiels Referentiels
 
@@ -41,6 +42,10 @@
                 <div>
                     <h5 class="fw-bold mb-0">@Loc["Incident.SubmitSuccess"]</h5>
                     <div class="text-muted small">@Loc["Incident.TrackingNumber"] <strong class="font-monospace text-primary">@_numeroCree</strong></div>
+                    @if (_messagePieces is not null)
+                    {
+                        <div class="small mt-1">📎 @Loc["PJ.Attached"] @_messagePieces</div>
+                    }
                 </div>
             </div>
             <a href="/support/incidents/mes-incidents" class="btn btn-primary fw-bold px-4">@Loc["Incident.MyIncidentsTitle"] ➔</a>
@@ -86,6 +91,8 @@
                 <textarea id="description" class="form-control" rows="5" placeholder="@Loc["Incident.DescPlaceholder"]" @bind="_description" @bind:event="oninput"></textarea>
             </div>
 
+            <PiecesJointesFormulaire Fichiers="_pieces" />
+
             <div class="d-flex justify-content-end gap-2">
                 <a href="/support/incidents/mes-incidents" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
                 <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
@@ -106,6 +113,9 @@
     private string? _numeroCree;
 
     private Guid _utilisateurId;
+    private bool _estClient;
+    private readonly List<Microsoft.AspNetCore.Components.Forms.IBrowserFile> _pieces = [];
+    private string? _messagePieces;
     private IReadOnlyList<CategorieIncident> _categories = [];
     private string _categorieId = string.Empty;
     private GraviteIncident _gravite = GraviteIncident.Majeure;
@@ -130,6 +140,7 @@
             }
 
             _utilisateurId = contexte.UtilisateurId;
+            _estClient = contexte.Nature == CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client;
             _categories = await ListerCategories.ExecuterAsync();
             _gravites = await Referentiels.ValeursAsync(CIT.Plateforme.Application.Administration.DomaineReferentiel.GraviteIncident);
         }
@@ -159,6 +170,12 @@
                 new SoumettreIncidentRequete(categorieId, _gravite, _objet, _description));
 
             _numeroCree = resultat.NumeroTicket;
+            if (_pieces.Count > 0)
+            {
+                // Un incident peut être signalé par un client ou par un agent : chacun sa voie de dépôt.
+                _messagePieces = (await DepotFichiers.JoindreAsync(ScopeFactory, _pieces, resultat.TicketId, _utilisateurId, _estClient)).Message(Loc);
+                _pieces.Clear();
+            }
         }
         catch (Exception ex)
         {

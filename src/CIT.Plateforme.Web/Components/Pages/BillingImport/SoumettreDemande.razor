@@ -83,6 +83,8 @@
                     </div>
                 </div>
 
+                <PiecesJointesFormulaire Fichiers="_pieces" />
+
                 <div class="d-flex justify-content-end gap-2 pt-2">
                     <a href="/client/dashboard" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
                     <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBl) || _soumissionEnCours || _nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande)">
@@ -157,6 +159,10 @@
                     @Loc["BImp.FilePre"] <a href="/dossiers/@_resultat.Dossier!.Id" class="fw-bold text-primary">@_resultat.Dossier!.Numero</a> @Loc["BImp.FilePost"]
                 </p>
 
+                @if (_messagePieces is not null)
+                {
+                    <div class="small mt-2">📎 @Loc["PJ.Attached"] @_messagePieces</div>
+                }
                 @if (_resultat.TicketsCrees.Count > 0)
                 {
                     <h6 class="fw-bold text-dark mt-3 mb-2">@Loc["BImp.TicketsCreated"]</h6>
@@ -223,6 +229,8 @@
 
     private ModeleFormulaire _modele = new();
     private SoumettreDemandeImportResultat? _resultat;
+    private readonly List<IBrowserFile> _pieces = [];
+    private string? _messagePieces;
     private string? _erreur;
 
     /// <summary>IMP-01 : compteur de BL affiché en direct, recalculé à chaque saisie et à la
@@ -308,6 +316,19 @@
             _resultat = await Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(
                 _societeId, _auteurId, numerosBl,
                 string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim()));
+
+            // Pièces jointes au formulaire : déposées sur chaque ticket (un par BL) du dossier créé.
+            _messagePieces = null;
+            if (_pieces.Count > 0 && _resultat.TicketsCrees.Count > 0)
+            {
+                var bilans = new List<string>();
+                foreach (var ticket in _resultat.TicketsCrees)
+                {
+                    bilans.Add((await DepotFichiers.JoindreAsync(ScopeFactory, _pieces, ticket.Id, _auteurId, estClient: true)).Message(Loc));
+                }
+                _messagePieces = string.Join(" ", bilans.Distinct());
+                _pieces.Clear();
+            }
 
             using (var scope = ScopeFactory.CreateScope())
             {

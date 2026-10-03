@@ -2085,6 +2085,10 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Docs.SomeRefused"] = "Non déposé(s) : {0}",
         ["Docs.TooManyFiles"] = "Au plus {0} fichiers par dépôt.",
         ["Docs.MultipleHint"] = "Vous pouvez sélectionner plusieurs fichiers à la fois.",
+        ["PJ.Label"] = "Pièces jointes (facultatif)",
+        ["PJ.Hint"] = "PDF, JPG, PNG ou XLSX — jusqu'à {0} fichiers, analysés par l'antivirus.",
+        ["PJ.Remove"] = "Retirer",
+        ["PJ.Attached"] = "Pièces jointes :",
 
         // ===== LOT 3 - Tarification (Historique des simulations) =====
         ["SimHist.PageTitle"] = "Historique des simulations — CIT",
@@ -5157,6 +5161,10 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Docs.SomeRefused"] = "Not uploaded: {0}",
         ["Docs.TooManyFiles"] = "At most {0} files per upload.",
         ["Docs.MultipleHint"] = "You can select several files at once.",
+        ["PJ.Label"] = "Attachments (optional)",
+        ["PJ.Hint"] = "PDF, JPG, PNG or XLSX — up to {0} files, scanned by the antivirus.",
+        ["PJ.Remove"] = "Remove",
+        ["PJ.Attached"] = "Attachments:",
 
         // ===== LOT 3 - Pricing (Simulation history) =====
         ["SimHist.PageTitle"] = "Simulation history — CIT",

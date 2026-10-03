@@ -65,6 +65,7 @@ public sealed class NouvelleReclamationTests : BunitContext
         var uow = new UniteDeTravail(db);
         var numerotation = new FakeNumerotationService();
 
+        Services.AddSingleton<Microsoft.Extensions.Localization.IStringLocalizer<CIT.Plateforme.Web.Resources.SharedResources>, CIT.Plateforme.Web.Resources.SharedResourcesLocalizer>();
         Services.AddSingleton(new ListerCategoriesReclamationQuery(catRepo));
         Services.AddSingleton(new SoumettreReclamationCommand(
             ticketRepo, catRepo, dossierRepo, userSocRepo, uow, horloge, numerotation, journalisation));
