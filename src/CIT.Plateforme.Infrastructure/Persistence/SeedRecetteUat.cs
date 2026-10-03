@@ -71,10 +71,15 @@ public sealed class SeedRecetteUat(
     public const string Superviseur = "uat.superviseur@local.test";
     public const string AdminFonctionnel = "uat.admin.fonctionnel@local.test";
     public const string Transporteur = "uat.transporteur@local.test";
+    public const string Caisse = "uat.caisse@local.test";
+    public const string Comptabilite = "uat.comptabilite@local.test";
+    public const string Guichet = "uat.guichet@local.test";
+    public const string AvoirExoneration = "uat.avoir@local.test";
+    public const string SupportIt = "uat.support.it@local.test";
     public const string AgentSansDroits = "uat.agent.sansdroits@local.test";
     public const string CompteDesactive = "uat.compte.desactive@local.test";
 
-    /// <summary>Les dix-huit profils de recette, avec leur nature et leurs permissions.</summary>
+    /// <summary>Les vingt-trois profils de recette, avec leur nature et leurs permissions.</summary>
     public static readonly IReadOnlyList<(string Email, string Nom, NatureUtilisateur Nature, bool Actif, string[] Permissions)> Profils =
     [
         (ClientNormal, "UAT_Client Normal", NatureUtilisateur.Client, true,
@@ -125,7 +130,25 @@ public sealed class SeedRecetteUat(
              Permission.AdministrationFiles, Permission.AdministrationSla, Permission.AuditConsulter,
              Permission.TarificationAdministrer, Permission.AdministrationNotifications,
              Permission.AdministrationCategoriesReclamation, Permission.CompetenceGerer,
-             Permission.AdministrationPerimetresSupervision]),
+             Permission.AdministrationPerimetresSupervision, Permission.AdministrationChampsEnrolement,
+             Permission.AdministrationAssistant, Permission.AdministrationReferentiels, Permission.AdministrationAide,
+             Permission.AdministrationCategoriesIncident]),
+
+        // Postes métier sans compte jusque-là : caisse, comptabilité client, guichet, avoirs et support IT.
+        (Caisse, "UAT_Caisse", NatureUtilisateur.Agent, true,
+            [Permission.TicketPrendreEnCharge, Permission.DocumentTelecharger,
+             Permission.BillingImportPaiementValider, Permission.BillingExportPaiementValider]),
+        (Comptabilite, "UAT_Comptabilite Client", NatureUtilisateur.Agent, true,
+            [Permission.TicketPrendreEnCharge, Permission.DocumentTelecharger,
+             Permission.BillingImportComptabiliteConfirmerLettrage, Permission.BillingExportComptabiliteConfirmerLettrage]),
+        (Guichet, "UAT_Agent Guichet", NatureUtilisateur.Agent, true,
+            [Permission.GuichetRecherche, Permission.RendezVousGerer, Permission.TicketPrendreEnCharge,
+             Permission.DocumentTelecharger]),
+        (AvoirExoneration, "UAT_Avoir Exoneration", NatureUtilisateur.Agent, true,
+            [Permission.TicketPrendreEnCharge, Permission.DocumentTelecharger, Permission.AvoirInstruire,
+             Permission.AvoirDecider, Permission.ExonerationInstruire, Permission.ExonerationDecider]),
+        (SupportIt, "UAT_Support IT", NatureUtilisateur.Agent, true,
+            [.. Permission.ProfilSupportN1, Permission.SupportIncidentInstruireN2]),
 
         (Transporteur, "UAT_Transporteur Chauffeur", NatureUtilisateur.Client, true,
             [Permission.EnrolementSoumettre]),

@@ -71,7 +71,7 @@ dit explicitement. Quatre tests couvrent ce cas, dont trois noms de base de subs
 
 ---
 
-## 3. Les 18 profils de recette
+## 3. Les 23 profils de recette
 
 Toutes les adresses sont sous **`@local.test`**, domaine réservé aux tests par la **RFC 6761** :
 aucune ne peut correspondre à une boîte existante. Tous les noms portent le préfixe **`UAT_`**.
@@ -94,6 +94,11 @@ aucune ne peut correspondre à une boîte existante. Tous les noms portent le pr
 | Superviseur | `uat.superviseur@local.test` | Agent | ✅ |
 | Administrateur fonctionnel | `uat.admin.fonctionnel@local.test` | Agent | ✅ |
 | Transporteur / Chauffeur | `uat.transporteur@local.test` | Client | ✅ |
+| Caisse (validation des paiements) | `uat.caisse@local.test` | Agent | ✅ |
+| Comptabilité client (lettrage) | `uat.comptabilite@local.test` | Agent | ✅ |
+| Agent Guichet (recherche, rendez-vous) | `uat.guichet@local.test` | Agent | ✅ |
+| Avoirs & Exonérations | `uat.avoir@local.test` | Agent | ✅ |
+| Support IT (N1 + N2) | `uat.support.it@local.test` | Agent | ✅ |
 | **Agent sans habilitation** | `uat.agent.sansdroits@local.test` | Agent | ✅ |
 | **Compte désactivé** | `uat.compte.desactive@local.test` | Agent | **❌ inactif** |
 
@@ -208,7 +213,7 @@ dotnet user-secrets list --project src/CIT.Plateforme.Web
 | Suite | Cas | Couvre |
 |---|---|---|
 | `PolitiqueRecetteUatTests` | 22 | Refus en production (3 casses), sans activation (5 valeurs), sans secret (3 valeurs), **sans base désignée (3 valeurs)**, **sur une autre base (3 noms)**, comparaison insensible à la casse, autorisation sur 3 environnements, absence du secret dans le motif |
-| `CatalogueProfilsUatTests` | 14 | 18 profils, domaine réservé, préfixe, unicité, permissions existantes, comptes négatifs, répartition IES, cloisonnement client/agent, transporteur, 4 profils tarifaires |
+| `CatalogueProfilsUatTests` | 14 | 23 profils, domaine réservé, préfixe, unicité, permissions existantes, comptes négatifs, répartition IES, cloisonnement client/agent, transporteur, 4 profils tarifaires |
 
 L'amorçage lui-même a été éprouvé **par exécution réelle**, deux fois, avec vérification SQL.
 
@@ -249,7 +254,7 @@ chiffre et caractère non alphanumérique.
 | Fichier | Objet |
 |---|---|
 | `Infrastructure/Persistence/PolitiqueRecetteUat.cs` | Les quatre barrières d'activation |
-| `Infrastructure/Persistence/SeedRecetteUat.cs` | Le jeu de recette — 18 profils, données métier |
+| `Infrastructure/Persistence/SeedRecetteUat.cs` | Le jeu de recette — 23 profils, données métier |
 | `Infrastructure.Tests/Securite/SeedRecetteUatTests.cs` | **36 tests** |
 
 ### Modifiés

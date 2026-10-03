@@ -138,9 +138,9 @@ public sealed class PolitiqueRecetteUatTests
 public sealed class CatalogueProfilsUatTests
 {
     [Fact]
-    public void Les_dix_huit_profils_sont_definis()
+    public void Les_vingt_trois_profils_sont_definis()
     {
-        Assert.Equal(18, SeedRecetteUat.Profils.Count);
+        Assert.Equal(23, SeedRecetteUat.Profils.Count);
     }
 
     /// <summary>
