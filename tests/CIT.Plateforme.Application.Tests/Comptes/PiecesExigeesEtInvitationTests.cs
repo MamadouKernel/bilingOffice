@@ -135,6 +135,20 @@ public sealed class PiecesExigeesEtInvitationTests
     }
 
     [Fact]
+    public async Task Plusieurs_fichiers_peuvent_etre_deposes_pour_une_meme_piece()
+    {
+        var c = Construire();
+        var adminId = AjouterAdministrateurCit(c.DbContext);
+        await c.GererPieces.DefinirAsync(adminId, "cni", "Pièce d'identité", obligatoire: true, ordre: 1);
+
+        // Recto et verso d'une même pièce d'identité.
+        var societe = await c.Soumettre.ExecuterAsync(new SoumettreDemandeCompteRequete(
+            Guid.NewGuid(), "Informations", TypeClient.Normal, [Depot("cni"), Depot("cni")]));
+
+        Assert.Equal(2, c.DbContext.JustificatifsDemandeCompte.Count(j => j.SocieteId == societe.Id && j.PieceCode == "cni"));
+    }
+
+    [Fact]
     public async Task Une_piece_facultative_absente_ne_bloque_pas()
     {
         var c = Construire();

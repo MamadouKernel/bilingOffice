@@ -53,7 +53,8 @@
             </div>
 
             <h6 class="fw-bold text-dark mt-4 mb-2">@Loc["Enrol.UploadDocTitle"]</h6>
-            <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" />
+            <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" multiple />
+            <div class="form-text">@Loc["Docs.MultipleHint"]</div>
             @if (_messagePiece is not null)
             {
                 <div class="small mt-2 @(_erreurPiece ? "text-danger" : "text-success")">@_messagePiece</div>
@@ -216,14 +217,19 @@
 
         try
         {
-            await using var flux = e.File.OpenReadStream(ReglesPieces.TailleMaxOctets);
-            await using var memoire = new MemoryStream();
-            await flux.CopyToAsync(memoire);
+            var fichiers = DepotFichiers.Lire(e);
+            if (fichiers is null)
+            {
+                _messagePiece = Loc["Docs.TooManyFiles", DepotFichiers.MaxParDepot].Value;
+                _erreurPiece = true;
+                return;
+            }
 
-            await DeposerDocument.DeposerPourClientAsync(_utilisateurId, ticketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesPieces);
+            var resultat = await DepotFichiers.DeposerTousAsync(fichiers, ReglesPieces.TailleMaxOctets, (nom, type, contenu) =>
+                DeposerDocument.DeposerPourClientAsync(_utilisateurId, ticketId, nom, type, contenu, contenu.Length, ReglesPieces));
 
-            _messagePiece = Loc["Enrol.PieceUploaded"].Value;
-            _erreurPiece = false;
+            _messagePiece = resultat.Message(Loc);
+            _erreurPiece = resultat.Deposes == 0;
         }
         catch (Exception ex)
         {

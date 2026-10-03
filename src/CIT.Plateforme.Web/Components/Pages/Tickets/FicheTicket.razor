@@ -267,9 +267,20 @@
 
                         @if (_fiche.PeutMettreEnAttenteClient)
                         {
-                            <button type="button" class="btn btn-outline-warning" @onclick="MettreEnAttenteClientAsync">
+                            <button type="button" class="btn btn-outline-warning" @onclick="() => _saisieAttente = !_saisieAttente" aria-expanded="@_saisieAttente">
                                 @Loc["Ticket.PutOnHoldClient"]
                             </button>
+                            @if (_saisieAttente)
+                            {
+                                <div class="d-flex flex-column gap-2 p-2 rounded bg-warning-subtle">
+                                    <label for="motif-attente" class="form-label small fw-semibold mb-0">@Loc["Ticket.HoldLabel"]</label>
+                                    <textarea id="motif-attente" class="form-control form-control-sm" rows="2" placeholder="@Loc["Ticket.HoldPlaceholder"]" @bind="_motifAttente" @bind:event="oninput"></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-warning btn-sm fw-semibold" @onclick="MettreEnAttenteClientAsync" disabled="@string.IsNullOrWhiteSpace(_motifAttente)">@Loc["Ticket.HoldConfirm"]</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => { _saisieAttente = false; _motifAttente = string.Empty; }">@Loc["Common.Cancel"]</button>
+                                    </div>
+                                </div>
+                            }
                         }
 
                         @if (_fiche.PeutReprendreApresClient && _fiche.Statut == StatutTicket.EnAttenteClient)
@@ -559,11 +570,18 @@
         }
     }
 
+    // Mise en attente client : l'agent précise ce qu'il attend, que le client verra tel quel.
+    private bool _saisieAttente;
+    private string _motifAttente = string.Empty;
+
     private async Task MettreEnAttenteClientAsync()
     {
+        if (string.IsNullOrWhiteSpace(_motifAttente)) return;
         try
         {
-            await AttenteClient.MettreEnAttenteAsync(_utilisateurId, Id, Loc["Ticket.HoldReason"].Value);
+            await AttenteClient.MettreEnAttenteAsync(_utilisateurId, Id, _motifAttente.Trim());
+            _saisieAttente = false;
+            _motifAttente = string.Empty;
             _actionFeedback = Loc["Ticket.MsgOnHold"].Value;
             await RechargerAsync();
         }

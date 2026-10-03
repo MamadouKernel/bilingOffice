@@ -788,9 +788,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(j => j.TypeContenu).IsRequired().HasMaxLength(128);
             b.Property(j => j.CleStockage).IsRequired().HasMaxLength(512);
             b.HasIndex(j => j.SocieteId);
-            // Un seul depot par piece et par demande : le remplacement retire le precedent, sans
-            // quoi le controle de completude compterait des doublons pour des pieces manquantes.
-            b.HasIndex(j => new { j.SocieteId, j.PieceCode }).IsUnique();
+            // Une piece peut tenir en plusieurs fichiers (recto/verso, pages separees) : index de
+            // recherche, non unique. La completude compte des codes de piece distincts.
+            b.HasIndex(j => new { j.SocieteId, j.PieceCode });
             b.HasOne<SocieteCliente>()
                 .WithMany()
                 .HasForeignKey(j => j.SocieteId)

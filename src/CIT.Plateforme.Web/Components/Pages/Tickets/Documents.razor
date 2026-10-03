@@ -79,7 +79,8 @@ else
                 </select>
             </div>
         }
-        <InputFile OnChange="DeposerAsync" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.xlsx" />
+        <InputFile OnChange="DeposerAsync" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.xlsx" multiple />
+        <div class="form-text">@Loc["Docs.MultipleHint"]</div>
         <div class="form-text small">
             @string.Format(Loc["Docs.UploadHint"].Value, _nomAffiche)
         </div>
@@ -336,37 +337,32 @@ else
     private async Task DeposerAsync(Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs e)
     {
         _message = null;
+        var fichiers = DepotFichiers.Lire(e);
+        if (fichiers is null)
+        {
+            _erreur = true;
+            _message = Loc["Docs.TooManyFiles", DepotFichiers.MaxParDepot].Value;
+            return;
+        }
+
+        // IMP-01 : catégorie applicable uniquement sur le parcours Billing Import — ailleurs,
+        // le sélecteur n'est pas affiché et la catégorie reste toujours null.
+        CategorieDocumentBillingImport? categorie = _moduleTicket is "BillingImport" && !string.IsNullOrEmpty(_categorieSelectionnee)
+            ? Enum.Parse<CategorieDocumentBillingImport>(_categorieSelectionnee)
+            : null;
+        var regles = new CIT.Plateforme.Domain.Documents.ReglesDepotDocument(Extensions, TailleMax);
         try
         {
-            await using var flux = e.File.OpenReadStream(TailleMax);
-            await using var memoire = new MemoryStream();
-            await flux.CopyToAsync(memoire);
-
             using var scope = ScopeFactory.CreateScope();
             var deposer = scope.ServiceProvider.GetRequiredService<DeposerDocumentCommand>();
-            var regles = new CIT.Plateforme.Domain.Documents.ReglesDepotDocument(Extensions, TailleMax);
-
-            // IMP-01 : catégorie applicable uniquement sur le parcours Billing Import — ailleurs,
-            // le sélecteur n'est pas affiché et la catégorie reste toujours null.
-            CategorieDocumentBillingImport? categorie = _moduleTicket is "BillingImport" && !string.IsNullOrEmpty(_categorieSelectionnee)
-                ? Enum.Parse<CategorieDocumentBillingImport>(_categorieSelectionnee)
-                : null;
-
             // L'identité vient du contexte authentifié, jamais d'un champ de saisie. La nature
             // décide de la voie : les deux commandes ne portent pas les mêmes habilitations.
-            if (_estClient)
-            {
-                await deposer.DeposerPourClientAsync(
-                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles, categorie);
-            }
-            else
-            {
-                await deposer.DeposerPourAgentAsync(
-                    _appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, regles, categorie);
-            }
+            var resultat = await DepotFichiers.DeposerTousAsync(fichiers, TailleMax, (nom, type, contenu) => _estClient
+                ? deposer.DeposerPourClientAsync(_appelantId, TicketId, nom, type, contenu, contenu.Length, regles, categorie)
+                : deposer.DeposerPourAgentAsync(_appelantId, TicketId, nom, type, contenu, contenu.Length, regles, categorie));
 
-            _message = Loc["Docs.Deposited"].Value;
-            _erreur = false;
+            _message = resultat.Message(Loc);
+            _erreur = resultat.Deposes == 0;
             _categorieSelectionnee = string.Empty;
             await ChargerAsync();
         }

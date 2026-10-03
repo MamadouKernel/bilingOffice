@@ -48,4 +48,25 @@ public sealed class AttenteClientTests
         Assert.Equal(StatutTicket.EnCours, apresReprise!.Statut);
         Assert.Null(apresReprise.DateDebutAttenteClienteUtc);
     }
+
+    [Fact]
+    public async Task Une_mise_en_attente_client_sans_motif_est_refusee()
+    {
+        await using var dbContext = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var agentId = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketPrendreEnCharge, fileId));
+        var ticket = Ticket.Creer("TCK-ATT-000002", "BillingOffice", "Import", fileId, Guid.NewGuid(), horloge.MaintenantUtc);
+        ticket.PrendreEnCharge(agentId, horloge.MaintenantUtc);
+        dbContext.Tickets.Add(ticket);
+        await dbContext.SaveChangesAsync();
+        var commande = new AttenteClientCommand(new TicketRepository(dbContext), new PeriodeAttenteClientRepository(dbContext),
+            new AutorisationService(dbContext), new JournalisationService(dbContext, horloge), horloge, new UniteDeTravail(dbContext));
+
+        // Le client doit savoir ce qu'on attend de lui : pas de mise en attente sans motif.
+        await Assert.ThrowsAsync<ArgumentException>(() => commande.MettreEnAttenteAsync(agentId, ticket.Id, " "));
+        Assert.Equal(StatutTicket.EnCours, (await dbContext.Tickets.FindAsync(ticket.Id))!.Statut);
+    }
+
 }

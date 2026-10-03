@@ -304,14 +304,14 @@
                                                         </div>
 
                                                         <div class="mt-1">
-                                                            <InputFile class="form-control form-control-sm" 
+                                                            <InputFile class="form-control form-control-sm" multiple
                                                                        OnChange="e => SelectionnerFichier(piece.Code, e)" />
                                                         </div>
 
                                                         @if (fichiers.ContainsKey(piece.Code))
                                                         {
                                                             <div class="mt-1 small text-success fw-semibold u-fs-xs">
-                                                                ✅ @fichiers[piece.Code].Name
+                                                                ✅ @string.Join(", ", fichiers[piece.Code].Select(f => f.Name))
                                                             </div>
                                                         }
                                                     </div>
@@ -370,7 +370,8 @@
     /// <summary>Pièces applicables au profil choisi : communes + propres à ce type de compte.</summary>
     private IEnumerable<PieceExigeeVue> PiecesDuProfil =>
         (piecesExigees ?? []).Where(p => p.TypeClientCible is null || p.TypeClientCible == modele.Profil);
-    private readonly Dictionary<string, IBrowserFile> fichiers = new(StringComparer.Ordinal);
+    // Une pièce peut tenir en plusieurs fichiers (recto/verso, pages séparées).
+    private readonly Dictionary<string, IReadOnlyList<IBrowserFile>> fichiers = new(StringComparer.Ordinal);
 
     private const long TailleMaxOctets = 10L * 1024 * 1024;
 
@@ -396,13 +397,21 @@
 
     private void SelectionnerFichier(string pieceCode, InputFileChangeEventArgs e)
     {
-        if (e.File is null)
+        var choisis = DepotFichiers.Lire(e);
+        if (choisis is null)
+        {
+            erreur = Loc["Docs.TooManyFiles", DepotFichiers.MaxParDepot].Value;
+            fichiers.Remove(pieceCode);
+            return;
+        }
+
+        if (choisis.Count == 0)
         {
             fichiers.Remove(pieceCode);
             return;
         }
 
-        fichiers[pieceCode] = e.File;
+        fichiers[pieceCode] = choisis;
     }
 
     private async Task SoumettreAsync()
@@ -441,7 +450,8 @@
         // Un fichier choisi pour une pièce d'un autre profil (l'utilisateur a changé de profil
         // entre-temps) n'est pas transmis.
         var codesDuProfil = PiecesDuProfil.Select(p => p.Code).ToHashSet(StringComparer.Ordinal);
-        foreach (var (pieceCode, fichier) in fichiers.Where(f => codesDuProfil.Contains(f.Key)))
+        foreach (var (pieceCode, fichier) in fichiers.Where(f => codesDuProfil.Contains(f.Key))
+                     .SelectMany(f => f.Value.Select(fichier => (f.Key, fichier))))
         {
             await using var flux = fichier.OpenReadStream(TailleMaxOctets);
             var cle = await StockageDocuments.EnregistrerAsync(flux, fichier.Name);

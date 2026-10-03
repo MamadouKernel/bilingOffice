@@ -157,12 +157,13 @@ public sealed class ObtenirDashboardClientQuery(
         return StatutVisuelDossier.EnAttentePriseEnCharge;
     }
 
-    /// <summary>Ce que l'agent attend du client (dernière demande de complément consignée), à défaut
+    /// <summary>Ce que l'agent attend du client (dernière demande de complément ou mise en attente consignée), à défaut
     /// une mention générique. Lu ticket par ticket : seuls les tickets en attente client sont concernés.</summary>
     private async Task<string> DescriptionComplementAsync(Guid ticketId, string roleInstructeur, CancellationToken ct)
     {
         var demande = historique is null ? null : (await historique.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false))
-            .Where(e => e.Evenement.StartsWith("ComplementDemande", StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(e.Detail))
+            .Where(e => (e.Evenement.StartsWith("ComplementDemande", StringComparison.Ordinal) || e.Evenement == "TicketEnAttenteClient")
+                && !string.IsNullOrWhiteSpace(e.Detail))
             .MaxBy(e => e.HorodatageUtc);
 
         return demande is null

@@ -438,8 +438,7 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SocieteId");
 
-                    b.HasIndex("SocieteId", "PieceCode")
-                        .IsUnique();
+                    b.HasIndex("SocieteId", "PieceCode");
 
                     b.ToTable("JustificatifsDemandeCompte");
                 });

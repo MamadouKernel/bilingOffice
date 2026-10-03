@@ -116,6 +116,26 @@ public sealed class ObtenirDashboardClientQueryTests
     }
 
     [Fact]
+    public async Task ACR01_La_carte_reprend_aussi_le_motif_d_une_mise_en_attente_client()
+    {
+        var (db, query, socId, userId) = ConstruireContexte();
+
+        var dossier = Dossier.Creer("DOS-2026-004", socId, DateTime.UtcNow, userId);
+        var ticket = Ticket.Creer("TCK-004", "CustomerComplaint", "Reclamation", Guid.NewGuid(), dossier.Id, DateTime.UtcNow);
+        var agentId = Guid.NewGuid();
+        ticket.PrendreEnCharge(agentId, DateTime.UtcNow);
+        ticket.MettreEnAttenteClient(DateTime.UtcNow);
+        db.Dossiers.Add(dossier);
+        db.Tickets.Add(ticket);
+        db.HistoriqueTickets.Add(EntreeHistorique.Creer(ticket.Id, "TicketEnAttenteClient", "Merci de joindre la facture contestée", agentId, DateTime.UtcNow));
+        await db.SaveChangesAsync();
+
+        var dashboard = await query.ExecuterAsync(userId, socId);
+
+        Assert.Contains("Merci de joindre la facture contestée", Assert.Single(dashboard.ActionsRequises).Description);
+    }
+
+    [Fact]
     public async Task ACR01_TicketSansActionBloquante_ActionsRequisesEstVide()
     {
         var (db, query, socId, userId) = ConstruireContexte();

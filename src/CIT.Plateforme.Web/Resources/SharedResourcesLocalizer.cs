@@ -2078,6 +2078,13 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Docs.Scanning"] = "Analyse en cours",
         ["Docs.AccessDenied"] = "Vous n'êtes pas autorisé à consulter les documents de ce ticket.",
         ["Docs.Deposited"] = "Document déposé et analysé.",
+        ["Ticket.HoldLabel"] = "Ce que vous attendez du client",
+        ["Ticket.HoldPlaceholder"] = "Ex. : merci de joindre la facture contestée…",
+        ["Ticket.HoldConfirm"] = "Mettre en attente",
+        ["Docs.DepositedMany"] = "{0} documents déposés et analysés.",
+        ["Docs.SomeRefused"] = "Non déposé(s) : {0}",
+        ["Docs.TooManyFiles"] = "Au plus {0} fichiers par dépôt.",
+        ["Docs.MultipleHint"] = "Vous pouvez sélectionner plusieurs fichiers à la fois.",
 
         // ===== LOT 3 - Tarification (Historique des simulations) =====
         ["SimHist.PageTitle"] = "Historique des simulations — CIT",
@@ -5143,6 +5150,13 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Docs.Scanning"] = "Scan in progress",
         ["Docs.AccessDenied"] = "You are not authorized to view this ticket's documents.",
         ["Docs.Deposited"] = "Document uploaded and scanned.",
+        ["Ticket.HoldLabel"] = "What you expect from the client",
+        ["Ticket.HoldPlaceholder"] = "E.g. please attach the disputed invoice…",
+        ["Ticket.HoldConfirm"] = "Put on hold",
+        ["Docs.DepositedMany"] = "{0} documents uploaded and scanned.",
+        ["Docs.SomeRefused"] = "Not uploaded: {0}",
+        ["Docs.TooManyFiles"] = "At most {0} files per upload.",
+        ["Docs.MultipleHint"] = "You can select several files at once.",
 
         // ===== LOT 3 - Pricing (Simulation history) =====
         ["SimHist.PageTitle"] = "Simulation history — CIT",

@@ -17,6 +17,12 @@ public sealed class AttenteClientCommand(
 {
     public async Task MettreEnAttenteAsync(Guid agentId, Guid ticketId, string motif, CancellationToken ct = default)
     {
+        // Le client doit savoir ce qu'on attend de lui : pas de mise en attente sans motif.
+        if (string.IsNullOrWhiteSpace(motif))
+        {
+            throw new ArgumentException("Le motif de la mise en attente client est obligatoire.", nameof(motif));
+        }
+
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 

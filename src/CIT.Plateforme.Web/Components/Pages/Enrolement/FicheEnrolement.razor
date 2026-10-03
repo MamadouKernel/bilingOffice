@@ -153,7 +153,8 @@ else if (_fiche is not null)
     {
         <div class="cit-card mb-4">
             <h6 class="fw-bold text-dark mb-2">@Loc["FicheEnrol.UploadTitle"]</h6>
-            <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" />
+            <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" multiple />
+            <div class="form-text">@Loc["Docs.MultipleHint"]</div>
         </div>
     }
 
@@ -294,20 +295,19 @@ else if (_fiche is not null)
     {
         try
         {
-            await using var flux = e.File.OpenReadStream(ReglesPieces.TailleMaxOctets);
-            await using var memoire = new MemoryStream();
-            await flux.CopyToAsync(memoire);
-
-            if (_estClient)
+            var fichiers = DepotFichiers.Lire(e);
+            if (fichiers is null)
             {
-                await DeposerDocument.DeposerPourClientAsync(_appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesPieces);
-            }
-            else
-            {
-                await DeposerDocument.DeposerPourAgentAsync(_appelantId, TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, ReglesPieces);
+                _erreur = Loc["Docs.TooManyFiles", DepotFichiers.MaxParDepot].Value;
+                return;
             }
 
-            _actionSuccess = Loc["Enrol.PieceUploaded"].Value;
+            var resultat = await DepotFichiers.DeposerTousAsync(fichiers, ReglesPieces.TailleMaxOctets, (nom, type, contenu) => _estClient
+                ? DeposerDocument.DeposerPourClientAsync(_appelantId, TicketId, nom, type, contenu, contenu.Length, ReglesPieces)
+                : DeposerDocument.DeposerPourAgentAsync(_appelantId, TicketId, nom, type, contenu, contenu.Length, ReglesPieces));
+
+            if (resultat.Deposes > 0) _actionSuccess = resultat.Message(Loc);
+            if (resultat.Refuses.Count > 0) _erreur = resultat.Message(Loc);
             await ChargerAsync();
         }
         catch (Exception ex)
