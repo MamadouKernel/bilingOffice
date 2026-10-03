@@ -11,4 +11,11 @@ public enum TypeClient
     EnCompte,
     Deposit,
     IES,
+
+    /// <summary>
+    /// Entreprise de transport (ou transporteur indépendant), validée par CIT comme toute société.
+    /// N'a PAS de parcours Billing Office : elle enrôle sa flotte (chauffeurs, camions) auprès de la
+    /// Gate. Décision du 03/10/2026 — remplace l'auto-inscription publique des transporteurs.
+    /// </summary>
+    Transporteur,
 }

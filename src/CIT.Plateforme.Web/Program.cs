@@ -478,6 +478,10 @@ app.MapHealthChecks("/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// ANCIENNE INSCRIPTION PUBLIQUE DES TRANSPORTEURS (supprimée le 03/10/2026) : l'adresse déjà
+// diffusée mène désormais à la demande de compte société, profil « Transporteur » présélectionné.
+app.MapGet("/comptes/inscription-transporteur", () => Results.Redirect("/comptes/soumettre?profil=Transporteur"));
+
 // CONNEXION À LA CRÉATION DU COMPTE — consomme le jeton à usage unique émis par l'écran de
 // création, applique LA MÊME règle d'accès que la connexion par mot de passe (compte actif,
 // rattachement société pour un client), ouvre la session et mène au tableau de bord. Tout échec

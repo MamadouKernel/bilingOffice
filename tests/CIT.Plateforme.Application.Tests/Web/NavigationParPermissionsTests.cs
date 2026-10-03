@@ -358,6 +358,32 @@ public sealed class NavigationParPermissionsTests
     private static string[] Routes(IReadOnlyList<GroupeNavigationVue> groupes) =>
         groupes.SelectMany(g => g.Liens).Select(l => l.Route).ToArray();
 
+    /// <summary>Décision du 03/10/2026 : une entreprise de transport n'a pas de parcours Billing
+    /// Office. Son menu garde l'enrôlement de flotte et perd import, export, avoir, proforma.</summary>
+    [Theory]
+    [InlineData(CIT.Plateforme.Domain.Comptes.TypeClient.Transporteur, false)]
+    [InlineData(CIT.Plateforme.Domain.Comptes.TypeClient.Normal, true)]
+    public async Task Le_menu_d_un_transporteur_masque_le_Billing_Office_et_garde_l_enrolement(
+        CIT.Plateforme.Domain.Comptes.TypeClient profil, bool billingVisible)
+    {
+        var societe = CIT.Plateforme.Domain.Comptes.SocieteCliente.Soumettre(Utilisateur, "{}", profil, DateTime.UtcNow);
+        var rattachements = new Mock<IUtilisateurSocieteRepository>();
+        rattachements.Setup(r => r.ObtenirParUtilisateurAsync(Utilisateur, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CIT.Plateforme.Domain.Comptes.UtilisateurSociete.Rattacher(Utilisateur, societe.Id, DateTime.UtcNow));
+        var societes = new Mock<ISocieteClienteRepository>();
+        societes.Setup(r => r.ObtenirParIdAsync(societe.Id, It.IsAny<CancellationToken>())).ReturnsAsync(societe);
+        var habilitationRepo = new Mock<IHabilitationRepository>();
+        habilitationRepo.Setup(r => r.ListerParUtilisateurAsync(Utilisateur, It.IsAny<CancellationToken>())).ReturnsAsync([]);
+
+        var menu = await new ConstruireNavigationQuery(habilitationRepo.Object, new Mock<IFileDeTraitementRepository>().Object, rattachements.Object, societes.Object)
+            .ExecuterAsync(Utilisateur, EspaceFonctionnel.Client, aUneSocieteRattachee: true);
+        var routes = menu.SelectMany(g => g.Liens).Select(l => l.Route).ToList();
+
+        Assert.Equal(billingVisible, routes.Contains("/billing-import/soumettre"));
+        Assert.Equal(billingVisible, routes.Contains("/simulation/proforma"));
+        Assert.Contains("/enrolement/societe/soumettre", routes);
+    }
+
     private static Task<IReadOnlyList<GroupeNavigationVue>> Construire(
         EspaceFonctionnel espace,
         HabilitationUtilisateur[] habilitations,

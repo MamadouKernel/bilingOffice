@@ -37,6 +37,9 @@ public sealed class ProvisionnementTypesClient(PlateformeDbContext contexte, ILo
         (TypeClient.IES, "IES", "IES",
             "Circuit dédié IES : instruction du manifeste et contrôle documentaire spécifiques.",
             "Dedicated IES circuit: specific manifest review and document check.", 40),
+        (TypeClient.Transporteur, "Transporteur (entreprise de transport)", "Carrier (transport company)",
+            "Entreprise de transport ou transporteur indépendant : après validation par CIT, enrôlez vos chauffeurs et camions pour obtenir leurs badges d'accès.",
+            "Transport company or independent carrier: once validated by CIT, enrol your drivers and trucks to obtain their access badges.", 50),
     ];
 
     public async Task ExecuterAsync(CancellationToken ct = default)

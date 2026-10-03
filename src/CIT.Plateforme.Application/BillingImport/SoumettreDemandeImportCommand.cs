@@ -83,6 +83,13 @@ public sealed class SoumettreDemandeImportCommand(
         var societe = await societes.ObtenirParIdAsync(requete.SocieteId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Société {requete.SocieteId} introuvable.");
 
+        // Une entreprise de transport n'a pas de parcours Billing Office : elle enrôle sa flotte.
+        // Refus serveur, quel que soit ce qu'affiche le menu (qui masque déjà ces écrans).
+        if (societe.EstTransporteur)
+        {
+            throw new AccesRefuseException($"La société {requete.SocieteId} est un transporteur : aucune demande Billing Office.");
+        }
+
         // T028 (quickstart.md §3) : la file Pilote Manifeste est une donnée paramétrée, jamais un
         // identifiant codé en dur.
         var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);

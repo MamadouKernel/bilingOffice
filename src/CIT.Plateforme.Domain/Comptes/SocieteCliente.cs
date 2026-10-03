@@ -38,6 +38,9 @@ public sealed class SocieteCliente
 
     public TypeClient Profil { get; private set; }
 
+    /// <summary>Entreprise de transport : enrôlement de flotte uniquement, aucun parcours Billing Office.</summary>
+    public bool EstTransporteur => Profil == TypeClient.Transporteur;
+
     public EtatSociete Etat { get; private set; }
 
     /// <summary>Invariant CLAR-03 : ne descend jamais à 0 tant que la société est active.</summary>

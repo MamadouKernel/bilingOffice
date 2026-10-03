@@ -24,6 +24,8 @@ namespace CIT.Plateforme.Application.Web;
 /// tout en n'exigeant aucune habilitation.
 /// </param>
 /// <param name="CorrespondanceExacte">Vrai pour n'activer le lien que sur l'URL exacte.</param>
+/// <param name="MasqueePourTransporteur">Vrai pour les écrans Billing Office, sans objet pour une
+/// entreprise de transport (qui n'enrôle que sa flotte).</param>
 public sealed record EntreeNavigation(
     string Libelle,
     string Icone,
@@ -32,7 +34,8 @@ public sealed record EntreeNavigation(
     string? ModuleFile = null,
     string? NomFile = null,
     bool ExigeRattachementSociete = false,
-    bool CorrespondanceExacte = false);
+    bool CorrespondanceExacte = false,
+    bool MasqueePourTransporteur = false);
 
 /// <summary>Un groupe de l'accordéon du menu latéral.</summary>
 public sealed record GroupeNavigation(string Titre, string Icone, IReadOnlyList<EntreeNavigation> Entrees);
@@ -114,7 +117,7 @@ public static class CatalogueNavigation
         new("Gestion des Dossiers", "📦",
         [
             new("Mes demandes", "📁", "/client/demandes", Aucune, ExigeRattachementSociete: true),
-            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true),
+            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
             // Enrôlement : dossiers du transporteur. « Mes enrôlements » est ainsi sa page
             // d'accueil (première entrée accessible), sans règle particulière.
             new("Mes enrôlements", "📋", "/enrolement/mes-enrolements", [Permission.EnrolementSoumettre]),
@@ -124,12 +127,12 @@ public static class CatalogueNavigation
         ]),
         new("Facturation & Simulation", "📊",
         [
-            new("Demande IMPORT (BL)", "📥", "/billing-import/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Demande EXPORT (Booking)", "📤", "/billing-export/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Demande Avoir / Exonération", "🏷️", "/avoir-exoneration/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Mes Avoirs & Exonérations", "📑", "/avoir-exoneration/mes-demandes", Aucune, ExigeRattachementSociete: true),
-            new("Simulation de Proforma", "🧮", "/simulation/proforma", Aucune, ExigeRattachementSociete: true),
-            new("Historique simulations", "🕒", "/simulation/historique", Aucune, ExigeRattachementSociete: true),
+            new("Demande IMPORT (BL)", "📥", "/billing-import/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Demande EXPORT (Booking)", "📤", "/billing-export/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Demande Avoir / Exonération", "🏷️", "/avoir-exoneration/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Mes Avoirs & Exonérations", "📑", "/avoir-exoneration/mes-demandes", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Simulation de Proforma", "🧮", "/simulation/proforma", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Historique simulations", "🕒", "/simulation/historique", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
         ]),
         new("Administration & Sécurité", "⚙️",
         [
@@ -154,15 +157,15 @@ public static class CatalogueNavigation
         new("Gestion des Dossiers", "📦",
         [
             new("Demandes de la société", "📂", "/client/demandes?vue=societe", Aucune, ExigeRattachementSociete: true),
-            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true),
+            new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
         ]),
         new("Facturation & Simulation", "📊",
         [
-            new("Nouvelle demande EXPORT", "📤", "/billing-export/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Demande Avoir / Exonération", "🏷️", "/avoir-exoneration/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Mes Avoirs & Exonérations", "📑", "/avoir-exoneration/mes-demandes", Aucune, ExigeRattachementSociete: true),
-            new("Simulation de Proforma", "🧮", "/simulation/proforma", Aucune, ExigeRattachementSociete: true),
-            new("Historique simulations", "🕒", "/simulation/historique", Aucune, ExigeRattachementSociete: true),
+            new("Nouvelle demande EXPORT", "📤", "/billing-export/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Demande Avoir / Exonération", "🏷️", "/avoir-exoneration/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Mes Avoirs & Exonérations", "📑", "/avoir-exoneration/mes-demandes", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Simulation de Proforma", "🧮", "/simulation/proforma", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            new("Historique simulations", "🕒", "/simulation/historique", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
         ]),
         new("Administration & Sécurité", "⚙️",
         [

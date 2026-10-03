@@ -34,7 +34,9 @@ public sealed record GroupeNavigationVue(string Titre, string Icone, IReadOnlyLi
 /// </summary>
 public sealed class ConstruireNavigationQuery(
     IHabilitationRepository habilitationRepository,
-    IFileDeTraitementRepository fileRepository)
+    IFileDeTraitementRepository fileRepository,
+    IUtilisateurSocieteRepository? rattachements = null,
+    ISocieteClienteRepository? societes = null)
 {
     public async Task<IReadOnlyList<GroupeNavigationVue>> ExecuterAsync(
         Guid utilisateurId,
@@ -59,6 +61,9 @@ public sealed class ConstruireNavigationQuery(
             ? await fileRepository.ListerAsync(ct).ConfigureAwait(false)
             : [];
 
+        // Une entreprise de transport n'a pas de parcours Billing Office : ses écrans sont masqués.
+        var estTransporteur = aUneSocieteRattachee && await EstTransporteurAsync(utilisateurId, ct).ConfigureAwait(false);
+
         var resultat = new List<GroupeNavigationVue>();
 
         foreach (var groupe in groupes)
@@ -67,7 +72,8 @@ public sealed class ConstruireNavigationQuery(
 
             foreach (var entree in groupe.Entrees)
             {
-                if (!EstVisible(entree, habilitations, files, aUneSocieteRattachee))
+                if ((estTransporteur && entree.MasqueePourTransporteur)
+                    || !EstVisible(entree, habilitations, files, aUneSocieteRattachee))
                 {
                     continue;
                 }
@@ -83,6 +89,17 @@ public sealed class ConstruireNavigationQuery(
         }
 
         return resultat;
+    }
+
+    private async Task<bool> EstTransporteurAsync(Guid utilisateurId, CancellationToken ct)
+    {
+        if (rattachements is null || societes is null
+            || await rattachements.ObtenirParUtilisateurAsync(utilisateurId, ct).ConfigureAwait(false) is not { } rattachement)
+        {
+            return false;
+        }
+
+        return (await societes.ObtenirParIdAsync(rattachement.SocieteId, ct).ConfigureAwait(false))?.EstTransporteur == true;
     }
 
     private static bool EstVisible(

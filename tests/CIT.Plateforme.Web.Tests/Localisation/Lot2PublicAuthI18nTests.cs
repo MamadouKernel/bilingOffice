@@ -26,7 +26,6 @@ public sealed class Lot2PublicAuthI18nTests
     [InlineData("Pages/Comptes/MotDePasseOublie.razor", "@Loc[\"Account.ForgotTitle\"]", ">Mot de passe oublié</h1>")]
     [InlineData("Pages/Comptes/ReinitialiserMotDePasse.razor", "@Loc[\"Account.ResetSubmit\"]", ">Valider le nouveau mot de passe</button>")]
     [InlineData("Pages/Comptes/SoumettreDemande.razor", "@Loc[\"Account.CompanyTitle\"]", ">Ouverture de Compte Société</h1>")]
-    [InlineData("Pages/Comptes/InscriptionTransporteur.razor", "@Loc[\"Account.CarrierTitle\"]", ">Inscription Transporteur</h1>")]
     [InlineData("Pages/Comptes/AccepterInvitation.razor", "@Loc[\"Account.InviteCreateAccount\"]", ">Rejoindre une entreprise</h1>")]
     [InlineData("Pages/Comptes/AccesRefuse.razor", "@Loc[\"Account.AccessDeniedMessage\"]", "= \"Accès Refusé (403)")]
     [InlineData("Pages/Comptes/CompteCloture.razor", "@Loc[\"Account.ClosedTitle\"]", ">Votre compte a été clôturé</h1>")]
@@ -48,7 +47,6 @@ public sealed class Lot2PublicAuthI18nTests
     [InlineData("Pages/Comptes/MotDePasseOublie.razor")]
     [InlineData("Pages/Comptes/ReinitialiserMotDePasse.razor")]
     [InlineData("Pages/Comptes/SoumettreDemande.razor")]
-    [InlineData("Pages/Comptes/InscriptionTransporteur.razor")]
     [InlineData("Pages/Comptes/AccepterInvitation.razor")]
     [InlineData("Pages/Comptes/AccesRefuse.razor")]
     [InlineData("Pages/Comptes/CompteCloture.razor")]
@@ -68,7 +66,6 @@ public sealed class Lot2PublicAuthI18nTests
     [InlineData("Pages/Comptes/MotDePasseOublie.razor")]
     [InlineData("Pages/Comptes/ReinitialiserMotDePasse.razor")]
     [InlineData("Pages/Comptes/SoumettreDemande.razor")]
-    [InlineData("Pages/Comptes/InscriptionTransporteur.razor")]
     public void Les_placeholders_de_texte_sont_localises(string cheminRelatif)
     {
         var source = File.ReadAllText(CheminComposant(cheminRelatif));

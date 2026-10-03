@@ -89,7 +89,6 @@ public static class DependencyInjection
 
         // ENR-01 — inscription a distance d'un transporteur/chauffeur : personne physique sans
         // societe, seul parcours produisant le « compte transporteur/chauffeur » du modele CDC.
-        services.AddScoped<InscrireTransporteurCommand>();
         // RG-IA-01 / RG-IA-02 (remédiation P1-03) — assistant virtuel. AUCUN FOURNISSEUR N'EST
         // DÉSIGNÉ : PC-18 n'est pas arbitré. L'adaptateur servi est simulé et local ; le jour où un
         // fournisseur est retenu, seule cette ligne change.

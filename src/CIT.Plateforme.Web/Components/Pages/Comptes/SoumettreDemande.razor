@@ -340,11 +340,6 @@
                                     </button>
                                 </div>
 
-                                <div class="mt-3 text-center">
-                                    <a href="/comptes/inscription-transporteur" class="text-decoration-none small text-muted">
-                                        @((MarkupString)Loc["Account.CarrierRedirect"].Value)
-                                    </a>
-                                </div>
 
                             </EditForm>
                         }
@@ -362,6 +357,10 @@
     private ModeleSoumission? modeleFormulaire { get; set; }
 
     private ModeleSoumission modele = new();
+
+    /// <summary>Profil présélectionné par le lien d'entrée (ex. « ?profil=Transporteur » depuis l'accueil).</summary>
+    [SupplyParameterFromQuery(Name = "profil")]
+    private string? ProfilDemande { get; set; }
     private Guid? societeCreee;
     private string? erreur;
     private bool _afficherGuideProfils;
@@ -380,6 +379,11 @@
         modele = modeleFormulaire ?? modele;
         piecesExigees = await ListerPiecesExigees.ExecuterAsync();
         typesClient = await ListerTypesClient.ExecuterAsync(activesUniquement: true);
+        if (modeleFormulaire is null && Enum.TryParse<TypeClient>(ProfilDemande, ignoreCase: true, out var profilDemande))
+        {
+            modele.Profil = profilDemande;
+        }
+
         if (typesClient.Count > 0 && typesClient.All(t => t.Type != modele.Profil))
         {
             modele.Profil = typesClient[0].Type;
