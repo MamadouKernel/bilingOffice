@@ -321,6 +321,14 @@ public interface IDisponibiliteRepository
 }
 
 /// <summary>DIS-03 (reporting) — trace append-only des transitions de disponibilité.</summary>
+/// <summary>Badges remis à l'issue des enrôlements (numéro, date d'expiration).</summary>
+public interface IBadgeEnrolementRepository
+{
+    Task AjouterAsync(CIT.Plateforme.Domain.Enrolement.BadgeEnrolement badge, CancellationToken ct = default);
+
+    Task<CIT.Plateforme.Domain.Enrolement.BadgeEnrolement?> ObtenirParTicketAsync(Guid ticketId, CancellationToken ct = default);
+}
+
 public interface IHistoriqueDisponibiliteRepository
 {
     Task AjouterAsync(HistoriqueDisponibilite entree, CancellationToken ct = default);

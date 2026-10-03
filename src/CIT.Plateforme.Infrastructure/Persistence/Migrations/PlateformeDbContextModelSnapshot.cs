@@ -717,6 +717,41 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("PiecesExigeesEtape", (string)null);
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Enrolement.BadgeEnrolement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateExpirationUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateRemiseUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DateExpirationUtc");
+
+                    b.HasIndex("Numero");
+
+                    b.HasIndex("TicketId")
+                        .IsUnique();
+
+                    b.ToTable("BadgesEnrolement");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Enrolement.ChampFormulaireEnrolement", b =>
                 {
                     b.Property<Guid>("Id")

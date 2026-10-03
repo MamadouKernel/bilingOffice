@@ -13,7 +13,8 @@ public sealed class RappelerExpirationBadgesCommand(
     IJournalisationService journalisation,
     IHorloge horloge,
     IParametresEnrolementProvider parametresProvider,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    IBadgeEnrolementRepository? badges = null)
 {
     public async Task<int> ExecuterAsync(CancellationToken ct = default)
     {
@@ -43,8 +44,11 @@ public sealed class RappelerExpirationBadgesCommand(
 
             if (dernierTicketEnrolement is null) continue;
 
-            var dateDelivrance = dernierTicketEnrolement.DateClotureUtc!.Value;
-            var dateExpiration = dateDelivrance.AddDays(dureeValiditeJours);
+            // Badge enregistré (depuis le 03/10/2026) : sa vraie date d'expiration. Badges plus
+            // anciens, remis sans numéro : durée de validité théorique depuis la clôture.
+            var badge = badges is null ? null : await badges.ObtenirParTicketAsync(dernierTicketEnrolement.Id, ct).ConfigureAwait(false);
+            var dateExpiration = badge?.DateExpirationUtc
+                ?? dernierTicketEnrolement.DateClotureUtc!.Value.AddDays(dureeValiditeJours);
 
             // Si le badge expire dans la fenêtre de préavis et n'est pas encore totalement expiré depuis plus de 30 jours
             if (dateExpiration <= dateSeuilRappel && dateExpiration >= maintenant.AddDays(-30))

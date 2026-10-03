@@ -51,6 +51,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
 
     /// <summary>DIS-03 (reporting) — historique append-only des transitions de disponibilité.</summary>
     public DbSet<Domain.Affectation.HistoriqueDisponibilite> HistoriquesDisponibilite => Set<Domain.Affectation.HistoriqueDisponibilite>();
+    public DbSet<Domain.Enrolement.BadgeEnrolement> BadgesEnrolement => Set<Domain.Enrolement.BadgeEnrolement>();
 
     /// <summary>REMÉDIATION AUDIT (post-implementation-audit.md §3.C) : compétences administrées
     /// par opérateur (AFF-06).</summary>
@@ -628,6 +629,17 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(h => h.AncienStatut).HasConversion<string>().HasMaxLength(32);
             b.Property(h => h.NouveauStatut).HasConversion<string>().HasMaxLength(32).IsRequired();
             b.HasIndex(h => new { h.OperateurId, h.HorodatageUtc });
+        });
+
+        // ENR-03/ENR-05 : un badge par ticket d'enrôlement ; le numéro est indexé pour retrouver
+        // un badge présenté à la Gate (révocation, contrôle).
+        builder.Entity<Domain.Enrolement.BadgeEnrolement>(b =>
+        {
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Numero).HasMaxLength(Domain.Enrolement.BadgeEnrolement.LongueurMaxNumero).IsRequired();
+            b.HasIndex(x => x.TicketId).IsUnique();
+            b.HasIndex(x => x.Numero);
+            b.HasIndex(x => x.DateExpirationUtc);
         });
 
         builder.Entity<Domain.Supervision.Alerte>(b =>

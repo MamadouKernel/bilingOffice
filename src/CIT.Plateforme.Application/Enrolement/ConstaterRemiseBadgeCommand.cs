@@ -17,12 +17,18 @@ namespace CIT.Plateforme.Application.Enrolement;
 /// </summary>
 public sealed class ConstaterRemiseBadgeCommand(
     ITicketRepository tickets,
+    IBadgeEnrolementRepository badges,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
-    public async Task ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
+    /// <summary>
+    /// Décision du 03/10/2026 : la remise enregistre le NUMÉRO du badge et sa DATE D'EXPIRATION
+    /// (traçabilité, révocation, rappel avant échéance sur la vraie date).
+    /// </summary>
+    public async Task ExecuterAsync(
+        Guid agentId, Guid ticketId, string numeroBadge, DateTime dateExpirationUtc, CancellationToken ct = default)
     {
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
@@ -34,11 +40,17 @@ public sealed class ConstaterRemiseBadgeCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
+        // Le badge est validé AVANT la clôture : un numéro manquant ou une date passée ne doit
+        // jamais laisser un dossier clôturé sans badge enregistré.
+        var badge = Domain.Enrolement.BadgeEnrolement.Remettre(ticket.Id, numeroBadge, dateExpirationUtc, agentId, horloge.MaintenantUtc);
+
         var statutAvant = ticket.Statut;
         ticket.Cloturer(MotifClotureType.Normale, horloge.MaintenantUtc);
+        await badges.AjouterAsync(badge, ct).ConfigureAwait(false);
 
-        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "BadgeRemisEtDossierCloture", null, agentId, ct).ConfigureAwait(false);
-        await journalisation.ConsignerAuditAsync(agentId, "BadgeRemisEtDossierCloture", nameof(Ticket), ticket.Id, statutAvant.ToString(), ticket.Statut.ToString(), ct).ConfigureAwait(false);
+        var detail = $"Badge n° {badge.Numero}, expire le {badge.DateExpirationUtc:dd/MM/yyyy}";
+        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "BadgeRemisEtDossierCloture", detail, agentId, ct).ConfigureAwait(false);
+        await journalisation.ConsignerAuditAsync(agentId, "BadgeRemisEtDossierCloture", nameof(Ticket), ticket.Id, statutAvant.ToString(), detail, ct).ConfigureAwait(false);
         await journalisation.PublierEvenementAsync("BadgeRemisEtDossierCloture", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

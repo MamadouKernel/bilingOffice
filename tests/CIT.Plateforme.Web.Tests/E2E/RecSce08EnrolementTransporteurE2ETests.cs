@@ -192,6 +192,9 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             var cutFiche = bunit.Render<FicheEnrolement>(p => p.Add(x => x.TicketId, ticketId));
             cutFiche.WaitForState(() => cutFiche.Markup.Contains("Constater la remise du badge"), TimeSpan.FromSeconds(25));
             cutFiche.Find("button.btn-outline-dark.btn-sm").Click();
+            // Décision du 03/10/2026 : la remise enregistre le numéro et l'expiration du badge.
+            cutFiche.Find("#numero-badge").Input("BADGE-E2E-0001");
+            cutFiche.Find("button.btn-dark.btn-sm").Click();
             cutFiche.WaitForState(() => cutFiche.Markup.Contains("dossier clôturé"), TimeSpan.FromSeconds(25));
         }
 

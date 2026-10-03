@@ -327,6 +327,15 @@ public sealed class DisponibiliteRepository(PlateformeDbContext dbContext) : IDi
         await dbContext.Disponibilites.ToListAsync(ct).ConfigureAwait(false);
 }
 
+public sealed class BadgeEnrolementRepository(PlateformeDbContext dbContext) : IBadgeEnrolementRepository
+{
+    public async Task AjouterAsync(Domain.Enrolement.BadgeEnrolement badge, CancellationToken ct = default) =>
+        await dbContext.BadgesEnrolement.AddAsync(badge, ct).ConfigureAwait(false);
+
+    public async Task<Domain.Enrolement.BadgeEnrolement?> ObtenirParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        await dbContext.BadgesEnrolement.SingleOrDefaultAsync(b => b.TicketId == ticketId, ct).ConfigureAwait(false);
+}
+
 public sealed class HistoriqueDisponibiliteRepository(PlateformeDbContext dbContext) : IHistoriqueDisponibiliteRepository
 {
     public async Task AjouterAsync(HistoriqueDisponibilite entree, CancellationToken ct = default) =>

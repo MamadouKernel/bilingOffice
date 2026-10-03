@@ -101,9 +101,28 @@ else if (_fiche is not null)
                 }
                 @if (f.PeutConstaterBadge)
                 {
-                    <button type="button" class="btn btn-outline-dark btn-sm fw-semibold" @onclick="ConstaterBadgeAsync">@Loc["FicheEnrol.BtnBadge"]</button>
+                    <button type="button" class="btn btn-outline-dark btn-sm fw-semibold" @onclick="() => _afficherFormulaireBadge = !_afficherFormulaireBadge">@Loc["FicheEnrol.BtnBadge"]</button>
                 }
             </div>
+
+            @if (_afficherFormulaireBadge && f.PeutConstaterBadge)
+            {
+                @* ENR-03/ENR-05 : le numéro et la date d'expiration sont enregistrés à la remise. *@
+                <div class="mt-3 row g-2 align-items-end">
+                    <div class="col-12 col-md-5">
+                        <label for="numero-badge" class="form-label small fw-semibold">@Loc["FicheEnrol.BadgeNumero"]</label>
+                        <input id="numero-badge" class="form-control form-control-sm font-monospace" maxlength="50" @bind="_numeroBadge" @bind:event="oninput" />
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="expiration-badge" class="form-label small fw-semibold">@Loc["FicheEnrol.BadgeExpiration"]</label>
+                        <input id="expiration-badge" type="date" class="form-control form-control-sm" @bind="_expirationBadge" />
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <button type="button" class="btn btn-dark btn-sm w-100 fw-semibold" @onclick="ConstaterBadgeAsync"
+                                disabled="@(string.IsNullOrWhiteSpace(_numeroBadge))">@Loc["FicheEnrol.BtnBadgeConfirm"]</button>
+                    </div>
+                </div>
+            }
 
             @if (_afficherFormulaireComplement)
             {
@@ -238,7 +257,19 @@ else if (_fiche is not null)
 
     private async Task ConvoquerAsync() => await ExecuterActionAsync(() => DeclencherConvocation.ExecuterAsync(_appelantId, TicketId), Loc["FicheEnrol.MsgConvened"].Value);
 
-    private async Task ConstaterBadgeAsync() => await ExecuterActionAsync(() => ConstaterRemiseBadge.ExecuterAsync(_appelantId, TicketId), Loc["FicheEnrol.MsgBadge"].Value);
+    private bool _afficherFormulaireBadge;
+    private string _numeroBadge = string.Empty;
+
+    // ponytail: validité proposée d'un an ; l'agent corrige selon le badge réellement imprimé.
+    private DateTime _expirationBadge = DateTime.Today.AddYears(1);
+
+    private async Task ConstaterBadgeAsync()
+    {
+        await ExecuterActionAsync(
+            () => ConstaterRemiseBadge.ExecuterAsync(_appelantId, TicketId, _numeroBadge, DateTime.SpecifyKind(_expirationBadge.Date, DateTimeKind.Utc)),
+            Loc["FicheEnrol.MsgBadge"].Value);
+        _afficherFormulaireBadge = false;
+    }
 
     private async Task DemanderComplementAsync()
     {

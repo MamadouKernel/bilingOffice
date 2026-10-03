@@ -19,12 +19,14 @@ public class ConstaterRemiseBadgeCommandTests
     private readonly Mock<IJournalisationService> _journalisation = new();
     private readonly Mock<IHorloge> _horloge = new();
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
+    private readonly Mock<IBadgeEnrolementRepository> _badges = new();
     private readonly ConstaterRemiseBadgeCommand _command;
 
     public ConstaterRemiseBadgeCommandTests()
     {
         _command = new ConstaterRemiseBadgeCommand(
             _ticketRepo.Object,
+            _badges.Object,
             _autorisation.Object,
             _journalisation.Object,
             _horloge.Object,
@@ -50,11 +52,34 @@ public class ConstaterRemiseBadgeCommandTests
         _autorisation.Setup(a => a.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        await _command.ExecuterAsync(agentId, ticket.Id, CancellationToken.None);
+        await _command.ExecuterAsync(agentId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None);
 
         Assert.Equal(StatutTicket.Cloture, ticket.Statut);
         Assert.NotNull(ticket.DateClotureUtc);
-        _journalisation.Verify(j => j.ConsignerHistoriqueAsync(ticket.Id, "BadgeRemisEtDossierCloture", null, agentId, It.IsAny<CancellationToken>()), Times.Once);
+        _journalisation.Verify(j => j.ConsignerHistoriqueAsync(ticket.Id, "BadgeRemisEtDossierCloture",
+            It.Is<string>(d => d.Contains("BADGE-0001") && d.Contains("31/08/2027")), agentId, It.IsAny<CancellationToken>()), Times.Once);
+        _badges.Verify(b => b.AjouterAsync(It.Is<CIT.Plateforme.Domain.Enrolement.BadgeEnrolement>(x =>
+            x.TicketId == ticket.Id && x.Numero == "BADGE-0001" && x.AgentId == agentId), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>Décision du 03/10/2026 : sans numéro (ou avec une expiration passée), la remise est
+    /// refusée et le dossier n'est PAS clôturé — jamais de dossier clos sans badge enregistré.</summary>
+    [Theory]
+    [InlineData("", 2027)]
+    [InlineData("BADGE-0001", 2025)]
+    public async Task Une_remise_sans_numero_ou_deja_expiree_est_refusee_sans_cloturer(string numero, int anneeExpiration)
+    {
+        var agentId = Guid.NewGuid();
+        var ticket = TicketEnrolementEnCours();
+        _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
+        _autorisation.Setup(a => a.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            _command.ExecuterAsync(agentId, ticket.Id, numero, new DateTime(anneeExpiration, 1, 1, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None));
+
+        Assert.NotEqual(StatutTicket.Cloture, ticket.Statut);
+        _badges.Verify(b => b.AjouterAsync(It.IsAny<CIT.Plateforme.Domain.Enrolement.BadgeEnrolement>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -67,7 +92,7 @@ public class ConstaterRemiseBadgeCommandTests
         _autorisation.Setup(a => a.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new AccesRefuseException("Refusé"));
 
-        await Assert.ThrowsAsync<AccesRefuseException>(() => _command.ExecuterAsync(agentId, ticket.Id, CancellationToken.None));
+        await Assert.ThrowsAsync<AccesRefuseException>(() => _command.ExecuterAsync(agentId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None));
     }
 
     [Fact]
@@ -78,7 +103,7 @@ public class ConstaterRemiseBadgeCommandTests
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _command.ExecuterAsync(agentId, ticket.Id, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _command.ExecuterAsync(agentId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None));
     }
 
     [Fact]
@@ -92,7 +117,7 @@ public class ConstaterRemiseBadgeCommandTests
         _autorisation.Setup(a => a.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _command.ExecuterAsync(agentId, ticket.Id, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _command.ExecuterAsync(agentId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None));
     }
 
     [Fact]

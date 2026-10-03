@@ -47,11 +47,11 @@ public class EnrolementSecuriteTests
 
         var valider = new ValiderEnrolementCommand(ticketRepo.Object, autorisation.Object, journalisation.Object, uow.Object);
         var convoquer = new DeclencherConvocationCommand(ticketRepo.Object, autorisation.Object, journalisation.Object, uow.Object);
-        var constaterBadge = new ConstaterRemiseBadgeCommand(ticketRepo.Object, autorisation.Object, journalisation.Object, horloge.Object, uow.Object);
+        var constaterBadge = new ConstaterRemiseBadgeCommand(ticketRepo.Object, new Mock<IBadgeEnrolementRepository>().Object, autorisation.Object, journalisation.Object, horloge.Object, uow.Object);
 
         await Assert.ThrowsAsync<AccesRefuseException>(() => valider.ExecuterAsync(transporteurId, ticket.Id));
         await Assert.ThrowsAsync<AccesRefuseException>(() => convoquer.ExecuterAsync(transporteurId, ticket.Id));
-        await Assert.ThrowsAsync<AccesRefuseException>(() => constaterBadge.ExecuterAsync(transporteurId, ticket.Id));
+        await Assert.ThrowsAsync<AccesRefuseException>(() => constaterBadge.ExecuterAsync(transporteurId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc)));
 
         uow.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -109,10 +109,10 @@ public class EnrolementSecuriteTests
         var horloge = new Mock<IHorloge>();
         horloge.Setup(h => h.MaintenantUtc).Returns(DateTime.UtcNow);
 
-        var constaterBadge = new ConstaterRemiseBadgeCommand(ticketRepo.Object, autorisation.Object, journalisation.Object, horloge.Object, uow.Object);
+        var constaterBadge = new ConstaterRemiseBadgeCommand(ticketRepo.Object, new Mock<IBadgeEnrolementRepository>().Object, autorisation.Object, journalisation.Object, horloge.Object, uow.Object);
 
-        await constaterBadge.ExecuterAsync(agentId, ticket.Id);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => constaterBadge.ExecuterAsync(agentId, ticket.Id));
+        await constaterBadge.ExecuterAsync(agentId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => constaterBadge.ExecuterAsync(agentId, ticket.Id, "BADGE-0001", new DateTime(2027, 8, 31, 0, 0, 0, DateTimeKind.Utc)));
     }
 
     // T073 : absence de rejet définitif — confirmée mécaniquement (aucune classe "Rejeter" dans le
