@@ -77,7 +77,7 @@ else
                         {
                             <tr>
                                 <td class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</td>
-                                <td class="fw-semibold text-dark">@(t.Objet ?? "—")</td>
+                                <td><div class="fw-semibold text-dark">@(t.Objet ?? "—")</div><ClientTicket DossierId="t.DossierId" /></td>
                                 <td>
                                     @if (t.ObjetEnrolement is not null)
                                     {

@@ -56,6 +56,7 @@ public sealed class FileAgentGateTests : BunitContext
         var uow = new UniteDeTravail(db);
 
         Services.AddSingleton(new ConsulterFileAgentGateQuery(ticketRepo, fileRepo, autorisation));
+        Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
         Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
     }
 

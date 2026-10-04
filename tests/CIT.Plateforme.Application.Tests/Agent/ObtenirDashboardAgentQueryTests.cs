@@ -113,4 +113,25 @@ public sealed class ObtenirDashboardAgentQueryTests
         Assert.Equal(1, dashboard.TotalTicketsEnCoursAgent);
         Assert.Equal(1, dashboard.TotalTicketsEnAttenteDansPerimetre);
     }
+
+    /// <summary>Revue UX du 04/10/2026 : un agent habilité GLOBALEMENT (sans file précise) voyait
+    /// « Aucune file habilitée — contactez votre superviseur » alors qu'il traite la file.</summary>
+    [Fact]
+    public async Task Habilitation_globale_fait_apparaitre_la_file_correspondante_avec_son_lien()
+    {
+        var (db, query) = ConstruireContexte();
+        var agentId = Guid.NewGuid();
+        db.Users.Add(new ApplicationUser { Id = agentId, UserName = "pilote@cit.ci", NomAffiche = "Pilote", Nature = NatureUtilisateur.Agent, EstActif = true });
+        db.Files.Add(FileDeTraitement.Creer(
+            CIT.Plateforme.Application.BillingImport.SoumettreDemandeImportCommand.Module,
+            CIT.Plateforme.Application.BillingImport.SoumettreDemandeImportCommand.FilePiloteManifeste));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(agentId, Permission.BillingImportManifesteInstruire));
+        await db.SaveChangesAsync();
+
+        var dashboard = await query.ExecuterAsync(agentId);
+
+        var file = Assert.Single(dashboard.FilesHabilitees);
+        Assert.Equal(CIT.Plateforme.Application.BillingImport.SoumettreDemandeImportCommand.FilePiloteManifeste, file.Nom);
+        Assert.Equal("/billing-import/manifeste", file.UrlFile);
+    }
 }

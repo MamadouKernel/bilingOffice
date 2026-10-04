@@ -93,6 +93,7 @@ public sealed class FileFacturationTests : BunitContext
             documentRepo, ticketRepo, new FakeStockage(), new FakeAntivirus(), autorisation, cloisonnement, journalisation, horloge, uow);
 
         Services.AddSingleton(new ConsulterFileBillingImportQuery(ticketRepo, fileRepo, autorisation, priorites));
+        Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
         Services.AddSingleton(new EditerFactureCommand(ticketRepo, dossierRepo, fileRepo, deposerDocument, autorisation, journalisation, horloge, uow));
     }
 

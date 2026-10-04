@@ -102,6 +102,7 @@ public sealed class ParcoursAgentE2ETests : BunitContext
         var consulterFileQuery = new ConsulterFileBillingImportQuery(ticketRepo, fileRepo, autorisation);
 
         Services.AddSingleton(queryDashboard);
+        Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
         Services.AddSingleton(dispoCommand);
         Services.AddSingleton(validerCmd);
         Services.AddSingleton(rejeterCmd);

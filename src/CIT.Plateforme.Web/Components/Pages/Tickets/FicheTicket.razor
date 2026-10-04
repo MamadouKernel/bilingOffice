@@ -88,9 +88,17 @@
                 }
                 @if (_fiche.Statut is not StatutTicket.Cloture and not StatutTicket.Annule)
                 {
-                    <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="@Loc["Ticket.BookApptTitle"]">
-                        @Loc["Ticket.BookAppt"]
-                    </a>
+                    @if (_estClient)
+                    {
+                        <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="@Loc["Ticket.BookApptTitle"]">
+                            @Loc["Ticket.BookAppt"]
+                        </a>
+                    }
+                    else if (EcranDeLaFile is { } ecran)
+                    {
+                        @* Les actions métier (valider, compléter, rejeter…) vivent dans l'écran de la file. *@
+                        <a href="@ecran" class="btn btn-primary btn-sm">@Loc["Ticket.InstructInQueue", _fiche.FileNom]</a>
+                    }
                 }
             </div>
         </div>
@@ -508,6 +516,12 @@
     private FicheTicketVue? _fiche;
     private Guid _utilisateurId;
     private bool _estClient;
+
+    /// <summary>Écran de traitement de la file courante (même catalogue que le menu de l'agent).</summary>
+    private string? EcranDeLaFile => _fiche is null ? null : CIT.Plateforme.Application.Web.CatalogueNavigation
+        .Pour(CIT.Plateforme.Application.Web.EspaceFonctionnel.Agent)
+        .SelectMany(g => g.Entrees)
+        .FirstOrDefault(e => e.ModuleFile == _fiche.Module && e.NomFile == _fiche.FileNom)?.Route;
 
     /// <summary>Ce que l'agent a demandé : motif de la dernière mise en attente ou demande de complément.</summary>
     private static readonly string[] EvenementsDemandeClient =

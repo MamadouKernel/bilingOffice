@@ -84,6 +84,7 @@ else
                                 </td>
                                 <td>
                                     <span class="fw-bold text-dark font-monospace">@t.NumeroBooking</span>
+                                    <ClientTicket DossierId="t.DossierId" />
                                 </td>
                                 <td>
                                     <StatutBadge Statut="@t.Statut" />
@@ -106,14 +107,14 @@ else
                                     }
                                     else
                                     {
-                                        <InputFile class="form-control form-control-sm" OnChange="e => EmettreDraftInAsync(t.Id, e)" />
+                                        <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EmettreDraftInAsync)" />
                                     }
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         @if (t.DraftInExportEmis)
                                         {
-                                            <InputFile class="form-control form-control-sm" OnChange="e => EditerFactureAsync(t.Id, e)" />
+                                            <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
                                         }
                                         else
                                         {
@@ -136,7 +137,39 @@ else
     }
 }
 
+@* Le dépôt clôture ou facture le dossier — irréversible : on confirme le dossier et le fichier. *@
+<ModaleConfirmation EstOuvert="@(_aConfirmer is not null)"
+                    Titre="@Loc["FileAct.ConfirmTitle"]"
+                    Message="@(_aConfirmer is { } c ? Loc["FileAct.ConfirmMessage", c.Ticket.Numero, c.Ticket.NumeroBl ?? c.Ticket.NumeroBooking ?? "—", c.Fichier.File.Name].Value : string.Empty)"
+                    BoutonConfirmerLibelle="@Loc["FileAct.ConfirmButton"]"
+                    BoutonConfirmerClass="btn-primary"
+                    Desactive="@_confirmationEnCours"
+                    OnConfirmer="ConfirmerDepotAsync"
+                    OnAnnuler="() => _aConfirmer = null" />
+
 @code {
+    private sealed record DepotAConfirmer(Ticket Ticket, InputFileChangeEventArgs Fichier, Func<Guid, InputFileChangeEventArgs, Task> Action);
+    private DepotAConfirmer? _aConfirmer;
+    private bool _confirmationEnCours;
+
+    private void DemanderConfirmation(Ticket ticket, InputFileChangeEventArgs e, Func<Guid, InputFileChangeEventArgs, Task> action) =>
+        _aConfirmer = new DepotAConfirmer(ticket, e, action);
+
+    private async Task ConfirmerDepotAsync()
+    {
+        if (_aConfirmer is not { } depot) return;
+        _confirmationEnCours = true;
+        try
+        {
+            await depot.Action(depot.Ticket.Id, depot.Fichier);
+        }
+        finally
+        {
+            _confirmationEnCours = false;
+            _aConfirmer = null;
+        }
+    }
+
     private readonly EtatPagination _pagination1 = new();
 
     private static readonly ReglesDepotDocument Regles = new(["pdf", "jpg", "png"], TailleMaxOctets: 10 * 1024 * 1024);

@@ -52,6 +52,26 @@ public sealed class ObtenirDashboardAgentQuery(
             .ToHashSet();
 
         var toutesFiles = await fileRepository.ListerAsync(ct).ConfigureAwait(false);
+
+        // Revue UX du 04/10/2026 : une habilitation GLOBALE (sans file) ouvre aussi les files dont
+        // l'écran figure au menu de l'agent — même règle que le menu (catalogue + RegleHabilitation).
+        // Sans cela, l'agent lisait « aucune file habilitée » en traitant sa file. Le lien vient du
+        // catalogue : c'est l'écran réel de la file.
+        var urlsParFile = new Dictionary<Guid, string>();
+        foreach (var entree in Web.CatalogueNavigation.Pour(Web.EspaceFonctionnel.Agent).SelectMany(g => g.Entrees))
+        {
+            var file = entree.NomFile is null ? null : toutesFiles.FirstOrDefault(f =>
+                string.Equals(f.Module, entree.ModuleFile, StringComparison.Ordinal)
+                && string.Equals(f.Nom, entree.NomFile, StringComparison.Ordinal));
+            if (file is null || !entree.PermissionsRequises.Any(p => RegleHabilitation.Couvre(habilitations, p, file.Id)))
+            {
+                continue;
+            }
+
+            fileIdsHabilitees.Add(file.Id);
+            urlsParFile.TryAdd(file.Id, entree.Route);
+        }
+
         var filesHabilitees = toutesFiles.Where(f => fileIdsHabilitees.Contains(f.Id)).ToList();
 
         // Anti-scan complet : uniquement les tickets de l'agent + ceux des files de son périmètre,
@@ -75,7 +95,7 @@ public sealed class ObtenirDashboardAgentQuery(
 
             totalAttentePerimetre += enAttente;
 
-            var url = DeterminerUrlFile(file.Nom);
+            var url = urlsParFile.TryGetValue(file.Id, out var route) ? route : DeterminerUrlFile(file.Nom);
 
             fileStats.Add(new FileStatistiqueVue(
                 FileId: file.Id,
@@ -89,7 +109,7 @@ public sealed class ObtenirDashboardAgentQuery(
 
         var mesTicketsVues = ticketsEnCoursAgent.Select(t =>
         {
-            var file = filesHabilitees.FirstOrDefault(f => f.Id == t.FileCouranteId);
+            var file = toutesFiles.FirstOrDefault(f => f.Id == t.FileCouranteId);
 
             return new TicketPrisEnChargeVue(
                 TicketId: t.Id,
@@ -98,7 +118,7 @@ public sealed class ObtenirDashboardAgentQuery(
                 FileNom: file?.Nom ?? "File générale",
                 SocieteNom: "Client",
                 Statut: t.Statut,
-                DatePriseEnChargeUtc: t.DateCreationUtc
+                DatePriseEnChargeUtc: t.DatePriseEnChargeUtc ?? t.DateCreationUtc
             );
         }).ToList();
 

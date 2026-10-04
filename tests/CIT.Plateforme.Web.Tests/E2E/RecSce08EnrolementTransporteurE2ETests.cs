@@ -109,6 +109,7 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             var spFile = scopeFile.ServiceProvider;
             RegistrerContexte(bunit, agentGate!.Id, NatureUtilisateur.Agent, EspaceFonctionnel.Agent, Permission.EnrolementInstruire);
             bunit.Services.AddSingleton(spFile.GetRequiredService<ConsulterFileAgentGateQuery>());
+            bunit.Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
             bunit.Services.AddSingleton(spFile.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeCommand>());
 
             var cutFile = bunit.Render<FileAgentGate>();
