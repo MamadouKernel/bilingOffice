@@ -188,6 +188,10 @@ else if (_fiche is not null)
 
     <div class="cit-card mb-4">
         <h6 class="fw-bold text-dark mb-3">@Loc["FicheEnrol.MessagesTitle"]</h6>
+        @if (f.Messages.Count == 0)
+        {
+            <div class="small text-muted">@Loc["Ticket.NoMessages"]</div>
+        }
         @foreach (var m in f.Messages)
         {
             <div class="mb-2 pb-2 border-bottom">
