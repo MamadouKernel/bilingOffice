@@ -13,14 +13,24 @@
 @* Lire une pièce sans quitter l'écran : « Ouvrir » (aperçu dans l'application) et « Télécharger ».
    Mêmes contrôles qu'à l'écran des documents (SEC-12) : la voie client ou agent est décidée par
    la nature de l'utilisateur authentifié, jamais par un paramètre. *@
-<div class="btn-group btn-group-sm">
-    <button type="button" class="btn btn-primary" @onclick="OuvrirAsync" disabled="@_chargement">
-        👁 @Loc["Preview.Open"]
+@if (Compact)
+{
+    @* Variante de ligne de file : un seul bouton ; l'aperçu propose lui-même le téléchargement. *@
+    <button type="button" class="btn btn-outline-primary btn-sm py-0" @onclick="OuvrirAsync" disabled="@_chargement" title="@NomFichier">
+        👁 @Loc["Preuve.Voir"]
     </button>
-    <button type="button" class="btn btn-outline-primary" @onclick="TelechargerAsync" disabled="@_chargement">
-        @(_chargement ? Loc["Docs.Preparing"].Value : Loc["Docs.Download"].Value)
-    </button>
-</div>
+}
+else
+{
+    <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-primary" @onclick="OuvrirAsync" disabled="@_chargement">
+            👁 @Loc["Preview.Open"]
+        </button>
+        <button type="button" class="btn btn-outline-primary" @onclick="TelechargerAsync" disabled="@_chargement">
+            @(_chargement ? Loc["Docs.Preparing"].Value : Loc["Docs.Download"].Value)
+        </button>
+    </div>
+}
 @if (_erreur is not null)
 {
     <div class="small text-danger mt-1" role="alert">@_erreur</div>
@@ -37,6 +47,9 @@
     [Parameter, EditorRequired] public Guid DocumentId { get; set; }
     [Parameter, EditorRequired] public string NomFichier { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string TypeContenu { get; set; } = string.Empty;
+
+    /// <summary>Un seul bouton « Voir la preuve » (lignes de file).</summary>
+    [Parameter] public bool Compact { get; set; }
 
     private bool _chargement;
     private bool _apercuOuvert;

@@ -1,0 +1,48 @@
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Domain.Documents
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IServiceScopeFactory ScopeFactory
+@inject IStringLocalizer<SharedResources> Loc
+
+@* File de validation des paiements : la preuve s'ouvre depuis la ligne, sans passer par la fiche.
+   La liste passe par la requête de fiche (contrôle d'accès) ; l'ouverture par ActionsDocument
+   (TelechargerDocumentQuery). Chaque ligne a sa portée : jamais de DbContext partagé. *@
+@if (_charge)
+{
+    @if (_preuve is not null)
+    {
+        <div class="mt-1"><ActionsDocument DocumentId="_preuve.Id" NomFichier="@_preuve.NomFichier" TypeContenu="@_preuve.TypeContenu" Compact="true" /></div>
+    }
+    else
+    {
+        <div class="small text-warning mt-1">⚠️ @Loc["Preuve.Aucune"]</div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid TicketId { get; set; }
+    [Parameter, EditorRequired] public Guid AppelantId { get; set; }
+
+    private DocumentItemVue? _preuve;
+    private bool _charge;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            var fiche = await portee.ServiceProvider.GetRequiredService<ObtenirFicheTicketQuery>().ExecuterAsync(AppelantId, TicketId);
+            // La preuve catégorisée la plus récente ; à défaut, la dernière pièce saine déposée.
+            _preuve = fiche.Documents.Where(d => d.Categorie == CategorieDocumentBillingImport.PreuvePaiement).MaxBy(d => d.DateDepotUtc)
+                ?? fiche.Documents.Where(d => d.StatutAntivirus == StatutAnalyseAntivirus.Sain).MaxBy(d => d.DateDepotUtc);
+        }
+        catch (Exception)
+        {
+            // Confort uniquement : la décision reste possible depuis la fiche.
+            _preuve = null;
+        }
+        _charge = true;
+    }
+}

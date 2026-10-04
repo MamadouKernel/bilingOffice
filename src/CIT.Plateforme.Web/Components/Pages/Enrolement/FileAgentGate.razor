@@ -77,7 +77,14 @@ else
                         {
                             <tr>
                                 <td class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</td>
-                                <td><div class="fw-semibold text-dark">@(t.Objet ?? "—")</div><ClientTicket DossierId="t.DossierId" /></td>
+                                <td>
+                                    <div class="fw-semibold text-dark">@(t.Objet ?? "—")</div>
+                                    <ClientTicket DossierId="t.DossierId" />
+                                    @if (_doublons.TryGetValue(t.Id, out var autres))
+                                    {
+                                        <div class="small text-warning-emphasis mt-1" title="@Loc["AgentGate.DoublonTitle"]">⚠️ @Loc["AgentGate.Doublon", string.Join(", ", autres)]</div>
+                                    }
+                                </td>
                                 <td>
                                     @if (t.ObjetEnrolement is not null)
                                     {
@@ -121,6 +128,7 @@ else
 
     private Guid _agentId;
     private List<Ticket> _tickets = [];
+    private IReadOnlyDictionary<Guid, IReadOnlyList<string>> _doublons = new Dictionary<Guid, IReadOnlyList<string>>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -155,6 +163,7 @@ else
         {
             var ticketsDeLaFile = await ConsulterFileAgentGate.ExecuterAsync(_agentId);
             _tickets = ticketsDeLaFile.ToList();
+            _doublons = DoublonsEnrolement.Detecter(_tickets);
         }
         catch (AccesRefuseException ex)
         {
