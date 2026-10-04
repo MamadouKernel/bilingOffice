@@ -58,6 +58,9 @@ public sealed class CanalEmailSmtp(IConfiguration configuration, ILogger<CanalEm
         var expediteurNom = section["ExpediteurNom"] ?? "Côte d'Ivoire Terminal — YABA";
         var utilisateur = section["Utilisateur"];
         var motDePasse = section["MotDePasse"];
+        // SmtpClient.Timeout ne vaut que pour l'envoi synchrone : en asynchrone, le délai passe
+        // par un jeton d'annulation. Un serveur muet devient un échec ordinaire, retenté ensuite.
+        var delai = TimeSpan.FromSeconds(Math.Clamp(section.GetValue("DelaiSecondes", 20), 1, 300));
 
         using var client = new SmtpClient(hote, port) { EnableSsl = utiliserSsl };
         if (!string.IsNullOrWhiteSpace(utilisateur))
@@ -80,10 +83,17 @@ public sealed class CanalEmailSmtp(IConfiguration configuration, ILogger<CanalEm
         message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
             GabaritEmailHtml.Construire(titre, corps), Encoding.UTF8, "text/html"));
 
+        using var limite = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        limite.CancelAfter(delai);
         try
         {
-            await client.SendMailAsync(message, ct).ConfigureAwait(false);
+            await client.SendMailAsync(message, limite.Token).ConfigureAwait(false);
             return ResultatEnvoi.Succes();
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            logger.LogWarning("Serveur SMTP sans réponse après {Delai} s pour {DestinataireId}.", delai.TotalSeconds, destination.DestinataireId);
+            return ResultatEnvoi.Echec("délai dépassé");
         }
         catch (SmtpException ex)
         {

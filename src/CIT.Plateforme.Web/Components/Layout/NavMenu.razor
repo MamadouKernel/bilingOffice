@@ -4,6 +4,7 @@
 @using CIT.Plateforme.Web.Services
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Localization
+@inject CIT.Plateforme.Web.Services.MenuEnCache Menus
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
 @inject IStringLocalizer<SharedResources> Loc
@@ -142,13 +143,9 @@
         // Le menu latéral est rendu sur CHAQUE page : interroger la base sur le DbContext partagé
         // de la requête le met en concurrence avec le rendu de la page elle-même, et le DbContext
         // n'est pas sûr en accès concurrent. Un scope par appel supprime la collision.
-        using var scope = ScopeFactory.CreateScope();
-        var construire = scope.ServiceProvider.GetRequiredService<ConstruireNavigationQuery>();
-
-        _groupes = await construire.ExecuterAsync(
-            _contexte.UtilisateurId,
-            _contexte.EspaceActif,
-            _contexte.SocieteId.HasValue);
+        // MenuEnCache ouvre sa propre portée (même isolation) et garde le menu 30 s.
+        _groupes = await Menus
+            .ObtenirAsync(_contexte.UtilisateurId, _contexte.EspaceActif, _contexte.SocieteId.HasValue);
     }
 
     private void StateHasChangedWrapper()

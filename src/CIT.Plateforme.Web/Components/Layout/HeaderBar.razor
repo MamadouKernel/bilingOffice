@@ -229,8 +229,8 @@
         try
         {
             // Écrans proposés à la recherche : exactement ceux du menu de ce compte.
-            var menu = await scope.ServiceProvider.GetRequiredService<ConstruireNavigationQuery>()
-                .ExecuterAsync(Contexte.UtilisateurId, Contexte.EspaceActif, Contexte.SocieteId.HasValue);
+            var menu = await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Web.Services.MenuEnCache>()
+                .ObtenirAsync(Contexte.UtilisateurId, Contexte.EspaceActif, Contexte.SocieteId.HasValue);
             _ecrans = [.. menu.SelectMany(g => g.Liens).DistinctBy(l => l.Route)];
         }
         catch (Exception)

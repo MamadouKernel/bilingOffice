@@ -32,8 +32,12 @@ public sealed class CablageNavigationTests
     {
         var source = SourceNavMenu();
 
-        Assert.Contains("GetRequiredService<ConstruireNavigationQuery>", source);
-        Assert.Contains("construire.ExecuterAsync", source);
+        // Depuis le 04/10/2026 le menu passe par MenuEnCache, qui délègue à ConstruireNavigationQuery
+        // (cache de 30 s) : la décision de ce qui est visible reste au service de navigation.
+        Assert.Contains("MenuEnCache", source);
+        Assert.Contains("Menus", source);
+        var cache = File.ReadAllText(Path.Combine(RacineDepot().FullName, "src", "CIT.Plateforme.Web", "Services", "MenuEnCache.cs"));
+        Assert.Contains("GetRequiredService<ConstruireNavigationQuery>", cache);
     }
 
     [Fact]

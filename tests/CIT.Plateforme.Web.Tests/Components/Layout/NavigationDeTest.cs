@@ -40,6 +40,9 @@ public static class NavigationDeTest
         services.AddSingleton<IHabilitationRepository>(new DepotHabilitationsFige(habilitations));
         services.AddSingleton<IFileDeTraitementRepository>(new DepotFilesFige(files ?? []));
         services.AddScoped<ConstruireNavigationQuery>();
+        // Le menu passe par le cache court (checklist de mise en ligne, point 16).
+        services.AddMemoryCache();
+        services.AddSingleton<CIT.Plateforme.Web.Services.MenuEnCache>();
 
         // i18n LOT 1 — NavMenu / HeaderBar résolvent leurs libellés via la source de traduction
         // partagée (@inject IStringLocalizer<SharedResources>). Le harnais doit donc l'enregistrer,

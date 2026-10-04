@@ -139,6 +139,26 @@ public sealed class AssistantApplicationTests
         Assert.Contains("Hors sujets traités", note.Contenu);
     }
 
+    /// <summary>IA-06 — l'assistant identifie seul la situation qui demande un humain (recommandation
+    /// d'escalade), puis le transfert remet à l'opérateur le fil complet — question ET réponse de
+    /// l'assistant — dans le ticket : aucune perte de contexte.</summary>
+    [Fact]
+    public async Task IA06_situation_humaine_identifiee_puis_transfert_sans_perte_de_contexte()
+    {
+        var (db, poser, escalader, clientId, ticket) = Construire();
+
+        var vue = await poser.ExecuterAsync(clientId, "Quelle est la capacité résiduelle du terminal en 2031 ?");
+        Assert.True(vue.EscaladeRecommandee);
+        var reponseAssistant = vue.Messages.Last().Contenu;
+
+        await escalader.ExecuterAsync(clientId, vue.Id, ticket.Id, vue.MotifEscaladeRecommandee ?? "Recommandé par l'assistant");
+
+        Assert.True(db.ConversationsAssistant.Single().EstEscaladee);
+        var transcription = db.Messages.Single(m => m.TicketId == ticket.Id).Contenu;
+        Assert.Contains("capacité résiduelle du terminal en 2031", transcription);
+        Assert.Contains(reponseAssistant[..Math.Min(40, reponseAssistant.Length)], transcription);
+    }
+
     // --- Cas interdits ---
 
     /// <summary>IA-07 : le client demande un humain en donnant le numéro de ticket qu'il connaît ;

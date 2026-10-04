@@ -205,6 +205,60 @@ public sealed class CircuitClientNormalTests
         Assert.Equal(MotifClotureType.Normale, ticket.MotifCloture);
     }
 
+    /// <summary>IMP-12 — le client paie hors portail puis joint sa preuve au ticket : la pièce est
+    /// rattachée au ticket au nom du client, et le ticket attend la validation de la Caisse (il ne
+    /// passe pas seul au Contrôle documentaire).</summary>
+    [Fact]
+    public async Task IMP12_le_client_joint_sa_preuve_de_paiement_qui_attend_la_validation_caisse()
+    {
+        var c = await ConstruireContexteAsync();
+        var ticketId = await CreerEtValiderTicketAsync(c, "BL-IMP12");
+        using (var facture = Contenu("facture"))
+        {
+            await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
+        }
+
+        using var preuve = Contenu("preuve-virement");
+        await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve-virement.pdf", "application/pdf", preuve, preuve.Length, Regles);
+
+        var piece = Assert.Single(c.DbContext.Documents, d => d.TicketId == ticketId && d.NomFichier == "preuve-virement.pdf");
+        Assert.Equal(c.AuteurId, piece.DeposeParId);
+        var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
+        var file = await c.DbContext.Files.FindAsync(ticket!.FileCouranteId);
+        Assert.Equal(NomsFiles.ValidationPaiement, file!.Nom);
+        Assert.NotEqual(StatutTicket.Cloture, ticket.Statut);
+    }
+
+    /// <summary>IMP-14 — le Pilote Contrôle documentaire dépose les documents de sortie (BS, BADT) :
+    /// ils sont rattachés au ticket au nom de l'agent, le ticket est clôturé et le client retrouve
+    /// dans son ticket l'ensemble des pièces (facture, preuve, documents de sortie).</summary>
+    [Fact]
+    public async Task IMP14_le_controle_documentaire_depose_les_documents_de_sortie_et_cloture()
+    {
+        var c = await ConstruireContexteAsync();
+        var ticketId = await CreerEtValiderTicketAsync(c, "BL-IMP14");
+        using (var facture = Contenu("facture"))
+        {
+            await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
+        }
+        using (var preuve = Contenu("preuve"))
+        {
+            await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
+        }
+        await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
+
+        using var sortie = Contenu("bs-badt");
+        await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "bon-de-sortie-badt.pdf", "application/pdf", sortie, sortie.Length, Regles);
+
+        var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
+        Assert.Equal(StatutTicket.Cloture, ticket!.Statut);
+        var pieceSortie = Assert.Single(c.DbContext.Documents, d => d.TicketId == ticketId && d.NomFichier == "bon-de-sortie-badt.pdf");
+        Assert.Equal(c.AgentId, pieceSortie.DeposeParId);
+        var pieces = c.DbContext.Documents.Where(d => d.TicketId == ticketId).Select(d => d.NomFichier).ToList();
+        Assert.Contains("facture.pdf", pieces);
+        Assert.Contains("preuve.pdf", pieces);
+    }
+
     [Fact]
     public async Task Chaine_complete_du_circuit_normal_de_bout_en_bout()
     {

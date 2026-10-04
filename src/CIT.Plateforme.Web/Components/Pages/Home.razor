@@ -298,8 +298,8 @@ else
             // (transporteur, Support N1, administrateur sans droit de validation) vers un écran
             // qui les refusait.
             using var scope = ScopeFactory.CreateScope();
-            var menu = await scope.ServiceProvider.GetRequiredService<ConstruireNavigationQuery>()
-                .ExecuterAsync(contexte.UtilisateurId, contexte.EspaceActif, contexte.SocieteId.HasValue);
+            var menu = await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Web.Services.MenuEnCache>()
+                .ObtenirAsync(contexte.UtilisateurId, contexte.EspaceActif, contexte.SocieteId.HasValue);
 
             NavigationManager.NavigateTo(CatalogueNavigation.PageAccueil(menu));
         }

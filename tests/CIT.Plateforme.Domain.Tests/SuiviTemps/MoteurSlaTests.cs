@@ -69,4 +69,23 @@ public sealed class MoteurSlaTests
 
         Assert.Equal(TimeSpan.FromHours(30), duree);
     }
+
+    /// <summary>SLA-04 — les horaires du service entrent dans le calcul : un dossier déposé le
+    /// vendredi à 16 h (service 7 h 30 – 16 h 30, du lundi au vendredi) n'a consommé que 2 h
+    /// ouvrées au lundi 9 h — et non 65 h calendaires : le week-end ne pénalise pas la file.</summary>
+    [Fact]
+    public void SLA04_le_week_end_et_les_heures_fermees_ne_consomment_pas_le_delai()
+    {
+        var calendrier = new CalendrierOuvre(
+            new TimeOnly(7, 30), new TimeOnly(16, 30),
+            new HashSet<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday },
+            new HashSet<DateOnly>());
+        var vendredi16h = new DateTime(2026, 10, 2, 16, 0, 0, DateTimeKind.Utc);
+        var lundi9h = new DateTime(2026, 10, 5, 9, 0, 0, DateTimeKind.Utc);
+
+        var ouvre = calendrier.DureeOuvreeEntre(vendredi16h, lundi9h);
+
+        Assert.Equal(TimeSpan.FromHours(2), ouvre); // 30 min le vendredi + 1 h 30 le lundi
+        Assert.Equal(TimeSpan.FromHours(65), lundi9h - vendredi16h); // ce qu'un calcul brut aurait compté
+    }
 }

@@ -224,6 +224,8 @@ builder.Services.AddScoped<CIT.Plateforme.Web.Services.IContexteUtilisateurWeb, 
 // Libellés des référentiels métier (tables), mis en cache par circuit.
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.LibellesReferentiels>();
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<CIT.Plateforme.Web.Services.MenuEnCache>();
 // Lien de (re)définition du mot de passe par e-mail : « mot de passe oublié » et invitation d'agent.
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.EnvoiLienMotDePasse>();
 builder.Services.AddOpenApi();
