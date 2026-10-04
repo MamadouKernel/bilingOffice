@@ -145,7 +145,8 @@ else if (_fiche is not null)
             <div class="mb-2">
                 <textarea class="form-control" rows="3" @bind="_reponseComplement" @bind:event="oninput" placeholder="@Loc["FicheEnrol.ClientComplementPlaceholder"]"></textarea>
             </div>
-            <button type="button" class="btn btn-primary btn-sm fw-bold" @onclick="RepondreComplementAsync" disabled="@string.IsNullOrWhiteSpace(_reponseComplement)">@Loc["FicheEnrol.SendReply"]</button>
+            <PiecesJointesFormulaire Fichiers="_piecesComplement" />
+            <button type="button" class="btn btn-primary btn-sm fw-bold" @onclick="RepondreComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_reponseComplement) && _piecesComplement.Count == 0)">@Loc["FicheEnrol.SendReply"]</button>
         </div>
     }
 
@@ -214,6 +215,7 @@ else if (_fiche is not null)
     private bool _afficherFormulaireComplement;
     private string _motifComplement = string.Empty;
     private string _reponseComplement = string.Empty;
+    private readonly List<IBrowserFile> _piecesComplement = [];
 
     private static readonly ReglesDepotDocument ReglesPieces = new(
         ExtensionsAutorisees: ["pdf", "jpg", "jpeg", "png"], TailleMaxOctets: 10 * 1024 * 1024);
@@ -283,13 +285,29 @@ else if (_fiche is not null)
 
     private async Task RepondreComplementAsync()
     {
-        if (string.IsNullOrWhiteSpace(_reponseComplement)) return;
+        if (string.IsNullOrWhiteSpace(_reponseComplement) && _piecesComplement.Count == 0) return;
+        string? bilanPieces = null;
         await ExecuterActionAsync(async () =>
         {
-            await PublierMessage.PublierMessageClientAsync(_appelantId, TicketId, _reponseComplement);
+            // Pièces d'abord : l'agent les trouve sur la fiche quand le ticket lui revient.
+            if (_piecesComplement.Count > 0)
+            {
+                var bilan = await DepotFichiers.DeposerTousAsync(_piecesComplement, ReglesPieces.TailleMaxOctets, (nom, type, contenu) =>
+                    DeposerDocument.DeposerPourClientAsync(_appelantId, TicketId, nom, type, contenu, contenu.Length, ReglesPieces));
+                bilanPieces = bilan.Message(Loc);
+            }
+            if (!string.IsNullOrWhiteSpace(_reponseComplement))
+            {
+                await PublierMessage.PublierMessageClientAsync(_appelantId, TicketId, _reponseComplement);
+            }
             await AttenteClient.RependreApresReponseAsync(TicketId);
         }, Loc["FicheEnrol.MsgReplySent"].Value);
-        _reponseComplement = string.Empty;
+        if (_erreur is null)
+        {
+            if (bilanPieces is not null) _actionSuccess = $"{_actionSuccess} {bilanPieces}";
+            _reponseComplement = string.Empty;
+            _piecesComplement.Clear();
+        }
     }
 
     private async Task DeposerPieceAsync(InputFileChangeEventArgs e)
