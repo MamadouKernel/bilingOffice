@@ -137,6 +137,10 @@
                     }
                 </button>
             </div>
+            @if (!PeutSoumettre && !_envoiEnCours)
+            {
+                <div class="small text-muted text-end mt-2">@Loc["AvoirExo.MissingPrefix"] @string.Join(", ", ElementsManquants)</div>
+            }
         </div>
     }
 </div>
@@ -163,6 +167,17 @@
         !string.IsNullOrWhiteSpace(_objet) &&
         !string.IsNullOrWhiteSpace(_description) &&
         _fichiersSelectionnes.Count > 0;
+
+    /// <summary>Ce qui empêche la soumission, dit au client plutôt qu'un bouton grisé muet.</summary>
+    private IEnumerable<string> ElementsManquants
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_objet)) yield return Loc["AvoirExo.MissingObject"].Value;
+            if (string.IsNullOrWhiteSpace(_description)) yield return Loc["AvoirExo.MissingMotives"].Value;
+            if (_fichiersSelectionnes.Count == 0) yield return Loc["AvoirExo.MissingPiece"].Value;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

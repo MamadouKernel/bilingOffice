@@ -22,7 +22,7 @@
         <h1 class="cit-page-title">
             <span>📁</span> @Loc["Demandes.Title"]
         </h1>
-        <div class="cit-page-subtitle">@Loc["Demandes.Subtitle"]</div>
+        <div class="cit-page-subtitle">@Loc[_estTransporteur ? "Demandes.SubtitleTransporteur" : "Demandes.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0 d-flex align-items-center gap-2">
         @* SOC-14 — export tabulaire de la liste. La requête applique le cloisonnement CPT-04 :
@@ -35,8 +35,9 @@
                 @onclick="ExporterExcelAsync" disabled="@_exportExcelEnCours">
             @(_exportExcelEnCours ? Loc["Demandes.Exporting"].Value : Loc["Demandes.ExportExcel"].Value)
         </button>
-        <a href="/billing-import/soumettre" class="btn btn-primary shadow-sm">
-            <span>➕</span> @Loc["Demandes.NewRequest"]
+        @* Une entreprise de transport n'a pas de parcours Billing Office : son « nouveau » est l'enrôlement de flotte. *@
+        <a href="@(_estTransporteur ? "/enrolement/societe/soumettre" : "/billing-import/soumettre")" class="btn btn-primary shadow-sm">
+            <span>➕</span> @Loc[_estTransporteur ? "Enrôler ma flotte" : "Demandes.NewRequest"]
         </a>
     </div>
 </div>
@@ -95,7 +96,7 @@ else if (_dashboard is not null)
                             <th>@Loc["Dash.ColFile"]</th>
                             <th>@Loc["Demandes.ColSubmitDate"]</th>
                             <th>@Loc["Dash.ColModule"]</th>
-                            <th>@Loc["Demandes.ColBl"]</th>
+                            <th>@Loc[_estTransporteur ? "Demandes.ColReferences" : "Demandes.ColBl"]</th>
                             <th>@Loc["Dash.ColStatus"]</th>
                             <th class="text-end">@Loc["Common.Actions"]</th>
                         </tr>
@@ -149,6 +150,7 @@ else if (_dashboard is not null)
 }
 
 @code {
+    private bool _estTransporteur;
     private readonly EtatPagination _pagination1 = new();
 
     private bool _chargement = true;
@@ -174,6 +176,7 @@ else if (_dashboard is not null)
 
             _utilisateurId = contexte.UtilisateurId;
             _societeId = contexte.SocieteId;
+            _estTransporteur = contexte.SocieteProfil == CIT.Plateforme.Domain.Comptes.TypeClient.Transporteur;
             _dashboard = await DashboardQuery.ExecuterAsync(contexte.UtilisateurId, contexte.SocieteId.Value);
         }
         catch (Exception ex)

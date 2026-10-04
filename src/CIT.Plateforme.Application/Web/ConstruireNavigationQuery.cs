@@ -73,6 +73,7 @@ public sealed class ConstruireNavigationQuery(
             foreach (var entree in groupe.Entrees)
             {
                 if ((estTransporteur && entree.MasqueePourTransporteur)
+                    || (!estTransporteur && entree.ReserveeAuTransporteur)
                     || !EstVisible(entree, habilitations, files, aUneSocieteRattachee))
                 {
                     continue;

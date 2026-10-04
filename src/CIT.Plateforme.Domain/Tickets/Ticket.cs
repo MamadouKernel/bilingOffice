@@ -574,6 +574,10 @@ public sealed partial class Ticket
         DateDerniereActiviteUtc = maintenantUtc;
     }
 
+    /// <summary>CYC-04 : la suggestion de clôture compte comme une activité — elle n'est pas
+    /// réémise avant le délai suivant.</summary>
+    public void EnregistrerSuggestionCloture(DateTime maintenantUtc) => DateDerniereActiviteUtc = maintenantUtc;
+
     /// <summary>CYC-04/CYC-05 : une suggestion de clôture pour absence de réponse peut être
     /// proposée uniquement si le nombre maximal de relances (paramètre) est atteint et que le
     /// ticket n'a jamais atteint un état engageant. La clôture elle-même reste une décision

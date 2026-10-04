@@ -64,7 +64,7 @@ else if (_dashboard is not null)
 
         <div class="row g-2 align-items-center">
             <div class="col-12 col-md-8">
-                <input type="text" class="form-control font-monospace" placeholder="@Loc["Collab.UuidPlaceholder"]" @bind="_nouveauCollaborateurId" />
+                <input type="text" class="form-control" placeholder="@Loc["Collab.UuidPlaceholder"]" @bind="_nouveauCollaborateurId" @bind:event="oninput" />
             </div>
             <div class="col-12 col-md-4">
                 <button type="button" class="btn btn-primary w-100" @onclick="RattacherAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauCollaborateurId)">
@@ -177,7 +177,7 @@ else if (_dashboard is not null)
                         var col = c;
                         <tr>
                             <td>
-                                <div class="fw-bold text-dark">@col.NomAffiche</div>
+                                <div class="fw-bold text-dark">@col.NomAffiche @if (col.UtilisateurId == _appelantId) { <span class="small text-muted fw-normal ms-1">@Loc["Collab.You"]</span> }</div>
                                 <div class="small text-muted">@col.Email</div>
                             </td>
                             <td>
@@ -217,8 +217,13 @@ else if (_dashboard is not null)
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
+                                    @* Sur sa propre ligne, l'administrateur ne peut ni se rétrograder ni se
+                                       désactiver (le serveur l'interdit déjà pour le dernier administrateur). *@
                                     <!-- Rôle Admin -->
-                                    @if (col.EstAdministrateur)
+                                    @if (col.UtilisateurId == _appelantId)
+                                    {
+                                    }
+                                    else if (col.EstAdministrateur)
                                     {
                                         <button type="button" class="btn btn-outline-secondary" title="@Loc["Collab.TitleRemoveAdmin"]" @onclick="() => RetirerRoleAdminAsync(col.Id)">
                                             @Loc["Collab.Demote"]
@@ -242,7 +247,10 @@ else if (_dashboard is not null)
                                     </button>
 
                                     <!-- Activation / Désactivation -->
-                                    @if (col.EstActif)
+                                    @if (col.UtilisateurId == _appelantId)
+                                    {
+                                    }
+                                    else if (col.EstActif)
                                     {
                                         <button type="button" class="btn btn-outline-danger" title="@Loc["Collab.TitleDeactivate"]" @onclick="() => DemanderConfirmationDesactivation(col.Id)">
                                             @Loc["Collab.Deactivate"]
@@ -340,7 +348,10 @@ else if (_dashboard is not null)
 
     private async Task RattacherAsync()
     {
-        if (!Guid.TryParse(_nouveauCollaborateurId, out var nouvId))
+        // L'adresse e-mail du compte suffit ; l'identifiant technique reste accepté (support).
+        var saisie = _nouveauCollaborateurId.Trim();
+        var estGuid = Guid.TryParse(saisie, out var nouvId);
+        if (!estGuid && !saisie.Contains('@'))
         {
             _actionMessage = Loc["Collab.MsgInvalidUuid"].Value;
             return;
@@ -348,7 +359,14 @@ else if (_dashboard is not null)
 
         try
         {
-            await Rattacher.ExecuterAsync(_appelantId, _societeId, nouvId);
+            if (estGuid)
+            {
+                await Rattacher.ExecuterAsync(_appelantId, _societeId, nouvId);
+            }
+            else
+            {
+                await Rattacher.RattacherParEmailAsync(_appelantId, _societeId, saisie);
+            }
             _nouveauCollaborateurId = string.Empty;
             _actionMessage = Loc["Collab.MsgAttached"].Value;
             await RechargerAsync();

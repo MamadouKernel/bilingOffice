@@ -25,7 +25,8 @@
         <div class="cit-page-subtitle">@Loc["EnrolList.Subtitle"]</div>
     </div>
     <div class="mt-3 mt-md-0">
-        <a href="/enrolement/soumettre" class="btn btn-primary btn-sm shadow-sm fw-bold">@Loc["EnrolList.New"]</a>
+        @* Compte individuel : enrôlement unitaire ; entreprise de transport : enrôlement de flotte. *@
+        <a href="@(_compteIndividuel ? "/enrolement/soumettre" : "/enrolement/societe/soumettre")" class="btn btn-primary btn-sm shadow-sm fw-bold">@Loc["EnrolList.New"]</a>
     </div>
 </div>
 

@@ -142,6 +142,13 @@ else
                 return;
             }
 
+            if (contexte.SocieteProfil != CIT.Plateforme.Domain.Comptes.TypeClient.Transporteur)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["EnrolSoc.TransporteurOnly"].Value;
+                return;
+            }
+
             if (contexte.DroitSoumission != true)
             {
                 _nonAutorise = true;

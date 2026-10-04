@@ -26,6 +26,8 @@ namespace CIT.Plateforme.Application.Web;
 /// <param name="CorrespondanceExacte">Vrai pour n'activer le lien que sur l'URL exacte.</param>
 /// <param name="MasqueePourTransporteur">Vrai pour les écrans Billing Office, sans objet pour une
 /// entreprise de transport (qui n'enrôle que sa flotte).</param>
+/// <param name="ReserveeAuTransporteur">Vrai pour l'enrôlement de flotte : seule une entreprise de
+/// transport enrôle chauffeurs et camions (décision du 04/10/2026).</param>
 public sealed record EntreeNavigation(
     string Libelle,
     string Icone,
@@ -35,7 +37,8 @@ public sealed record EntreeNavigation(
     string? NomFile = null,
     bool ExigeRattachementSociete = false,
     bool CorrespondanceExacte = false,
-    bool MasqueePourTransporteur = false);
+    bool MasqueePourTransporteur = false,
+    bool ReserveeAuTransporteur = false);
 
 /// <summary>Un groupe de l'accordéon du menu latéral.</summary>
 public sealed record GroupeNavigation(string Titre, string Icone, IReadOnlyList<EntreeNavigation> Entrees);
@@ -122,8 +125,8 @@ public static class CatalogueNavigation
             // d'accueil (première entrée accessible), sans règle particulière.
             new("Mes enrôlements", "📋", "/enrolement/mes-enrolements", [Permission.EnrolementSoumettre]),
             new("Nouvel enrôlement", "🚚", "/enrolement/soumettre", [Permission.EnrolementSoumettre]),
-            new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true),
-            new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true),
+            new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true, ReserveeAuTransporteur: true),
+            new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true, ReserveeAuTransporteur: true),
         ]),
         new("Facturation & Simulation", "📊",
         [
@@ -158,6 +161,11 @@ public static class CatalogueNavigation
         [
             new("Demandes de la société", "📂", "/client/demandes?vue=societe", Aucune, ExigeRattachementSociete: true),
             new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
+            // Revue UX du 04/10/2026 : l'administrateur d'une entreprise de transport arrive ici ;
+            // sa tâche principale (enrôler sa flotte) ne doit pas exiger de changer d'espace.
+            new("Dossiers de flotte", "📋", "/enrolement/mes-enrolements", Aucune, ExigeRattachementSociete: true, ReserveeAuTransporteur: true),
+            new("Enrôler ma flotte", "🚚", "/enrolement/societe/soumettre", Aucune, ExigeRattachementSociete: true, ReserveeAuTransporteur: true),
+            new("Retrait d'accès flotte", "🗑", "/enrolement/societe/retrait", Aucune, ExigeRattachementSociete: true, ReserveeAuTransporteur: true),
         ]),
         new("Facturation & Simulation", "📊",
         [

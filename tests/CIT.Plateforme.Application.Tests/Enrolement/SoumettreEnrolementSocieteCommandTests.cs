@@ -109,6 +109,28 @@ public class SoumettreEnrolementSocieteCommandTests
         _ticketRepo.Verify(r => r.AjouterAsync(It.IsAny<Ticket>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    /// <summary>04/10/2026 : l'enrôlement de flotte est réservé aux entreprises de transport —
+    /// refusé côté serveur pour une société cliente « Normal », même en contournant le menu.</summary>
+    [Theory]
+    [InlineData(TypeClient.Normal, false)]
+    [InlineData(TypeClient.Transporteur, true)]
+    public async Task L_enrolement_de_flotte_est_reserve_aux_transporteurs(TypeClient profil, bool accepte)
+    {
+        var userId = Guid.NewGuid();
+        var societe = SocieteCliente.Soumettre(userId, "{}", profil, DateTime.UtcNow);
+        RattacherAvecDroit(userId, societe.Id);
+        var societes = new Mock<ISocieteClienteRepository>();
+        societes.Setup(r => r.ObtenirParIdAsync(societe.Id, It.IsAny<CancellationToken>())).ReturnsAsync(societe);
+        var commande = new SoumettreEnrolementSocieteCommand(_ticketRepo.Object, _dossierRepo.Object, _fileRepo.Object,
+            _utilisateurSocieteRepo.Object, _numerotation.Object, _journalisation.Object, _horloge.Object, _uniteDeTravail.Object,
+            societes: societes.Object);
+
+        var erreur = await Record.ExceptionAsync(() => commande.ExecuterAsync(userId, RequeteFlotte(societe.Id), CancellationToken.None));
+
+        Assert.Equal(accepte, erreur is null);
+        if (!accepte) Assert.IsType<AccesRefuseException>(erreur);
+    }
+
     [Fact]
     public async Task Societe_habilitee_cree_un_dossier_unique_et_un_ticket_par_objet()
     {

@@ -34,8 +34,16 @@ public sealed class RelancesAbsenceReponseUseCase(
             return false;
         }
 
+        // Le service passe toutes les 5 minutes : rien n'est émis tant que le délai entre relances
+        // n'est pas écoulé depuis la dernière activité (mise en attente, relance, suggestion).
+        if (horloge.MaintenantUtc - ticket.DateDerniereActiviteUtc < parametres.DelaiEntreRelances)
+        {
+            return false;
+        }
+
         if (ticket.EstEligibleASuggestionDeCloture(parametres.NombreRelancesMax))
         {
+            ticket.EnregistrerSuggestionCloture(horloge.MaintenantUtc);
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "SuggestionClotureAbsenceReponse", null, null, ct).ConfigureAwait(false);
             await journalisation.PublierEvenementAsync("SuggestionClotureAbsenceReponse", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
             await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

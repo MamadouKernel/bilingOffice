@@ -359,7 +359,8 @@ public sealed class NavigationParPermissionsTests
         groupes.SelectMany(g => g.Liens).Select(l => l.Route).ToArray();
 
     /// <summary>Décision du 03/10/2026 : une entreprise de transport n'a pas de parcours Billing
-    /// Office. Son menu garde l'enrôlement de flotte et perd import, export, avoir, proforma.</summary>
+    /// Office. Son menu garde l'enrôlement de flotte et perd import, export, avoir, proforma.
+    /// Décision du 04/10/2026 : à l'inverse, l'enrôlement de flotte est réservé aux transporteurs.</summary>
     [Theory]
     [InlineData(CIT.Plateforme.Domain.Comptes.TypeClient.Transporteur, false)]
     [InlineData(CIT.Plateforme.Domain.Comptes.TypeClient.Normal, true)]
@@ -381,7 +382,8 @@ public sealed class NavigationParPermissionsTests
 
         Assert.Equal(billingVisible, routes.Contains("/billing-import/soumettre"));
         Assert.Equal(billingVisible, routes.Contains("/simulation/proforma"));
-        Assert.Contains("/enrolement/societe/soumettre", routes);
+        Assert.Equal(!billingVisible, routes.Contains("/enrolement/societe/soumettre"));
+        Assert.Equal(!billingVisible, routes.Contains("/enrolement/societe/retrait"));
     }
 
     private static Task<IReadOnlyList<GroupeNavigationVue>> Construire(

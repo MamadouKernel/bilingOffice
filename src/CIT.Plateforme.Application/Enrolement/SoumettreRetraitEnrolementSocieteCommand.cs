@@ -30,7 +30,8 @@ public sealed class SoumettreRetraitEnrolementSocieteCommand(
     IServiceNumerotation numerotation,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    ISocieteClienteRepository? societes = null)
 {
     public const string Module = "Enrolement";
     public const string TypeDemande = "Enrolement";
@@ -51,6 +52,13 @@ public sealed class SoumettreRetraitEnrolementSocieteCommand(
         if (rattachement.SocieteId != requete.SocieteId)
         {
             throw new AccesRefuseException($"L'utilisateur {appelantId} ne peut pas soumettre pour la société {requete.SocieteId}.");
+        }
+
+        // Décision du 04/10/2026 : seule une entreprise de transport enrôle une flotte.
+        if (societes is not null
+            && (await societes.ObtenirParIdAsync(requete.SocieteId, ct).ConfigureAwait(false))?.EstTransporteur != true)
+        {
+            throw new AccesRefuseException("L'enrôlement de flotte est réservé aux entreprises de transport.");
         }
 
         // 2. Validation du contenu — pré-vol complet AVANT toute écriture.
