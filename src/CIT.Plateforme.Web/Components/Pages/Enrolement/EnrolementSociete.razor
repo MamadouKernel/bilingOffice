@@ -7,10 +7,12 @@
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreEnrolementSocieteCommand SoumettreEnrolementSociete
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 
 <PageTitle>@Loc["EnrolSoc.PageTitle"]</PageTitle>
 
@@ -44,6 +46,10 @@ else if (_resultat is not null)
                     @Loc["EnrolSoc.SuccessDossier"] <strong class="font-monospace text-primary">@_resultat.NumeroDossier</strong>
                     — @string.Format(Loc["EnrolSoc.SuccessTicketsCount"].Value, _resultat.Tickets.Count)
                 </div>
+                @if (_messagePieces is not null)
+                {
+                    <div class="small mt-1">📎 @Loc["PJ.Attached"] @_messagePieces</div>
+                }
             </div>
         </div>
         <a href="/enrolement/mes-enrolements" class="btn btn-primary fw-bold px-4">@Loc["EnrolSoc.ViewMyEnrollments"]</a>
@@ -101,6 +107,27 @@ else
                                 <BoutonSupprimer Discret="true" Libelle="@Loc["EnrolSoc.RemoveObjectBtn"]" Desactive="@(_lignes.Count == 1)" OnSupprimer="() => RetirerLigne(ligne)" />
                             </td>
                         </tr>
+                        @* Pièces justificatives de la ligne : photo (téléphone) ou scan PDF, une par face. *@
+                        <tr @key="(ligne.Cle, 1)">
+                            <td colspan="5" class="pt-0">
+                                <div class="small fw-semibold text-muted mb-1">@Loc["EnrolSoc.PiecesTitle"]</div>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @foreach (var exigee in PiecesEnrolement.Exigees(ligne.Type))
+                                    {
+                                        var piece = exigee.Piece;
+                                        <div style="min-width: 220px;">
+                                            <label class="small d-block mb-1">@Loc[$"EnrolSoc.Piece.{piece}"]@(exigee.Obligatoire ? " *" : string.Empty)</label>
+                                            <InputFile class="form-control form-control-sm" accept="image/jpeg,image/png,.pdf"
+                                                       OnChange="e => ligne.ChoisirPiece(piece, e.File)" />
+                                            @if (ligne.Pieces.TryGetValue(piece, out var choisi))
+                                            {
+                                                <div class="small text-success mt-1">✅ @choisi.Name</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -125,6 +152,16 @@ else
         public string Objet { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public Dictionary<DocumentEnrolement, DateOnly> Echeances { get; } = [];
+        public Dictionary<PieceEnrolement, IBrowserFile> Pieces { get; } = [];
+
+        public void ChoisirPiece(PieceEnrolement piece, IBrowserFile? fichier)
+        {
+            if (fichier is null) Pieces.Remove(piece); else Pieces[piece] = fichier;
+        }
+
+        /// <summary>Seules les pièces du type courant partent (la ligne a pu changer de type).</summary>
+        public IReadOnlyList<(PieceEnrolement Piece, IBrowserFile Fichier)> PiecesPertinentes() =>
+            [.. PiecesEnrolement.Exigees(Type).Where(e => Pieces.ContainsKey(e.Piece)).Select(e => (e.Piece, Pieces[e.Piece]))];
 
         public void DefinirEcheance(DocumentEnrolement document, string? valeur)
         {
@@ -150,6 +187,7 @@ else
     private string? _erreur;
     private bool _envoiEnCours;
     private SoumettreEnrolementSocieteResultat? _resultat;
+    private string? _messagePieces;
 
     private Guid _utilisateurId;
     private Guid _societeId;
@@ -159,7 +197,10 @@ else
         _lignes.Count > 0 &&
         _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet) && !string.IsNullOrWhiteSpace(l.Description)
                          // Dates d'expiration obligatoires pour chaque document attendu (03/10/2026).
-                         && EcheanceDocumentEnrolement.DocumentsAttendus(l.Type).All(l.Echeances.ContainsKey));
+                         && EcheanceDocumentEnrolement.DocumentsAttendus(l.Type).All(l.Echeances.ContainsKey)
+                         // Pièces obligatoires (04/10/2026) : permis recto/verso et pièce d'identité ;
+                         // carte grise recto/verso et assurance.
+                         && PiecesEnrolement.Manquantes(l.Type, l.Pieces.Keys).Count == 0);
 
     protected override async Task OnInitializedAsync()
     {
@@ -218,9 +259,24 @@ else
             var objets = _lignes
                 .Select(l => new ObjetEnrolementSoumission(l.Type, l.Objet.Trim(), l.Description.Trim(), l.EcheancesPertinentes()))
                 .ToList();
-            _resultat = await SoumettreEnrolementSociete.ExecuterAsync(
+            var resultat = await SoumettreEnrolementSociete.ExecuterAsync(
                 _utilisateurId,
                 new SoumettreEnrolementSocieteRequete(_societeId, objets));
+
+            // Chaque pièce rejoint le ticket de sa ligne (même ordre), sous un nom explicite pour
+            // l'Agent Gate : « Permis de conduire (recto) — photo.jpg ».
+            var bilans = new List<string>();
+            foreach (var (ligne, ticket) in _lignes.Zip(resultat.Tickets))
+            {
+                var pieces = ligne.PiecesPertinentes();
+                if (pieces.Count == 0) continue;
+                var libelles = pieces.ToDictionary(p => p.Fichier, p => Loc[$"EnrolSoc.Piece.{p.Piece}"].Value);
+                var bilan = await DepotFichiers.JoindreAsync(ScopeFactory, [.. pieces.Select(p => p.Fichier)], ticket.TicketId,
+                    _utilisateurId, estClient: true, nommer: f => $"{libelles[f]} — {f.Name}");
+                bilans.Add(bilan.Message(Loc));
+            }
+            _messagePieces = bilans.Count == 0 ? null : string.Join(" ", bilans.Distinct());
+            _resultat = resultat;
         }
         catch (Exception ex)
         {

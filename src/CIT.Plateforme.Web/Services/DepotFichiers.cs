@@ -21,13 +21,14 @@ public static class DepotFichiers
     /// <summary>Joint les pièces choisies dans un formulaire au ticket qu'il vient de créer. La
     /// commande de dépôt est résolue dans une portée dédiée, seulement quand il y a des pièces.</summary>
     public static async Task<ResultatDepot> JoindreAsync(
-        IServiceScopeFactory portees, IReadOnlyList<IBrowserFile> fichiers, Guid ticketId, Guid appelantId, bool estClient)
+        IServiceScopeFactory portees, IReadOnlyList<IBrowserFile> fichiers, Guid ticketId, Guid appelantId, bool estClient,
+        Func<IBrowserFile, string>? nommer = null)
     {
         using var portee = portees.CreateScope();
         var deposer = portee.ServiceProvider.GetRequiredService<DeposerDocumentCommand>();
         return await DeposerTousAsync(fichiers, ReglesStandard.TailleMaxOctets, (nom, type, contenu) => estClient
             ? deposer.DeposerPourClientAsync(appelantId, ticketId, nom, type, contenu, contenu.Length, ReglesStandard)
-            : deposer.DeposerPourAgentAsync(appelantId, ticketId, nom, type, contenu, contenu.Length, ReglesStandard));
+            : deposer.DeposerPourAgentAsync(appelantId, ticketId, nom, type, contenu, contenu.Length, ReglesStandard), nommer);
     }
 
     /// <summary>Fichiers choisis, ou <c>null</c> si la sélection dépasse le plafond.</summary>
@@ -38,8 +39,10 @@ public static class DepotFichiers
     /// Dépose chaque fichier via <paramref name="deposer"/> (nom, type, contenu). Un fichier refusé
     /// (format, taille, antivirus) n'empêche pas les autres ; un refus d'accès interrompt tout le lot.
     /// </summary>
+    /// <remarks><paramref name="nommer"/> fixe le nom enregistré (ex. « Permis de conduire (recto) — photo.jpg »).</remarks>
     public static async Task<ResultatDepot> DeposerTousAsync(
-        IReadOnlyList<IBrowserFile> fichiers, long tailleMaxOctets, Func<string, string, MemoryStream, Task> deposer)
+        IReadOnlyList<IBrowserFile> fichiers, long tailleMaxOctets, Func<string, string, MemoryStream, Task> deposer,
+        Func<IBrowserFile, string>? nommer = null)
     {
         var deposes = 0;
         var refuses = new List<string>();
@@ -50,7 +53,7 @@ public static class DepotFichiers
                 await using var flux = fichier.OpenReadStream(tailleMaxOctets);
                 await using var memoire = new MemoryStream();
                 await flux.CopyToAsync(memoire);
-                await deposer(fichier.Name, fichier.ContentType, memoire);
+                await deposer(nommer?.Invoke(fichier) ?? fichier.Name, fichier.ContentType, memoire);
                 deposes++;
             }
             catch (Exception ex) when (ex is not AccesRefuseException)
