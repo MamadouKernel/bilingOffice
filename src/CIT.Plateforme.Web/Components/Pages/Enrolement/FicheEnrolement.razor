@@ -141,16 +141,21 @@ else if (_fiche is not null)
     {
         <div class="cit-card mb-4 border-warning">
             <h6 class="fw-bold text-dark mb-2">@Loc["FicheEnrol.ClientComplementTitle"]</h6>
+            @if (MotifComplement(f) is { } motif)
+            {
+                <div class="alert alert-warning py-2 small mb-2"><span class="fw-semibold">@Loc["FicheEnrol.ComplementAsked"]</span> @motif</div>
+            }
             <p class="text-muted small">@Loc["FicheEnrol.ClientComplementDesc"]</p>
             <div class="mb-2">
                 <textarea class="form-control" rows="3" @bind="_reponseComplement" @bind:event="oninput" placeholder="@Loc["FicheEnrol.ClientComplementPlaceholder"]"></textarea>
             </div>
-            <PiecesJointesFormulaire Fichiers="_piecesComplement" />
+            <PiecesJointesFormulaire Fichiers="_piecesComplement" Formats=".pdf,.jpg,.jpeg,.png" />
             <button type="button" class="btn btn-primary btn-sm fw-bold" @onclick="RepondreComplementAsync" disabled="@(string.IsNullOrWhiteSpace(_reponseComplement) && _piecesComplement.Count == 0)">@Loc["FicheEnrol.SendReply"]</button>
         </div>
     }
 
-    @if (f.PeutDeposerDocument)
+    @* Pendant un complément, le transporteur dépose dans l'encadré ci-dessus : une seule zone. *@
+    @if (f.PeutDeposerDocument && !(_estClient && f.PeutRepondreComplement))
     {
         <div class="cit-card mb-4">
             <h6 class="fw-bold text-dark mb-2">@Loc["FicheEnrol.UploadTitle"]</h6>
@@ -274,6 +279,11 @@ else if (_fiche is not null)
             Loc["FicheEnrol.MsgBadge"].Value);
         _afficherFormulaireBadge = false;
     }
+
+    /// <summary>Ce que l'agent a demandé : motif de la dernière mise en attente.</summary>
+    private static string? MotifComplement(FicheEnrolementVue f) => f.Chronologie
+        .Where(e => e.Evenement == "TicketEnAttenteClient" && !string.IsNullOrWhiteSpace(e.Detail))
+        .OrderByDescending(e => e.HorodatageUtc).FirstOrDefault()?.Detail;
 
     private async Task DemanderComplementAsync()
     {

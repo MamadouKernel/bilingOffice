@@ -8,8 +8,8 @@
    (contrôle de format, de taille et antivirus au dépôt). Plusieurs sélections s'ajoutent. *@
 <div class="mb-3">
     <label class="form-label fw-semibold text-dark" for="@_id">@Loc["PJ.Label"]</label>
-    <InputFile id="@_id" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx" OnChange="Ajouter" />
-    <div class="form-text small text-muted">@Loc["PJ.Hint", DepotFichiers.MaxParDepot]</div>
+    <InputFile id="@_id" class="form-control" multiple accept="@Formats" OnChange="Ajouter" />
+    <div class="form-text small text-muted">@Loc["PJ.HintFormats", FormatsLisibles, DepotFichiers.MaxParDepot]</div>
     @if (_erreur is not null)
     {
         <div class="small text-danger mt-1" role="alert">@_erreur</div>
@@ -31,6 +31,12 @@
 @code {
     /// <summary>Liste tenue par le formulaire hôte, qui dépose ces fichiers après la création du ticket.</summary>
     [Parameter, EditorRequired] public List<IBrowserFile> Fichiers { get; set; } = [];
+
+    /// <summary>Extensions acceptées (attribut <c>accept</c>) ; le dépôt revérifie côté serveur.</summary>
+    [Parameter] public string Formats { get; set; } = ".pdf,.jpg,.jpeg,.png,.xlsx";
+
+    private string FormatsLisibles => string.Join(", ", Formats.Split(',')
+        .Select(f => f.Trim().TrimStart('.').ToUpperInvariant()).Where(f => f != "JPEG"));
 
     private readonly string _id = $"pieces-{Guid.NewGuid():N}";
     private string? _erreur;

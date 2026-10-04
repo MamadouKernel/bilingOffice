@@ -1,6 +1,7 @@
 @using CIT.Plateforme.Application.Tickets
 @using CIT.Plateforme.Web.Resources
 @using Microsoft.Extensions.Localization
+@using System.Text.RegularExpressions
 @inject IStringLocalizer<SharedResources> Loc
 
 <div class="timeline-container">
@@ -22,9 +23,9 @@
                             <span class="fw-bold text-dark small">@Libelle(ev.Evenement)</span>
                             <span class="badge bg-light text-muted border font-monospace u-fs-2xs">@ev.HorodatageUtc.Horodate() UTC</span>
                         </div>
-                        @if (!string.IsNullOrWhiteSpace(ev.Detail))
+                        @if (Detail(ev.Detail) is { Length: > 0 } detail)
                         {
-                            <div class="small text-secondary mb-2">@ev.Detail</div>
+                            <div class="small text-secondary mb-2">@detail</div>
                         }
                         <div class="text-muted small d-flex align-items-center gap-1 u-fs-xs">
                             <span>@Loc["Chrono.By"]</span> <span class="fw-semibold text-dark">@ev.AuteurNom</span>
@@ -40,12 +41,29 @@
     [Parameter]
     public IReadOnlyList<ChronologieItemVue> Evenements { get; set; } = new List<ChronologieItemVue>();
 
+    /// <summary>
+    /// Détail lisible : les paires techniques « cle=valeur » sont traduites (« N° BL : X ») et les
+    /// identifiants internes (GUID) masqués — l'auteur est déjà affiché sous l'événement.
+    /// </summary>
+    private string? Detail(string? brut)
+    {
+        if (string.IsNullOrWhiteSpace(brut) || !Regex.IsMatch(brut, @"^\w+=[^;]*(;\w+=[^;]*)*$")) return brut;
+        return string.Join(" · ", brut.Split(';')
+            .Select(p => p.Split('=', 2))
+            .Where(kv => !Guid.TryParse(kv[1], out _))
+            .Select(kv =>
+            {
+                var cle = Loc[$"Chrono.Cle.{kv[0]}"];
+                return $"{(cle.ResourceNotFound ? kv[0] : cle.Value)} : {kv[1]}";
+            }));
+    }
+
     /// <summary>Libellé lisible d'un code d'événement : traduction si connue, sinon « CodePascal » découpé en mots.</summary>
     private string Libelle(string code)
     {
         var traduit = Loc[$"Chrono.Ev.{code}"];
         if (!traduit.ResourceNotFound) return traduit.Value;
-        var mots = System.Text.RegularExpressions.Regex.Replace(code, "(?<=[a-z0-9])(?=[A-Z])", " ").ToLowerInvariant();
+        var mots = Regex.Replace(code, "(?<=[a-z0-9])(?=[A-Z])", " ").ToLowerInvariant();
         return mots.Length == 0 ? code : char.ToUpperInvariant(mots[0]) + mots[1..];
     }
 }
