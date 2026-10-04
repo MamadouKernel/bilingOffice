@@ -3187,3 +3187,5 @@ h1:focus, h1:focus-visible { outline: none; box-shadow: none; }
     .cit-header .cit-recherche-ecran { width: clamp(150px, 18vw, 280px); }
     .cit-user-name { max-width: 9.5rem; }
 }
+.cit-recherche-ecran kbd { white-space: nowrap; flex-shrink: 0; }
+@media (max-width: 1399.98px) { .cit-recherche-ecran kbd { display: none; } }

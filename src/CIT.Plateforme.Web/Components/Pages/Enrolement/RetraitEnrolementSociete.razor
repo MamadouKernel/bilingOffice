@@ -11,6 +11,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreRetraitEnrolementSocieteCommand SoumettreRetraitSociete
+@inject ListerMesEnrolementsQuery ListerMesEnrolements
 
 <PageTitle>@Loc["EnrolRet.PageTitle"]</PageTitle>
 
@@ -72,14 +73,28 @@ else
                         <tr @key="ligne.Cle">
                             <td>
                                 <select class="form-select form-select-sm" value="@ligne.Type"
-                                        @onchange="e => ligne.Type = Enum.Parse<TypeObjetEnrolement>(e.Value?.ToString() ?? nameof(TypeObjetEnrolement.Chauffeur))">
+                                        @onchange="e => ligne.ChangerType(Enum.Parse<TypeObjetEnrolement>(e.Value?.ToString() ?? nameof(TypeObjetEnrolement.Chauffeur)))">
                                     <option value="@nameof(TypeObjetEnrolement.Chauffeur)">@Loc["Enrol.Objet.Chauffeur"]</option>
                                     <option value="@nameof(TypeObjetEnrolement.Camion)">@Loc["Enrol.Objet.Camion"]</option>
                                 </select>
                             </td>
                             <td>
-                                <input class="form-control form-control-sm" @bind="ligne.Objet" @bind:event="oninput"
-                                       placeholder="@(ligne.Type == TypeObjetEnrolement.Camion ? Loc["EnrolSoc.ObjectPlaceholderCamion"].Value : Loc["EnrolSoc.ObjectPlaceholderChauffeur"].Value)" maxlength="200" />
+                                @* Liste de la flotte en service (badges remis, pas encore retirés) ;
+                                   « Autre » garde la saisie libre pour un badge délivré hors plateforme. *@
+                                <select class="form-select form-select-sm" aria-label="@Loc["EnrolSoc.ColObjet"]"
+                                        value="@(ligne.SaisieLibre ? AutreObjet : ligne.Objet)" @onchange="e => ligne.Choisir(e.Value?.ToString())">
+                                    <option value="">@Loc["EnrolRet.ChooseFleet"]</option>
+                                    @foreach (var o in _flotte.Where(o => o.Type == ligne.Type))
+                                    {
+                                        <option value="@o.Objet">@o.Objet</option>
+                                    }
+                                    <option value="@AutreObjet">@Loc["EnrolRet.OtherObject"]</option>
+                                </select>
+                                @if (ligne.SaisieLibre)
+                                {
+                                    <input class="form-control form-control-sm mt-1" @bind="ligne.Objet" @bind:event="oninput"
+                                           placeholder="@(ligne.Type == TypeObjetEnrolement.Camion ? Loc["EnrolSoc.ObjectPlaceholderCamion"].Value : Loc["EnrolSoc.ObjectPlaceholderChauffeur"].Value)" maxlength="200" />
+                                }
                             </td>
                             <td>
                                 <input class="form-control form-control-sm" @bind="ligne.Motif" @bind:event="oninput"
@@ -112,7 +127,24 @@ else
         public TypeObjetEnrolement Type { get; set; } = TypeObjetEnrolement.Chauffeur;
         public string Objet { get; set; } = string.Empty;
         public string Motif { get; set; } = string.Empty;
+        public bool SaisieLibre { get; private set; }
+
+        public void ChangerType(TypeObjetEnrolement type)
+        {
+            Type = type;
+            Objet = string.Empty;
+            SaisieLibre = false;
+        }
+
+        public void Choisir(string? valeur)
+        {
+            SaisieLibre = valeur == AutreObjet;
+            Objet = SaisieLibre ? string.Empty : valeur ?? string.Empty;
+        }
     }
+
+    private const string AutreObjet = "__autre__";
+    private IReadOnlyList<ObjetFlotte> _flotte = [];
 
     private bool _chargement = true;
     private bool _nonAutorise;
@@ -158,6 +190,7 @@ else
 
             _utilisateurId = contexte.UtilisateurId;
             _societeId = contexte.SocieteId.Value;
+            _flotte = FlotteEnService.Calculer(await ListerMesEnrolements.ExecuterAsync(_utilisateurId));
         }
         catch (Exception ex)
         {
