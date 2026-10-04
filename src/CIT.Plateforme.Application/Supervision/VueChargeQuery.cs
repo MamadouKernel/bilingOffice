@@ -24,7 +24,10 @@ public sealed class VueChargeQuery(
         var toutesDisponibilites = await disponibilites.ListerAsync(ct).ConfigureAwait(false);
         var vues = new List<VueOperateur>();
 
-        var operateurIds = toutesDisponibilites.Select(d => d.OperateurId).ToList();
+        // Un agent sans disponibilité enregistrée est « disponible » par défaut (comme sur son
+        // tableau de bord) : s'il traite des tickets, il doit figurer dans la vue de charge.
+        var avecTickets = await tickets.ListerOperateursAvecTicketsEnCoursAsync(ct).ConfigureAwait(false);
+        var operateurIds = toutesDisponibilites.Select(d => d.OperateurId).Union(avecTickets).ToList();
 
         // Résolution des noms en un seul appel : la vue affiche des personnes, pas des GUID.
         var infos = utilisateurs is null
@@ -44,6 +47,18 @@ public sealed class VueChargeQuery(
                 disponibilite.Statut,
                 ticketsEnCours,
                 disponibilite.DateDerniereActiviteUtc,
+                NomOperateur: info?.NomAffiche ?? info?.Email ?? string.Empty));
+        }
+
+        foreach (var operateurId in avecTickets.Except(toutesDisponibilites.Select(d => d.OperateurId)))
+        {
+            var ticketsOperateur = ticketsParOperateur.GetValueOrDefault(operateurId) ?? [];
+            var info = infos.GetValueOrDefault(operateurId);
+            vues.Add(new VueOperateur(
+                operateurId,
+                StatutDisponibilite.Disponible,
+                ticketsOperateur.Count(t => t.Statut == StatutTicket.EnCours),
+                ticketsOperateur.Select(t => t.DateDerniereActiviteUtc).DefaultIfEmpty().Max(),
                 NomOperateur: info?.NomAffiche ?? info?.Email ?? string.Empty));
         }
 

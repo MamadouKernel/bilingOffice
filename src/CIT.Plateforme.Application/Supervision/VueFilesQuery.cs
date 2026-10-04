@@ -26,7 +26,9 @@ public sealed record VueFile(
     int EnDepassementSla = 0,
     int SansActivite = 0,
     TimeSpan? AncienneteTicketLePlusAncien = null,
-    TimeSpan? DelaiMoyenTraitement = null);
+    TimeSpan? DelaiMoyenTraitement = null,
+    // Deux files peuvent porter le même nom (Pilote Manifeste import / export) : le module les distingue.
+    string Module = "");
 
 public sealed class VueFilesQuery(
     IFileDeTraitementRepository files,
@@ -88,7 +90,8 @@ public sealed class VueFilesQuery(
                 EnDepassementSla: enDepassement,
                 SansActivite: sansActivite,
                 AncienneteTicketLePlusAncien: ancienneteTicketLePlusAncien,
-                DelaiMoyenTraitement: delaiMoyenTraitement));
+                DelaiMoyenTraitement: delaiMoyenTraitement,
+                Module: file.Module));
         }
 
         return vues;

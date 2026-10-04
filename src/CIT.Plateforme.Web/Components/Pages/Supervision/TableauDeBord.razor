@@ -96,6 +96,10 @@ else if (vuesFiles is not null)
                                         @onclick="() => OuvrirFileAsync(vue.FileId, vue.Nom)">
                                     @(string.IsNullOrWhiteSpace(vue.Nom) ? Loc["Sup.FileSansNom"].Value : vue.Nom)
                                 </button>
+                                @if (!string.IsNullOrWhiteSpace(vue.Module))
+                                {
+                                    <div class="small text-muted fw-normal">@Loc.Module(vue.Module)</div>
+                                }
                             </td>
                             <td class="text-end font-monospace @(vue.NonAffectes > 0 ? "text-warning fw-bold" : "text-muted")">@vue.NonAffectes</td>
                             <td class="text-end font-monospace text-primary fw-bold">@vue.EnCours</td>
@@ -142,6 +146,10 @@ else if (vuesFiles is not null)
                     </tr>
                 </thead>
                 <tbody>
+                    @if (vuesCharge is { Count: 0 })
+                    {
+                        <tr><td colspan="5" class="text-center text-muted small py-4">@Loc["Sup.AucunOperateur"]</td></tr>
+                    }
                     @foreach (var vue in _pagination2.Appliquer(vuesCharge))
                     {
                         <tr>

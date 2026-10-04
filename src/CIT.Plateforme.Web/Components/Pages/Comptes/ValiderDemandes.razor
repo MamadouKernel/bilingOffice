@@ -83,7 +83,6 @@ else
                             {
                                 <div class="small text-muted" title="@demande.InformationsDeclarees">@demande.InformationsDeclarees</div>
                             }
-                            <div class="small text-muted font-monospace mt-1">@Loc["ValidDem.IdLabel"] @demande.Id.ToString()[..8]...</div>
                         </div>
                         <div class="text-md-end small text-muted">
                             <div>📅 @demande.DateCreationUtc.Horodate()</div>
@@ -102,7 +101,7 @@ else
                                         <button type="button"
                                                 class="btn @(EstApercuActif(demande.Id, piece.Id) ? "btn-primary" : "btn-outline-primary") fw-semibold d-flex align-items-center gap-1"
                                                 @onclick="() => ApercuAsync(demande.Id, piece.Id)">
-                                            <span>📎</span> <span class="text-truncate" style="max-width: 15rem;">@piece.PieceCode : @piece.NomFichier</span>
+                                            <span>📎</span> <span class="text-truncate" style="max-width: 18rem;" title="@piece.NomFichier">@_libellesPieces.GetValueOrDefault(piece.PieceCode, piece.PieceCode)</span>
                                         </button>
                                         <button type="button" class="btn btn-outline-secondary" title="@Loc["ValidDem.Telecharger"]"
                                                 @onclick="() => TelechargerAsync(piece.Id)">⬇</button>
@@ -135,7 +134,7 @@ else
                                         @onchange="e => CorrigerProfilAsync(demande.Id, e.Value?.ToString())">
                                     @foreach (var valeur in Enum.GetValues<TypeClient>())
                                     {
-                                        <option value="@valeur" selected="@(valeur == demande.Profil)">@valeur</option>
+                                        <option value="@valeur" selected="@(valeur == demande.Profil)">@Loc[$"ProfilClient.{valeur}"]</option>
                                     }
                                 </select>
                             </div>
@@ -168,6 +167,7 @@ else
     private readonly Dictionary<Guid, string> motifsRejet = [];
     private Guid _appelantId;
     private readonly Dictionary<Guid, IReadOnlyList<JustificatifVue>> justificatifs = new();
+    private Dictionary<string, string> _libellesPieces = new();
     // Pièce actuellement prévisualisée par demande (clé = demande, valeur = justificatif).
     private readonly Dictionary<Guid, Guid> _apercu = new();
     private readonly Dictionary<Guid, string> _apercuNom = new();
@@ -202,6 +202,10 @@ else
             var listerJustificatifsQuery = scope.ServiceProvider.GetRequiredService<ListerJustificatifsDemandeQuery>();
 
             demandes = (await listerDemandesQuery.ExecuterAsync(_appelantId)).ToList();
+            // Libellés des pièces (référentiel administrable) : l'agent lit « Pièce d'identité du
+            // représentant », pas le code CNI_REP ; le nom du fichier reste en info-bulle.
+            _libellesPieces = (await scope.ServiceProvider.GetRequiredService<ListerPiecesExigeesQuery>().ExecuterAsync(activesUniquement: false))
+                .GroupBy(p => p.Code).ToDictionary(g => g.Key, g => g.First().Libelle);
             justificatifs.Clear();
             _apercu.Clear();
             _apercuNom.Clear();

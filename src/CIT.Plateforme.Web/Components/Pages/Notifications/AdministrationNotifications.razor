@@ -66,8 +66,8 @@ else
                 @foreach (var regle in _pagination1.Appliquer(_regles))
                 {
                     <tr>
-                        <td><code>@regle.TypeEvenement</code></td>
-                        <td>@regle.Canal</td>
+                        <td>@Loc.Evenement(regle.TypeEvenement)<div><code class="small text-muted">@regle.TypeEvenement</code></div></td>
+                        <td>@Loc[$"Canal.{regle.Canal}"]</td>
                         <td>
                             @if (regle.EstObligatoire)
                             {
@@ -117,8 +117,8 @@ else
                 @foreach (var modele in _pagination2.Appliquer(_modeles))
                 {
                     <tr>
-                        <td><code>@modele.TypeEvenement</code></td>
-                        <td>@modele.Canal</td>
+                        <td>@Loc.Evenement(modele.TypeEvenement)<div><code class="small text-muted">@modele.TypeEvenement</code></div></td>
+                        <td>@Loc[$"Canal.{modele.Canal}"]</td>
                         <td>@modele.GabaritTitre</td>
                         <td>@(modele.EstActif ? Loc["NotifAdm.Oui"] : Loc["NotifAdm.Non"])</td>
                     </tr>

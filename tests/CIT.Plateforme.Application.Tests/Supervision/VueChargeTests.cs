@@ -56,4 +56,32 @@ public sealed class VueChargeTests
         Assert.Equal(StatutDisponibilite.Absent, vueOperateurB.Disponibilite); // DIS-02
         Assert.Equal(0, vueOperateurB.TicketsEnCours);
     }
+
+    /// <summary>Revue UX du 04/10/2026 : un agent qui n'a jamais basculé sa disponibilité (donc
+    /// « disponible » par défaut) mais qui traite des tickets restait absent de la vue.</summary>
+    [Fact]
+    public async Task Un_agent_sans_disponibilite_enregistree_mais_avec_des_tickets_en_cours_apparait()
+    {
+        var dbContext = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var journalisation = new JournalisationService(dbContext, horloge);
+        var uniteDeTravail = new UniteDeTravail(dbContext);
+        var autorisation = new AutorisationService(dbContext);
+        var ticketRepo = new TicketRepository(dbContext);
+        var superviseurId = Guid.NewGuid();
+        var operateur = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
+        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateur), Permission.TicketPrendreEnCharge, fileId));
+        var creer = new CreerTicketCommand(ticketRepo, new DossierRepository(dbContext), new NumerotationEnMemoirePourTests(), journalisation, horloge, uniteDeTravail);
+        var ticket = await creer.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileId, null));
+        await new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uniteDeTravail).ExecuterAsync(operateur, ticket.Id);
+
+        var vues = await new VueChargeQuery(new DisponibiliteRepository(dbContext), ticketRepo, autorisation).ExecuterAsync(superviseurId);
+
+        var vue = Assert.Single(vues);
+        Assert.Equal(operateur, vue.OperateurId);
+        Assert.Equal(StatutDisponibilite.Disponible, vue.Disponibilite);
+        Assert.Equal(1, vue.TicketsEnCours);
+    }
 }

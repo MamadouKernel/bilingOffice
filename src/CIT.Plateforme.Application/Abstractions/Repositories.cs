@@ -90,6 +90,13 @@ public interface ITicketRepository
         return (await ListerTousAsync(ct).ConfigureAwait(false)).Where(t => ensemble.Contains(t.FileCouranteId)).ToList();
     }
 
+    /// <summary>Opérateurs ayant au moins un ticket en cours (vue de charge du superviseur).
+    /// Default → filtre en mémoire ; le dépôt EF l'écrase par une requête DISTINCT.</summary>
+    async Task<IReadOnlyList<Guid>> ListerOperateursAvecTicketsEnCoursAsync(CancellationToken ct = default) =>
+        (await ListerTousAsync(ct).ConfigureAwait(false))
+            .Where(t => t.Statut == StatutTicket.EnCours && t.OperateurAssigneId.HasValue)
+            .Select(t => t.OperateurAssigneId!.Value).Distinct().ToList();
+
     /// <summary>Tickets d'un module donné — évite un scan complet pour les files par module.
     /// Default → filtre en mémoire ; le dépôt EF l'écrase par un WHERE Module = @module.</summary>
     async Task<IReadOnlyList<Ticket>> ListerParModuleAsync(string module, CancellationToken ct = default) =>

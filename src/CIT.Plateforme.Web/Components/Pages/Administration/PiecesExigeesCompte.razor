@@ -74,7 +74,7 @@ else
                     <option value="">@Loc["AdmPieceC.TousTypes"]</option>
                     @foreach (var type in Enum.GetValues<CIT.Plateforme.Domain.Comptes.TypeClient>())
                     {
-                        <option value="@type">@type</option>
+                        <option value="@type">@Loc[$"ProfilClient.{type}"]</option>
                     }
                 </select>
             </div>
@@ -142,7 +142,7 @@ else
                                     @piece.Libelle
                                     @if (piece.TypeClientCible is { } cible)
                                     {
-                                        <span class="badge bg-warning bg-opacity-25 text-dark ms-1">@cible</span>
+                                        <span class="badge bg-warning bg-opacity-25 text-dark ms-1">@Loc[$"ProfilClient.{cible}"]</span>
                                     }
                                 </td>
                                 <td>

@@ -63,6 +63,13 @@ public sealed class TicketRepository(PlateformeDbContext dbContext) : ITicketRep
         return await dbContext.Tickets.Where(t => ids.Contains(t.FileCouranteId)).ToListAsync(ct).ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<Guid>> ListerOperateursAvecTicketsEnCoursAsync(CancellationToken ct = default) =>
+        await dbContext.Tickets
+            .Where(t => t.Statut == StatutTicket.EnCours && t.OperateurAssigneId != null)
+            .Select(t => t.OperateurAssigneId!.Value)
+            .Distinct()
+            .ToListAsync(ct).ConfigureAwait(false);
+
     public async Task<IReadOnlyList<Ticket>> ListerParModuleAsync(string module, CancellationToken ct = default) =>
         await dbContext.Tickets.Where(t => t.Module == module).ToListAsync(ct).ConfigureAwait(false);
 
