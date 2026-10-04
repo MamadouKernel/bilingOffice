@@ -16,6 +16,11 @@
   jamais dans ce script ni dans la tâche planifiée.
     powershell -File mesurer-disponibilite-et-temps-reponse.ps1 -Sortie D:\Mesures\yaba.csv -AlerteA exploitation@cotedivoireterminal.com -SmtpHote smtp.exemple.ci -SmtpUtilisateur alertes@exemple.ci
   Installation de la tâche planifiée (toutes les 5 min, 24/7 ; console administrateur) : ajouter -Installer.
+  La tâche tourne sous le compte SYSTEM, session ouverte ou non : le mot de passe doit donc être une
+  variable d'environnement MACHINE (console administrateur, saisie masquée) :
+    $s = Read-Host -AsSecureString 'Mot de passe SMTP'
+    [Environment]::SetEnvironmentVariable('YABA_SMTP_MOTDEPASSE', [Net.NetworkCredential]::new('', $s).Password, 'Machine')
+  Vérifier l'envoi avant d'installer : mêmes paramètres + -TesterAlerte (envoie un e-mail de test).
 #>
 param(
     [string]$Base = 'https://10.88.179.103:8443',
@@ -28,17 +33,27 @@ param(
     [string]$SmtpUtilisateur = '',
     [string]$Expediteur = 'no-reply@cotedivoireterminal.com',
     [int]$SeuilEchecs = 2,
-    [switch]$Installer
+    [switch]$Installer,
+    [switch]$TesterAlerte
 )
+
+# Lancé par la tâche planifiée (-File), "-AlerteA a@x,b@y" arrive en une seule chaîne.
+$AlerteA = @($AlerteA | ForEach-Object { $_ -split '[,;]' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$Sortie = [IO.Path]::GetFullPath($Sortie)
 
 if ($Installer) {
     # Reprend les mêmes paramètres (sauf -Installer) dans une tâche lancée toutes les 5 minutes.
-    $arguments = ($PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -ne 'Installer' } | ForEach-Object {
+    $PSBoundParameters['Sortie'] = $Sortie   # chemin absolu : SYSTEM démarre dans System32
+    $arguments = ($PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -notin 'Installer', 'TesterAlerte' } | ForEach-Object {
         $valeur = if ($_.Value -is [array]) { ($_.Value -join ',') } else { $_.Value }
         "-$($_.Key) `"$valeur`"" }) -join ' '
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $arguments"
     $declencheur = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 5)
-    Register-ScheduledTask -TaskName 'YABA - Surveillance disponibilite' -Action $action -Trigger $declencheur -RunLevel Highest -Force | Out-Null
+    $compte = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+    Register-ScheduledTask -TaskName 'YABA - Surveillance disponibilite' -Action $action -Trigger $declencheur -Principal $compte -Force | Out-Null
+    if (-not [Environment]::GetEnvironmentVariable('YABA_SMTP_MOTDEPASSE', 'Machine') -and $SmtpUtilisateur) {
+        Write-Output 'ATTENTION : YABA_SMTP_MOTDEPASSE absente au niveau Machine, la tâche ne pourra pas envoyer d''alerte.'
+    }
     Write-Output 'Tâche planifiée « YABA - Surveillance disponibilite » installée (toutes les 5 min).'
     return
 }
@@ -102,6 +117,8 @@ else {
     $etat = [pscustomobject]@{ echecsConsecutifs = $echecs; enPanne = $enPanne; depuisUtc = $depuis }
 }
 $etat | ConvertTo-Json | Set-Content $fichierEtat -Encoding UTF8
+
+if ($TesterAlerte) { $message = @{ Sujet = "[YABA] Test d'alerte de disponibilité"; Corps = "Message de test : la surveillance de $Base peut envoyer ses alertes à $($AlerteA -join ', ')." } }
 
 if ($message) {
     Write-Output $message.Sujet
