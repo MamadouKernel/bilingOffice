@@ -108,9 +108,13 @@
                     <span class="fs-4">⚠️</span>
                     <div>
                         <strong>@Loc["Ticket.ActionRequiredLabel"]</strong> @Loc["Ticket.ActionRequiredText"]
+                        @if (MotifAttente is { } motif)
+                        {
+                            <div class="mt-1"><span class="fw-semibold">@Loc["FicheEnrol.ComplementAsked"]</span> @motif</div>
+                        }
                     </div>
                 </div>
-                @if (_fiche.PeutReprendreApresClient)
+                @if (_fiche.PeutReprendreApresClient && _estClient)
                 {
                     <button type="button" class="btn btn-warning btn-sm fw-bold" @onclick="ReprendreApresClientAsync">
                         @Loc["Ticket.MarkComplementProvided"]
@@ -283,7 +287,7 @@
                             }
                         }
 
-                        @if (_fiche.PeutReprendreApresClient && _fiche.Statut == StatutTicket.EnAttenteClient)
+                        @if (_fiche.PeutReprendreApresClient && _fiche.Statut == StatutTicket.EnAttenteClient && !_estClient)
                         {
                             <button type="button" class="btn btn-outline-success" @onclick="ReprendreApresClientAsync">
                                 @Loc["Ticket.ResumeProcessing"]
@@ -314,46 +318,45 @@
                         }
                     </div>
                 </div>
-            </div>
+                @* SOC-10 — « liaison entre tickets, y compris entre modules, créée par un agent
+                   habilité, visible par les agents ET par le client concerné ». La commande existait,
+                   testée ; aucun écran ne l'appelait, et aucune fiche ne montrait ses liaisons. *@
+                <div class="cit-card p-3 mt-3">
+                    <h6 class="fw-bold text-dark mb-3">@Loc["Ticket.LinkedTickets"]</h6>
 
-            @* SOC-10 — « liaison entre tickets, y compris entre modules, créée par un agent
-               habilité, visible par les agents ET par le client concerné ». La commande existait,
-               testée ; aucun écran ne l'appelait, et aucune fiche ne montrait ses liaisons. *@
-            <div class="cit-card p-3 mb-3">
-                <h6 class="fw-bold text-dark mb-3">@Loc["Ticket.LinkedTickets"]</h6>
-
-                @if (_fiche.Liaisons is null || _fiche.Liaisons.Count == 0)
-                {
-                    <div class="small text-muted mb-2">@Loc["Ticket.NoLinkedTickets"]</div>
-                }
-                else
-                {
-                    <ul class="list-unstyled mb-2">
-                        @foreach (var liaison in _fiche.Liaisons)
-                        {
-                            <li class="d-flex align-items-center justify-content-between gap-2 py-1 border-bottom">
-                                <a href="@($"/tickets/{liaison.TicketId}")" class="text-decoration-none fw-semibold">
-                                    @liaison.Numero
-                                </a>
-                                <span class="small text-muted">@Loc.Module(liaison.Module) · @Loc.StatutTicket(liaison.Statut)</span>
-                            </li>
-                        }
-                    </ul>
-                }
-
-                @if (_fiche.PeutLierTickets)
-                {
-                    <div class="input-group input-group-sm mt-2">
-                        <input class="form-control" @bind="_numeroALier" placeholder="@Loc["Ticket.LinkPlaceholder"]"
-                               aria-label="@Loc["Ticket.LinkAria"]" />
-                        <button type="button" class="btn btn-outline-primary" @onclick="LierTicketAsync"
-                                disabled="@(string.IsNullOrWhiteSpace(_numeroALier))">@Loc["Ticket.Link"]</button>
-                    </div>
-                    @if (_erreurLiaison is not null)
+                    @if (_fiche.Liaisons is null || _fiche.Liaisons.Count == 0)
                     {
-                        <div class="small text-danger mt-2">@_erreurLiaison</div>
+                        <div class="small text-muted mb-2">@Loc["Ticket.NoLinkedTickets"]</div>
                     }
-                }
+                    else
+                    {
+                        <ul class="list-unstyled mb-2">
+                            @foreach (var liaison in _fiche.Liaisons)
+                            {
+                                <li class="d-flex align-items-center justify-content-between gap-2 py-1 border-bottom">
+                                    <a href="@($"/tickets/{liaison.TicketId}")" class="text-decoration-none fw-semibold">
+                                        @liaison.Numero
+                                    </a>
+                                    <span class="small text-muted">@Loc.Module(liaison.Module) · @Loc.StatutTicket(liaison.Statut)</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+
+                    @if (_fiche.PeutLierTickets)
+                    {
+                        <div class="input-group input-group-sm mt-2">
+                            <input class="form-control" @bind="_numeroALier" placeholder="@Loc["Ticket.LinkPlaceholder"]"
+                                   aria-label="@Loc["Ticket.LinkAria"]" />
+                            <button type="button" class="btn btn-outline-primary" @onclick="LierTicketAsync"
+                                    disabled="@(string.IsNullOrWhiteSpace(_numeroALier))">@Loc["Ticket.Link"]</button>
+                        </div>
+                        @if (_erreurLiaison is not null)
+                        {
+                            <div class="small text-danger mt-2">@_erreurLiaison</div>
+                        }
+                    }
+                </div>
             </div>
 
             <!-- Colonne droite : Onglets Messagerie / Documents / Chronologie -->
@@ -505,6 +508,14 @@
     private FicheTicketVue? _fiche;
     private Guid _utilisateurId;
     private bool _estClient;
+
+    /// <summary>Ce que l'agent a demandé : motif de la dernière mise en attente ou demande de complément.</summary>
+    private static readonly string[] EvenementsDemandeClient =
+        ["TicketEnAttenteClient", "ComplementDemande", "ComplementDemandeImport", "ComplementDemandeExport"];
+
+    private string? MotifAttente => _fiche?.Chronologie
+        .Where(e => EvenementsDemandeClient.Contains(e.Evenement) && !string.IsNullOrWhiteSpace(e.Detail))
+        .OrderByDescending(e => e.HorodatageUtc).FirstOrDefault()?.Detail;
     private bool _factureDemandee;
     private string _ongletActif = "messages";
     private string _numeroALier = string.Empty;

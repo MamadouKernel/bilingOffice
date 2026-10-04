@@ -5,7 +5,7 @@
     <summary class="cit-user-trigger cit-language-trigger" aria-haspopup="true">
         <span class="d-flex align-items-center gap-1">
             <span>🌐</span>
-            <span class="small fw-semibold">@(IsEnglish ? "EN 🇬🇧" : "FR 🇫🇷")</span>
+            <span class="small fw-semibold">@(IsEnglish ? "EN" : "FR")</span>
         </span>
         <span class="cit-user-caret">▾</span>
     </summary>
@@ -17,7 +17,7 @@
             <input type="hidden" name="redirectUri" value="@CurrentUri" />
             <button type="submit" role="menuitem" class="cit-user-dropdown-item @(!IsEnglish ? "actif" : "")">
                 <span>@(!IsEnglish ? "✓ " : "")</span>
-                <span>🇫🇷 Français (FR)</span>
+                <span>Français (FR)</span>
             </button>
         </form>
         <form method="post" action="/culture/set" class="m-0">
@@ -26,7 +26,7 @@
             <input type="hidden" name="redirectUri" value="@CurrentUri" />
             <button type="submit" role="menuitem" class="cit-user-dropdown-item @(IsEnglish ? "actif" : "")">
                 <span>@(IsEnglish ? "✓ " : "")</span>
-                <span>🇬🇧 English (EN)</span>
+                <span>English (EN)</span>
             </button>
         </form>
     </div>

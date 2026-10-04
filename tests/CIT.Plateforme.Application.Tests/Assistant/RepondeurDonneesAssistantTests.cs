@@ -124,7 +124,7 @@ public sealed class RepondeurDonneesAssistantTests
 
         var reponse = await m.Repondeur.RepondreAsync(m.ClientB, "Où en sont mes dossiers ?");
 
-        Assert.Contains("Vous avez 1 dossier(s) en cours", reponse!.Texte);
+        Assert.Contains("Vous avez 1 dossier en cours", reponse!.Texte);
         Assert.Contains("IMP-000201", reponse.Texte);
         Assert.DoesNotContain("IMP-000101", reponse.Texte);
     }
@@ -167,7 +167,7 @@ public sealed class RepondeurDonneesAssistantTests
 
         var reponse = await m.Repondeur.RepondreAsync(m.ClientB, "Where are my cases?");
 
-        Assert.Contains("You have 1 case(s) being processed", reponse!.Texte);
+        Assert.Contains("You have 1 case being processed", reponse!.Texte);
         Assert.DoesNotContain("Vous avez", reponse.Texte);
     }
 

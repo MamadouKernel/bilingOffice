@@ -3152,4 +3152,30 @@ html { scroll-padding-top: var(--header-h); }
 .cit-actions-compte .btn { white-space: nowrap; }
 
 /* FocusOnNavigate place le focus sur le h1 pour les lecteurs d'écran ; ce focus programmatique ne doit pas dessiner de cadre. */
-h1:focus { outline: none; }
+h1:focus, h1:focus-visible { outline: none; box-shadow: none; }
+
+/* Revue UX client (04/10/2026) — en-tête à 1440 px : compteur lisible, contrôles sur une ligne. */
+.cit-notification-badge {
+    top: -6px;
+    right: -6px;
+    width: auto;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 .3rem;
+    border-radius: 999px;
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 700;
+    line-height: 1.15rem;
+    text-align: center;
+}
+.cit-theme-switch button,
+.cit-language-trigger { white-space: nowrap; }
+/* Thème clair : « info » est un bleu foncé — un texte foncé y devient illisible (badge « En attente CIT »). */
+:root:not([data-theme="dark"]) .bg-info.text-dark { color: #fff !important; }
+/* Espace sous le contenu : la bulle de l'assistant ne recouvre plus la dernière ligne ni le dernier bouton. */
+.cit-main-content::after { content: ""; display: block; height: 4.5rem; }
+@media print { .cit-main-content::after { display: none; } }
+/* Listes déroulantes : le padding commun aux champs écrasait la place de la flèche (texte sous le chevron). */
+.form-select { padding-right: 2.25rem; text-overflow: ellipsis; }
+.form-select-sm { padding-right: 2rem; }

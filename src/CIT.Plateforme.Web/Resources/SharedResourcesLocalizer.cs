@@ -66,7 +66,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // Billing Import
         ["BillingImport.Title"] = "Demande de Facturation Import",
         ["BillingImport.Subtitle"] = "Soumettez votre dossier de facturation pour le déchargement et la livraison de conteneurs import.",
-        ["BillingImport.BlNumber"] = "Numéro de Connaissement (BL)",
+        ["BillingImport.BlNumber"] = "Numéros de connaissement (BL) — un par ligne",
         ["BillingImport.Armateur"] = "Armateur / Compagnie Maritime",
         ["BillingImport.DeliveryType"] = "Type de livraison",
         ["BillingImport.Containers"] = "Conteneurs déclarés",
@@ -1234,6 +1234,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["NotifC.BadgeLu"] = "Lu",
         ["NotifC.OuvrirTicket"] = "Ouvrir le ticket",
         ["NotifC.MarquerLu"] = "Marquer comme lu",
+        ["NotifC.ToutMarquerLu"] = "Tout marquer comme lu",
 
         // LOT 6a — Administration des notifications
         ["NotifAdm.PageTitle"] = "Administration des notifications — CIT",
@@ -2952,7 +2953,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // ===== LOT 3 - Compte (Profil société) =====
         ["ProfilSoc.PageTitle"] = "Profil de la société — CIT",
         ["ProfilSoc.Title"] = "Profil de la société",
-        ["ProfilSoc.Subtitle"] = "Informations de votre entreprise et statut de rattachement cloisonné",
+        ["ProfilSoc.Subtitle"] = "Informations de votre entreprise et des collaborateurs qui y sont rattachés",
         ["ProfilSoc.Refresh"] = "🔄 Actualiser",
         ["ProfilSoc.Loading"] = "Chargement du profil de votre société...",
         ["ProfilSoc.NoCompanyTitle"] = "Aucune société rattachée",
@@ -3028,7 +3029,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["AvoirExo.LinkLabel"] = "Liaison à une demande existante (optionnel)",
         ["AvoirExo.NoLink"] = "— Aucune liaison —",
         ["AvoirExo.NoLinkableHint"] = "Vous n'avez aucune demande à laquelle rattacher cette contestation.",
-        ["AvoirExo.LinkableHint"] = "Permet de rattacher cette contestation à l'une de vos opérations Billing existantes.",
+        ["AvoirExo.LinkableHint"] = "Permet de rattacher cette contestation à l'une de vos demandes de facturation existantes.",
         ["AvoirExo.MotivesLabel"] = "Exposé des motifs & justification détaillée *",
         ["AvoirExo.MotivesPlaceholder"] = "Expliquez précisément les raisons de la demande d'avoir ou d'exonération...",
         ["AvoirExo.FilesLabel"] = "Pièces justificatives * (Obligatoire)",
@@ -3213,7 +3214,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // Billing Import
         ["BillingImport.Title"] = "Import Billing Application",
         ["BillingImport.Subtitle"] = "Submit your billing application for import container discharge and delivery.",
-        ["BillingImport.BlNumber"] = "Bill of Lading (BL) Number",
+        ["BillingImport.BlNumber"] = "Bill of Lading (BL) numbers — one per line",
         ["BillingImport.Armateur"] = "Shipping Line / Carrier",
         ["BillingImport.DeliveryType"] = "Delivery Type",
         ["BillingImport.Containers"] = "Declared Containers",
@@ -4381,6 +4382,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["NotifC.BadgeLu"] = "Read",
         ["NotifC.OuvrirTicket"] = "Open ticket",
         ["NotifC.MarquerLu"] = "Mark as read",
+        ["NotifC.ToutMarquerLu"] = "Mark all as read",
 
         // LOT 6a — Notification administration
         ["NotifAdm.PageTitle"] = "Notification administration — CIT",
@@ -6099,7 +6101,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // ===== LOT 3 - Account (Company profile) =====
         ["ProfilSoc.PageTitle"] = "Company profile — CIT",
         ["ProfilSoc.Title"] = "Company profile",
-        ["ProfilSoc.Subtitle"] = "Your company's information and partitioned affiliation status",
+        ["ProfilSoc.Subtitle"] = "Your company's information and the colleagues attached to it",
         ["ProfilSoc.Refresh"] = "🔄 Refresh",
         ["ProfilSoc.Loading"] = "Loading your company profile...",
         ["ProfilSoc.NoCompanyTitle"] = "No affiliated company",
@@ -6175,7 +6177,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["AvoirExo.LinkLabel"] = "Link to an existing request (optional)",
         ["AvoirExo.NoLink"] = "— No link —",
         ["AvoirExo.NoLinkableHint"] = "You have no request to attach this dispute to.",
-        ["AvoirExo.LinkableHint"] = "Lets you attach this dispute to one of your existing Billing operations.",
+        ["AvoirExo.LinkableHint"] = "Lets you attach this dispute to one of your existing billing requests.",
         ["AvoirExo.MotivesLabel"] = "Statement of grounds & detailed justification *",
         ["AvoirExo.MotivesPlaceholder"] = "Explain precisely the reasons for the credit or exemption request...",
         ["AvoirExo.FilesLabel"] = "Supporting documents * (Required)",

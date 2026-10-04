@@ -19,3 +19,8 @@ window.citFocus = {
         }
     }
 };
+
+// Fil de discussion : amène le dernier message en vue (assistant virtuel).
+window.citDefilerEnBas = function (el) {
+    if (el) el.scrollTop = el.scrollHeight;
+};

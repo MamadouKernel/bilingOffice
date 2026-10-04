@@ -113,4 +113,25 @@ public sealed class MarquerNotificationLueCommand(
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
+
+    /// <summary>« Tout marquer comme lu » : seulement MES notifications (filtre par destinataire
+    /// dans la requête), chaque passage à l'état lu audité, un seul enregistrement.</summary>
+    public async Task<int> MarquerToutesAsync(Guid utilisateurAuthentifieId, CancellationToken ct = default)
+    {
+        var nonLues = (await notifications.ListerParDestinataireAsync(utilisateurAuthentifieId, ct).ConfigureAwait(false))
+            .Where(n => !n.EstLue && n.DestinataireId == utilisateurAuthentifieId)
+            .ToList();
+        if (nonLues.Count == 0) return 0;
+
+        foreach (var notification in nonLues)
+        {
+            notification.MarquerCommeLue(horloge.MaintenantUtc);
+            await journalisation.ConsignerAuditAsync(
+                utilisateurAuthentifieId, "NotificationLue", "Notification", notification.Id, "NonLue", "Lue", ct)
+                .ConfigureAwait(false);
+        }
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+        return nonLues.Count;
+    }
 }

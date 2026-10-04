@@ -172,8 +172,8 @@ public sealed partial class RepondeurDonneesAssistant(
         var termines = perimetre.Tickets.Count(t => t.Statut is StatutTicket.Cloture or StatutTicket.Annule);
 
         var texte = new StringBuilder().Append(T(
-            $"Vous avez {enCours} dossier(s) en cours de traitement chez CIT, {attendus} en attente de votre réponse et {termines} terminé(s).",
-            $"You have {enCours} case(s) being processed at CIT, {attendus} awaiting your response and {termines} completed."));
+            $"Vous avez {enCours} {(enCours > 1 ? "dossiers" : "dossier")} en cours de traitement chez CIT, {attendus} en attente de votre réponse et {termines} {(termines > 1 ? "terminés" : "terminé")}.",
+            $"You have {enCours} {(enCours == 1 ? "case" : "cases")} being processed at CIT, {attendus} awaiting your response and {termines} completed."));
 
         var recents = perimetre.Tickets.OrderByDescending(t => t.DateDerniereActiviteUtc).Take(NombreMaxListe).ToList();
         if (recents.Count > 0)

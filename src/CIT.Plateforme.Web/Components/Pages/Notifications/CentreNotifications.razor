@@ -40,6 +40,10 @@
             }
         </div>
     </div>
+    @if (_nonLues > 1)
+    {
+        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="MarquerToutesAsync">@Loc["NotifC.ToutMarquerLu"]</button>
+    }
 </div>
 
 @if (_chargement)
@@ -59,7 +63,7 @@ else if (_notifications.Count == 0)
 else
 {
     <div class="list-group shadow-sm">
-        @foreach (var notification in _notifications)
+        @foreach (var notification in _pagination.Appliquer(_notifications))
         {
             <div class="list-group-item @(notification.EstLue ? "" : "list-group-item-light border-start border-3 border-primary")">
                 <div class="d-flex w-100 justify-content-between align-items-start gap-3 flex-wrap">
@@ -73,10 +77,10 @@ else
                             {
                                 <span class="badge bg-secondary-subtle text-secondary rounded-pill">@Loc["NotifC.BadgeLu"]</span>
                             }
-                            <span class="text-muted small">@notification.TypeEvenement</span>
+                            <span class="text-muted small">@Loc.Evenement(notification.TypeEvenement)</span>
                         </div>
                         <div class="fw-bold">@notification.Titre</div>
-                        <div class="text-body-secondary small">@notification.Corps</div>
+                        <div class="text-body-secondary small">@SansLienTechnique(notification.Corps)</div>
                         <div class="text-muted small mt-1">
                             @notification.CreeeLeUtc.Horodate()
                         </div>
@@ -103,6 +107,7 @@ else
             </div>
         }
     </div>
+    <Pagination Etat="_pagination" AuChangement="StateHasChanged" />
 }
 
 @code {
@@ -111,6 +116,24 @@ else
     private bool _chargement = true;
     private string? _erreur;
     private ContexteUtilisateurVue? _contexte;
+    private readonly EtatPagination _pagination = new();
+
+    // Le lien « Accéder au ticket : /tickets/… » sert aux e-mails ; ici, le bouton « Ouvrir le ticket » le remplace.
+    private static string SansLienTechnique(string corps) =>
+        System.Text.RegularExpressions.Regex.Replace(corps, @"\s*Accéder au ticket : \S+\s*$", string.Empty);
+
+    private async Task MarquerToutesAsync()
+    {
+        try
+        {
+            await MarquerLueCommand.MarquerToutesAsync(_contexte!.UtilisateurId);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 

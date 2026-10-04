@@ -10,6 +10,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject IServiceScopeFactory ScopeFactory
+@inject Microsoft.JSInterop.IJSRuntime Js
 
 @* Chatbox réutilisable : rendu par la page /assistant ET par la coquille flottante
    (AssistantFlottant). Toute la logique de conversation vit ici (SSR interactif). *@
@@ -32,7 +33,7 @@ else
             </div>
         </header>
 
-        <div class="cit-chat-corps">
+        <div class="cit-chat-corps" @ref="_corps">
             @if (_erreur is not null)
             {
                 <div class="cit-chat-erreur" role="alert"><span aria-hidden="true">⚠️</span> @_erreur</div>
@@ -234,6 +235,20 @@ else
     private string _objet = string.Empty;
     private string _descriptionDemande = string.Empty;
     private Guid? _ticketCreeId;
+
+    // Le fil s'ouvre et reste sur le dernier échange (et l'indicateur « écrit… »).
+    private ElementReference _corps;
+    private int _derniereTaille = -1;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var taille = (_conversation?.Messages.Count ?? 0) * 2 + (_envoi ? 1 : 0);
+        if (taille == _derniereTaille) return;
+        _derniereTaille = taille;
+        // Confort visuel uniquement : un échec (circuit coupé, rendu hors navigateur) ne doit jamais casser le fil.
+        try { await Js.InvokeVoidAsync("citDefilerEnBas", _corps); }
+        catch (Exception) { }
+    }
 
     protected override async Task OnInitializedAsync()
     {

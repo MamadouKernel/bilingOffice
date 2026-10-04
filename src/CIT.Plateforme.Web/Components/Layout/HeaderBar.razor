@@ -98,8 +98,8 @@
         <LanguageSwitcher />
         @* Sélecteur de thème segmenté : l'état actif est posé par theme-manager.js (aria-pressed). *@
         <div class="cit-theme-switch" role="group" title="@Loc["Header.ThemeToggleTitle"]" aria-label="@Loc["Header.ThemeToggleAria"]">
-            <button type="button" data-theme-set="light" aria-pressed="true">☀ <span class="d-none d-xl-inline">@Loc["Header.ThemeLight"]</span></button>
-            <button type="button" data-theme-set="dark" aria-pressed="false">☾ <span class="d-none d-xl-inline">@Loc["Header.ThemeDark"]</span></button>
+            <button type="button" data-theme-set="light" aria-pressed="true" title="@Loc["Header.ThemeLight"]">☀ <span class="visually-hidden">@Loc["Header.ThemeLight"]</span></button>
+            <button type="button" data-theme-set="dark" aria-pressed="false" title="@Loc["Header.ThemeDark"]">☾ <span class="visually-hidden">@Loc["Header.ThemeDark"]</span></button>
         </div>
 
         @if (Contexte?.EstAuthentifie == true)

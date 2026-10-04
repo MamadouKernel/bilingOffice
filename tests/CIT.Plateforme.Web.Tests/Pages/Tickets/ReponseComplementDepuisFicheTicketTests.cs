@@ -141,9 +141,10 @@ public sealed class ReponseComplementDepuisFicheTicketTests : BunitContext
         Assert.Contains("Envoyer", boutonEnvoyer.TextContent);
         boutonEnvoyer.Click();
 
-        // Étape "reprise" : le client clique sur l'action de reprise du traitement.
-        var boutonReprendre = cut.Find("button.btn-outline-success");
-        Assert.Contains("Reprendre le traitement", boutonReprendre.TextContent);
+        // Étape "reprise" : le client clique sur « Marquer complément fourni » dans le bandeau
+        // d'action requise (le bouton « Reprendre le traitement » est réservé à l'agent).
+        var boutonReprendre = cut.Find(".alert-warning button.btn-warning");
+        Assert.Contains("complément fourni", boutonReprendre.TextContent);
         boutonReprendre.Click();
 
         // Assert

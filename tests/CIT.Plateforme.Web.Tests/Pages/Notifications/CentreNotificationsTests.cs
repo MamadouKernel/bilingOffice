@@ -69,7 +69,9 @@ public sealed class CentreNotificationsTests : BunitContext
         cut.WaitForState(() => cut.Markup.Contains("Votre demande a été enregistrée"), TimeSpan.FromSeconds(5));
 
         Assert.Contains("Non lu", cut.Markup);
-        Assert.Contains("TicketCree", cut.Markup);
+        // Le type d'événement est affiché par son libellé, jamais par son code technique.
+        Assert.Contains("Dossier créé", cut.Markup);
+        Assert.DoesNotContain("TicketCree", cut.Markup);
         Assert.Contains($"/tickets/{notification.TicketId}", cut.Markup);
         Assert.Contains("1 non lue", cut.Markup);
     }

@@ -199,6 +199,24 @@ public class CentreNotificationsTests
         Assert.Equal(refusInexistant.Message, refusAutrui.Message);
     }
 
+    [Fact]
+    public async Task ToutMarquer_MarqueSeulementMesNonLuesEnUneFois()
+    {
+        var a1 = PourDestinataire(UtilisateurA);
+        var a2 = PourDestinataire(UtilisateurA);
+        var dejaLue = PourDestinataire(UtilisateurA);
+        dejaLue.MarquerCommeLue(Maintenant.AddMinutes(-10));
+        _notifications.Setup(n => n.ListerParDestinataireAsync(UtilisateurA, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([a1, a2, dejaLue]);
+
+        var nombre = await Commande().MarquerToutesAsync(UtilisateurA);
+
+        Assert.Equal(2, nombre);
+        Assert.True(a1.EstLue && a2.EstLue);
+        Assert.Equal(Maintenant.AddMinutes(-10), dejaLue.LueLeUtc);
+        _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     // ---- T082 : abstention ACR-01 ----
 
     [Fact]

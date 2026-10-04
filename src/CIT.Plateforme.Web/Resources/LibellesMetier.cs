@@ -16,6 +16,15 @@ public static class LibellesMetier
 
     public static string StatutRendezVous(this IStringLocalizer loc, object? statut) => Traduire(loc, "Statut.RendezVous", statut?.ToString());
 
+    /// <summary>Événement d'historique ou de notification (« RelanceEmise » → « Relance envoyée »).</summary>
+    public static string Evenement(this IStringLocalizer loc, string? code)
+    {
+        var libelle = Traduire(loc, "Chrono.Ev", code);
+        if (libelle != code || string.IsNullOrEmpty(code)) return libelle;
+        var mots = System.Text.RegularExpressions.Regex.Replace(code, "(?<=[a-z0-9])(?=[A-Z])", " ").ToLowerInvariant();
+        return char.ToUpperInvariant(mots[0]) + mots[1..];
+    }
+
     private static string Traduire(IStringLocalizer loc, string prefixe, string? code)
     {
         if (string.IsNullOrWhiteSpace(code))
