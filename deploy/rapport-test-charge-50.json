@@ -1,0 +1,77 @@
+{
+  "url": "https://localhost:7097",
+  "utilisateurs": 50,
+  "dureeSecondes": 122,
+  "requetes": 3783,
+  "debitParSeconde": 31,
+  "erreurs": 0,
+  "tauxErreurPct": 0,
+  "p50": 201,
+  "p95": 1020,
+  "p99": 1882,
+  "max": 3962,
+  "statutsErreur": [],
+  "parPage": {
+    "/agent/dashboard": {
+      "requetes": 912,
+      "p50": 163,
+      "p95": 515
+    },
+    "/rendez-vous/mes-rendez-vous": {
+      "requetes": 194,
+      "p50": 127,
+      "p95": 440
+    },
+    "/notifications": {
+      "requetes": 114,
+      "p50": 146,
+      "p95": 831
+    },
+    "/avoir-exoneration/mes-demandes": {
+      "requetes": 112,
+      "p50": 164,
+      "p95": 570
+    },
+    "/client/demandes": {
+      "requetes": 552,
+      "p50": 164,
+      "p95": 556
+    },
+    "/client/dashboard": {
+      "requetes": 554,
+      "p50": 170,
+      "p95": 707
+    },
+    "/reclamations/mes-reclamations": {
+      "requetes": 113,
+      "p50": 166,
+      "p95": 690
+    },
+    "/billing-import/validation-paiement": {
+      "requetes": 233,
+      "p50": 315,
+      "p95": 1187
+    },
+    "/billing-import/manifeste": {
+      "requetes": 226,
+      "p50": 334,
+      "p95": 1270
+    },
+    "/supervision": {
+      "requetes": 322,
+      "p50": 804,
+      "p95": 2138
+    },
+    "/billing-import/facturation": {
+      "requetes": 232,
+      "p50": 252,
+      "p95": 878
+    },
+    "/enrolement/file-agent-gate": {
+      "requetes": 219,
+      "p50": 373,
+      "p95": 1160
+    }
+  },
+  "verdictNfr04": "CONFORME"
+}

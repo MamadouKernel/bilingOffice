@@ -9,13 +9,39 @@
     powershell -File mesurer-disponibilite-et-temps-reponse.ps1 -Base https://10.88.179.103:8443 -Sortie D:\Mesures\yaba.csv
   Rapport (taux de disponibilité, cible NFR-03 >= 99 % ; p95, cible NFR-04 < 3 000 ms) :
     powershell -File mesurer-disponibilite-et-temps-reponse.ps1 -Sortie D:\Mesures\yaba.csv -Rapport
+
+  ALERTE si le site tombe : après -SeuilEchecs mesures consécutives de /ready en échec, un e-mail
+  part vers -AlerteA ; un second annonce le rétablissement. Un seul message par panne (fichier
+  d'état à côté du CSV). Mot de passe SMTP : variable d'environnement YABA_SMTP_MOTDEPASSE,
+  jamais dans ce script ni dans la tâche planifiée.
+    powershell -File mesurer-disponibilite-et-temps-reponse.ps1 -Sortie D:\Mesures\yaba.csv -AlerteA exploitation@cotedivoireterminal.com -SmtpHote smtp.exemple.ci -SmtpUtilisateur alertes@exemple.ci
+  Installation de la tâche planifiée (toutes les 5 min, 24/7 ; console administrateur) : ajouter -Installer.
 #>
 param(
     [string]$Base = 'https://10.88.179.103:8443',
     [string]$Sortie = '.\mesures-yaba.csv',
     [string[]]$Chemins = @('/ready', '/comptes/connexion', '/aide'),
-    [switch]$Rapport
+    [switch]$Rapport,
+    [string[]]$AlerteA = @(),
+    [string]$SmtpHote = '',
+    [int]$SmtpPort = 587,
+    [string]$SmtpUtilisateur = '',
+    [string]$Expediteur = 'no-reply@cotedivoireterminal.com',
+    [int]$SeuilEchecs = 2,
+    [switch]$Installer
 )
+
+if ($Installer) {
+    # Reprend les mêmes paramètres (sauf -Installer) dans une tâche lancée toutes les 5 minutes.
+    $arguments = ($PSBoundParameters.GetEnumerator() | Where-Object { $_.Key -ne 'Installer' } | ForEach-Object {
+        $valeur = if ($_.Value -is [array]) { ($_.Value -join ',') } else { $_.Value }
+        "-$($_.Key) `"$valeur`"" }) -join ' '
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $arguments"
+    $declencheur = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 5)
+    Register-ScheduledTask -TaskName 'YABA - Surveillance disponibilite' -Action $action -Trigger $declencheur -RunLevel Highest -Force | Out-Null
+    Write-Output 'Tâche planifiée « YABA - Surveillance disponibilite » installée (toutes les 5 min).'
+    return
+}
 
 $SeuilMs = 3000
 
@@ -39,6 +65,7 @@ if (-not ([System.Management.Automation.PSTypeName]'ToutCertificat').Type) {
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object ToutCertificat
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
+$readyOk = $true
 foreach ($chemin in $Chemins) {
     $url = $Base.TrimEnd('/') + $chemin
     $chrono = [System.Diagnostics.Stopwatch]::StartNew()
@@ -48,10 +75,51 @@ foreach ($chemin in $Chemins) {
         $statut = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
     }
     $chrono.Stop()
+    if ($chemin -eq '/ready' -and $statut -ne 200) { $readyOk = $false }
     [pscustomobject]@{
         HorodatageUtc = (Get-Date).ToUniversalTime().ToString('o')
         Url           = $url
         Statut        = $statut
         Ms            = $chrono.ElapsedMilliseconds
     } | Export-Csv -Path $Sortie -Append -NoTypeInformation -Encoding UTF8
+}
+
+# --- Alerte de panne et de rétablissement (un message par changement d'état) -------------------
+$fichierEtat = [IO.Path]::ChangeExtension($Sortie, '.etat.json')
+$etat = if (Test-Path $fichierEtat) { Get-Content $fichierEtat -Raw | ConvertFrom-Json } else { [pscustomobject]@{ echecsConsecutifs = 0; enPanne = $false; depuisUtc = $null } }
+$maintenant = (Get-Date).ToUniversalTime().ToString('o')
+$message = $null
+
+if ($readyOk) {
+    if ($etat.enPanne) { $message = @{ Sujet = "[YABA] Rétabli - $Base répond de nouveau"; Corps = "YABA ($Base) répond de nouveau depuis $maintenant UTC. Panne commencée le $($etat.depuisUtc) UTC." } }
+    $etat = [pscustomobject]@{ echecsConsecutifs = 0; enPanne = $false; depuisUtc = $null }
+}
+else {
+    $echecs = [int]$etat.echecsConsecutifs + 1
+    $depuis = if ($etat.depuisUtc) { $etat.depuisUtc } else { $maintenant }
+    $enPanne = $echecs -ge $SeuilEchecs
+    if ($enPanne -and -not $etat.enPanne) { $message = @{ Sujet = "[YABA] PANNE - $Base ne répond pas"; Corps = "La sonde $Base/ready échoue depuis $depuis UTC ($echecs mesures consécutives). Vérifier le pool IIS yaba, la base SQL et /ready." } }
+    $etat = [pscustomobject]@{ echecsConsecutifs = $echecs; enPanne = $enPanne; depuisUtc = $depuis }
+}
+$etat | ConvertTo-Json | Set-Content $fichierEtat -Encoding UTF8
+
+if ($message) {
+    Write-Output $message.Sujet
+    if ($AlerteA.Count -and $SmtpHote) {
+        try {
+            $client = New-Object System.Net.Mail.SmtpClient($SmtpHote, $SmtpPort)
+            $client.EnableSsl = $true
+            $client.Timeout = 20000
+            if ($SmtpUtilisateur) { $client.Credentials = New-Object System.Net.NetworkCredential($SmtpUtilisateur, $env:YABA_SMTP_MOTDEPASSE) }
+            $mail = New-Object System.Net.Mail.MailMessage
+            $mail.From = $Expediteur
+            foreach ($a in $AlerteA) { $mail.To.Add($a) }
+            $mail.Subject = $message.Sujet
+            $mail.Body = $message.Corps
+            $client.Send($mail)
+            Write-Output "Alerte envoyée à $($AlerteA -join ', ')"
+        }
+        catch { Write-Output "ECHEC d'envoi de l'alerte : $($_.Exception.Message)" }
+    }
+    else { Write-Output '(aucun destinataire/serveur SMTP configuré : alerte seulement journalisée ici)' }
 }

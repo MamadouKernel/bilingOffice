@@ -61,6 +61,9 @@ builder.Services.AddRazorComponents()
 // assets statiques et les sondes ne sont JAMAIS limités (sinon l'application casse) ; seules les
 // requêtes de pages/API dynamiques sont plafonnées. Complète, côté serveur applicatif, ce qu'un
 // pare-feu/L7 devrait faire en amont en production.
+// Quota par adresse IP, paramétrable : derrière un NAT d'entreprise, tous les postes d'un même
+// site partagent une adresse — la valeur se règle à l'exploitation, sans redéploiement de code.
+var requetesParMinuteParIp = Math.Max(30, builder.Configuration.GetValue("LimitationDebit:RequetesParMinuteParIp", 240));
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -79,7 +82,7 @@ builder.Services.AddRateLimiter(options =>
         var cle = httpContext.Connection.RemoteIpAddress?.ToString() ?? "inconnu";
         return RateLimitPartition.GetFixedWindowLimiter(cle, _ => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 240,
+            PermitLimit = requetesParMinuteParIp,
             Window = TimeSpan.FromSeconds(60),
             QueueLimit = 0,
         });

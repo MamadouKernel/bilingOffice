@@ -391,6 +391,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.ISimulationProformaRepository, SimulationProformaRepository>();
         services.AddScoped<Application.Abstractions.IReferentielsTarifairesRepository, ReferentielsTarifairesRepository>();
         services.AddScoped<Application.Abstractions.IGenerateurDocumentProformaPdf, Documents.GenerateurDocumentProformaPdf>();
+        services.AddSingleton<Application.Enrolement.IGenerateurFormulaireFlotte, Documents.GenerateurFormulaireFlottePdf>();
         services.AddScoped<Domain.Tarification.MoteurCalculProforma>();
         services.AddScoped<Application.Tarification.ImportateurGrilleTarifaireCsv>();
         services.AddScoped<Application.Tarification.CalculerSimulationProformaQueryHandler>();

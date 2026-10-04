@@ -12,6 +12,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreRetraitEnrolementSocieteCommand SoumettreRetraitSociete
 @inject ListerMesEnrolementsQuery ListerMesEnrolements
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 
 <PageTitle>@Loc["EnrolRet.PageTitle"]</PageTitle>
 
@@ -44,6 +45,10 @@ else if (_resultat is not null)
                     @Loc["EnrolSoc.SuccessDossier"] <strong class="font-monospace text-primary">@_resultat.NumeroDossier</strong>
                     — @string.Format(Loc["EnrolSoc.SuccessTicketsCount"].Value, _resultat.Tickets.Count)
                 </div>
+                @if (_messageFormulaire is not null)
+                {
+                    <div class="small mt-1">📄 @_messageFormulaire</div>
+                }
             </div>
         </div>
         <a href="/enrolement/mes-enrolements" class="btn btn-primary fw-bold px-4">@Loc["EnrolSoc.ViewMyEnrollments"]</a>
@@ -113,6 +118,8 @@ else
         </div>
     </div>
 
+    <SignataireFlotteFormulaire Modele="_signataire" Modifie="StateHasChanged" />
+
     <div class="d-flex justify-content-end gap-2">
         <button type="button" class="btn btn-danger px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
             @(_envoiEnCours ? Loc["EnrolSoc.Sending"].Value : Loc["EnrolRet.Submit"].Value)
@@ -157,8 +164,13 @@ else
     private Guid _societeId;
     private readonly List<LigneObjet> _lignes = [new()];
 
+    private string? _messageFormulaire;
+    private readonly SignataireFlotte _signataire = new();
+    private string _societeNom = string.Empty;
+    private string _compte = string.Empty;
+
     private bool PeutSoumettre =>
-        _lignes.Count > 0 &&
+        _lignes.Count > 0 && _signataire.EstComplet &&
         _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet) && !string.IsNullOrWhiteSpace(l.Motif));
 
     protected override async Task OnInitializedAsync()
@@ -190,6 +202,9 @@ else
 
             _utilisateurId = contexte.UtilisateurId;
             _societeId = contexte.SocieteId.Value;
+            _societeNom = contexte.SocieteNom ?? string.Empty;
+            _compte = contexte.Email;
+            _signataire.Nom = contexte.NomAffiche is { } nom && !nom.Contains('@') ? nom : string.Empty;
             _flotte = FlotteEnService.Calculer(await ListerMesEnrolements.ExecuterAsync(_utilisateurId));
         }
         catch (Exception ex)
@@ -212,6 +227,35 @@ else
         }
     }
 
+    /// <summary>Formulaire officiel (F-0001 camions / F-0002 chauffeurs), un par type présent, joint
+    /// à chaque ticket du type. Un échec n'annule pas la demande déjà enregistrée : il est signalé.</summary>
+    private async Task<string?> JoindreFormulairesAsync(IReadOnlyList<(TypeObjetEnrolement Type, string Objet, Guid TicketId)> lignes, bool ajout)
+    {
+        var messages = new List<string>();
+        foreach (var groupe in lignes.GroupBy(l => l.Type))
+        {
+            var type = (groupe.Key, ajout) switch
+            {
+                (TypeObjetEnrolement.Camion, true) => TypeFormulaireFlotte.AjoutCamion,
+                (TypeObjetEnrolement.Camion, false) => TypeFormulaireFlotte.RetraitCamion,
+                (_, true) => TypeFormulaireFlotte.AjoutChauffeur,
+                _ => TypeFormulaireFlotte.RetraitChauffeur,
+            };
+            var demande = new DemandeFormulaireFlotte(type, _signataire.Nom.Trim(), _signataire.Qualite.Trim(), _societeNom,
+                _signataire.Siege.Trim(), [.. groupe.Select(l => l.Objet)], DateTime.UtcNow, _compte);
+            try
+            {
+                await FormulaireFlotteDepot.JoindreAsync(ScopeFactory, demande, groupe.Select(l => l.TicketId), _utilisateurId);
+                messages.Add(string.Format(Loc["Signataire.Joint"].Value, FormulairesFlotte.Reference(type)));
+            }
+            catch (Exception ex)
+            {
+                messages.Add($"{FormulairesFlotte.Reference(type)} : {MessagesUtilisateur.Pour(ex)}");
+            }
+        }
+        return messages.Count == 0 ? null : string.Join(" ", messages);
+    }
+
     private async Task SoumettreAsync()
     {
         if (!PeutSoumettre)
@@ -226,9 +270,12 @@ else
             var objets = _lignes
                 .Select(l => new ObjetEnrolementSoumission(l.Type, l.Objet.Trim(), l.Motif.Trim()))
                 .ToList();
-            _resultat = await SoumettreRetraitSociete.ExecuterAsync(
+            var resultat = await SoumettreRetraitSociete.ExecuterAsync(
                 _utilisateurId,
                 new SoumettreRetraitEnrolementSocieteRequete(_societeId, objets));
+            _messageFormulaire = await JoindreFormulairesAsync(
+                [.. _lignes.Zip(resultat.Tickets).Select(x => (x.First.Type, x.First.Objet.Trim(), x.Second.TicketId))], ajout: false);
+            _resultat = resultat;
         }
         catch (Exception ex)
         {

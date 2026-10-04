@@ -52,18 +52,24 @@ public sealed class VueFilesQuery(
         var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
         // CLAR-05 : périmètre borné et configurable — un superviseur sans périmètre défini n'a
         // accès à rien (par défaut restrictif, jamais un accès global implicite).
-        var filesDuPerimetre = toutesLesFiles.Where(f => perimetre is not null && perimetre.CouvreLaFile(f.Id));
+        var filesDuPerimetre = toutesLesFiles.Where(f => perimetre is not null && perimetre.CouvreLaFile(f.Id)).ToList();
+
+        // Anti-N+1 (test de charge du 04/10/2026, page la plus lente à 100 utilisateurs) : les
+        // tickets de TOUTES les files du périmètre en une requête, et le statut SLA de tous les
+        // actifs en un seul calcul par lot — au lieu d'une requête et d'un calcul SLA par file.
+        var ticketsParFile = (await tickets.ListerParFilesAsync(filesDuPerimetre.Select(f => f.Id), ct).ConfigureAwait(false))
+            .GroupBy(t => t.FileCouranteId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        var tousActifs = ticketsParFile.Values.SelectMany(l => l)
+            .Where(t => t.Statut is not (StatutTicket.Cloture or StatutTicket.Annule)).ToList();
+        var statutsSla = await surveillerEcheances.DeterminerStatutsSlaAsync(tousActifs, ct).ConfigureAwait(false);
 
         var maintenant = horloge.MaintenantUtc;
         var vues = new List<VueFile>();
         foreach (var file in filesDuPerimetre)
         {
-            var ticketsDeLaFile = await tickets.ListerParFileAsync(file.Id, ct).ConfigureAwait(false);
+            var ticketsDeLaFile = ticketsParFile.GetValueOrDefault(file.Id) ?? [];
             var actifs = ticketsDeLaFile.Where(t => t.Statut is not (StatutTicket.Cloture or StatutTicket.Annule)).ToList();
-
-            // Anti-N+1 : statut SLA de tous les tickets actifs calculé en lot (paramètres + périodes
-            // pré-chargés), au lieu de ~3 requêtes par ticket. Même calcul que la variante unitaire.
-            var statutsSla = await surveillerEcheances.DeterminerStatutsSlaAsync(actifs, ct).ConfigureAwait(false);
             var procheDepassement = actifs.Count(t =>
                 statutsSla.GetValueOrDefault(t.Id) is StatutSla.SeuilInformation or StatutSla.SeuilAlerte);
             var enDepassement = actifs.Count(t =>

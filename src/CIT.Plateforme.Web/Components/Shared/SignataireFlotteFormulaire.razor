@@ -1,0 +1,31 @@
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Blancs du formulaire officiel (CIT-CIV-CG-F-0001 / F-0002) : YABA produit le formulaire rempli
+   et le joint au dossier, à la place du papier signé. *@
+<div class="cit-card mb-4 p-3">
+    <h6 class="fw-bold text-dark mb-1">✍️ @Loc["Signataire.Titre"]</h6>
+    <p class="small text-muted mb-3">@Loc["Signataire.Aide"]</p>
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold" for="signataire-nom">@Loc["Signataire.Nom"] *</label>
+            <input id="signataire-nom" class="form-control" @bind="Modele.Nom" @bind:event="oninput" @bind:after="Modifie.InvokeAsync" maxlength="120" />
+        </div>
+        <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold" for="signataire-qualite">@Loc["Signataire.Qualite"] *</label>
+            <input id="signataire-qualite" class="form-control" @bind="Modele.Qualite" @bind:event="oninput" @bind:after="Modifie.InvokeAsync" maxlength="80" placeholder="@Loc["Signataire.QualiteExemple"]" />
+        </div>
+        <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold" for="signataire-siege">@Loc["Signataire.Siege"] *</label>
+            <input id="signataire-siege" class="form-control" @bind="Modele.Siege" @bind:event="oninput" @bind:after="Modifie.InvokeAsync" maxlength="120" placeholder="@Loc["Signataire.SiegeExemple"]" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SignataireFlotte Modele { get; set; } = new();
+    /// <summary>Prévient la page pour réévaluer son bouton de soumission.</summary>
+    [Parameter] public EventCallback Modifie { get; set; }
+}
