@@ -42,6 +42,14 @@ public static class TexteProforma
         ["Majoration Dangereux"] = "Dangerous Goods Surcharge",
         ["Majoration Hors Gabarit"] = "Out of Gauge Surcharge",
         ["Stationnement"] = "Storage",
+        ["Client Comptant"] = "Cash customer",
+        ["Client en compte"] = "Account customer",
+        ["Client deposit"] = "Deposit customer",
+        ["Client IES"] = "IES customer",
+        [CIT.Plateforme.Domain.Tarification.MoteurCalculProforma.MentionLegaleDefaut] =
+            "This proforma simulation is provided for information only, based on the details declared. " +
+            "It is not a final invoice and is not binding on Côte d'Ivoire Terminal (CIT). " +
+            "Actual charges will be set at official invoicing.",
     };
 
     /// <summary>Vrai si l'interface de l'utilisateur est en anglais.</summary>

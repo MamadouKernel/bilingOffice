@@ -26,7 +26,7 @@
     <div class="f-meta">
         <div>
             <div class="line"><span class="k">@TexteProforma.T("Client")</span><span>@Ou(ClientNom)</span></div>
-            <div class="line"><span class="k">@TexteProforma.T("Type client")</span><span>@Ou(TypeClient)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Type client")</span><span>@Ou(TexteProforma.T(TypeClient ?? ""))</span></div>
             <div class="line"><span class="k">@TexteProforma.T("Trafic")</span><span>@trafic</span></div>
             <div class="line"><span class="k">@TexteProforma.T("Port de chargement")</span><span>@Ou(PortChargement)</span></div>
             <div class="line"><span class="k">@TexteProforma.T("Port de déchargement")</span><span>@Ou(PortDechargement)</span></div>
@@ -92,7 +92,7 @@
 
     @if (!string.IsNullOrWhiteSpace(MentionLegale))
     {
-        <div class="f-legal">@MentionLegale</div>
+        <div class="f-legal">@TexteProforma.T(MentionLegale)</div>
     }
 </div>
 

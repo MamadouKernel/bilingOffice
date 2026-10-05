@@ -112,11 +112,11 @@ else if (_rapport is not null)
         <div class="row g-2 align-items-end">
             <div class="col-12 col-md-3">
                 <label class="form-label small fw-semibold" for="maint-debut">@Loc["DispoPf.Debut"] (UTC)</label>
-                <input id="maint-debut" type="datetime-local" class="form-control form-control-sm" @bind="_debut" />
+                <input id="maint-debut" type="datetime-local" class="form-control form-control-sm" value="@SaisieDateHeure.Afficher(_debut)" @onchange="e => _debut = SaisieDateHeure.Lire(e.Value)" />
             </div>
             <div class="col-12 col-md-3">
                 <label class="form-label small fw-semibold" for="maint-fin">@Loc["DispoPf.Fin"] (UTC)</label>
-                <input id="maint-fin" type="datetime-local" class="form-control form-control-sm" @bind="_fin" />
+                <input id="maint-fin" type="datetime-local" class="form-control form-control-sm" value="@SaisieDateHeure.Afficher(_fin)" @onchange="e => _fin = SaisieDateHeure.Lire(e.Value)" />
             </div>
             <div class="col-12 col-md-4">
                 <label class="form-label small fw-semibold" for="maint-motif">@Loc["DispoPf.Motif"]</label>
@@ -164,7 +164,10 @@ else if (_rapport is not null)
     private static string Pourcent(double p) => p.ToString("0.###", CultureInfo.InvariantCulture) + " %";
 
     private static string Duree(TimeSpan d) =>
-        d.TotalDays >= 1 ? $"{(int)d.TotalDays} j {d.Hours} h {d.Minutes} min" : d.TotalHours >= 1 ? $"{(int)d.TotalHours} h {d.Minutes} min" : $"{(int)d.TotalMinutes} min";
+        d.TotalDays >= 1 ? $"{(int)d.TotalDays} j {d.Hours} h {d.Minutes} min"
+        : d.TotalHours >= 1 ? $"{(int)d.TotalHours} h {d.Minutes} min"
+        : d.TotalMinutes >= 1 ? $"{(int)d.TotalMinutes} min {d.Seconds:00} s"
+        : $"{d.Seconds} s";
 
     protected override async Task OnInitializedAsync()
     {

@@ -74,7 +74,7 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                         row.RelativeItem().Column(c =>
                         {
                             Meta(c, TexteProforma.T("Client"), Ou(simulation.ClientAFacturer));
-                            Meta(c, TexteProforma.T("Type client"), Ou(simulation.TypeClientLibelle));
+                            Meta(c, TexteProforma.T("Type client"), Ou(TexteProforma.T(simulation.TypeClientLibelle ?? "")));
                             Meta(c, TexteProforma.T("Trafic"), trafic);
                             Meta(c, TexteProforma.T("Port de chargement"), Ou(simulation.PortChargement));
                             Meta(c, TexteProforma.T("Port de déchargement"), Ou(simulation.PortDechargement));
@@ -151,7 +151,7 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                     }
 
                     col.Item().PaddingTop(6).BorderTop(0.5f).BorderColor("#ddd").PaddingTop(6)
-                        .Text(MoteurCalculProforma.MentionLegaleDefaut).FontSize(7.5f).FontColor("#555");
+                        .Text(TexteProforma.T(MoteurCalculProforma.MentionLegaleDefaut)).FontSize(7.5f).FontColor("#555");
                 });
 
                 page.Footer().AlignCenter().Text(x =>

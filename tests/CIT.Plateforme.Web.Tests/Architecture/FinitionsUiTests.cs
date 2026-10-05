@@ -140,4 +140,20 @@ public sealed class FinitionsUiTests
         Assert.Contains("IDisposable", toast);
         Assert.Contains("Task.Delay", toast);
     }
+
+    /// <summary>Un champ date-heure arrive avec ou sans secondes selon le navigateur : un @bind (format
+    /// exact) efface alors la saisie de l'utilisateur. Il passe par SaisieDateHeure, qui accepte les deux.</summary>
+    [Fact]
+    public void Chaque_champ_date_heure_accepte_la_saisie_avec_ou_sans_secondes()
+    {
+        var fautifs = Directory.EnumerateFiles(Web("Components"), "*.razor", SearchOption.AllDirectories)
+            .SelectMany(f => File.ReadAllLines(f).Select(l => (Fichier: Path.GetFileName(f), Ligne: l)))
+            .Where(x => x.Ligne.Contains("type=\"datetime-local\"") && (x.Ligne.Contains("@bind=") || !x.Ligne.Contains("SaisieDateHeure.Lire")))
+            .Select(x => x.Fichier).ToList();
+
+        Assert.True(fautifs.Count == 0, "Champs date-heure à lire avec SaisieDateHeure : " + string.Join(", ", fautifs));
+        Assert.Equal(new DateTime(2026, 12, 20, 22, 0, 0), CIT.Plateforme.Web.Services.SaisieDateHeure.Lire("2026-12-20T22:00"));
+        Assert.Equal(new DateTime(2026, 12, 20, 22, 0, 0), CIT.Plateforme.Web.Services.SaisieDateHeure.Lire("2026-12-20T22:00:00"));
+        Assert.Null(CIT.Plateforme.Web.Services.SaisieDateHeure.Lire(""));
+    }
 }

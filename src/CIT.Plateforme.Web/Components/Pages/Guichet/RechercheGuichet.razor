@@ -199,7 +199,7 @@ else
                         <div class="row g-2">
                             <div class="col-md-4">
                                 <label for="date-et-heure-de" class="form-label small">@Loc["GuiRech.LblDateOp"]</label>
-                                <input id="date-et-heure-de" type="datetime-local" class="form-control form-control-sm" @bind="_dateOperationDegrade" />
+                                <input id="date-et-heure-de" type="datetime-local" class="form-control form-control-sm" value="@SaisieDateHeure.Afficher(_dateOperationDegrade)" @onchange="e => _dateOperationDegrade = SaisieDateHeure.Lire(e.Value) ?? _dateOperationDegrade" />
                             </div>
                             <div class="col-md-6">
                                 <label for="description-de-l-operation" class="form-label small">@Loc["GuiRech.LblDescOp"]</label>
