@@ -470,6 +470,13 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.INotificationRepository, Persistence.NotificationRepository>();
         services.AddScoped<Application.Abstractions.IEnvoiNotificationRepository, Persistence.EnvoiNotificationRepository>();
         services.AddScoped<Application.Abstractions.IModeleNotificationRepository, Persistence.ModeleNotificationRepository>();
+        services.AddScoped<Application.Exploitation.IParametrePlateformeRepository, Persistence.ParametrePlateformeRepository>();
+        services.AddScoped<Application.Exploitation.IDisponibilitePlateformeRepository, Persistence.DisponibilitePlateformeRepository>();
+        services.AddScoped<Application.Exploitation.AdministrerParametresPlateformeCommand>();
+        services.AddScoped<Application.Exploitation.ChargerParametresPlateforme>();
+        services.AddScoped<Application.Exploitation.RapportDisponibiliteQuery>();
+        services.AddScoped<Application.Exploitation.GererMaintenancesPlanifieesCommand>();
+        services.AddScoped<Application.Exploitation.EnregistrerPulsationDisponibilite>();
         services.AddScoped<Application.Abstractions.IRegleDiffusionRepository, Persistence.RegleDiffusionRepository>();
         services.AddScoped<Application.Abstractions.IPreferenceCanalRepository, Persistence.PreferenceCanalRepository>();
         services.AddScoped<Application.Abstractions.IEvenementSocleRepository, Persistence.EvenementSocleRepository>();

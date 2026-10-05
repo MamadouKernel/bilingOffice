@@ -231,6 +231,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<CIT.Plateforme.Web.Services.MenuEnCache>();
 // Lien de (re)définition du mot de passe par e-mail : « mot de passe oublié » et invitation d'agent.
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.EnvoiLienMotDePasse>();
+builder.Services.AddHostedService<CIT.Plateforme.Web.Services.SondeDisponibiliteService>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -380,6 +381,12 @@ using (var scope = app.Services.CreateScope())
     var parametrage = scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementParametrageMetier>();
     await parametrage.ExecuterAsync();
+}
+
+// PARAMÈTRES DE LA PLATEFORME (§ 25) : valeurs choisies par l'administrateur, chargées avant tout usage.
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.Exploitation.ChargerParametresPlateforme>().ExecuterAsync();
 }
 
 // NOTIFICATIONS : règles de diffusion et modèles de départ, dans TOUS les environnements (sans

@@ -9,6 +9,8 @@ public static partial class TraductionMessagesMetier
 {
     private static readonly Dictionary<string, string> Anglais = new(StringComparer.Ordinal)
     {
+        ["Paramètre inconnu : {0}."] = "Unknown setting: {0}.",
+        ["La valeur de « {0} » doit être comprise entre {1} et {2}."] = "The value of \"{0}\" must be between {1} and {2}.",
         ["Accès au centre de notifications refusé : compte inconnu, désactivé ou non authentifié."] = "Access to the notification centre denied: unknown, disabled or unauthenticated account.",
         ["Accès refusé : authentification requise."] = "Access denied: authentication required.",
         ["Accès refusé : compte inconnu, désactivé ou non authentifié."] = "Access denied: unknown, disabled or unauthenticated account.",

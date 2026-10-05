@@ -1,0 +1,235 @@
+@page "/administration/disponibilite-plateforme"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Globalization
+@using CIT.Plateforme.Application.Exploitation
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* NFR-03 (heures ouvrées, ≥ 99 %) et NFR-10 (24 h/24, 7 j/7) — mesurés par la sonde interne de la plateforme. *@
+<PageTitle>@Loc["DispoPf.Titre"]</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">📶 @Loc["DispoPf.Titre"]</h1>
+        <div class="cit-page-subtitle text-muted">@Loc["DispoPf.SousTitre"]</div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <label class="small fw-semibold" for="dispo-periode">@Loc["DispoPf.Periode"]</label>
+        <select id="dispo-periode" class="form-select form-select-sm" style="width: auto;" @bind="_jours" @bind:after="ChargerAsync">
+            <option value="7">@Loc["DispoPf.Jours", 7]</option>
+            <option value="30">@Loc["DispoPf.Jours", 30]</option>
+            <option value="90">@Loc["DispoPf.Jours", 90]</option>
+            <option value="365">@Loc["DispoPf.Jours", 365]</option>
+        </select>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["AssistAdm.Chargement"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else if (_rapport is not null)
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger" role="alert">@_erreur</div>
+    }
+
+    @if (_rapport.DebutMesureUtc is null)
+    {
+        <div class="alert alert-info">@Loc["DispoPf.AucuneMesure"]</div>
+    }
+    else
+    {
+        <div class="small text-muted mb-3">
+            @Loc["DispoPf.MesureDepuis", _rapport.DebutMesureUtc.Value.ToString("dd/MM/yyyy HH:mm"), _rapport.NombreMesures, Pourcent(_rapport.Objectif)]
+        </div>
+        <div class="row g-3 mb-4">
+            @foreach (var (titre, exigence, mesure) in new[] { (Loc["DispoPf.Continu"].Value, "NFR-10", _rapport.Continu), (Loc["DispoPf.Ouvre"].Value, "NFR-03", _rapport.HeuresOuvrees) })
+            {
+                <div class="col-12 col-md-6">
+                    <div class="cit-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="small text-muted">@exigence</div>
+                                <div class="fw-bold">@titre</div>
+                            </div>
+                            @if (mesure.Pourcentage is null)
+                            {
+                                <span class="badge bg-secondary">@Loc["DispoPf.PasEncoreMesure"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge @(mesure.Conforme ? "bg-success" : "bg-danger")">
+                                    @(mesure.Conforme ? Loc["DispoPf.Conforme"] : Loc["DispoPf.NonConforme"])
+                                </span>
+                            }
+                        </div>
+                        <div class="display-6 fw-bold my-2">@(mesure.Pourcentage is double p ? Pourcent(p) : "—")</div>
+                        <div class="small text-muted">
+                            @Loc["DispoPf.Detail", Duree(mesure.TempsMesure), Duree(mesure.Indisponible), Duree(mesure.Maintenance)]
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <h2 class="h5 fw-bold">@Loc["DispoPf.Interruptions"]</h2>
+        @if (_rapport.Interruptions.Count == 0)
+        {
+            <div class="cit-card p-3 mb-4 text-muted small">@Loc["DispoPf.AucuneInterruption"]</div>
+        }
+        else
+        {
+            <div class="table-responsive cit-card p-0 mb-4">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light"><tr><th>@Loc["DispoPf.Debut"]</th><th>@Loc["DispoPf.Fin"]</th><th>@Loc["DispoPf.Duree"]</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in _rapport.Interruptions.OrderByDescending(i => i.Debut).Take(100))
+                        {
+                            <tr><td>@i.Debut.ToString("dd/MM/yyyy HH:mm")</td><td>@i.Fin.ToString("dd/MM/yyyy HH:mm")</td><td>@Duree(i.Duree)</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+    <h2 class="h5 fw-bold">@Loc["DispoPf.Maintenances"]</h2>
+    <div class="cit-card p-4 mb-3">
+        <div class="small text-muted mb-3">@Loc["DispoPf.MaintenancesAide"]</div>
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-semibold" for="maint-debut">@Loc["DispoPf.Debut"] (UTC)</label>
+                <input id="maint-debut" type="datetime-local" class="form-control form-control-sm" @bind="_debut" />
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label small fw-semibold" for="maint-fin">@Loc["DispoPf.Fin"] (UTC)</label>
+                <input id="maint-fin" type="datetime-local" class="form-control form-control-sm" @bind="_fin" />
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold" for="maint-motif">@Loc["DispoPf.Motif"]</label>
+                <input id="maint-motif" class="form-control form-control-sm" maxlength="500" @bind="_motif" />
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="button" class="btn btn-sm btn-primary" disabled="@_enCours" @onclick="DeclarerAsync">@Loc["DispoPf.Declarer"]</button>
+            </div>
+        </div>
+    </div>
+    @if (_rapport.Maintenances.Count > 0)
+    {
+        <div class="table-responsive cit-card p-0">
+            <table class="table table-sm mb-0 align-middle">
+                <thead class="table-light"><tr><th>@Loc["DispoPf.Debut"]</th><th>@Loc["DispoPf.Fin"]</th><th>@Loc["DispoPf.Motif"]</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var m in _rapport.Maintenances)
+                    {
+                        <tr>
+                            <td>@m.DebutUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@m.FinUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@m.Motif</td>
+                            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" disabled="@_enCours" @onclick="() => AnnulerAsync(m.Id)">@Loc["DispoPf.Annuler"]</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private RapportDisponibilite? _rapport;
+    private int _jours = 30;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private bool _enCours;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+    private DateTime? _debut;
+    private DateTime? _fin;
+    private string _motif = string.Empty;
+
+    private static string Pourcent(double p) => p.ToString("0.###", CultureInfo.InvariantCulture) + " %";
+
+    private static string Duree(TimeSpan d) =>
+        d.TotalDays >= 1 ? $"{(int)d.TotalDays} j {d.Hours} h {d.Minutes} min" : d.TotalHours >= 1 ? $"{(int)d.TotalHours} h {d.Minutes} min" : $"{(int)d.TotalMinutes} min";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _messageRefus = Loc["AssistAdm.Refus"].Value;
+        _appelantId = (await ContexteService.ObtenirContexteAsync()).UtilisateurId;
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            _rapport = await portee.ServiceProvider.GetRequiredService<RapportDisponibiliteQuery>().ObtenirAsync(_appelantId, _jours);
+        }
+        catch (AccesRefuseException)
+        {
+            _refuse = true;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task DeclarerAsync()
+    {
+        _erreur = null;
+        if (_debut is null || _fin is null)
+        {
+            _erreur = Loc["DispoPf.DatesObligatoires"].Value;
+            return;
+        }
+        await ExecuterAsync(sp => sp.GetRequiredService<GererMaintenancesPlanifieesCommand>().DeclarerAsync(
+            _appelantId, DateTime.SpecifyKind(_debut.Value, DateTimeKind.Utc), DateTime.SpecifyKind(_fin.Value, DateTimeKind.Utc), _motif));
+        if (_erreur is null)
+        {
+            _debut = _fin = null;
+            _motif = string.Empty;
+        }
+    }
+
+    private Task AnnulerAsync(Guid id) =>
+        ExecuterAsync(sp => sp.GetRequiredService<GererMaintenancesPlanifieesCommand>().AnnulerAsync(_appelantId, id));
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action)
+    {
+        _enCours = true;
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            await action(portee.ServiceProvider);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

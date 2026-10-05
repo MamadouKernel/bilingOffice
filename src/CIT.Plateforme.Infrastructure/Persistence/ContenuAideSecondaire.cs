@@ -428,6 +428,26 @@ internal static class ContenuAideSecondaire
             The displayed name of each ticket status, in French and English. The status itself (and its rules) does not change.
             """),
 
+        new("/administration/parametres-plateforme", "Paramètres de la plateforme", "Platform settings",
+            """
+            Volumétrie (BL par demande, pièces par dépôt), durées de conservation et réglages de disponibilité.
+            ! Chaque modification est tracée dans le journal d'audit et s'applique immédiatement.
+            """,
+            """
+            Volumes (BLs per request, files per upload), retention periods and availability settings.
+            ! Every change is recorded in the audit log and applies immediately.
+            """),
+
+        new("/administration/disponibilite-plateforme", "Disponibilité de la plateforme", "Platform availability",
+            """
+            Taux de disponibilité mesuré par la plateforme (24 h/24 et heures ouvrées) et interruptions constatées.
+            ! Déclarez les maintenances planifiées à l'avance : elles ne comptent pas comme indisponibilité.
+            """,
+            """
+            Availability rate measured by the platform (24/7 and business hours) and recorded interruptions.
+            ! Declare planned maintenance in advance: it does not count as downtime.
+            """),
+
         new("/administration/parametres-sla", "Paramètres SLA", "SLA settings",
             """
             Les délais de traitement cibles par module et type de demande.

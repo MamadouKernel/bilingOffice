@@ -268,6 +268,7 @@ public static class CatalogueNavigation
             new("Champs d'enrôlement", "🚚", "/administration/champs-enrolement", [Permission.AdministrationChampsEnrolement]),
             new("Paramètres SLA", "⏱️", "/administration/parametres-sla", [Permission.AdministrationSla]),
             new("Règles d'escalade", "🚨", "/administration/regles-escalade", [Permission.AdministrationSla]),
+            new("Disponibilité de la plateforme", "📶", "/administration/disponibilite-plateforme", [Permission.AdministrationSla]),
             new("Niveaux de priorité", "🎚️", "/administration/priorites", [Permission.AdministrationFiles]),
             new("Libellés de statut", "🏷️", "/administration/libelles-statut", [Permission.AdministrationFiles]),
             new("Pièces exigées par étape", "📎", "/administration/pieces-exigees-etape", [Permission.AdministrationFiles]),
@@ -313,6 +314,8 @@ public static class CatalogueNavigation
             new("Journal d'audit", "🔒", "/administration/audit", [Permission.AuditConsulter]),
             new("Archives des tickets", "🗄️", "/administration/archives", [Permission.AuditConsulter]),
             new("Base de l'assistant", "💬", "/administration/assistant", [Permission.AdministrationAssistant]),
+            new("Paramètres de la plateforme", "⚙️", "/administration/parametres-plateforme", [Permission.AdministrationReferentiels]),
+            new("Disponibilité de la plateforme", "📶", "/administration/disponibilite-plateforme", [Permission.AdministrationSla]),
             ..EntreesCompte,
         ]),
     ];

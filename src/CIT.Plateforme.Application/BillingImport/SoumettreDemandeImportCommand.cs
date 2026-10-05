@@ -54,9 +54,9 @@ public sealed class SoumettreDemandeImportCommand(
     public const string TypeDemande = "Import";
     public const string FilePiloteManifeste = "Pilote Manifeste";
 
-    /// <summary>IMP-01 : « jusqu'à 5 BL par demande ». Plafond métier, contrôlé serveur quel que
-    /// soit ce qu'affiche l'interface (D-10-like : jamais une confiance aveugle dans le client).</summary>
-    public const int NombreMaxBlParDemande = 5;
+    /// <summary>IMP-01 : « jusqu'à 5 BL par demande » (valeur de départ, paramétrable — § 25). Plafond
+    /// métier, contrôlé serveur quel que soit ce qu'affiche l'interface.</summary>
+    public static int NombreMaxBlParDemande => Exploitation.ParametresCourants.MaxBlParDemande;
 
     public async Task<SoumettreDemandeImportResultat> ExecuterAsync(SoumettreDemandeImportRequete requete, CancellationToken ct = default)
     {

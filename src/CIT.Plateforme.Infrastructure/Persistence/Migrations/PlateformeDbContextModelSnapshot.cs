@@ -858,6 +858,85 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("ValeursChampEnrolement");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.Exploitation.FenetreMaintenance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DebutUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DeclareeLeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DeclareeParId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FinUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Motif")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DebutUtc", "FinUtc");
+
+                    b.ToTable("FenetresMaintenance");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Exploitation.ParametrePlateforme", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Cle")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("ModifieLeUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ModifieParId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Valeur")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cle")
+                        .IsUnique();
+
+                    b.ToTable("ParametresPlateforme");
+                });
+
+            modelBuilder.Entity("CIT.Plateforme.Domain.Exploitation.PulsationDisponibilite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("EstSaine")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("HorodatageUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HorodatageUtc");
+
+                    b.ToTable("PulsationsDisponibilite");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Files.FileDeTraitement", b =>
                 {
                     b.Property<Guid>("Id")

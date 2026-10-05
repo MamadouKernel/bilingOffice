@@ -1,0 +1,158 @@
+@page "/administration/parametres-plateforme"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Globalization
+@using CIT.Plateforme.Application.Exploitation
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* § 25 du CDC : volumétrie, durées de conservation et disponibilité administrables sans développement. *@
+<PageTitle>@Loc["ParamPf.Titre"]</PageTitle>
+
+<div class="cit-page-header mb-4">
+    <h1 class="cit-page-title fw-bold text-dark mb-1">⚙️ @Loc["ParamPf.Titre"]</h1>
+    <div class="cit-page-subtitle text-muted">@Loc["ParamPf.SousTitre"]</div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["AssistAdm.Chargement"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger" role="alert">@_erreur</div>
+    }
+    @if (_succes is not null)
+    {
+        <div class="alert alert-success" role="status">@_succes</div>
+    }
+
+    @foreach (var groupe in _parametres.GroupBy(p => p.Definition.Groupe))
+    {
+        <div class="cit-card p-0 mb-4 overflow-hidden">
+            <div class="px-4 py-3 border-bottom bg-light fw-bold">@Loc[$"ParamPf.Groupe.{groupe.Key}"]</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <tbody>
+                        @foreach (var p in groupe)
+                        {
+                            var cle = p.Definition.Cle;
+                            <tr>
+                                <td style="min-width: 260px;">
+                                    <div class="fw-semibold">@Loc[$"ParamPf.{cle}"]</div>
+                                    <div class="small text-muted">@Loc[$"ParamPf.{cle}.Aide"]</div>
+                                </td>
+                                <td style="width: 220px;">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="@($"param-{cle}")"
+                                               step="@(p.Definition.Unite == "h" ? "0.5" : "1")" min="@p.Definition.Min" max="@p.Definition.Max"
+                                               value="@_saisies[cle]" @onchange="e => _saisies[cle] = e.Value?.ToString() ?? string.Empty" />
+                                        <span class="input-group-text">@p.Definition.Unite</span>
+                                    </div>
+                                </td>
+                                <td class="small text-muted">
+                                    @Loc["ParamPf.Defaut", Formater(p.Definition.Defaut)]
+                                    @if (p.ModifieLeUtc is DateTime le)
+                                    {
+                                        <div>@Loc["ParamPf.ModifieLe", le.ToString("dd/MM/yyyy HH:mm")]</div>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-primary" disabled="@_enCours" @onclick="() => EnregistrerAsync(cle)">
+                                        @Loc["ParamPf.Enregistrer"]
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <div class="cit-card p-4 small text-muted">@Loc["ParamPf.AutresEcrans"]</div>
+}
+
+@code {
+    private IReadOnlyList<ParametrePlateformeVue> _parametres = [];
+    private readonly Dictionary<string, string> _saisies = [];
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private bool _enCours;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+    private string? _succes;
+
+    private static string Formater(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _messageRefus = Loc["AssistAdm.Refus"].Value;
+        _appelantId = (await ContexteService.ObtenirContexteAsync()).UtilisateurId;
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            _parametres = await portee.ServiceProvider.GetRequiredService<AdministrerParametresPlateformeCommand>().ListerAsync(_appelantId);
+            foreach (var p in _parametres)
+            {
+                _saisies[p.Definition.Cle] = Formater(p.Valeur);
+            }
+        }
+        catch (AccesRefuseException)
+        {
+            _refuse = true;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task EnregistrerAsync(string cle)
+    {
+        _erreur = _succes = null;
+        if (!double.TryParse(_saisies[cle].Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var valeur))
+        {
+            _erreur = Loc["ParamPf.ValeurInvalide"].Value;
+            return;
+        }
+        _enCours = true;
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            await portee.ServiceProvider.GetRequiredService<AdministrerParametresPlateformeCommand>().ModifierAsync(_appelantId, cle, valeur);
+            _succes = Loc["ParamPf.Enregistre", Loc[$"ParamPf.{cle}"].Value].Value;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

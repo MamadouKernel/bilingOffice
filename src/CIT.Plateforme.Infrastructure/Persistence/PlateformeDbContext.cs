@@ -135,6 +135,15 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 009 : tentative de diffusion sur un canal externe (CDC §20, ERR-02).</summary>
     public DbSet<Domain.Notifications.EnvoiNotification> EnvoisNotification => Set<Domain.Notifications.EnvoiNotification>();
 
+    /// <summary>§ 25 du CDC : paramètres de la plateforme administrables (volumétrie, conservation, disponibilité).</summary>
+    public DbSet<Domain.Exploitation.ParametrePlateforme> ParametresPlateforme => Set<Domain.Exploitation.ParametrePlateforme>();
+
+    /// <summary>NFR-03 / NFR-10 : battements de la sonde interne de disponibilité.</summary>
+    public DbSet<Domain.Exploitation.PulsationDisponibilite> PulsationsDisponibilite => Set<Domain.Exploitation.PulsationDisponibilite>();
+
+    /// <summary>NFR-03 / NFR-10 : maintenances planifiées, exclues du calcul de disponibilité.</summary>
+    public DbSet<Domain.Exploitation.FenetreMaintenance> FenetresMaintenance => Set<Domain.Exploitation.FenetreMaintenance>();
+
     /// <summary>FEATURE 009 : modèles de messages paramétrables (COM-03).</summary>
     public DbSet<Domain.Notifications.ModeleNotification> ModelesNotification => Set<Domain.Notifications.ModeleNotification>();
 
@@ -496,6 +505,27 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // Principe XIII) — jamais un balayage complet de la table.
             b.HasIndex(e => new { e.Statut, e.DerniereTentativeUtc })
                 .HasDatabaseName("IX_EnvoisNotification_Statut_DerniereTentative");
+        });
+
+        builder.Entity<Domain.Exploitation.ParametrePlateforme>(b =>
+        {
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Cle).IsRequired().HasMaxLength(128);
+            b.Property(p => p.Valeur).IsRequired().HasMaxLength(64);
+            b.HasIndex(p => p.Cle).IsUnique();
+        });
+
+        builder.Entity<Domain.Exploitation.PulsationDisponibilite>(b =>
+        {
+            b.HasKey(p => p.Id);
+            b.HasIndex(p => p.HorodatageUtc);
+        });
+
+        builder.Entity<Domain.Exploitation.FenetreMaintenance>(b =>
+        {
+            b.HasKey(m => m.Id);
+            b.Property(m => m.Motif).IsRequired().HasMaxLength(500);
+            b.HasIndex(m => new { m.DebutUtc, m.FinUtc });
         });
 
         builder.Entity<Domain.Notifications.ModeleNotification>(b =>

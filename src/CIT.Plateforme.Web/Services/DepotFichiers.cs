@@ -12,7 +12,8 @@ namespace CIT.Plateforme.Web.Services;
 /// </summary>
 public static class DepotFichiers
 {
-    public const int MaxParDepot = 10;
+    /// <summary>Nombre maximal de pièces par dépôt (paramétrable — § 25 du CDC).</summary>
+    public static int MaxParDepot => CIT.Plateforme.Application.Exploitation.ParametresCourants.MaxPiecesParDepot;
 
     /// <summary>Formats et taille acceptés pour une pièce jointe à une demande (mêmes règles que les documents d'un ticket).</summary>
     public static readonly ReglesDepotDocument ReglesStandard =
