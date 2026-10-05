@@ -21,15 +21,26 @@ var builder = WebApplication.CreateBuilder(args);
 // perdus. Serilog ecrit un fichier rotatif quotidien (logs/yaba-AAAAMMJJ.log, retention 31 jours)
 // en plus de la console. Le gabarit inclut {Properties:j} : tout log structure (ex. {TicketId})
 // devient greppable pour correler un incident. Niveau minimal lu dans la section "Logging".
-builder.Host.UseSerilog((context, config) => config
-    .ReadFrom.Configuration(context.Configuration)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File(
-        System.IO.Path.Combine(context.HostingEnvironment.ContentRootPath, "logs", "yaba-.log"),
-        rollingInterval: Serilog.RollingInterval.Day,
-        retainedFileCountLimit: 31,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+builder.Host.UseSerilog((context, config) =>
+{
+    // Chemin du fichier journal : par defaut logs/ sous la racine de l'app, mais surchargeable par
+    // configuration (Logging:FichierChemin) quand la racine n'est pas inscriptible par le pool IIS.
+    var cheminLog = context.Configuration["Logging:FichierChemin"];
+    if (string.IsNullOrWhiteSpace(cheminLog))
+    {
+        cheminLog = System.IO.Path.Combine(context.HostingEnvironment.ContentRootPath, "logs", "yaba-.log");
+    }
+
+    config
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(
+            cheminLog,
+            rollingInterval: Serilog.RollingInterval.Day,
+            retainedFileCountLimit: 31,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}");
+});
 
 // Durcissement : ne pas divulguer le serveur applicatif (« Server: Kestrel ») — information
 // d'empreinte inutile à un client légitime, utile à un attaquant pour cibler des CVE.
