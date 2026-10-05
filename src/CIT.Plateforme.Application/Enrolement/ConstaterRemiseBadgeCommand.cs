@@ -39,6 +39,7 @@ public sealed class ConstaterRemiseBadgeCommand(
         }
 
         await autorisation.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         // Le badge est validé AVANT la clôture : un numéro manquant ou une date passée ne doit
         // jamais laisser un dossier clôturé sans badge enregistré.

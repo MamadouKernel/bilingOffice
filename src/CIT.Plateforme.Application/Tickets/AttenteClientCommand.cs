@@ -39,6 +39,8 @@ public sealed class AttenteClientCommand(
             await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
         }
 
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+
         var maintenant = horloge.MaintenantUtc;
         ticket.MettreEnAttenteClient(maintenant);
 

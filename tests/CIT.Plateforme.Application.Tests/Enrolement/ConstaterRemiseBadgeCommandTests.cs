@@ -35,17 +35,20 @@ public class ConstaterRemiseBadgeCommandTests
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 8, 31, 12, 0, 0, DateTimeKind.Utc));
     }
 
+    // « Qui a pris en charge, traite » : le ticket est tenu par l'agent qui agit dans ces tests.
+    private static readonly Guid AgentEnCharge = Guid.NewGuid();
+
     private static Ticket TicketEnrolementEnCours()
     {
         var ticket = Ticket.Creer("ENR-01", "Enrolement", "Enrolement", Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
-        ticket.PrendreEnCharge(Guid.NewGuid(), DateTime.UtcNow);
+        ticket.PrendreEnCharge(AgentEnCharge, DateTime.UtcNow);
         return ticket;
     }
 
     [Fact]
     public async Task Agent_habilite_constate_la_remise_et_cloture_le_ticket()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = TicketEnrolementEnCours();
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
@@ -69,7 +72,7 @@ public class ConstaterRemiseBadgeCommandTests
     [InlineData("BADGE-0001", 2025)]
     public async Task Une_remise_sans_numero_ou_deja_expiree_est_refusee_sans_cloturer(string numero, int anneeExpiration)
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = TicketEnrolementEnCours();
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
         _autorisation.Setup(a => a.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, It.IsAny<CancellationToken>()))
@@ -85,7 +88,7 @@ public class ConstaterRemiseBadgeCommandTests
     [Fact]
     public async Task Agent_sans_permission_est_refuse()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = TicketEnrolementEnCours();
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
@@ -98,7 +101,7 @@ public class ConstaterRemiseBadgeCommandTests
     [Fact]
     public async Task Ticket_module_autre_que_Enrolement_leve_InvalidOperationException()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = Ticket.Creer("REC-01", "CustomerComplaint", "Reclamation", Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
@@ -109,7 +112,7 @@ public class ConstaterRemiseBadgeCommandTests
     [Fact]
     public async Task Double_remise_de_badge_leve_InvalidOperationException()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = TicketEnrolementEnCours();
         ticket.Cloturer(MotifClotureType.Normale, DateTime.UtcNow);
 

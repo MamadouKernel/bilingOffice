@@ -32,11 +32,14 @@ public class IncidentTraitementCommandTests
         _files.Setup(r => r.ListerAsync(It.IsAny<CancellationToken>())).ReturnsAsync([_fileN2]);
     }
 
+    // « Qui a pris en charge, traite » : le ticket est tenu par l'agent qui agit dans ces tests.
+    private static readonly Guid AgentEnCharge = Guid.NewGuid();
+
     private static Ticket IncidentEnCours()
     {
         var ticket = Ticket.Creer("TCK-INC-010", SupportItConstantes.Module, SupportItConstantes.TypeDemande,
             Guid.NewGuid(), Guid.NewGuid(), new DateTime(2026, 9, 26, 9, 0, 0, DateTimeKind.Utc));
-        ticket.PrendreEnCharge(Guid.NewGuid(), new DateTime(2026, 9, 26, 10, 0, 0, DateTimeKind.Utc));
+        ticket.PrendreEnCharge(AgentEnCharge, new DateTime(2026, 9, 26, 10, 0, 0, DateTimeKind.Utc));
         return ticket;
     }
 
@@ -53,7 +56,7 @@ public class IncidentTraitementCommandTests
         _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
         AutoriserN1();
 
-        await Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), ticket.Id, "Cache vidé, service redémarré."), CancellationToken.None);
+        await Resoudre().ExecuterAsync(new ResoudreIncidentRequete(AgentEnCharge, ticket.Id, "Cache vidé, service redémarré."), CancellationToken.None);
 
         Assert.Equal(StatutTicket.Cloture, ticket.Statut);
         Assert.Equal("Cache vidé, service redémarré.", ticket.ReponseFormalisee);
@@ -67,7 +70,7 @@ public class IncidentTraitementCommandTests
         _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
         _autorisation.Setup(a => a.EstAutoriseAsync(It.IsAny<Guid>(), Permission.SupportIncidentInstruireN2, It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-        await Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), ticket.Id, "Correctif appliqué."), CancellationToken.None);
+        await Resoudre().ExecuterAsync(new ResoudreIncidentRequete(AgentEnCharge, ticket.Id, "Correctif appliqué."), CancellationToken.None);
 
         Assert.Equal(StatutTicket.Cloture, ticket.Statut);
     }
@@ -79,7 +82,7 @@ public class IncidentTraitementCommandTests
         _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
 
         await Assert.ThrowsAsync<AccesRefuseException>(
-            () => Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), ticket.Id, "x"), CancellationToken.None));
+            () => Resoudre().ExecuterAsync(new ResoudreIncidentRequete(AgentEnCharge, ticket.Id, "x"), CancellationToken.None));
         _uow.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -93,7 +96,7 @@ public class IncidentTraitementCommandTests
         _tickets.Setup(r => r.ObtenirParIdAsync(autre.Id, It.IsAny<CancellationToken>())).ReturnsAsync(autre);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => Resoudre().ExecuterAsync(new ResoudreIncidentRequete(Guid.NewGuid(), autre.Id, "x"), CancellationToken.None));
+            () => Resoudre().ExecuterAsync(new ResoudreIncidentRequete(AgentEnCharge, autre.Id, "x"), CancellationToken.None));
     }
 
     [Fact]
@@ -101,7 +104,7 @@ public class IncidentTraitementCommandTests
     {
         var ticket = IncidentEnCours();
         _tickets.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
-        var agent = Guid.NewGuid();
+        var agent = AgentEnCharge;
 
         await Escalader().ExecuterAsync(new EscaladerIncidentRequete(agent, ticket.Id, "Nécessite un correctif logiciel."), CancellationToken.None);
 

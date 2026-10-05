@@ -29,17 +29,20 @@ public class DeclencherConvocationCommandTests
             _uniteDeTravail.Object);
     }
 
+    // « Qui a pris en charge, traite » : le ticket est tenu par l'agent qui agit dans ces tests.
+    private static readonly Guid AgentEnCharge = Guid.NewGuid();
+
     private static Ticket TicketEnrolementEnCours()
     {
         var ticket = Ticket.Creer("ENR-01", "Enrolement", "Enrolement", Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
-        ticket.PrendreEnCharge(Guid.NewGuid(), DateTime.UtcNow);
+        ticket.PrendreEnCharge(AgentEnCharge, DateTime.UtcNow);
         return ticket;
     }
 
     [Fact]
     public async Task Agent_habilite_declenche_la_convocation()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = TicketEnrolementEnCours();
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
@@ -66,7 +69,7 @@ public class DeclencherConvocationCommandTests
     [Fact]
     public async Task Agent_sans_permission_est_refuse()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = TicketEnrolementEnCours();
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
@@ -79,7 +82,7 @@ public class DeclencherConvocationCommandTests
     [Fact]
     public async Task Ticket_module_autre_que_Enrolement_leve_InvalidOperationException()
     {
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
         var ticket = Ticket.Creer("REC-01", "CustomerComplaint", "Reclamation", Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
 
         _ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);

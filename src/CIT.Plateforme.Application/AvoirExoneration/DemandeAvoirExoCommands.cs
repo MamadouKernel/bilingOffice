@@ -241,6 +241,8 @@ public sealed class PrendreEnChargeAvoirExoCommand
             throw new AccesRefuseException($"Permission d'instruction du type '{ticket.TypeDemande}' requise pour prendre en charge (SEC-AVE-03).");
         }
 
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(_autorisation, agentId, ticket, ct).ConfigureAwait(false);
+
         var maintenantUtc = _horloge.MaintenantUtc;
         ticket.PrendreEnCharge(agentId, maintenantUtc);
 
@@ -312,6 +314,8 @@ public sealed class DemanderComplementAvoirExoCommand
         {
             throw new AccesRefuseException($"Permission d'instruction du type '{ticket.TypeDemande}' requise.");
         }
+
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(_autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         var maintenantUtc = _horloge.MaintenantUtc;
         ticket.MettreEnAttenteClient(maintenantUtc);

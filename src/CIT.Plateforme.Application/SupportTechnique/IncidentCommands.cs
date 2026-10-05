@@ -128,6 +128,7 @@ public sealed class ResoudreIncidentCommand(
     {
         var ticket = await ChargerIncidentAsync(tickets, requete.TicketId, ct).ConfigureAwait(false);
         await SupportItConstantes.ExigerInstructionSurFileAsync(autorisation, requete.AgentId, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, requete.AgentId, ticket, ct).ConfigureAwait(false);
 
         var statutAvant = ticket.Statut;
         ticket.CloturerAvecReponseFormalisee(requete.ReponseResolution, MotifClotureType.Normale, horloge.MaintenantUtc);
@@ -179,6 +180,7 @@ public sealed class EscaladerIncidentCommand(
 
         var ticket = await ResoudreIncidentCommand.ChargerIncidentAsync(tickets, requete.TicketId, ct).ConfigureAwait(false);
         await autorisation.ExigerAsync(requete.AgentId, Permission.SupportIncidentInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, requete.AgentId, ticket, ct).ConfigureAwait(false);
 
         var files = await fileRepository.ListerAsync(ct).ConfigureAwait(false);
         var fileN2 = files.FirstOrDefault(f => f.Nom == SupportItConstantes.NomFileSupportItN2 && f.Module == SupportItConstantes.Module)

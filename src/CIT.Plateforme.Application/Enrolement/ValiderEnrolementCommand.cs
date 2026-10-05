@@ -32,6 +32,7 @@ public sealed class ValiderEnrolementCommand(
         }
 
         await autorisation.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "EnrolementValide", null, agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "EnrolementValide", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);

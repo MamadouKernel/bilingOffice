@@ -15,11 +15,14 @@ namespace CIT.Plateforme.Application.Tests.Enrolement;
 // FEATURE 008 (Enrôlement Transporteurs) — Phase 10 Hardening (T064-T074).
 public class EnrolementSecuriteTests
 {
+    // « Qui a pris en charge, traite » : le ticket est tenu par l'agent qui agit dans ces tests.
+    private static readonly Guid AgentEnCharge = Guid.NewGuid();
+
     private static Ticket TicketEnrolementEnCours(out Guid fileId)
     {
         fileId = Guid.NewGuid();
         var ticket = Ticket.Creer("ENR-SEC", "Enrolement", "Enrolement", fileId, Guid.NewGuid(), DateTime.UtcNow);
-        ticket.PrendreEnCharge(Guid.NewGuid(), DateTime.UtcNow);
+        ticket.PrendreEnCharge(AgentEnCharge, DateTime.UtcNow);
         return ticket;
     }
 
@@ -73,7 +76,7 @@ public class EnrolementSecuriteTests
     public async Task DoubleValidation_NeProduitAucunEffetDeBordDangereux()
     {
         var ticket = TicketEnrolementEnCours(out var fileId);
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
 
         var ticketRepo = new Mock<ITicketRepository>();
         ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);
@@ -98,7 +101,7 @@ public class EnrolementSecuriteTests
     public async Task DoubleRemiseBadge_DeuxiemeAppelRefuse()
     {
         var ticket = TicketEnrolementEnCours(out var fileId);
-        var agentId = Guid.NewGuid();
+        var agentId = AgentEnCharge;
 
         var ticketRepo = new Mock<ITicketRepository>();
         ticketRepo.Setup(r => r.ObtenirParIdAsync(ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(ticket);

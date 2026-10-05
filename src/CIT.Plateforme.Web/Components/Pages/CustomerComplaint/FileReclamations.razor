@@ -76,7 +76,7 @@ else
                         {
                             <tr>
                                 <td><a href="/tickets/@t.Id" class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</a></td>
-                                <td class="fw-semibold text-dark">@(t.Objet ?? "—")</td>
+                                <td class="fw-semibold text-dark">@(t.Objet ?? "—")<PrisEnChargePar Ticket="t" AgentId="_agentId" /></td>
                                 <td><StatutBadge Statut="@t.Statut" /></td>
                                 <td class="small text-muted font-monospace">@t.DateArriveeEnFileUtc.Horodate()</td>
                                 <td class="text-end">

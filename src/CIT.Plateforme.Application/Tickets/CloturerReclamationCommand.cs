@@ -31,6 +31,7 @@ public sealed class CloturerReclamationCommand(
         }
 
         await autorisation.ExigerAsync(requete.AgentId, Permission.ComplaintInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, requete.AgentId, ticket, ct).ConfigureAwait(false);
 
         var statutAvant = ticket.Statut;
         ticket.CloturerAvecReponseFormalisee(requete.ReponseFormalisee, MotifClotureType.Normale, horloge.MaintenantUtc);

@@ -100,7 +100,12 @@ else
                                     </span>
                                 </td>
                                 <td class="fw-semibold">@t.ClientNom</td>
-                                <td class="text-truncate" style="max-width: 220px;" title="@t.Objet">@t.Objet</td>
+                                <td class="text-truncate" style="max-width: 220px;" title="@t.Objet">@t.Objet
+                                    @if (t.OperateurAssigneId is Guid affecte && affecte != _agentId)
+                                    {
+                                        <div class="mt-1"><span class="badge bg-secondary-subtle text-secondary border" title="@Loc["Reaff.BadgeTitre"]">🔒 @Loc["Reaff.Badge", t.OperateurAssigneNom ?? "—"]</span></div>
+                                    }
+                                </td>
                                 <td>
                                     @(t.MontantConteste.HasValue ? $"{t.MontantConteste.Value:N0} XOF" : "-")
                                 </td>
@@ -132,6 +137,7 @@ else
 }
 
 @code {
+    private Guid _agentId;
     private readonly EtatPagination _pagination1 = new();
 
     private bool _chargement = true;
@@ -166,6 +172,7 @@ else
             }
 
             var criteres = new CriteresFiltreFileAvoirExo(_typeFiltre, statut, null);
+            _agentId = contexte.UtilisateurId;
             _tickets = await ConsulterFile.ExecuterAsync(contexte.UtilisateurId, criteres);
         }
         catch (Exception ex)

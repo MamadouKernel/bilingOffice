@@ -31,6 +31,7 @@ public sealed class DeclencherConvocationCommand(
         }
 
         await autorisation.ExigerAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ConvocationDeclenchee", null, agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ConvocationDeclenchee", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
