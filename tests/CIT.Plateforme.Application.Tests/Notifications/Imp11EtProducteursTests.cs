@@ -109,7 +109,9 @@ public class Imp11EtProducteursTests
         // clôture) et la création d'un ticket export publie TicketCree comme l'import.
         // 47e producteur (05/10/2026) — GestionProformaCommand : proforma déposée, le client est notifié.
         // 48e producteur (05/10/2026) — DemanderReaffectationCommand : superviseurs et agent en charge notifiés.
-        Assert.Equal(48, fichiersProducteurs.Count);
+        // 49e producteur (05/10/2026) — OptionsTraitementTicketQuery.cs porte EscaladerAuSuperviseurCommand.
+        Assert.Equal(49, fichiersProducteurs.Count);
+        Assert.Contains("OptionsTraitementTicketQuery.cs", fichiersProducteurs);
         Assert.Contains("DemanderReaffectationCommand.cs", fichiersProducteurs);
         Assert.Contains("GestionProformaCommand.cs", fichiersProducteurs);
         foreach (var producteur in new[]

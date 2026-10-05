@@ -1,0 +1,190 @@
+@using CIT.Plateforme.Application.Affectation
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IServiceScopeFactory ScopeFactory
+
+@* Actions de traitement de l'agent sur la fiche (05/10/2026) : transférer (files permises par la
+   matrice, motif du référentiel), escalader au superviseur (motif obligatoire), (ré)affecter
+   (superviseur). Rien n'est proposé qui serait refusé ; les commandes revérifient tout. *@
+@if (_options is { } o && (o.PeutTransferer || o.PeutEscalader || o.PeutAffecter))
+{
+    <div class="cit-card mb-4">
+        <h6 class="fw-bold text-dark mb-3">🧭 @Loc["Traitement.Titre"]</h6>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            @if (o.PeutTransferer)
+            {
+                <button type="button" class="btn btn-sm @(_panneau == "transfert" ? "btn-primary" : "btn-outline-primary")" @onclick="@(() => Ouvrir("transfert"))">🔄 @Loc["Traitement.Transferer"]</button>
+            }
+            @if (o.PeutEscalader)
+            {
+                <button type="button" class="btn btn-sm @(_panneau == "escalade" ? "btn-warning" : "btn-outline-warning")" @onclick="@(() => Ouvrir("escalade"))">⬆️ @Loc["Traitement.Escalader"]</button>
+            }
+            @if (o.PeutAffecter)
+            {
+                <button type="button" class="btn btn-sm @(_panneau == "affectation" ? "btn-secondary" : "btn-outline-secondary")" @onclick="@(() => Ouvrir("affectation"))">👥 @(o.EstAffecte ? Loc["Traitement.Reaffecter"] : Loc["Traitement.Affecter"])</button>
+            }
+        </div>
+
+        @switch (_panneau)
+        {
+            case "transfert":
+                @if (o.Destinations.Count == 0)
+                {
+                    <div class="small text-muted">@Loc["Traitement.AucuneDestination"]</div>
+                }
+                else
+                {
+                    <div class="row g-2 align-items-end">
+                        <div class="col-12 col-md-5">
+                            <label class="form-label small fw-semibold mb-1" for="file-cible">@Loc["Traitement.FileCible"]</label>
+                            <select id="file-cible" class="form-select form-select-sm" @bind="_fileCible" @bind:after="() => _motif = string.Empty">
+                                <option value="">—</option>
+                                @foreach (var d in o.Destinations)
+                                {
+                                    <option value="@d.FileId">@Loc.File(d.FileNom) — @Loc.Module(d.Module)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label small fw-semibold mb-1" for="motif-transfert">@Loc["Traitement.Motif"]</label>
+                            @if (Destination is { Motifs.Count: > 0 } dest)
+                            {
+                                <select id="motif-transfert" class="form-select form-select-sm" @bind="_motif">
+                                    <option value="">—</option>
+                                    @foreach (var m in dest.Motifs)
+                                    {
+                                        <option value="@m.Code">@m.Libelle</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input id="motif-transfert" class="form-control form-control-sm" maxlength="200" @bind="_motif" @bind:event="oninput" />
+                            }
+                        </div>
+                        <div class="col-12 col-md-2 text-end">
+                            <button type="button" class="btn btn-primary btn-sm w-100" disabled="@(_enCours || Destination is null || string.IsNullOrWhiteSpace(_motif))" @onclick="TransfererAsync">@Loc["Traitement.Confirmer"]</button>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">@Loc["Traitement.TransfertAide"]</div>
+                }
+                break;
+
+            case "escalade":
+                <label class="form-label small fw-semibold mb-1" for="motif-escalade">@Loc["Traitement.MotifEscalade"]</label>
+                <textarea id="motif-escalade" class="form-control form-control-sm mb-2" rows="2" maxlength="500" @bind="_motifEscalade" @bind:event="oninput"></textarea>
+                <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <div class="small text-muted">@Loc["Traitement.EscaladeAide"]</div>
+                    <button type="button" class="btn btn-warning btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motifEscalade))" @onclick="EscaladerAsync">@Loc["Traitement.EnvoyerEscalade"]</button>
+                </div>
+                break;
+
+            case "affectation":
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-9">
+                        <label class="form-label small fw-semibold mb-1" for="agent-cible">@Loc["Traitement.Agent"]</label>
+                        <select id="agent-cible" class="form-select form-select-sm" @bind="_agentCible">
+                            <option value="">—</option>
+                            @foreach (var a in o.Agents)
+                            {
+                                <option value="@a.AgentId">@a.Nom — @Loc["Traitement.Charge", a.TicketsEnCours]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3 text-end">
+                        <button type="button" class="btn btn-secondary btn-sm w-100" disabled="@(_enCours || _agentCible is null)" @onclick="AffecterAsync">@Loc["Traitement.Confirmer"]</button>
+                    </div>
+                </div>
+                break;
+        }
+
+        @if (_erreur is not null)
+        {
+            <div class="small text-danger mt-2">@_erreur</div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid TicketId { get; set; }
+    [Parameter, EditorRequired] public Guid AgentId { get; set; }
+
+    /// <summary>Statut, agent et file du ticket : tout changement (prise en charge, transfert…) recalcule les options.</summary>
+    [Parameter] public string? Etat { get; set; }
+
+    /// <summary>Message de retour ; la fiche se recharge (le ticket a pu changer de file ou d'agent).</summary>
+    [Parameter] public EventCallback<string> Termine { get; set; }
+
+    private OptionsTraitementTicketVue? _options;
+    private string? _panneau;
+    private Guid? _fileCible;
+    private string _motif = string.Empty;
+    private string _motifEscalade = string.Empty;
+    private Guid? _agentCible;
+    private bool _enCours;
+    private string? _erreur;
+
+    private DestinationTransfert? Destination => _options?.Destinations.FirstOrDefault(d => d.FileId == _fileCible);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            _options = await portee.ServiceProvider.GetRequiredService<OptionsTraitementTicketQuery>().ExecuterAsync(AgentId, TicketId);
+        }
+        catch (Exception ex)
+        {
+            _options = null;
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private void Ouvrir(string panneau)
+    {
+        _panneau = _panneau == panneau ? null : panneau;
+        _erreur = null;
+    }
+
+    private Task TransfererAsync() => ExecuterAsync(
+        s => s.GetRequiredService<TransfererTicketCommand>().ExecuterAsync(AgentId, TicketId, _fileCible!.Value, _motif.Trim()),
+        Loc["Traitement.MsgTransfere", Loc.File(Destination?.FileNom ?? "")].Value);
+
+    private Task EscaladerAsync() => ExecuterAsync(
+        s => s.GetRequiredService<EscaladerAuSuperviseurCommand>().ExecuterAsync(AgentId, TicketId, _motifEscalade),
+        Loc["Traitement.MsgEscalade"].Value);
+
+    private Task AffecterAsync() => ExecuterAsync(
+        s => _options!.EstAffecte
+            ? s.GetRequiredService<ReaffecterTicketCommand>().ExecuterAsync(AgentId, TicketId, _agentCible!.Value)
+            : s.GetRequiredService<AffecterManuellementCommand>().ExecuterAsync(AgentId, TicketId, _agentCible!.Value),
+        Loc["Traitement.MsgAffecte"].Value);
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action, string succes)
+    {
+        _enCours = true;
+        _erreur = null;
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            await action(portee.ServiceProvider);
+            _panneau = null;
+            _motif = _motifEscalade = string.Empty;
+            _fileCible = _agentCible = null;
+            await Termine.InvokeAsync(succes);
+            await OnParametersSetAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

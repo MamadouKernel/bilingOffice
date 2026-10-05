@@ -148,6 +148,8 @@ public static partial class TraductionMessagesMetier
         ["La description dépasse {0} caractères."] = "The description exceeds {0} characters.",
         ["La durée d'un créneau doit être strictement positive."] = "A slot duration must be strictly positive.",
         ["La facture du ticket {0} ne peut être éditée avant l'émission du Draft IN (RG-EXP-03)."] = "The invoice for ticket {0} cannot be issued before the Draft IN is issued (RG-EXP-03).",
+        ["Le motif de l'escalade est obligatoire : le superviseur doit savoir ce qui bloque."] = "The escalation reason is required: the supervisor needs to know what is blocking.",
+        ["Le ticket {0} est terminé : il ne peut plus être escaladé."] = "Ticket {0} is finished: it can no longer be escalated.",
         ["Le ticket {0} est pris en charge par un autre agent : demandez sa réaffectation au superviseur."] = "Ticket {0} is handled by another agent: ask the supervisor to reassign it.",
         ["Le ticket {0} n'est pas pris en charge par un autre agent."] = "Ticket {0} is not handled by another agent.",
         ["L'utilisateur {0} n'est pas habilité sur la file du ticket {1}."] = "User {0} is not authorised on the queue of ticket {1}.",

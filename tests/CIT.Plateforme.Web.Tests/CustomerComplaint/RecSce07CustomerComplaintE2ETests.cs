@@ -177,6 +177,12 @@ public sealed class RecSce07CustomerComplaintE2ETests(PlateformeWebApplicationFa
         Assert.DoesNotContain(dashboardApresReponse.ActionsRequises, a => a.TicketId == ticketId);
 
         // 6. Étape 6 : Transfert d'orientation (optionnel dans flux, testé)
+        // Le motif doit figurer au référentiel (§ 9.10) : il est approvisionné au démarrage, plus de motif libre.
+        if (!db.MotifsTransfert.Any(m => m.Code == "Transmission pour vérification comptable"))
+        {
+            db.MotifsTransfert.Add(MotifTransfert.Definir("Transmission pour vérification comptable", "Transmission pour vérification comptable", 99));
+            await db.SaveChangesAsync();
+        }
         await transfererCmd.ExecuterAsync(agentSupportId, ticketId, fileFacturation.Id, "Transmission pour vérification comptable");
         var ticketTransfere = await db.Tickets.FindAsync(ticketId);
         Assert.NotNull(ticketTransfere);

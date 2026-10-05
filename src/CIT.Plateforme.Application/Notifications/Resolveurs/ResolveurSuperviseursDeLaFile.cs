@@ -4,8 +4,9 @@ using CIT.Plateforme.Domain.Securite;
 namespace CIT.Plateforme.Application.Notifications.Resolveurs;
 
 /// <summary>
-/// Demande de réaffectation d'un ticket : notifie les superviseurs de la file (habilités à réaffecter,
-/// sur cette file ou sur toutes) et l'agent qui l'a en charge. Aucun client n'est jamais destinataire.
+/// Demande de réaffectation ou escalade d'un ticket : notifie les superviseurs de la file (habilités à
+/// réaffecter, sur cette file ou sur toutes) — et, pour une demande de réaffectation, l'agent qui l'a en
+/// charge. Aucun client n'est jamais destinataire.
 /// </summary>
 public sealed class ResolveurSuperviseursDeLaFile(
     ITicketRepository tickets,
@@ -13,7 +14,9 @@ public sealed class ResolveurSuperviseursDeLaFile(
 {
     public const string TypeEvenement = "ReaffectationDemandee";
 
-    public bool PeutResoudre(string typeEvenement) => typeEvenement == TypeEvenement;
+    public const string TypeEscalade = "EscaladeSuperviseur";
+
+    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeEvenement or TypeEscalade;
 
     public async Task<IReadOnlyList<Guid>> ResoudreAsync(string typeEvenement, string chargeUtile, CancellationToken ct = default)
     {
@@ -24,7 +27,7 @@ public sealed class ResolveurSuperviseursDeLaFile(
         }
 
         var destinataires = (await habilitations.ListerUtilisateursAvecPermissionAsync(Permission.TicketReaffecter, ticket.FileCouranteId, ct).ConfigureAwait(false)).ToList();
-        if (ticket.OperateurAssigneId is Guid affecte)
+        if (typeEvenement == TypeEvenement && ticket.OperateurAssigneId is Guid affecte)
         {
             destinataires.Add(affecte);
         }

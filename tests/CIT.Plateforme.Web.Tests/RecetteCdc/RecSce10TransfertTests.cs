@@ -33,6 +33,11 @@ public sealed class RecSce10TransfertTests(PlateformeWebApplicationFactory facto
         var fileNonAutorisee = Guid.NewGuid();
 
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileControleBl, fileFacturation, ["Contrôle BL validé"]));
+        // Le motif doit figurer au référentiel (§ 9.10) : il est approvisionné au démarrage, plus de motif libre.
+        if (!dbContext.MotifsTransfert.Any(m => m.Code == "Contrôle BL validé"))
+        {
+            dbContext.MotifsTransfert.Add(MotifTransfert.Definir("Contrôle BL validé", "Contrôle BL validé", 99));
+        }
         dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentId), Permission.TicketTransferer, fileControleBl));
         await dbContext.SaveChangesAsync();
 
@@ -62,6 +67,6 @@ public sealed class RecSce10TransfertTests(PlateformeWebApplicationFactory facto
         await dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<TransitionNonAutoriseeException>(() =>
-            transferer.ExecuterAsync(agentId, ticket.Id, fileNonAutorisee, "Motif quelconque"));
+            transferer.ExecuterAsync(agentId, ticket.Id, fileNonAutorisee, "Contrôle BL validé"));
     }
 }

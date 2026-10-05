@@ -74,6 +74,8 @@ public sealed class ProvisionnementNotifications(
         ("ProformaEmise", CanalNotification.Email, false, "Votre proforma est à valider"),
         ("ReaffectationDemandee", CanalNotification.InApp, false, "Demande de réaffectation d'un ticket"),
         ("ReaffectationDemandee", CanalNotification.Email, false, "Demande de réaffectation d'un ticket"),
+        ("EscaladeSuperviseur", CanalNotification.InApp, false, "Un ticket vous est escaladé"),
+        ("EscaladeSuperviseur", CanalNotification.Email, false, "Un ticket vous est escaladé"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -98,6 +100,7 @@ public sealed class ProvisionnementNotifications(
         ["Votre dossier est clôturé"] = "Your file is closed",
         ["Votre proforma est à valider"] = "Your proforma is ready for approval",
         ["Demande de réaffectation d'un ticket"] = "Ticket reassignment request",
+        ["Un ticket vous est escaladé"] = "A ticket has been escalated to you",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -145,6 +148,7 @@ public sealed class ProvisionnementNotifications(
         "TicketCloture" => $"{objet}. Le détail et vos documents éventuels sont sur le ticket {{numeroTicket}}.",
         "ProformaEmise" => $"{objet}. Consultez-la sur le ticket {{numeroTicket}}, puis validez-la ou demandez une correction : la facture définitive suivra.",
         "ReaffectationDemandee" => $"{objet}. Un agent demande à reprendre le ticket {{numeroTicket}}, pris en charge par un collègue : réaffectez-le si nécessaire.",
+        "EscaladeSuperviseur" => $"{objet}. Un agent signale un blocage sur le ticket {{numeroTicket}} : le motif figure dans son historique. Décidez de la suite (réaffecter, prioriser, transférer).",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
 
@@ -160,6 +164,7 @@ public sealed class ProvisionnementNotifications(
         "TicketCloture" => $"{objet}. Details and any documents are on ticket {{numeroTicket}}.",
         "ProformaEmise" => $"{objet}. Review it on ticket {{numeroTicket}}, then approve it or request a correction: the final invoice will follow.",
         "ReaffectationDemandee" => $"{objet}. An agent asks to take over ticket {{numeroTicket}}, handled by a colleague: reassign it if needed.",
+        "EscaladeSuperviseur" => $"{objet}. An agent reports a blocking issue on ticket {{numeroTicket}}: the reason is in its history. Decide what comes next (reassign, prioritise, transfer).",
         _ => $"{objet}. See the related ticket for details.",
     };
 

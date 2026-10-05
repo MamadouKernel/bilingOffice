@@ -212,6 +212,7 @@ public static class DependencyInjection
         services.AddScoped<Persistence.ProvisionnementSupportIt>();
         services.AddScoped<Persistence.ProvisionnementParametrageMetier>();
         services.AddScoped<Persistence.ProvisionnementNotifications>();
+        services.AddScoped<Persistence.ProvisionnementTransitions>();
         services.AddScoped<AttenteClientCommand>();
         services.AddScoped<RelancesAbsenceReponseUseCase>();
         services.AddHostedService<TraitementsDeFond.RelancesAbsenceReponseService>();
@@ -340,6 +341,8 @@ public static class DependencyInjection
         services.AddScoped<Application.BillingImport.DeposerPreuvePaiementCommand>();
         services.AddScoped<Application.BillingImport.GestionProformaCommand>();
         services.AddScoped<Application.Tickets.DemanderReaffectationCommand>();
+        services.AddScoped<Application.Tickets.OptionsTraitementTicketQuery>();
+        services.AddScoped<Application.Tickets.EscaladerAuSuperviseurCommand>();
         services.AddScoped<Application.BillingImport.ValiderPreuvePaiementCommand>();
         services.AddScoped<Application.BillingImport.DeposerDocumentsControleEtCloturerCommand>();
 

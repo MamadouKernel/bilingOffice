@@ -405,6 +405,13 @@ using (var scope = app.Services.CreateScope())
     await notifications.ExecuterAsync();
 }
 
+// TRANSFERTS : matrice des transitions et motifs de départ (chemins de retour du parcours Billing).
+// Sans eux, aucun transfert n'est possible. Inerte dès que l'administrateur a touché au référentiel.
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementTransitions>().ExecuterAsync();
+}
+
 // SUPPORT IT : la file « Support IT » et les catégories d'incident de départ doivent exister dans
 // TOUS les environnements, sans quoi aucun incident technique ne peut être routé ni instruit.
 // Strictement additif — inerte dès que l'administrateur a touché au référentiel des catégories.
