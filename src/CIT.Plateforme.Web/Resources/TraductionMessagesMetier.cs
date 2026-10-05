@@ -28,7 +28,7 @@ public static partial class TraductionMessagesMetier
 
     /// <summary>Message dans la langue d'interface courante (anglais si la culture est « en »).</summary>
     public static string VersCultureCourante(string message) =>
-        string.IsNullOrEmpty(message) || CultureInfo.CurrentUICulture.TwoLetterISOLanguageName != "en"
+        string.IsNullOrEmpty(message) || !CIT.Plateforme.Application.Abstractions.LangueCourante.EnAnglais
             ? message
             : VersAnglais(message);
 

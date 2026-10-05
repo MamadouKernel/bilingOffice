@@ -53,7 +53,7 @@ public static class TexteProforma
     };
 
     /// <summary>Vrai si l'interface de l'utilisateur est en anglais.</summary>
-    public static bool EnAnglais => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    public static bool EnAnglais => CIT.Plateforme.Application.Abstractions.LangueCourante.EnAnglais;
 
     /// <summary>Libellé dans la langue courante (le français s'il n'a pas de traduction).</summary>
     public static string T(string francais) =>

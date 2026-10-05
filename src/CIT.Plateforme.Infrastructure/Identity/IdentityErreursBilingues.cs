@@ -9,7 +9,7 @@ namespace CIT.Plateforme.Infrastructure.Identity;
 /// </summary>
 public sealed class IdentityErreursBilingues : IdentityErrorDescriber
 {
-    private static bool Anglais => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    private static bool Anglais => CIT.Plateforme.Application.Abstractions.LangueCourante.EnAnglais;
 
     private static IdentityError Erreur(string code, string fr, string en) =>
         new() { Code = code, Description = Anglais ? en : fr };

@@ -45,7 +45,7 @@ public static class MessagesUtilisateur
     /// </summary>
     public static string Pour(Exception exception) => EstMessageMetier(exception)
         ? Texte(exception)
-        : CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? GeneriqueAnglais : Generique;
+        : CIT.Plateforme.Application.Abstractions.LangueCourante.EnAnglais ? GeneriqueAnglais : Generique;
 
     /// <summary>
     /// Message d'une exception métier déjà filtrée par l'écran (catch typé), dans la langue de l'utilisateur.

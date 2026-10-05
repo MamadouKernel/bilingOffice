@@ -42,7 +42,7 @@ public sealed class EnvoiLienMotDePasse(
         var lien = new Uri(baseUri, $"{Route}?utilisateurId={compte.Id}&jeton={jetonEncode}").ToString();
 
         var resultat = await canalEmail
-            .EnvoyerAsync(new DestinationEnvoi(compte.Id, compte.Email, System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName), sujet, corps(lien))
+            .EnvoyerAsync(new DestinationEnvoi(compte.Id, compte.Email, CIT.Plateforme.Application.Abstractions.LangueCourante.Code), sujet, corps(lien))
             .ConfigureAwait(false);
 
         if (!resultat.Abouti)
