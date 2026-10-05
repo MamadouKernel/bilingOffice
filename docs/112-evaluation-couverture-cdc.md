@@ -78,6 +78,15 @@ Tous sur `main`, couverts par les 2159 tests verts.
 
 Aucune régression de périmètre : les écarts du tableau ci-dessus restent les mêmes (SMS/WhatsApp, IA générative, exploitation réelle, recette signée).
 
+### Renforcement de la paramétrabilité (05/10, soir)
+
+Objectif : aucune fonction d'administration bloquée faute d'amorçage, et un CRUD complet et cohérent (le « delete » est partout un **soft delete** — désactivation, jamais de suppression physique).
+
+- **Priorités (PRI-01)** : les niveaux Standard / Urgent / Critique sont désormais **amorcés** (additif, inerte dès qu'un niveau existe). L'attribution automatique de priorité (écran dédié) n'est plus bloquée faute de référentiel ; un lien direct « Configurer les priorités » est ajouté au message d'avertissement.
+- **Pièces exigées à l'ouverture de compte** : RCCM, DFE et CNI du représentant légal sont **obligatoires par défaut** ; l'écran d'administration permet maintenant l'**édition inline** (libellé, ordre, caractère obligatoire) en plus de l'ajout et de l'activation/désactivation.
+- **Notifications** : l'écran d'administration permet désormais de **créer** une règle de diffusion (événement + canal + caractère obligatoire), de basculer son caractère obligatoire, et de **créer / éditer** un modèle de message (titre, corps), en plus de l'activation/désactivation. Canaux : e-mail et centre de notifications uniquement (SMS/WhatsApp hors périmètre retenu).
+- **Référentiels métier à codes fermés** (gravités d'incident, motifs de clôture, catégories de document, canaux) : volontairement **non ouverts à la création libre**. Leur code est un membre d'énumération sur lequel s'appuient les règles typées de la plateforme (SLA par gravité, routage par canal, droits par motif) ; ajouter un code inédit relèverait du développement, pas du paramétrage. Tous les codes sont déjà amorcés ; ces référentiels restent pleinement **modifiables** (libellés FR/EN, ordre) et **désactivables** (soft delete). La création libre de valeurs existe là où elle a un sens métier : catégories de réclamation, pièces exigées, priorités, grilles tarifaires.
+
 ## Conclusion
 
 **Fonctionnellement, ~91 % du CDC est développé et testé**, dont la totalité du socle prioritaire Billing Office et l'intégralité du parcours IMPORT TO-BE (diagramme Virtual Billing Office). Les vrais écarts restants sont :
