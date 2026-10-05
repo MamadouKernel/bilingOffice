@@ -49,6 +49,34 @@ else
         @((MarkupString)Loc["NotifAdm.Warning"].Value)
     </div>
 
+    <div class="card shadow-sm border-0 mt-4 mb-3">
+        <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">@Loc["NotifAdm.CreerRegleTitle"]</h3>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold" for="regle-evenement">@Loc["NotifAdm.EvenementLabel"]</label>
+                    <input id="regle-evenement" class="form-control form-control-sm" @bind="_nouvEvtRegle" placeholder="@Loc["NotifAdm.EvenementPlaceholder"]" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold" for="regle-canal">@Loc["NotifAdm.CanalLabel"]</label>
+                    <select id="regle-canal" class="form-select form-select-sm" @bind="_nouvCanalRegle">
+                        <option value="InApp">@Loc["Canal.InApp"]</option>
+                        <option value="Email">@Loc["Canal.Email"]</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-center" style="height: 31px;">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="regle-oblig" @bind="_nouvObligatoire" />
+                        <label class="form-check-label small" for="regle-oblig">@Loc["NotifAdm.ObligatoireLabel"]</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-primary btn-sm w-100" @onclick="CreerRegleAsync">@Loc["Common.Add"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h3 class="h5 mt-4">@Loc["NotifAdm.ReglesTitle"]</h3>
     <FiltreTable Etat="_pagination1" AuChangement="StateHasChanged" />
     <div class="table-responsive shadow-sm">
@@ -89,6 +117,10 @@ else
                             }
                         </td>
                         <td class="text-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-1"
+                                    @onclick="() => DefinirObligatoireAsync(regle.Id, !regle.EstObligatoire)">
+                                @(regle.EstObligatoire ? Loc["NotifAdm.RendreDebrayable"] : Loc["NotifAdm.RendreObligatoire"])
+                            </button>
                             <button type="button" class="btn btn-outline-secondary btn-sm"
                                     @onclick="() => BasculerRegleAsync(regle.Id, !regle.EstActif)">
                                 @(regle.EstActif ? Loc["NotifAdm.Desactiver"] : Loc["NotifAdm.Activer"])
@@ -101,6 +133,36 @@ else
         <Pagination Etat="_pagination1" AuChangement="StateHasChanged" />
     </div>
 
+    <div class="card shadow-sm border-0 mt-4 mb-3">
+        <div class="card-body">
+            <h3 class="h6 fw-bold mb-3">@Loc["NotifAdm.CreerModeleTitle"]</h3>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold" for="modele-evt">@Loc["NotifAdm.EvenementLabel"]</label>
+                    <input id="modele-evt" class="form-control form-control-sm" @bind="_nouvEvtModele" placeholder="@Loc["NotifAdm.EvenementPlaceholder"]" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold" for="modele-canal">@Loc["NotifAdm.CanalLabel"]</label>
+                    <select id="modele-canal" class="form-select form-select-sm" @bind="_nouvCanalModele">
+                        <option value="InApp">@Loc["Canal.InApp"]</option>
+                        <option value="Email">@Loc["Canal.Email"]</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-primary btn-sm w-100" @onclick="CreerModeleAsync">@Loc["Common.Add"]</button>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold" for="modele-titre">@Loc["NotifAdm.TitreLabel"]</label>
+                    <input id="modele-titre" class="form-control form-control-sm" @bind="_nouvTitre" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold" for="modele-corps">@Loc["NotifAdm.CorpsLabel"]</label>
+                    <input id="modele-corps" class="form-control form-control-sm" @bind="_nouvCorps" />
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h3 class="h5 mt-4">@Loc["NotifAdm.ModelesTitle"]</h3>
     <FiltreTable Etat="_pagination2" AuChangement="StateHasChanged" />
     <div class="table-responsive shadow-sm">
@@ -111,6 +173,7 @@ else
                     <th scope="col">@Loc["NotifAdm.ColCanal"]</th>
                     <th scope="col">@Loc["NotifAdm.ColTitre"]</th>
                     <th scope="col">@Loc["NotifAdm.ColActif"]</th>
+                    <th scope="col" class="text-end">@Loc["NotifAdm.ColAction"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -119,14 +182,35 @@ else
                     <tr>
                         <td>@Loc.Evenement(modele.TypeEvenement)<div><code class="small text-muted">@modele.TypeEvenement</code></div></td>
                         <td>@Loc[$"Canal.{modele.Canal}"]</td>
-                        <td>
-                            @modele.GabaritTitre
-                            @if (modele.GabaritTitreEn is not null)
-                            {
-                                <div class="small text-muted">EN · @modele.GabaritTitreEn</div>
-                            }
-                        </td>
-                        <td>@(modele.EstActif ? Loc["NotifAdm.Oui"] : Loc["NotifAdm.Non"])</td>
+                        @if (_editModeleId == modele.Id)
+                        {
+                            <td>
+                                <input class="form-control form-control-sm mb-1" @bind="_editTitre" placeholder="@Loc["NotifAdm.TitreLabel"]" />
+                                <input class="form-control form-control-sm" @bind="_editCorps" placeholder="@Loc["NotifAdm.CorpsLabel"]" />
+                            </td>
+                            <td>@(modele.EstActif ? Loc["NotifAdm.Oui"] : Loc["NotifAdm.Non"])</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-primary btn-sm me-1" @onclick="EnregistrerModeleAsync">@Loc["Common.Save"]</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _editModeleId = null">@Loc["Common.Cancel"]</button>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @modele.GabaritTitre
+                                @if (modele.GabaritTitreEn is not null)
+                                {
+                                    <div class="small text-muted">EN · @modele.GabaritTitreEn</div>
+                                }
+                            </td>
+                            <td>@(modele.EstActif ? Loc["NotifAdm.Oui"] : Loc["NotifAdm.Non"])</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1" @onclick="() => CommencerEditionModele(modele)">@Loc["Common.Edit"]</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => BasculerModeleAsync(modele.Id, !modele.EstActif)">
+                                    @(modele.EstActif ? Loc["NotifAdm.Desactiver"] : Loc["NotifAdm.Activer"])
+                                </button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -144,6 +228,22 @@ else
     private bool _chargement = true;
     private string? _erreur;
     private ContexteUtilisateurVue? _contexte;
+
+    private string _nouvEvtRegle = string.Empty;
+    private string _nouvCanalRegle = "Email";
+    private bool _nouvObligatoire;
+
+    private string _nouvEvtModele = string.Empty;
+    private string _nouvCanalModele = "Email";
+    private string _nouvTitre = string.Empty;
+    private string _nouvCorps = string.Empty;
+
+    private Guid? _editModeleId;
+    private string _editTitre = string.Empty;
+    private string _editCorps = string.Empty;
+
+    private static CanalNotification Canal(string valeur) =>
+        valeur == "InApp" ? CanalNotification.InApp : CanalNotification.Email;
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
@@ -174,6 +274,61 @@ else
         try
         {
             await ReglesCommand.BasculerActivationAsync(_contexte!.UtilisateurId, regleId, actif);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private Task DefinirObligatoireAsync(Guid regleId, bool obligatoire) => ExecuterAsync(() =>
+        ReglesCommand.DefinirCaractereObligatoireAsync(_contexte!.UtilisateurId, regleId, obligatoire));
+
+    private Task CreerRegleAsync() => ExecuterAsync(async () =>
+    {
+        await ReglesCommand.CreerAsync(_contexte!.UtilisateurId, _nouvEvtRegle, Canal(_nouvCanalRegle), _nouvObligatoire);
+        _nouvEvtRegle = string.Empty;
+        _nouvObligatoire = false;
+    });
+
+    private Task CreerModeleAsync() => ExecuterAsync(async () =>
+    {
+        await ModelesCommand.CreerAsync(_contexte!.UtilisateurId, _nouvEvtModele, Canal(_nouvCanalModele), _nouvTitre, _nouvCorps);
+        _nouvEvtModele = string.Empty;
+        _nouvTitre = string.Empty;
+        _nouvCorps = string.Empty;
+    });
+
+    private void CommencerEditionModele(ModeleNotification modele)
+    {
+        _editModeleId = modele.Id;
+        _editTitre = modele.GabaritTitre;
+        _editCorps = modele.GabaritCorps;
+    }
+
+    private Task EnregistrerModeleAsync()
+    {
+        if (_editModeleId is not { } id)
+        {
+            return Task.CompletedTask;
+        }
+
+        return ExecuterAsync(async () =>
+        {
+            await ModelesCommand.ModifierAsync(_contexte!.UtilisateurId, id, _editTitre, _editCorps);
+            _editModeleId = null;
+        });
+    }
+
+    private Task BasculerModeleAsync(Guid modeleId, bool actif) => ExecuterAsync(() =>
+        ModelesCommand.BasculerActivationAsync(_contexte!.UtilisateurId, modeleId, actif));
+
+    private async Task ExecuterAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
             await ChargerAsync();
         }
         catch (Exception ex)

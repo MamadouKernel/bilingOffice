@@ -39,7 +39,15 @@ public sealed class RecSce14CloisonnementCompteTests(PlateformeWebApplicationFac
         var demandeurId = CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(
             dbContext, Guid.NewGuid(), CIT.Plateforme.Domain.Securite.NatureUtilisateur.Client);
         await dbContext.SaveChangesAsync();
-        var societe = await soumettre.ExecuterAsync(new SoumettreDemandeCompteRequete(demandeurId, raisonSociale, TypeClient.Normal));
+        // RCCM, DFE et CNI du représentant sont obligatoires par défaut (amorçage) : on joint des
+        // justificatifs factices pour que la soumission passe le contrôle de complétude.
+        var justificatifs = new[]
+        {
+            new JustificatifDepose("RCCM", "rccm.pdf", "application/pdf", 1024, $"test/{Guid.NewGuid()}"),
+            new JustificatifDepose("DFE", "dfe.pdf", "application/pdf", 1024, $"test/{Guid.NewGuid()}"),
+            new JustificatifDepose("CNI_REP", "cni.pdf", "application/pdf", 1024, $"test/{Guid.NewGuid()}"),
+        };
+        var societe = await soumettre.ExecuterAsync(new SoumettreDemandeCompteRequete(demandeurId, raisonSociale, TypeClient.Normal, justificatifs));
         await validerOuRejeter.ValiderAsync(societe.Id, administrateurFonctionnelId);
 
         return societe;
