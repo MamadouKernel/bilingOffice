@@ -66,6 +66,7 @@ public sealed class ValiderTicketImportCommand(
         }
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketImportValide", $"typeClient={typeClient}", agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketValide", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "TicketImportValide", nameof(Ticket), ticket.Id, null, typeClient.ToString(), ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

@@ -43,6 +43,7 @@ public sealed class ConfirmerLettrageCommand(
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "LettrageConfirme", null, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("PaiementConfirme", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "LettrageConfirme", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

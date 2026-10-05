@@ -31,8 +31,11 @@ public sealed class ProvisionnementNotificationsTests
         Assert.True(await contexte.ModelesNotification.AnyAsync(m => m.TypeEvenement == "CompteValide" && m.Canal == CanalNotification.Email));
     }
 
+    /// <summary>Un type déjà paramétré par un administrateur n'est jamais retouché (ici : e-mail
+    /// volontairement absent sur TicketCree), mais une base en service reçoit les types ajoutés
+    /// depuis — sinon les nouvelles étapes du parcours n'auraient jamais été notifiées en prod.</summary>
     [Fact]
-    public async Task Le_parametrage_d_un_administrateur_n_est_jamais_reecrit()
+    public async Task Une_base_en_service_recoit_les_nouveaux_types_sans_toucher_au_parametrage_existant()
     {
         await using var contexte = BaseNeuve();
         contexte.ReglesDiffusion.Add(RegleDiffusion.Creer("TicketCree", CanalNotification.InApp, true));
@@ -40,6 +43,12 @@ public sealed class ProvisionnementNotificationsTests
 
         await new ProvisionnementNotifications(contexte, NullLogger<ProvisionnementNotifications>.Instance).ExecuterAsync();
 
-        Assert.Equal(1, await contexte.ReglesDiffusion.CountAsync());
+        Assert.Equal(1, await contexte.ReglesDiffusion.CountAsync(r => r.TypeEvenement == "TicketCree"));
+        foreach (var type in new[] { "TicketValide", "TicketRejete", "DraftInExportEmis", "PaiementConfirme", "PreuvePaiementRefusee", "TicketCloture", "ComplementDemande" })
+        {
+            Assert.True(await contexte.ReglesDiffusion.AnyAsync(r => r.TypeEvenement == type && r.Canal == CanalNotification.Email), type);
+            var modele = await contexte.ModelesNotification.SingleAsync(m => m.TypeEvenement == type && m.Canal == CanalNotification.InApp);
+            Assert.False(string.IsNullOrWhiteSpace(modele.GabaritTitreEn), type);
+        }
     }
 }

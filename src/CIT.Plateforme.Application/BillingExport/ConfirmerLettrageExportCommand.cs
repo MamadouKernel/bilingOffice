@@ -37,6 +37,7 @@ public sealed class ConfirmerLettrageExportCommand(
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "LettrageExportConfirme", null, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("PaiementConfirme", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "LettrageExportConfirme", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

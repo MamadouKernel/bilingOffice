@@ -62,6 +62,7 @@ public sealed class ConstaterJointureIesEtFinaliserCommand(
         ticket.Cloturer(MotifClotureType.Normale, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticketId, "TicketIesCloture", null, auteurId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketCloture", $"{{\"ticketId\":\"{ticketId}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(auteurId, "TicketIesCloture", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

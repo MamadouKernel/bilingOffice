@@ -35,6 +35,14 @@ public sealed class ResolveurClientDuDossier(
         "TicketTransfere",       // TRF-05 — CDC-EXIGENCE
         "RelanceEmise",          // CYC-04 (mécanisme F001) + COM-06 (canal, Could)
         "TicketIncidentResolu",  // Support IT — le déclarant est informé de la résolution de son incident
+        // Parcours Billing IMPORT / EXPORT (05/10/2026) : le client est informé de CHAQUE étape,
+        // pas seulement de la création et de la facture.
+        "TicketValide",
+        "TicketRejete",
+        "DraftInExportEmis",
+        "PaiementConfirme",
+        "PreuvePaiementRefusee",
+        "TicketCloture",
         // Enrôlement (03/10/2026) : ces règles existaient mais aucun résolveur ne les servait —
         // badge remis, badge bientôt expiré, document de flotte bientôt expiré.
         "BadgeRemisEtDossierCloture",

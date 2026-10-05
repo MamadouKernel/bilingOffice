@@ -34,6 +34,7 @@ public sealed class ValiderPreuvePaiementExportCommand(
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "PaiementExportValide", null, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("PaiementConfirme", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "PaiementExportValide", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
@@ -57,6 +58,7 @@ public sealed class ValiderPreuvePaiementExportCommand(
         ticket.MettreEnAttenteClient(maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "PreuvePaiementExportRefusee", motif, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("PreuvePaiementRefusee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "PreuvePaiementExportRefusee", nameof(Ticket), ticket.Id, null, motif, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

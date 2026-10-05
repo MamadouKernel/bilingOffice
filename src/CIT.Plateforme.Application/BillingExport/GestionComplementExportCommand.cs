@@ -32,6 +32,7 @@ public sealed class GestionComplementExportCommand(
         ticket.MettreEnAttenteClient(maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ComplementDemandeExport", elementsAttendus, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("ComplementDemande", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ComplementDemandeExport", nameof(Ticket), ticket.Id, null, elementsAttendus, ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }

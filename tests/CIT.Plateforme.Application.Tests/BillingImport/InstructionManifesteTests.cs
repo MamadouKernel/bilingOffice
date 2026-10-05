@@ -88,6 +88,7 @@ public sealed class InstructionManifesteTests
         var ticketId = soumission.TicketsCrees[0].Id;
 
         await c.Rejeter.ExecuterAsync(c.AgentId, ticketId, "Document manquant");
+        Assert.Contains(c.DbContext.JournalEvenements, e => e.TypeEvenement == "TicketRejete" && e.ChargeUtile.Contains(ticketId.ToString()));
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.Equal(StatutTicket.Annule, ticket!.Statut);

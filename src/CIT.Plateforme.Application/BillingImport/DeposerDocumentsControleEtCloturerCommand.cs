@@ -35,6 +35,7 @@ public sealed class DeposerDocumentsControleEtCloturerCommand(
         ticket.Cloturer(MotifClotureType.Normale, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ControleDocumentaireEtClotureImport", nomFichier, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketCloture", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ControleDocumentaireEtClotureImport", nameof(Ticket), ticket.Id, null, nomFichier, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

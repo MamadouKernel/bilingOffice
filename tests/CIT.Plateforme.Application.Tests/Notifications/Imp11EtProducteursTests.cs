@@ -103,7 +103,22 @@ public class Imp11EtProducteursTests
         // incident technique, comme toute création de ticket. Producteur délibéré, nommé ci-dessous.
         // 31e producteur (03/10/2026) — RappelerEcheancesDocumentsCommand : rappel avant échéance
         // du permis, de l'assurance ou de la visite technique déclarés à l'enrôlement de flotte.
-        Assert.Equal(31, fichiersProducteurs.Count);
+        // 32e à 46e producteurs (05/10/2026) — parcours Billing IMPORT / EXPORT : le client est
+        // notifié à chaque étape (validation, rejet, complément, paiement confirmé ou refusé,
+        // clôture) et la création d'un ticket export publie TicketCree comme l'import.
+        Assert.Equal(46, fichiersProducteurs.Count);
+        foreach (var producteur in new[]
+        {
+            "SoumettreDemandeExportCommand.cs", "ValiderTicketImportCommand.cs", "ValiderTicketExportCommand.cs",
+            "RejeterTicketImportCommand.cs", "RejeterTicketExportCommand.cs", "GestionComplementManifesteCommand.cs",
+            "GestionComplementExportCommand.cs", "ValiderPreuvePaiementCommand.cs", "ValiderPreuvePaiementExportCommand.cs",
+            "ConfirmerLettrageCommand.cs", "ConfirmerLettrageExportCommand.cs", "DeposerDocumentsControleEtCloturerCommand.cs",
+            "FinaliserControleDocumentaireExportCommand.cs", "ConstaterJointureIesEtFinaliserCommand.cs",
+            "ConstaterJointureIesExportEtFinaliserCommand.cs",
+        })
+        {
+            Assert.Contains(producteur, fichiersProducteurs);
+        }
         Assert.Contains("RappelerEcheancesDocumentsCommand.cs", fichiersProducteurs);
         Assert.Contains("IncidentCommands.cs", fichiersProducteurs);
         Assert.Contains("SoumettreEnrolementSocieteCommand.cs", fichiersProducteurs);

@@ -39,6 +39,7 @@ public sealed class FinaliserControleDocumentaireExportCommand(
         ticket.Cloturer(MotifClotureType.Normale, maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ControleDocumentaireEtClotureExport", nomFichier, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketCloture", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ControleDocumentaireEtClotureExport", nameof(Ticket), ticket.Id, null, nomFichier, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

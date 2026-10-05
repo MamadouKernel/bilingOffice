@@ -175,6 +175,7 @@ public sealed class CircuitClientNormalTests
         var ticketApresRefus = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.Equal(StatutTicket.EnAttenteClient, ticketApresRefus!.Statut);
         Assert.NotEqual(StatutTicket.Annule, ticketApresRefus.Statut);
+        Assert.Contains(c.DbContext.JournalEvenements, e => e.TypeEvenement == "PreuvePaiementRefusee" && e.ChargeUtile.Contains(ticketId.ToString()));
 
         // Le client peut déposer une nouvelle preuve — jamais bloqué par un rejet définitif.
         using var preuveCorrigee = Contenu("preuve-corrigee");
@@ -203,6 +204,10 @@ public sealed class CircuitClientNormalTests
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
         Assert.Equal(StatutTicket.Cloture, ticket!.Statut);
         Assert.Equal(MotifClotureType.Normale, ticket.MotifCloture);
+
+        // Le client est notifié à CHAQUE étape du parcours (05/10/2026).
+        var evenements = c.DbContext.JournalEvenements.Where(e => e.ChargeUtile.Contains(ticketId.ToString())).Select(e => e.TypeEvenement).ToList();
+        Assert.All(["TicketCree", "TicketValide", "FactureEditee", "PaiementConfirme", "TicketCloture"], t => Assert.Contains(t, evenements));
     }
 
     /// <summary>IMP-12 — le client paie hors portail puis joint sa preuve au ticket : la pièce est

@@ -30,6 +30,7 @@ public sealed class RejeterTicketExportCommand(
         ticket.RejeterExport(horloge.MaintenantUtc);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "RejetBackOfficeExport", motifRejet, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketRejete", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "RejetBackOfficeExport", nameof(Ticket), ticket.Id, null, motifRejet, ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }

@@ -127,5 +127,9 @@ public sealed class CircuitClientNormalExportTests
         Assert.NotNull(ticketCloture);
         Assert.Equal(StatutTicket.Cloture, ticketCloture.Statut);
         Assert.Equal(MotifClotureType.Normale, ticketCloture.MotifCloture);
+
+        // Le client est notifié à CHAQUE étape du parcours (05/10/2026).
+        var evenements = c.DbContext.JournalEvenements.Where(e => e.ChargeUtile.Contains(ticket.Id.ToString())).Select(e => e.TypeEvenement).ToList();
+        Assert.All(["TicketCree", "TicketValide", "DraftInExportEmis", "FactureEditee", "PaiementConfirme", "TicketCloture"], t => Assert.Contains(t, evenements));
     }
 }

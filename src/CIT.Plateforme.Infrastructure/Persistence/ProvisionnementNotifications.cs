@@ -56,6 +56,20 @@ public sealed class ProvisionnementNotifications(
         ("BadgeRemisEtDossierCloture", CanalNotification.Email, false, "Vos cartes / BAT sont prêts"),
         ("TicketIncidentResolu", CanalNotification.InApp, false, "Votre incident technique a été résolu"),
         ("TicketIncidentResolu", CanalNotification.Email, false, "Votre incident technique a été résolu"),
+
+        // Parcours Billing IMPORT / EXPORT (05/10/2026) : chaque étape est notifiée au client.
+        ("TicketValide", CanalNotification.InApp, false, "Votre demande a été validée"),
+        ("TicketValide", CanalNotification.Email, false, "Votre demande a été validée"),
+        ("TicketRejete", CanalNotification.InApp, false, "Votre demande a été rejetée"),
+        ("TicketRejete", CanalNotification.Email, false, "Votre demande a été rejetée"),
+        ("DraftInExportEmis", CanalNotification.InApp, false, "Votre Draft IN est disponible"),
+        ("DraftInExportEmis", CanalNotification.Email, false, "Votre Draft IN est disponible"),
+        ("PaiementConfirme", CanalNotification.InApp, false, "Votre paiement a été confirmé"),
+        ("PaiementConfirme", CanalNotification.Email, false, "Votre paiement a été confirmé"),
+        ("PreuvePaiementRefusee", CanalNotification.InApp, false, "Votre preuve de paiement a été refusée"),
+        ("PreuvePaiementRefusee", CanalNotification.Email, false, "Votre preuve de paiement a été refusée"),
+        ("TicketCloture", CanalNotification.InApp, false, "Votre dossier est clôturé"),
+        ("TicketCloture", CanalNotification.Email, false, "Votre dossier est clôturé"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -72,17 +86,31 @@ public sealed class ProvisionnementNotifications(
         ["Un document de votre flotte arrive à échéance"] = "A document of your fleet is about to expire",
         ["Vos cartes / BAT sont prêts"] = "Your cards / BAT are ready",
         ["Votre incident technique a été résolu"] = "Your technical incident has been resolved",
+        ["Votre demande a été validée"] = "Your request has been approved",
+        ["Votre demande a été rejetée"] = "Your request has been rejected",
+        ["Votre Draft IN est disponible"] = "Your Draft IN is available",
+        ["Votre paiement a été confirmé"] = "Your payment has been confirmed",
+        ["Votre preuve de paiement a été refusée"] = "Your proof of payment was refused",
+        ["Votre dossier est clôturé"] = "Your file is closed",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
         await CompleterAnglaisAsync(ct).ConfigureAwait(false);
-        if (await contexte.ReglesDiffusion.AnyAsync(ct).ConfigureAwait(false))
+
+        // Approvisionnement PAR TYPE d'événement : une base déjà en service reçoit les types ajoutés
+        // depuis (sinon, une seule règle existante suffisait à ne jamais créer les nouvelles). Un
+        // type déjà paramétré n'est jamais retouché — une règle ne se supprime pas, elle se
+        // désactive, donc « aucune règle » signifie bien « jamais paramétré ».
+        var typesParametres = (await contexte.ReglesDiffusion.Select(r => r.TypeEvenement).Distinct().ToListAsync(ct).ConfigureAwait(false))
+            .ToHashSet(StringComparer.Ordinal);
+        var aCreer = Regles.Where(r => !typesParametres.Contains(r.Type)).ToList();
+        if (aCreer.Count == 0)
         {
             return;
         }
 
-        foreach (var (type, canal, obligatoire, objet) in Regles)
+        foreach (var (type, canal, obligatoire, objet) in aCreer)
         {
             contexte.ReglesDiffusion.Add(RegleDiffusion.Creer(type, canal, obligatoire));
 
@@ -95,7 +123,7 @@ public sealed class ProvisionnementNotifications(
         }
 
         await contexte.SaveChangesAsync(ct).ConfigureAwait(false);
-        journal.LogInformation("{Nombre} règle(s) de diffusion de départ approvisionnée(s).", Regles.Length);
+        journal.LogInformation("{Nombre} règle(s) de diffusion de départ approvisionnée(s).", aCreer.Count);
     }
 
     // Une décision de compte ne référence aucun ticket : y renvoyer serait un contresens.
@@ -103,6 +131,12 @@ public sealed class ProvisionnementNotifications(
     {
         "CompteValide" => $"{objet}. Vous pouvez désormais vous connecter à YABA avec l'adresse e-mail et le mot de passe choisis lors de votre demande.",
         "CompteRejete" => $"{objet}. Pour en connaître le motif, contactez le Billing Office de CIT ; vous pouvez déposer une nouvelle demande.",
+        "TicketValide" => $"{objet}. Le ticket {{numeroTicket}} a passé le contrôle et poursuit son traitement.",
+        "TicketRejete" => $"{objet}. Le motif du rejet est indiqué sur le ticket {{numeroTicket}}.",
+        "DraftInExportEmis" => $"{objet}. Consultez-le sur le ticket {{numeroTicket}} avant l'édition de la facture.",
+        "PaiementConfirme" => $"{objet}. Le ticket {{numeroTicket}} passe au contrôle documentaire.",
+        "PreuvePaiementRefusee" => $"{objet}. Le motif est indiqué sur le ticket {{numeroTicket}} : déposez une nouvelle preuve.",
+        "TicketCloture" => $"{objet}. Le détail et vos documents éventuels sont sur le ticket {{numeroTicket}}.",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
 
@@ -110,6 +144,12 @@ public sealed class ProvisionnementNotifications(
     {
         "CompteValide" => $"{objet}. You can now sign in to YABA with the e-mail address and password chosen in your request.",
         "CompteRejete" => $"{objet}. To find out why, contact the CIT Billing Office; you may submit a new request.",
+        "TicketValide" => $"{objet}. Ticket {{numeroTicket}} passed the check and is moving forward.",
+        "TicketRejete" => $"{objet}. The reason is given on ticket {{numeroTicket}}.",
+        "DraftInExportEmis" => $"{objet}. Review it on ticket {{numeroTicket}} before the invoice is issued.",
+        "PaiementConfirme" => $"{objet}. Ticket {{numeroTicket}} moves on to the document check.",
+        "PreuvePaiementRefusee" => $"{objet}. The reason is given on ticket {{numeroTicket}}: please upload a new proof.",
+        "TicketCloture" => $"{objet}. Details and any documents are on ticket {{numeroTicket}}.",
         _ => $"{objet}. See the related ticket for details.",
     };
 

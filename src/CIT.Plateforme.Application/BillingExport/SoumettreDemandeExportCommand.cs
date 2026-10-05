@@ -124,6 +124,8 @@ public sealed class SoumettreDemandeExportCommand(
             ticketsCrees.Add(ticket);
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketExportCree", $"numeroBooking={numeroBooking}", requete.AuteurId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(requete.AuteurId, "TicketExportCree", nameof(Ticket), ticket.Id, null, numeroBooking, ct).ConfigureAwait(false);
+            await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
+            await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
         }
 
         return new SoumettreDemandeExportResultat(dossier, ticketsCrees, bookingRefuses);

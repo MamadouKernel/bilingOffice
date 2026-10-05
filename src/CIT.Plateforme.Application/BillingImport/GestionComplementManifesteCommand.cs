@@ -44,6 +44,7 @@ public sealed class GestionComplementManifesteCommand(
         ticket.MettreEnAttenteClient(maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ComplementDemandeImport", elementsAttendus, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("ComplementDemande", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ComplementDemandeImport", nameof(Ticket), ticket.Id, null, elementsAttendus, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

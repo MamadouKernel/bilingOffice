@@ -34,6 +34,7 @@ public sealed class RejeterTicketImportCommand(
         ticket.RejeterImport(maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketImportRejete", motif, agentId, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketRejete", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "TicketImportRejete", nameof(Ticket), ticket.Id, null, motif, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
