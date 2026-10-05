@@ -1,10 +1,13 @@
-# Évaluation de la couverture du cahier des charges YABA — 02/10/2026
+# Évaluation de la couverture du cahier des charges YABA — révisé le 05/10/2026
+
+> Version initiale : 02/10/2026. Révision du 05/10/2026 : intègre les lots livrés les 03→05/10
+> (voir « Mise à jour 05/10 » en fin de document) et rafraîchit les compteurs de tests.
 
 ## Méthode (à lire avant les chiffres)
 
 - Chaque exigence numérotée du CDC (sections 8 à 21) a été recherchée dans `src/` et `tests/`. Le code porte les identifiants d'exigence en commentaire.
 - Les zones douteuses ont été vérifiées en lisant le code : antivirus, canaux mobiles, IA, affectation automatique, horaires ouvrés, 2FA, API.
-- Suites de tests sur `main` propre : Domain 286/286, Application 1011/1011, Web 519/519.
+- Suites de tests sur `main` propre au 05/10 : Domain 303/303, Application 1100/1100, Infrastructure 210/210, Web 546/546 (**2159 tests, 0 échec**).
 - « Implémenté » signifie que le code et des tests automatisés existent. Cela ne veut **pas** dire que la recette métier (§22) a été jouée : aucun PV de recette n'existe à ce jour.
 
 **Légende des statuts**
@@ -57,16 +60,30 @@
 | §22 Recette | ⛔ | Le cahier de recette v1.4 et les guides sont prêts, mais **aucun scénario n'a été joué ni signé**. | Campagne de recette et PV. |
 | §24 Livrables | 🟡 | Conception, MOT, cahier de recette et guides : livrés. PV et documentation d'exploitation validée : manquants. | |
 
-## Incident en cours
+## Incident du 02/10 — clos
 
-Le 02/10/2026, les clients ne peuvent plus se connecter en production. Le diagnostic est en attente du motif enregistré dans `JournalAudit`.
+L'incident de connexion en production du 02/10 est résolu (correctifs des 02→05/10 : provisionnement du paramétrage métier au démarrage, règle de langue unique, localisation de la proforma). Plus aucun blocage de connexion ouvert au 05/10.
+
+## Mise à jour 05/10/2026 — lots livrés depuis la v1
+
+Tous sur `main`, couverts par les 2159 tests verts.
+
+- **Proforma dans le ticket (import/export)** : dépôt, validation/correction client, facture conditionnée à la proforma, date d'enlèvement souhaitée, encaissement saisi par la caisse (moyen + référence), preuve de paiement relançant le traitement, étapes métier visibles par le client. Exigence proforma rendue **paramétrable** (Paramètres plateforme > Facturation).
+- **Contrôle d'affectation « qui prend en charge, traite »** (SEC-02/03, PEC) : actions métier réservées à l'agent affecté et aux superviseurs ; fiche en lecture seule + badge « Pris en charge par » pour les autres ; étendu à **tous les modules** (enrôlement, incidents IT, réclamations, avoirs/exonérations, attente client, annulation).
+- **Transfert / escalade / (ré)affectation depuis la fiche** (TRF, WKF, ALE) : files et motifs bornés par la matrice ; escalade motivée notifiée aux superviseurs de la file ; (ré)affectation parmi les agents habilités avec leur charge ; matrice et motifs approvisionnés.
+- **Cycle de vie complet** (CYC) : réouverture, clôture pour absence de réponse, annulation directe ou demande d'annulation selon l'étape, finalisation présentielle (IMP-15), finalisation au Billing Office côté client.
+- **Enrôlement transporteurs** : pièces exigées par type de compte (agrément de transport), échéances permis/assurance/visite technique avec rappel, dossiers de flotte, notifications d'enrôlement.
+- **Continuité guichet** : « Ouvrir un dossier au guichet » pour un client walk-in sans ticket en ligne ; confirmation du ticket de file physique au rendez-vous ; lien vers le système de file physique.
+- **Exploitation** (hors CDC fonctionnel, voir aussi NFR-06) : journaux Serilog sur fichier rotatif ; pipeline CI GitHub Actions (build + test sur push/PR) ; secret de connexion retiré de la configuration versionnée.
+
+Aucune régression de périmètre : les écarts du tableau ci-dessus restent les mêmes (SMS/WhatsApp, IA générative, exploitation réelle, recette signée).
 
 ## Conclusion
 
-**Fonctionnellement, environ 90 % du CDC est développé et testé**, dont tout le socle prioritaire Billing Office. Les vrais écarts sont :
-1. le SMS/WhatsApp ;
-2. l'IA générative ;
-3. la sécurité d'exploitation (certificat, `sa`, antivirus à confirmer) ;
-4. les preuves en environnement réel, dont la recette signée.
+**Fonctionnellement, ~91 % du CDC est développé et testé**, dont la totalité du socle prioritaire Billing Office et l'intégralité du parcours IMPORT TO-BE (diagramme Virtual Billing Office). Les vrais écarts restants sont :
+1. le SMS/WhatsApp (hors périmètre retenu) ;
+2. l'IA générative (choix assumé : base de connaissances + orientation, sans génération libre) ;
+3. la sécurité d'exploitation (certificat IIS, remplacement du compte `sa`, antivirus à confirmer sur `/ready`) ;
+4. les preuves en environnement réel, dont la recette signée du §22.
 
 Tant que la recette du §22 n'est pas exécutée, la plateforme ne peut pas être déclarée conforme au CDC.
