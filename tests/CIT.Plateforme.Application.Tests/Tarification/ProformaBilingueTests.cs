@@ -26,6 +26,32 @@ public sealed class ProformaBilingueTests
         Assert.Equal(MontantFrancsCfa.EnLettres(1000), AvecCulture("fr-FR", () => TexteProforma.MontantEnLettres(1000)));
     }
 
+    /// <summary>
+    /// NON-RÉGRESSION 05/10/2026 — proforma restée en français sous une interface anglaise en prod :
+    /// l'interface testait le NOM de culture (« en… »), la proforma <c>TwoLetterISOLanguageName</c>,
+    /// non fiable selon les données de culture du serveur. Une seule règle : LangueCourante.EnAnglais.
+    /// </summary>
+    [Fact]
+    public void Aucune_detection_de_langue_ne_contourne_LangueCourante()
+    {
+        var racine = new DirectoryInfo(AppContext.BaseDirectory);
+        while (racine is not null && !Directory.Exists(Path.Combine(racine.FullName, "src")))
+        {
+            racine = racine.Parent;
+        }
+
+        Assert.NotNull(racine);
+        var fautifs = Directory.EnumerateFiles(Path.Combine(racine!.FullName, "src"), "*.*", SearchOption.AllDirectories)
+            .Where(f => (f.EndsWith(".cs", StringComparison.Ordinal) || f.EndsWith(".razor", StringComparison.Ordinal))
+                        && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                        && !f.EndsWith("LangueCourante.cs", StringComparison.Ordinal)
+                        && File.ReadAllText(f).Contains("TwoLetterISOLanguageName", StringComparison.Ordinal))
+            .Select(Path.GetFileName)
+            .ToList();
+
+        Assert.Empty(fautifs);
+    }
+
     private static string AvecCulture(string culture, Func<string> action)
     {
         var precedente = CultureInfo.CurrentUICulture;
