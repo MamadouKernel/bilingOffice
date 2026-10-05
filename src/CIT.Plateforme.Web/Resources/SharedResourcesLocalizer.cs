@@ -13,6 +13,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // Common
         ["Common.AppTitle"] = "YABA",
         ["Common.Save"] = "Enregistrer",
+        ["Common.Edit"] = "Éditer",
         ["Common.Cancel"] = "Annuler",
         ["Common.Back"] = "Retour",
         ["Common.Submit"] = "Soumettre",
@@ -3476,6 +3477,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // Common
         ["Common.AppTitle"] = "YABA",
         ["Common.Save"] = "Save",
+        ["Common.Edit"] = "Edit",
         ["Common.Cancel"] = "Cancel",
         ["Common.Back"] = "Back",
         ["Common.Submit"] = "Submit",

@@ -132,54 +132,84 @@ else
                         @foreach (var piece in _pagination1.Appliquer(_pieces.OrderBy(p => p.Ordre)))
                         {
                             <tr>
-                                <td class="ps-4 font-monospace fw-bold text-muted">#@piece.Ordre</td>
-                                <td>
-                                    <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">
-                                        @piece.Code
-                                    </span>
-                                </td>
-                                <td class="fw-semibold text-dark">
-                                    @piece.Libelle
-                                    @if (piece.TypeClientCible is { } cible)
-                                    {
-                                        <span class="badge bg-warning bg-opacity-25 text-dark ms-1">@Loc[$"ProfilClient.{cible}"]</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (piece.Obligatoire)
-                                    {
-                                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1 rounded-pill">
-                                            @Loc["AdmPieceC.Mandatory"]
+                                @if (_editId == piece.Id)
+                                {
+                                    <td class="ps-4"><input type="number" class="form-control form-control-sm" style="width: 72px;" @bind="_editOrdre" /></td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">@piece.Code</span>
+                                    </td>
+                                    <td><input class="form-control form-control-sm" @bind="_editLibelle" /></td>
+                                    <td>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="edit-oblig-@piece.Id" @bind="_editObligatoire" />
+                                            <label class="form-check-label small" for="edit-oblig-@piece.Id">@Loc["AdmPieceC.Obligatoire"]</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(piece.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                            @(piece.EstActif ? Loc["AdmPieceC.StateActive"] : Loc["AdmPieceC.StateDisabled"])
                                         </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill">
-                                            @Loc["AdmPieceC.Optional"]
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 me-1" @onclick="EnregistrerEditionAsync">@Loc["Common.Save"]</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" @onclick="AnnulerEdition">@Loc["Common.Cancel"]</button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="ps-4 font-monospace fw-bold text-muted">#@piece.Ordre</td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">
+                                            @piece.Code
                                         </span>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="badge @(piece.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
-                                        @(piece.EstActif ? Loc["AdmPieceC.StateActive"] : Loc["AdmPieceC.StateDisabled"])
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    @if (piece.EstActif)
-                                    {
-                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                                @onclick="() => BasculerAsync(piece.Id, false)">
-                                            @Loc["Common.Deactivate"]
+                                    </td>
+                                    <td class="fw-semibold text-dark">
+                                        @piece.Libelle
+                                        @if (piece.TypeClientCible is { } cible)
+                                        {
+                                            <span class="badge bg-warning bg-opacity-25 text-dark ms-1">@Loc[$"ProfilClient.{cible}"]</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (piece.Obligatoire)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1 rounded-pill">
+                                                @Loc["AdmPieceC.Mandatory"]
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill">
+                                                @Loc["AdmPieceC.Optional"]
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge @(piece.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                            @(piece.EstActif ? Loc["AdmPieceC.StateActive"] : Loc["AdmPieceC.StateDisabled"])
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 me-1"
+                                                @onclick="() => CommencerEdition(piece)">
+                                            @Loc["Common.Edit"]
                                         </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3"
-                                                @onclick="() => BasculerAsync(piece.Id, true)">
-                                            @Loc["Common.Reactivate"]
-                                        </button>
-                                    }
-                                </td>
+                                        @if (piece.EstActif)
+                                        {
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                    @onclick="() => BasculerAsync(piece.Id, false)">
+                                                @Loc["Common.Deactivate"]
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                                    @onclick="() => BasculerAsync(piece.Id, true)">
+                                                @Loc["Common.Reactivate"]
+                                            </button>
+                                        }
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -205,6 +235,11 @@ else
     private bool _obligatoire = true;
     private int _ordre = 1;
     private string _typeCible = string.Empty;
+
+    private Guid? _editId;
+    private string _editLibelle = string.Empty;
+    private bool _editObligatoire;
+    private int _editOrdre;
 
     protected override async Task OnInitializedAsync()
     {
@@ -272,4 +307,29 @@ else
         var gererPieces = sp.GetRequiredService<GererPiecesExigeesCommand>();
         return gererPieces.DefinirActivationAsync(_appelantId, pieceId, actif);
     });
+
+    private void CommencerEdition(PieceExigeeVue piece)
+    {
+        _editId = piece.Id;
+        _editLibelle = piece.Libelle;
+        _editObligatoire = piece.Obligatoire;
+        _editOrdre = piece.Ordre;
+    }
+
+    private void AnnulerEdition() => _editId = null;
+
+    private Task EnregistrerEditionAsync()
+    {
+        if (_editId is not { } id)
+        {
+            return Task.CompletedTask;
+        }
+
+        return ExecuterAsync(async sp =>
+        {
+            var gererPieces = sp.GetRequiredService<GererPiecesExigeesCommand>();
+            await gererPieces.ModifierAsync(_appelantId, id, _editLibelle, _editObligatoire, _editOrdre);
+            _editId = null;
+        });
+    }
 }
