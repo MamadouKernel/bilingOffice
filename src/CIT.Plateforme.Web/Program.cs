@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
+using Serilog;
 using CIT.Plateforme.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using CIT.Plateforme.Web.Components;
@@ -15,6 +16,20 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// JOURNALISATION PERSISTANTE (reco exploitation) — sur IIS, les logs console par defaut sont
+// perdus. Serilog ecrit un fichier rotatif quotidien (logs/yaba-AAAAMMJJ.log, retention 31 jours)
+// en plus de la console. Le gabarit inclut {Properties:j} : tout log structure (ex. {TicketId})
+// devient greppable pour correler un incident. Niveau minimal lu dans la section "Logging".
+builder.Host.UseSerilog((context, config) => config
+    .ReadFrom.Configuration(context.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        System.IO.Path.Combine(context.HostingEnvironment.ContentRootPath, "logs", "yaba-.log"),
+        rollingInterval: Serilog.RollingInterval.Day,
+        retainedFileCountLimit: 31,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
 
 // Durcissement : ne pas divulguer le serveur applicatif (« Server: Kestrel ») — information
 // d'empreinte inutile à un client légitime, utile à un attaquant pour cibler des CVE.

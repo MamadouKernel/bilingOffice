@@ -63,3 +63,12 @@ scratch/
 
 # Secrets de production (hors depot) — utiliser le .template
 src/CIT.Plateforme.Web/appsettings.Production.json
+
+# Journaux applicatifs (Serilog, fichier rotatif) — jamais versionnes
+logs/
+**/logs/
+
+# Artefacts de deploiement locaux (bundles IIS, dumps de migration) — jamais versionnes
+.build-artifacts/
+deploy/*.zip
+deploy/*.sql
