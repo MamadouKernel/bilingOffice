@@ -65,6 +65,12 @@ public sealed class EditerFactureExportCommand(
                 $"La facture du ticket {ticket.Numero} ne peut être éditée avant l'émission du Draft IN (RG-EXP-03).");
         }
 
+        // Parcours TO BE (05/10/2026) : la facture définitive suit la proforma validée par le client.
+        if (ticket.EtatProforma != EtatProforma.Validee)
+        {
+            throw new BillingImport.ProformaNonValideeException(ticket.Numero);
+        }
+
         await deposerDocument.DeposerPourAgentAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
 
         var maintenant = horloge.MaintenantUtc;

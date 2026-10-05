@@ -16,8 +16,16 @@ public sealed class ValiderPreuvePaiementExportCommand(
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
-    public async Task ValiderAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
+    /// <summary>Confirme le paiement. La caisse saisit le moyen de règlement et la référence du reçu
+    /// ou de la transaction (rapprochement IRIS) — indispensables quand le client a payé au guichet
+    /// ou en banque sans déposer de preuve. Les deux vont ensemble.</summary>
+    public async Task ValiderAsync(Guid agentId, Guid ticketId, MoyenPaiement? moyen = null, string? reference = null, CancellationToken ct = default)
     {
+        if (moyen.HasValue != !string.IsNullOrWhiteSpace(reference))
+        {
+            throw new ArgumentException("Le moyen de paiement et la référence du reçu ou de la transaction se saisissent ensemble.", nameof(reference));
+        }
+
         var ticket = await ChargerEtAutoriserAsync(agentId, ticketId, ct).ConfigureAwait(false);
         var maintenant = horloge.MaintenantUtc;
 
@@ -33,9 +41,9 @@ public sealed class ValiderPreuvePaiementExportCommand(
 
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
 
-        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "PaiementExportValide", null, agentId, ct).ConfigureAwait(false);
+        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "PaiementExportValide", DetailReglement(moyen, reference), agentId, ct).ConfigureAwait(false);
         await journalisation.PublierEvenementAsync("PaiementConfirme", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
-        await journalisation.ConsignerAuditAsync(agentId, "PaiementExportValide", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
+        await journalisation.ConsignerAuditAsync(agentId, "PaiementExportValide", nameof(Ticket), ticket.Id, null, DetailReglement(moyen, reference), ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
@@ -63,6 +71,9 @@ public sealed class ValiderPreuvePaiementExportCommand(
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
+
+    private static string? DetailReglement(MoyenPaiement? moyen, string? reference) =>
+        moyen is MoyenPaiement m ? $"moyen={m}; ref={reference!.Trim()}" : null;
 
     private async Task<Ticket> ChargerEtAutoriserAsync(Guid agentId, Guid ticketId, CancellationToken ct)
     {

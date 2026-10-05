@@ -88,7 +88,7 @@ else
                             <th>@Loc["File.ColBl"]</th>
                             <th>@Loc["Societe.ColStatus"]</th>
                             <th>@Loc["File.ColArrival"]</th>
-                            <th>@Loc["FileFact.ColUploadInvoice"]</th>
+                            <th>@Loc["Proforma.ColProformaFacture"]</th>
                             <th class="text-end">@Loc["SimHist.ColAction"]</th>
                         </tr>
                     </thead>
@@ -113,9 +113,19 @@ else
                                     @t.DateArriveeEnFileUtc.Horodate()
                                 </td>
                                 <td>
-                                    <div class="d-flex align-items-center gap-2">
+                                    @if (t.EtatProforma == EtatProforma.Validee)
+                                    {
+                                        <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
                                         <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
-                                    </div>
+                                    }
+                                    else
+                                    {
+                                        <CelluleProforma Ticket="t" AgentId="_agentId" AvecDateEnlevement="true" Termine="ProformaTermineeAsync" />
+                                    }
+                                    @if (t.DateEnlevementSouhaitee is DateOnly enlevement)
+                                    {
+                                        <div class="small text-muted mt-1">🚚 @Loc["Proforma.EnlevementLe", enlevement.ToString("dd/MM/yyyy")]</div>
+                                    }
                                 </td>
                                 <td class="text-end">
                                     <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="@Loc["File.SheetTitle"]">
@@ -181,7 +191,7 @@ else
     private string _filtreStatut = string.Empty;
     private TriFileTicket _tri = TriFileTicket.DateArriveeCroissante;
     private static readonly StatutTicket[] _statutsFiltrables =
-        [StatutTicket.EnAttenteDePriseEnCharge, StatutTicket.EnCours];
+        [StatutTicket.EnAttenteDePriseEnCharge, StatutTicket.EnCours, StatutTicket.EnAttenteClient];
 
     protected override async Task OnInitializedAsync()
     {
@@ -218,7 +228,7 @@ else
             StatutTicket? statut = Enum.TryParse<StatutTicket>(_filtreStatut, out var s) ? s : null;
             var ticketsDeLaFile = await ConsulterFile.ExecuterAsync(
                 _agentId, NomsFiles.Facturation, [Permission.BillingImportFacturationEditer], statut, _tri);
-            _tickets = [.. ticketsDeLaFile.Where(t => statut is not null || t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours)];
+            _tickets = [.. ticketsDeLaFile.Where(t => statut is not null || t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours || t.Statut == StatutTicket.EnAttenteClient)];
             _erreur = false;
         }
         catch (AccesRefuseException ex)
@@ -233,6 +243,13 @@ else
             _message = MessagesUtilisateur.Pour(ex);
             _erreur = true;
         }
+    }
+
+    private async Task ProformaTermineeAsync((string Message, bool Erreur) resultat)
+    {
+        await ChargerAsync();
+        _message = resultat.Message;
+        _erreur = resultat.Erreur;
     }
 
     private async Task EditerFactureAsync(Guid ticketId, InputFileChangeEventArgs e)

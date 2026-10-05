@@ -1,0 +1,87 @@
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Domain.Documents
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceScopeFactory ScopeFactory
+
+@* Proforma dans le ticket (parcours TO BE) : le Pilote Facturation la dépose — à l'import, chiffrée
+   jusqu'à la date d'enlèvement retenue (le magasinage court jusqu'à la sortie) — puis attend la
+   réponse du client. La facture définitive ne s'ouvre qu'une fois la proforma validée. *@
+@switch (Ticket.EtatProforma)
+{
+    case EtatProforma.EnAttenteValidation:
+        <span class="badge bg-info text-dark">⏳ @Loc["Proforma.EnAttenteClient"]</span>
+        break;
+    default:
+        @if (Ticket.EtatProforma == EtatProforma.CorrectionDemandee)
+        {
+            <div class="mb-1"><a href="/tickets/@Ticket.Id" class="badge bg-warning text-dark text-decoration-none">✏️ @Loc["Proforma.CorrectionDemandee"]</a></div>
+        }
+        <div class="d-flex flex-column gap-1">
+            @if (AvecDateEnlevement)
+            {
+                <label class="small text-muted mb-0" for="@($"enl-{Ticket.Id}")">@Loc["Proforma.DateEnlevement"]</label>
+                <input id="@($"enl-{Ticket.Id}")" type="date" class="form-control form-control-sm" value="@_date?.ToString("yyyy-MM-dd")"
+                       min="@DateTime.Today.ToString("yyyy-MM-dd")" @onchange="e => _date = DateOnly.TryParse(e.Value?.ToString(), out var d) ? d : null" />
+            }
+            <label class="small text-muted mb-0" for="@($"pro-{Ticket.Id}")">@Loc["Proforma.Deposer"]</label>
+            <InputFile id="@($"pro-{Ticket.Id}")" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                       disabled="@(AvecDateEnlevement && _date is null)" OnChange="e => _fichier = e.File" />
+        </div>
+        break;
+}
+
+<ModaleConfirmation EstOuvert="@(_fichier is not null)"
+                    Titre="@Loc["Proforma.ConfirmTitre"]"
+                    Message="@(_fichier is { } f ? Loc["Proforma.ConfirmMessage", Ticket.Numero, f.Name, _date?.ToString("dd/MM/yyyy") ?? "—"].Value : string.Empty)"
+                    BoutonConfirmerLibelle="@Loc["Proforma.ConfirmBouton"]"
+                    BoutonConfirmerClass="btn-primary"
+                    Desactive="@_enCours"
+                    OnConfirmer="EmettreAsync"
+                    OnAnnuler="() => _fichier = null" />
+
+@code {
+    [Parameter, EditorRequired] public Ticket Ticket { get; set; } = default!;
+    [Parameter, EditorRequired] public Guid AgentId { get; set; }
+    [Parameter] public bool AvecDateEnlevement { get; set; }
+
+    /// <summary>Message de retour (succès ou erreur) remonté à la page de la file.</summary>
+    [Parameter] public EventCallback<(string Message, bool Erreur)> Termine { get; set; }
+
+    private static readonly ReglesDepotDocument Regles = new(["pdf", "jpg", "jpeg", "png"], 10 * 1024 * 1024);
+    private DateOnly? _date;
+    private IBrowserFile? _fichier;
+    private bool _enCours;
+
+    protected override void OnParametersSet() => _date ??= Ticket.DateEnlevementSouhaitee;
+
+    private async Task EmettreAsync()
+    {
+        if (_fichier is not { } fichier) return;
+        _enCours = true;
+        try
+        {
+            await using var flux = fichier.OpenReadStream(Regles.TailleMaxOctets);
+            await using var memoire = new MemoryStream();
+            await flux.CopyToAsync(memoire);
+            using var portee = ScopeFactory.CreateScope();
+            await portee.ServiceProvider.GetRequiredService<GestionProformaCommand>().EmettreAsync(AgentId, Ticket.Id, fichier.Name, fichier.ContentType, memoire, memoire.Length, Regles,
+                AvecDateEnlevement ? _date : null);
+            await Termine.InvokeAsync((Loc["Proforma.Emise"].Value, false));
+        }
+        catch (Exception ex)
+        {
+            await Termine.InvokeAsync((MessagesUtilisateur.Pour(ex), true));
+        }
+        finally
+        {
+            _enCours = false;
+            _fichier = null;
+        }
+    }
+}

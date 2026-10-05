@@ -96,13 +96,17 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["FilePay.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button type="button" class="btn btn-outline-success" @onclick="() => ValiderPaiementAsync(t.Id)">
+                                        <button type="button" class="btn btn-outline-success" @onclick="() => _ticketEnValidation = t.Id">
                                             @Loc["FilePay.Validate"]
                                         </button>
                                         <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirRefus(t.Id)">
                                             @Loc["FilePay.Refuse"]
                                         </button>
-                                    </div>
+                                                                        </div>
+                                    @if (_ticketEnValidation == t.Id)
+                                    {
+                                        <SaisieReglement OnConfirmer="r => ValiderPaiementAsync(t.Id, r.Moyen, r.Reference)" OnAnnuler="() => _ticketEnValidation = null" />
+                                    }
                                 </td>
                             </tr>
                             @if (_ticketEnRefus == t.Id)
@@ -198,12 +202,15 @@ else
         }
     }
 
-    private async Task ValiderPaiementAsync(Guid ticketId)
+    private Guid? _ticketEnValidation;
+
+    private async Task ValiderPaiementAsync(Guid ticketId, MoyenPaiement moyen, string reference)
     {
         _message = null;
         try
         {
-            await ValiderPreuve.ValiderAsync(_agentId, ticketId);
+            await ValiderPreuve.ValiderAsync(_agentId, ticketId, moyen, reference);
+            _ticketEnValidation = null;
             _message = Loc["FilePay.MsgValidated"].Value;
             _erreur = false;
             await ChargerAsync();

@@ -107,6 +107,7 @@ public sealed class CircuitClientDepositTests
     {
         var ticketId = await CreerEtValiderTicketAsync(c, numeroBl);
         using var facture = Contenu("facture");
+        await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         return ticketId;
     }

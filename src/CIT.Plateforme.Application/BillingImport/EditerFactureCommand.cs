@@ -33,6 +33,12 @@ public sealed class EditerFactureCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
+        // Parcours TO BE (05/10/2026) : la facture définitive suit la proforma validée par le client.
+        if (ticket.EtatProforma != EtatProforma.Validee)
+        {
+            throw new ProformaNonValideeException(ticket.Numero);
+        }
+
         await deposerDocument.DeposerPourAgentAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
 
         var dossier = await dossiers.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false)

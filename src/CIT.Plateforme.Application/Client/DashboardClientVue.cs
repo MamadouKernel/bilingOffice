@@ -11,7 +11,8 @@ public enum TypeActionRequise
     ComplementExport,
     PaiementAttendu,
     NouvellePreuveRequise,
-    ComplementReclamation
+    ComplementReclamation,
+    ProformaAValider
 }
 
 public sealed record ActionRequiseItemVue(
@@ -43,7 +44,9 @@ public sealed record TicketResumeVue(
     string? NumeroBl,
     StatutTicket Statut,
     DateTime DateDerniereActiviteUtc,
-    string? NumeroBooking = null
+    string? NumeroBooking = null,
+    /// <summary>Étape métier du parcours Billing (clé « Etape.* »), voir EtapeParcoursClient.</summary>
+    string? Etape = null
 );
 
 public sealed record DossierResumeVue(

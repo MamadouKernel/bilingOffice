@@ -86,7 +86,7 @@ public sealed class CircuitClientNormalTests
         var demanderFacture = new DemanderFactureCommand(ticketRepository, cloisonnement, journalisation, uniteDeTravail);
         var editerFacture = new EditerFactureCommand(
             ticketRepository, dossierRepository, fileRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
-        var deposerPreuve = new DeposerPreuvePaiementCommand(deposerDocument);
+        var deposerPreuve = new DeposerPreuvePaiementCommand(deposerDocument, ticketRepository, journalisation, horloge, uniteDeTravail);
         var validerPreuve = new ValiderPreuvePaiementCommand(ticketRepository, fileRepository, autorisation, journalisation, horloge, uniteDeTravail);
         var controleEtCloturer = new DeposerDocumentsControleEtCloturerCommand(
             ticketRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
@@ -127,6 +127,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-N2");
         using var contenu = Contenu();
 
+        await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", contenu, contenu.Length, Regles);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -142,6 +143,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-N3");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var preuve = Contenu("preuve"))
@@ -163,6 +165,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-N4");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var preuveInvalide = Contenu("preuve-invalide"))
@@ -190,6 +193,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-N5");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var preuve = Contenu("preuve"))
@@ -220,6 +224,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-IMP12");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
 
@@ -244,6 +249,7 @@ public sealed class CircuitClientNormalTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-IMP14");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var preuve = Contenu("preuve"))
@@ -273,6 +279,7 @@ public sealed class CircuitClientNormalTests
         await c.DemanderFacture.ExecuterAsync(c.AuteurId, ticketId);
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var preuveInvalide = Contenu("preuve-invalide"))

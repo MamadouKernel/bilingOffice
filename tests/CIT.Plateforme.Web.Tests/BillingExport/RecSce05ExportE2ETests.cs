@@ -119,6 +119,11 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         // 2. Facturation
         // RG-EXP-03 : le Draft IN précède la facture.
         await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
+        // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
+        var proforma1 = Contenu("proforma");
+        await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
+            agentId, ticketId, "proforma.pdf", "application/pdf", proforma1, proforma1.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
+        await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(clientId, ticketId);
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Client dépose preuve paiement
@@ -169,6 +174,11 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         // 2. Facturation -> Direct Contrôle Doc (pas de caisse)
         // RG-EXP-03 : le Draft IN précède la facture.
         await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
+        // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
+        var proforma2 = Contenu("proforma");
+        await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
+            agentId, ticketId, "proforma.pdf", "application/pdf", proforma2, proforma2.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
+        await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(clientId, ticketId);
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         var fileDoc = await dbContext.Files.SingleAsync(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == NomsFilesExport.ControleDocumentaire);
@@ -218,6 +228,11 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         // 2. Facturation -> Comptabilité Client
         // RG-EXP-03 : le Draft IN précède la facture.
         await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
+        // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
+        var proforma3 = Contenu("proforma");
+        await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
+            agentId, ticketId, "proforma.pdf", "application/pdf", proforma3, proforma3.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
+        await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(clientId, ticketId);
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Confirmation Lettrage

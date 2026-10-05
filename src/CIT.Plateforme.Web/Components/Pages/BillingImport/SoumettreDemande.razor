@@ -84,6 +84,14 @@
                 </div>
 
                 <div class="mb-3">
+                    @* Le magasinage court jusqu'à la sortie du conteneur : la date souhaitée sert de base à la proforma. *@
+                    <label class="form-label fw-semibold text-dark mb-1" for="date-enlevement">@Loc["Soumission.DateEnlevement"]</label>
+                    <input id="date-enlevement" type="date" class="form-control w-auto" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           value="@_dateEnlevement?.ToString("yyyy-MM-dd")" @onchange="e => _dateEnlevement = DateOnly.TryParse(e.Value?.ToString(), out var d) ? d : null" />
+                    <div class="form-text small">@Loc["Soumission.DateEnlevementAide"]</div>
+                </div>
+
+                <div class="mb-3">
                     <div class="form-label fw-semibold text-dark mb-1">@Loc["CasPart.Titre"]</div>
                     <div class="form-text small text-muted mb-2">@Loc["CasPart.Intro"]</div>
                     @foreach (var (cas, cle) in CasProposes)
@@ -258,6 +266,7 @@
     // Cas particuliers (documents métier du 05/10/2026) : chaque cas coché exige ses pièces avant
     // l'envoi ; elles sont jointes à chaque ticket créé, nommées d'après la pièce attendue.
     private CIT.Plateforme.Domain.Tickets.CasParticulierImport _cas;
+    private DateOnly? _dateEnlevement;
     private readonly Dictionary<string, IBrowserFile> _piecesCas = [];
 
     private static readonly (CIT.Plateforme.Domain.Tickets.CasParticulierImport Cas, string Cle)[] CasProposes =
@@ -378,7 +387,8 @@
             _resultat = await Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(
                 _societeId, _auteurId, numerosBl,
                 string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim(),
-                _cas));
+                _cas,
+                _dateEnlevement));
 
             // Pièces jointes au formulaire : déposées sur chaque ticket (un par BL) du dossier créé.
             _messagePieces = null;

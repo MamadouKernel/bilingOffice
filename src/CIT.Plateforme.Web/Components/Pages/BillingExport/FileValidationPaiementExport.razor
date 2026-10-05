@@ -94,13 +94,17 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button type="button" class="btn btn-outline-success" @onclick="() => ValiderPaiementAsync(t.Id)" title="@Loc["FilePayExp.ValidateTitle"]">
+                                        <button type="button" class="btn btn-outline-success" @onclick="() => _ticketEnValidation = t.Id" title="@Loc["FilePayExp.ValidateTitle"]">
                                             @Loc["FilePayExp.Validate"]
                                         </button>
                                         <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModalRefus(t.Id)" title="@Loc["FilePayExp.RefuseTitle"]">
                                             @Loc["FilePayExp.Refuse"]
                                         </button>
-                                    </div>
+                                                                        </div>
+                                    @if (_ticketEnValidation == t.Id)
+                                    {
+                                        <SaisieReglement OnConfirmer="r => ValiderPaiementAsync(t.Id, r.Moyen, r.Reference)" OnAnnuler="() => _ticketEnValidation = null" />
+                                    }
                                 </td>
                             </tr>
                         }
@@ -193,13 +197,16 @@ else
         }
     }
 
-    private async Task ValiderPaiementAsync(Guid ticketId)
+    private Guid? _ticketEnValidation;
+
+    private async Task ValiderPaiementAsync(Guid ticketId, MoyenPaiement moyen, string reference)
     {
         _message = null;
         _erreur = false;
         try
         {
-            await ValiderPreuve.ValiderAsync(_agentId, ticketId);
+            await ValiderPreuve.ValiderAsync(_agentId, ticketId, moyen, reference);
+            _ticketEnValidation = null;
             _message = Loc["FilePayExp.Validated"].Value;
             await ChargerAsync();
         }

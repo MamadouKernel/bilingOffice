@@ -111,5 +111,20 @@ public sealed record FicheTicketVue(
     string? LibellePaiementCdc = null,
 
     /// <summary>Cas particuliers du BL import (dangereux, sous palan, véhicule usagé).</summary>
-    CIT.Plateforme.Domain.Tickets.CasParticulierImport CasParticuliers = CIT.Plateforme.Domain.Tickets.CasParticulierImport.Aucun
+    CIT.Plateforme.Domain.Tickets.CasParticulierImport CasParticuliers = CIT.Plateforme.Domain.Tickets.CasParticulierImport.Aucun,
+
+    /// <summary>Étape métier lisible par le client (clé « Etape.* », voir <see cref="EtapeParcoursClient"/>).</summary>
+    string? EtapeParcours = null,
+
+    /// <summary>Proforma déposée dans le ticket et réponse du client.</summary>
+    EtatProforma EtatProforma = EtatProforma.Aucune,
+
+    /// <summary>Date d'enlèvement souhaitée par le client, retenue par la proforma (import).</summary>
+    DateOnly? DateEnlevementSouhaitee = null,
+
+    /// <summary>Le client peut valider la proforma ou en demander la correction.</summary>
+    bool PeutRepondreProforma = false,
+
+    /// <summary>Le client peut joindre sa preuve de paiement (file Validation Paiement).</summary>
+    bool PeutDeposerPreuvePaiement = false
 );

@@ -88,6 +88,7 @@ public sealed class CircuitClientDepositExportTests
         await new EmettreDraftInExportCommand(ticketRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail)
             .ExecuterAsync(agentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", new MemoryStream(draftContenu), draftContenu.Length, Regles);
 
+        await ProformaDeTest.ValiderAsync(dbContext, ticket.Id, agentId);
         await editerFacture.ExecuterAsync(agentId, ticket.Id, "Facture-001.pdf", "application/pdf", new MemoryStream(factureContenu), factureContenu.Length, Regles);
 
         var ticketApresFacture = await ticketRepository.ObtenirParIdAsync(ticket.Id);

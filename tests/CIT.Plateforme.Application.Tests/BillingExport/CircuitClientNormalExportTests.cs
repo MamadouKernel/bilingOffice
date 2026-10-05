@@ -85,7 +85,7 @@ public sealed class CircuitClientNormalExportTests
             ticketRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
         var editerFacture = new EditerFactureExportCommand(
             ticketRepository, dossierRepository, fileRepository, deposerDocument, autorisation, journalisation, horloge, uniteDeTravail);
-        var deposerPreuve = new DeposerPreuvePaiementExportCommand(deposerDocument);
+        var deposerPreuve = new DeposerPreuvePaiementExportCommand(new CIT.Plateforme.Application.BillingImport.DeposerPreuvePaiementCommand(deposerDocument, ticketRepository, journalisation, horloge, uniteDeTravail));
         var validerPreuve = new ValiderPreuvePaiementExportCommand(
             ticketRepository, fileRepository, autorisation, journalisation, horloge, uniteDeTravail);
         var finaliserControle = new FinaliserControleDocumentaireExportCommand(
@@ -110,6 +110,7 @@ public sealed class CircuitClientNormalExportTests
         var draftContenu = System.Text.Encoding.UTF8.GetBytes("draft-in");
         await c.EmettreDraftIn.ExecuterAsync(c.AgentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", new MemoryStream(draftContenu), draftContenu.Length, Regles);
 
+        await ProformaDeTest.ValiderAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", new MemoryStream(factureContenu), factureContenu.Length, Regles);
 
         // 3. Client dépose la preuve de paiement

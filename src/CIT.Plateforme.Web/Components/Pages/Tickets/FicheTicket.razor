@@ -78,6 +78,11 @@
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap flex-shrink-0">
                 <StatutBadge Statut="@_fiche.Statut" />
+                @if (_fiche.EtapeParcours is { } etape)
+                {
+                    @* Étape métier du parcours Billing, telle que le client la comprend. *@
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">@Loc[etape]</span>
+                }
                 @if (_fiche.TypeAnnulationExport == TypeAnnulationExport.RejetBackOffice)
                 {
                     <span class="badge bg-danger">@Loc["Ticket.RejectBackOffice"]</span>
@@ -122,13 +127,20 @@
                         }
                     </div>
                 </div>
-                @if (_fiche.PeutReprendreApresClient && _estClient)
+                @* Proforma et preuve de paiement ont leur propre action (bloc ci-dessous) : le bouton
+                   générique « complément fourni » les contournerait. *@
+                @if (_fiche.PeutReprendreApresClient && _estClient && !_fiche.PeutRepondreProforma && !_fiche.PeutDeposerPreuvePaiement)
                 {
                     <button type="button" class="btn btn-warning btn-sm fw-bold" @onclick="ReprendreApresClientAsync">
                         @Loc["Ticket.MarkComplementProvided"]
                     </button>
                 }
             </div>
+        }
+
+        @if (_estClient)
+        {
+            <ActionsClientBilling Fiche="_fiche" UtilisateurId="_utilisateurId" Termine="ActionClientTermineeAsync" />
         }
 
         @if (_fiche.Module == "CustomerComplaint")
@@ -235,11 +247,19 @@
                                 <span class="fw-semibold text-primary">@_fiche.NumeroBl</span>
                             </li>
                         }
+                        @if (_fiche.DateEnlevementSouhaitee is DateOnly enlevement)
+                        {
+                            <li class="mb-2 d-flex justify-content-between">
+                                <span class="text-muted">@Loc["Proforma.DateEnlevement"]</span>
+                                <span class="fw-semibold">🚚 @enlevement.ToString("dd/MM/yyyy")</span>
+                            </li>
+                        }
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">@Loc["Ticket.CurrentQueue"]</span>
                             <span class="badge bg-light text-dark border">@Loc.File(_fiche.FileNom)</span>
                         </li>
-                        @if (!string.IsNullOrWhiteSpace(_fiche.LibellePaiementCdc))
+                        @* L'étape métier (badge d'en-tête) est plus précise que ce libellé dérivé de la file seule. *@
+                        @if (!string.IsNullOrWhiteSpace(_fiche.LibellePaiementCdc) && _fiche.EtapeParcours is null)
                         {
                             @* IMP-13 : libellé littéral CDC du statut de paiement — affichage
                                uniquement, dérivé de la file courante (voir LibellePaiementCdcHelper). *@
@@ -302,7 +322,8 @@
                             </button>
                         }
 
-                        @if (_fiche.PeutDemanderFacture)
+                        @* Une fois la proforma envoyée, la facture suit sa validation : la demander n'a plus de sens. *@
+                        @if (_fiche.PeutDemanderFacture && _fiche.EtatProforma == EtatProforma.Aucune)
                         {
                             <button type="button" class="btn btn-outline-primary" @onclick="DemanderFactureAsync" disabled="@_factureDemandee">
                                 🧾 @(_factureDemandee ? Loc["Ticket.InvoiceRequested"].Value : Loc["Ticket.RequestInvoice"].Value)
@@ -525,7 +546,7 @@
 
     /// <summary>Ce que l'agent a demandé : motif de la dernière mise en attente ou demande de complément.</summary>
     private static readonly string[] EvenementsDemandeClient =
-        ["TicketEnAttenteClient", "ComplementDemande", "ComplementDemandeImport", "ComplementDemandeExport"];
+        ["TicketEnAttenteClient", "ComplementDemande", "ComplementDemandeImport", "ComplementDemandeExport", "PreuvePaiementRefusee"];
 
     private string? MotifAttente => _fiche?.Chronologie
         .Where(e => EvenementsDemandeClient.Contains(e.Evenement) && !string.IsNullOrWhiteSpace(e.Detail))
@@ -547,6 +568,12 @@
     protected override async Task OnParametersSetAsync()
     {
         await RechargerAsync();
+    }
+
+    private async Task ActionClientTermineeAsync((string Message, bool Erreur) resultat)
+    {
+        await RechargerAsync();
+        _actionFeedback = resultat.Message;
     }
 
     private async Task RechargerAsync()

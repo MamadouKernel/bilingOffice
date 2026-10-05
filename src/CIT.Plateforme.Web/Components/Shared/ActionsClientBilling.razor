@@ -1,0 +1,105 @@
+@using CIT.Plateforme.Application.BillingImport
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Domain.Documents
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceScopeFactory ScopeFactory
+
+@* Actions du client sur son ticket Billing, là où il les attend (parcours TO BE) : répondre à la
+   proforma, puis joindre sa preuve de paiement. Les droits viennent de la fiche (requête serveur). *@
+@if (Fiche.PeutRepondreProforma)
+{
+    <div class="cit-card mb-4 border-info">
+        <h6 class="fw-bold text-dark mb-2">🧾 @Loc["Proforma.ClientTitre"]</h6>
+        <p class="small text-muted mb-2">
+            @Loc["Proforma.ClientIntro"]
+            @if (Fiche.DateEnlevementSouhaitee is DateOnly date)
+            {
+                <span class="fw-semibold ms-1">@Loc["Proforma.CalculeeJusquau", date.ToString("dd/MM/yyyy")]</span>
+            }
+        </p>
+        @if (!_correction)
+        {
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-success btn-sm" disabled="@_enCours" @onclick="ValiderAsync">✅ @Loc["Proforma.Valider"]</button>
+                <button type="button" class="btn btn-outline-warning btn-sm" disabled="@_enCours" @onclick="() => _correction = true">✏️ @Loc["Proforma.DemanderCorrection"]</button>
+            </div>
+        }
+        else
+        {
+            <label class="form-label small fw-semibold" for="motif-correction">@Loc["Proforma.MotifCorrection"]</label>
+            <textarea id="motif-correction" class="form-control form-control-sm mb-2" rows="2" @bind="_motif" @bind:event="oninput"></textarea>
+            @if (Fiche.Module == SoumettreDemandeImportCommand.Module)
+            {
+                <label class="form-label small" for="nouvelle-date">@Loc["Proforma.NouvelleDate"]</label>
+                <input id="nouvelle-date" type="date" class="form-control form-control-sm w-auto mb-2" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       @onchange="e => _nouvelleDate = DateOnly.TryParse(e.Value?.ToString(), out var d) ? d : null" />
+            }
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-warning btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motif))" @onclick="DemanderCorrectionAsync">@Loc["Proforma.EnvoyerCorrection"]</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _correction = false">@Loc["Common.Cancel"]</button>
+            </div>
+        }
+    </div>
+}
+
+@if (Fiche.PeutDeposerPreuvePaiement)
+{
+    <div class="cit-card mb-4 border-success">
+        <h6 class="fw-bold text-dark mb-2">💳 @Loc["Preuve.ClientTitre"]</h6>
+        <p class="small text-muted mb-2">@Loc["Preuve.ClientIntro"]</p>
+        <InputFile class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" disabled="@_enCours" OnChange="DeposerPreuveAsync" />
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public FicheTicketVue Fiche { get; set; } = default!;
+    [Parameter, EditorRequired] public Guid UtilisateurId { get; set; }
+
+    /// <summary>Message de retour (succès ou erreur) ; la page recharge la fiche.</summary>
+    [Parameter] public EventCallback<(string Message, bool Erreur)> Termine { get; set; }
+
+    private bool _correction;
+    private string _motif = string.Empty;
+    private DateOnly? _nouvelleDate;
+    private bool _enCours;
+
+    private Task ValiderAsync() => ExecuterAsync(s => s.GetRequiredService<GestionProformaCommand>().ValiderAsync(UtilisateurId, Fiche.TicketId), "Proforma.MsgValidee");
+
+    private Task DemanderCorrectionAsync() =>
+        ExecuterAsync(s => s.GetRequiredService<GestionProformaCommand>().DemanderCorrectionAsync(UtilisateurId, Fiche.TicketId, _motif, _nouvelleDate), "Proforma.MsgCorrection");
+
+    private Task DeposerPreuveAsync(InputFileChangeEventArgs e) => ExecuterAsync(async s =>
+    {
+        await using var flux = e.File.OpenReadStream(DepotFichiers.ReglesStandard.TailleMaxOctets);
+        await using var memoire = new MemoryStream();
+        await flux.CopyToAsync(memoire);
+        await s.GetRequiredService<DeposerPreuvePaiementCommand>().ExecuterAsync(UtilisateurId, Fiche.TicketId, e.File.Name, e.File.ContentType, memoire, memoire.Length, DepotFichiers.ReglesStandard);
+    }, "Preuve.MsgDeposee");
+
+    // Chaque action dans sa propre portée : jamais de DbContext partagé avec le reste du circuit.
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action, string cleSucces)
+    {
+        _enCours = true;
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            await action(portee.ServiceProvider);
+            _correction = false;
+            _motif = string.Empty;
+            await Termine.InvokeAsync((Loc[cleSucces].Value, false));
+        }
+        catch (Exception ex)
+        {
+            await Termine.InvokeAsync((MessagesUtilisateur.Pour(ex), true));
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

@@ -184,6 +184,16 @@ public sealed partial class Ticket
     public CasParticulierImport CasParticuliers { get; private set; }
 
     /// <summary>
+    /// Date d'enlèvement souhaitée par le client (import). Les frais de magasinage courent jusqu'à
+    /// la sortie du conteneur : la proforma puis la facture sont calculées jusqu'à cette date, que
+    /// le Pilote Facturation confirme et que le client peut modifier en demandant une correction.
+    /// </summary>
+    public DateOnly? DateEnlevementSouhaitee { get; private set; }
+
+    /// <summary>Proforma déposée dans le ticket et réponse du client (voir <see cref="Tickets.EtatProforma"/>).</summary>
+    public EtatProforma EtatProforma { get; private set; }
+
+    /// <summary>
     /// EXTENSION FEATURE 003 (research.md D13bis) : distingue un rejet Pilote Manifeste (IMP-04)
     /// d'une annulation client ordinaire (CYC-01) — les deux partagent <see cref="StatutTicket.Annule"/>
     /// pour le workflow générique et l'unicité BL (D3), mais restent distinguables en audit/
@@ -498,6 +508,48 @@ public sealed partial class Ticket
     public void DeclarerCasParticuliers(CasParticulierImport cas)
     {
         CasParticuliers = cas;
+    }
+
+    public void DefinirDateEnlevementSouhaitee(DateOnly? date)
+    {
+        DateEnlevementSouhaitee = date;
+    }
+
+    /// <summary>
+    /// La proforma est déposée : le ticket attend la réponse du client, temps interne suspendu
+    /// (TPS-02). Une nouvelle proforma (après correction) remplace la précédente.
+    /// </summary>
+    public void EmettreProforma(DateTime maintenantUtc)
+    {
+        if (EtatProforma == EtatProforma.Validee)
+        {
+            throw new InvalidOperationException($"La proforma du ticket {Numero} est déjà validée par le client.");
+        }
+
+        MettreEnAttenteClient(maintenantUtc);
+        EtatProforma = EtatProforma.EnAttenteValidation;
+    }
+
+    public void ValiderProforma(DateTime maintenantUtc)
+    {
+        ExigerProformaEnAttente();
+        RependreApresReponseClient(maintenantUtc);
+        EtatProforma = EtatProforma.Validee;
+    }
+
+    public void DemanderCorrectionProforma(DateTime maintenantUtc)
+    {
+        ExigerProformaEnAttente();
+        RependreApresReponseClient(maintenantUtc);
+        EtatProforma = EtatProforma.CorrectionDemandee;
+    }
+
+    private void ExigerProformaEnAttente()
+    {
+        if (EtatProforma != EtatProforma.EnAttenteValidation)
+        {
+            throw new InvalidOperationException($"Aucune proforma n'attend de réponse sur le ticket {Numero}.");
+        }
     }
 
     /// <summary>

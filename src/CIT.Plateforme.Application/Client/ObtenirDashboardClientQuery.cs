@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Application.Tickets;
 using CIT.Plateforme.Domain.Comptes;
 using CIT.Plateforme.Domain.Tickets;
 
@@ -15,7 +16,9 @@ public sealed class ObtenirDashboardClientQuery(
     ITicketRepository ticketRepository,
     ISocieteClienteRepository societeRepository,
     IUtilisateurSocieteRepository utilisateurSocieteRepository,
-    IHistoriqueTicketRepository? historique = null)
+    IHistoriqueTicketRepository? historique = null,
+    IFileDeTraitementRepository? files = null,
+    IDocumentRepository? documents = null)
 {
     public async Task<DashboardClientVue> ExecuterAsync(Guid utilisateurId, Guid societeId, CancellationToken ct = default)
     {
@@ -56,7 +59,11 @@ public sealed class ObtenirDashboardClientQuery(
 
         foreach (var ticket in ticketsConformes)
         {
-            if (ticket.Statut == StatutTicket.EnAttenteClient)
+            if (ticket.Statut == StatutTicket.EnAttenteClient && await ActionBillingSpecifiqueAsync(ticket, ct).ConfigureAwait(false) is { } actionBilling)
+            {
+                actionsRequises.Add(actionBilling);
+            }
+            else if (ticket.Statut == StatutTicket.EnAttenteClient)
             {
                 var estExport = ticket.Module == "BillingExport";
                 var estComplaint = ticket.Module == "CustomerComplaint";
@@ -95,7 +102,18 @@ public sealed class ObtenirDashboardClientQuery(
             }
         }
 
-        // 5. Projection des dossiers récents avec état dérivé
+        // 5. Projection des dossiers récents avec état dérivé (et étape métier de chaque BL / booking)
+        var nomsFiles = files is null ? new Dictionary<Guid, string>() : (await files.ListerAsync(ct).ConfigureAwait(false)).ToDictionary(f => f.Id, f => f.Nom);
+        var etapes = new Dictionary<Guid, string?>();
+        foreach (var t in ticketsConformes)
+        {
+            etapes[t.Id] = nomsFiles.TryGetValue(t.FileCouranteId, out var nomFile)
+                ? EtapeParcoursClient.Determiner(t.Module, nomFile, t.Statut, t.EtatProforma,
+                    t.TypeAnnulationImport == TypeAnnulationImport.RejetManifeste || t.TypeAnnulationExport == TypeAnnulationExport.RejetBackOffice,
+                    await PreuveDeposeeAsync(t, nomFile, ct).ConfigureAwait(false))
+                : null;
+        }
+
         var dossiersVues = new List<DossierResumeVue>();
         foreach (var d in dossiersRecents)
         {
@@ -108,7 +126,8 @@ public sealed class ObtenirDashboardClientQuery(
                 NumeroBl: t.NumeroBl,
                 Statut: t.Statut,
                 DateDerniereActiviteUtc: t.DateCreationUtc,
-                NumeroBooking: t.NumeroBooking
+                NumeroBooking: t.NumeroBooking,
+                Etape: etapes.GetValueOrDefault(t.Id)
             )).ToList();
 
             var premierTicket = ticketsDossier.FirstOrDefault();
@@ -155,6 +174,46 @@ public sealed class ObtenirDashboardClientQuery(
         if (tickets.Any(t => t.Statut == StatutTicket.EnAttenteClient)) return StatutVisuelDossier.EnAttenteClient;
         if (tickets.Any(t => t.Statut == StatutTicket.EnCours)) return StatutVisuelDossier.EnCoursTraitement;
         return StatutVisuelDossier.EnAttentePriseEnCharge;
+    }
+
+    /// <summary>Preuve de paiement déposée depuis l'arrivée en file Validation Paiement (seule file concernée).</summary>
+    private async Task<bool> PreuveDeposeeAsync(Ticket ticket, string nomFile, CancellationToken ct) =>
+        documents is not null && nomFile == BillingImport.NomsFiles.ValidationPaiement
+        && (await documents.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false)).Any(d =>
+            d.Categorie == Domain.Documents.CategorieDocumentBillingImport.PreuvePaiement && d.DateDepotUtc >= ticket.DateArriveeEnFileUtc);
+
+    /// <summary>Parcours Billing : une proforma à valider ou une preuve de paiement refusée ne sont pas
+    /// des « compléments » — l'action proposée au client doit dire exactement quoi faire.</summary>
+    private async Task<ActionRequiseItemVue?> ActionBillingSpecifiqueAsync(Ticket ticket, CancellationToken ct)
+    {
+        var reference = ticket.NumeroBooking is { } booking ? $"Booking {booking}" : $"BL {ticket.NumeroBl ?? ticket.Numero}";
+        if (ticket.EtatProforma == EtatProforma.EnAttenteValidation)
+        {
+            var jusquau = ticket.DateEnlevementSouhaitee is DateOnly d ? d.ToString("dd/MM/yyyy") : null;
+            return new ActionRequiseItemVue(
+                TicketId: ticket.Id, NumeroTicket: ticket.Numero, NumeroBl: ticket.NumeroBl, TypeAction: TypeActionRequise.ProformaAValider,
+                Titre: LangueCourante.T($"Proforma à valider pour le {reference}", $"Proforma to approve for {reference}"),
+                Description: jusquau is null
+                    ? LangueCourante.T("Le Pilote Facturation a déposé votre proforma : validez-la ou demandez une correction.", "The Billing Pilot uploaded your proforma: approve it or request a correction.")
+                    : LangueCourante.T($"Le Pilote Facturation a déposé votre proforma, calculée jusqu'au {jusquau} : validez-la ou demandez une correction.", $"The Billing Pilot uploaded your proforma, calculated up to {jusquau}: approve it or request a correction."),
+                ActionLibelle: LangueCourante.T("Répondre à la proforma", "Respond to the proforma"),
+                UrlCible: $"/tickets/{ticket.Id}", DateDeclenchementUtc: ticket.DateCreationUtc, NumeroBooking: ticket.NumeroBooking);
+        }
+
+        var refus = historique is null ? null : (await historique.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
+            .Where(e => e.Evenement is "PreuvePaiementRefusee" or "ComplementDemandeImport" or "ComplementDemandeExport" or "TicketEnAttenteClient")
+            .MaxBy(e => e.HorodatageUtc);
+        if (refus?.Evenement != "PreuvePaiementRefusee")
+        {
+            return null;
+        }
+
+        return new ActionRequiseItemVue(
+            TicketId: ticket.Id, NumeroTicket: ticket.Numero, NumeroBl: ticket.NumeroBl, TypeAction: TypeActionRequise.NouvellePreuveRequise,
+            Titre: LangueCourante.T($"Nouvelle preuve de paiement attendue pour le {reference}", $"New proof of payment expected for {reference}"),
+            Description: LangueCourante.T($"La caisse a refusé la preuve déposée : {refus.Detail}", $"The cashier refused the uploaded proof: {refus.Detail}"),
+            ActionLibelle: LangueCourante.T("Déposer une nouvelle preuve", "Upload a new proof"),
+            UrlCible: $"/tickets/{ticket.Id}", DateDeclenchementUtc: ticket.DateCreationUtc, NumeroBooking: ticket.NumeroBooking);
     }
 
     /// <summary>Ce que l'agent attend du client (dernière demande de complément ou mise en attente consignée), à défaut

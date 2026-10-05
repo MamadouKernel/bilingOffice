@@ -2653,6 +2653,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("DateDerniereActiviteUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateOnly?>("DateEnlevementSouhaitee")
+                        .HasColumnType("date");
+
                     b.Property<DateTime?>("DatePriseEnChargeUtc")
                         .HasColumnType("datetime2");
 
@@ -2686,6 +2689,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("EstSousGelLegal")
                         .HasColumnType("bit");
+
+                    b.Property<int>("EtatProforma")
+                        .HasColumnType("int");
 
                     b.Property<string>("EvaluationCommentaire")
                         .HasColumnType("nvarchar(max)");
@@ -2814,6 +2820,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("Tickets", t =>
                         {
                             t.HasCheckConstraint("CK_Tickets_DecisionAvoirExo", "[DecisionAvoirExo] IN (N'Accorde', N'Rejete')");
+
+                            t.HasCheckConstraint("CK_Tickets_EtatProforma", "[EtatProforma] IN (0, 1, 2, 3)");
 
                             t.HasCheckConstraint("CK_Tickets_ObjetEnrolement", "[ObjetEnrolement] IN (N'Chauffeur', N'Camion')");
 

@@ -68,7 +68,7 @@ else
                             <th>@Loc["Societe.ColStatus"]</th>
                             <th>@Loc["File.ColArrival"]</th>
                             <th>@Loc["FileFactExp.ColDraftIn"]</th>
-                            <th>@Loc["FileFactExp.ColUploadInvoice"]</th>
+                            <th>@Loc["Proforma.ColProformaFacture"]</th>
                             <th class="text-end">@Loc["FileFactExp.ColActions"]</th>
                         </tr>
                     </thead>
@@ -112,9 +112,16 @@ else
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        @if (t.DraftInExportEmis)
+                                        @if (t.DraftInExportEmis && t.EtatProforma == EtatProforma.Validee)
                                         {
-                                            <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
+                                            <div>
+                                                <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
+                                                <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
+                                            </div>
+                                        }
+                                        else if (t.DraftInExportEmis)
+                                        {
+                                            <CelluleProforma Ticket="t" AgentId="_agentId" Termine="ProformaTermineeAsync" />
                                         }
                                         else
                                         {
@@ -254,6 +261,13 @@ else
             _erreur = true;
             _message = string.Format(Loc["FileFactExp.DraftError"].Value, MessagesUtilisateur.Pour(ex));
         }
+    }
+
+    private async Task ProformaTermineeAsync((string Message, bool Erreur) resultat)
+    {
+        await ChargerAsync();
+        _message = resultat.Message;
+        _erreur = resultat.Erreur;
     }
 
     private async Task EditerFactureAsync(Guid ticketId, InputFileChangeEventArgs e)

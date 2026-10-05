@@ -338,6 +338,7 @@ public static class DependencyInjection
         services.AddScoped<Application.BillingImport.DemanderFactureCommand>();
         services.AddScoped<Application.BillingImport.EditerFactureCommand>();
         services.AddScoped<Application.BillingImport.DeposerPreuvePaiementCommand>();
+        services.AddScoped<Application.BillingImport.GestionProformaCommand>();
         services.AddScoped<Application.BillingImport.ValiderPreuvePaiementCommand>();
         services.AddScoped<Application.BillingImport.DeposerDocumentsControleEtCloturerCommand>();
 

@@ -70,6 +70,8 @@ public sealed class ProvisionnementNotifications(
         ("PreuvePaiementRefusee", CanalNotification.Email, false, "Votre preuve de paiement a été refusée"),
         ("TicketCloture", CanalNotification.InApp, false, "Votre dossier est clôturé"),
         ("TicketCloture", CanalNotification.Email, false, "Votre dossier est clôturé"),
+        ("ProformaEmise", CanalNotification.InApp, false, "Votre proforma est à valider"),
+        ("ProformaEmise", CanalNotification.Email, false, "Votre proforma est à valider"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -92,6 +94,7 @@ public sealed class ProvisionnementNotifications(
         ["Votre paiement a été confirmé"] = "Your payment has been confirmed",
         ["Votre preuve de paiement a été refusée"] = "Your proof of payment was refused",
         ["Votre dossier est clôturé"] = "Your file is closed",
+        ["Votre proforma est à valider"] = "Your proforma is ready for approval",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -137,6 +140,7 @@ public sealed class ProvisionnementNotifications(
         "PaiementConfirme" => $"{objet}. Le ticket {{numeroTicket}} passe au contrôle documentaire.",
         "PreuvePaiementRefusee" => $"{objet}. Le motif est indiqué sur le ticket {{numeroTicket}} : déposez une nouvelle preuve.",
         "TicketCloture" => $"{objet}. Le détail et vos documents éventuels sont sur le ticket {{numeroTicket}}.",
+        "ProformaEmise" => $"{objet}. Consultez-la sur le ticket {{numeroTicket}}, puis validez-la ou demandez une correction : la facture définitive suivra.",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
 
@@ -150,6 +154,7 @@ public sealed class ProvisionnementNotifications(
         "PaiementConfirme" => $"{objet}. Ticket {{numeroTicket}} moves on to the document check.",
         "PreuvePaiementRefusee" => $"{objet}. The reason is given on ticket {{numeroTicket}}: please upload a new proof.",
         "TicketCloture" => $"{objet}. Details and any documents are on ticket {{numeroTicket}}.",
+        "ProformaEmise" => $"{objet}. Review it on ticket {{numeroTicket}}, then approve it or request a correction: the final invoice will follow.",
         _ => $"{objet}. See the related ticket for details.",
     };
 

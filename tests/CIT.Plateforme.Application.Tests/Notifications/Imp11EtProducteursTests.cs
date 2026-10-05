@@ -1,3 +1,4 @@
+using CIT.Plateforme.Application.Tests.Support;
 using System.Reflection;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Notifications;
@@ -106,7 +107,9 @@ public class Imp11EtProducteursTests
         // 32e à 46e producteurs (05/10/2026) — parcours Billing IMPORT / EXPORT : le client est
         // notifié à chaque étape (validation, rejet, complément, paiement confirmé ou refusé,
         // clôture) et la création d'un ticket export publie TicketCree comme l'import.
-        Assert.Equal(46, fichiersProducteurs.Count);
+        // 47e producteur (05/10/2026) — GestionProformaCommand : proforma déposée, le client est notifié.
+        Assert.Equal(47, fichiersProducteurs.Count);
+        Assert.Contains("GestionProformaCommand.cs", fichiersProducteurs);
         foreach (var producteur in new[]
         {
             "SoumettreDemandeExportCommand.cs", "ValiderTicketImportCommand.cs", "ValiderTicketExportCommand.cs",

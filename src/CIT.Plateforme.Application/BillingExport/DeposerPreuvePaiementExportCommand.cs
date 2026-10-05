@@ -1,13 +1,13 @@
-using CIT.Plateforme.Application.Abstractions;
-using CIT.Plateforme.Application.Documents;
+using CIT.Plateforme.Application.BillingImport;
 using CIT.Plateforme.Domain.Documents;
 
 namespace CIT.Plateforme.Application.BillingExport;
 
 /// <summary>
-/// Dépôt de la preuve de paiement par le client propriétaire du ticket Export.
+/// Dépôt de la preuve de paiement par le client propriétaire du ticket Export — même règle qu'à
+/// l'import (pièce classée « preuve de paiement », reprise du traitement après un refus).
 /// </summary>
-public sealed class DeposerPreuvePaiementExportCommand(DeposerDocumentCommand deposerDocument)
+public sealed class DeposerPreuvePaiementExportCommand(DeposerPreuvePaiementCommand deposer)
 {
     public Task ExecuterAsync(
         Guid demandeurId,
@@ -18,5 +18,5 @@ public sealed class DeposerPreuvePaiementExportCommand(DeposerDocumentCommand de
         long tailleOctets,
         ReglesDepotDocument reglesEtape,
         CancellationToken ct = default) =>
-        deposerDocument.DeposerPourClientAsync(demandeurId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct);
+        deposer.ExecuterAsync(demandeurId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct);
 }

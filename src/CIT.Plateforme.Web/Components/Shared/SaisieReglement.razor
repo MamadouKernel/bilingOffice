@@ -1,0 +1,32 @@
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Confirmation d'un paiement par la caisse : moyen de règlement et référence du reçu ou de la
+   transaction, obligatoires — c'est ce qui permet le rapprochement IRIS, y compris quand le client
+   a payé au guichet ou en banque sans déposer de preuve. *@
+<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mt-2">
+    <select class="form-select form-select-sm w-auto" aria-label="@Loc["Reglement.Moyen"]" @bind="_moyen">
+        <option value="">@Loc["Reglement.Moyen"]</option>
+        @foreach (var moyen in Enum.GetValues<MoyenPaiement>())
+        {
+            <option value="@moyen">@Loc[$"Reglement.{moyen}"]</option>
+        }
+    </select>
+    <input class="form-control form-control-sm w-auto" placeholder="@Loc["Reglement.Reference"]" aria-label="@Loc["Reglement.Reference"]"
+           @bind="_reference" @bind:event="oninput" maxlength="64" />
+    <button type="button" class="btn btn-success btn-sm text-nowrap" disabled="@(_moyen is null || string.IsNullOrWhiteSpace(_reference))"
+            @onclick="() => OnConfirmer.InvokeAsync((_moyen!.Value, _reference.Trim()))">
+        @Loc["Reglement.Confirmer"]
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="OnAnnuler">@Loc["Common.Cancel"]</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public EventCallback<(MoyenPaiement Moyen, string Reference)> OnConfirmer { get; set; }
+    [Parameter] public EventCallback OnAnnuler { get; set; }
+
+    private MoyenPaiement? _moyen;
+    private string _reference = string.Empty;
+}

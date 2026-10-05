@@ -14,7 +14,8 @@ public sealed record SoumettreDemandeImportRequete(
     Guid AuteurId,
     IReadOnlyList<string> NumerosBl,
     string? ReferenceSimulationProforma = null,
-    CasParticulierImport CasParticuliers = CasParticulierImport.Aucun);
+    CasParticulierImport CasParticuliers = CasParticulierImport.Aucun,
+    DateOnly? DateEnlevementSouhaitee = null);
 
 /// <summary>
 /// UNI-01, CPT-04 : un BL refusé (déjà actif) ne révèle <see cref="TicketExistantId"/> que si le
@@ -69,6 +70,11 @@ public sealed class SoumettreDemandeImportCommand(
         }
 
         var maintenant = horloge.MaintenantUtc;
+        if (requete.DateEnlevementSouhaitee is DateOnly souhaitee && souhaitee < DateOnly.FromDateTime(maintenant))
+        {
+            throw new ArgumentException("La date d'enlèvement souhaitée ne peut pas être dans le passé.", nameof(requete));
+        }
+
 
         // ENT-02 (Feature 002) : le droit de soumission est individuel, rattaché à la société —
         // distinct du moteur de permissions IAutorisationService (agents CIT). Un utilisateur
@@ -150,6 +156,7 @@ public sealed class SoumettreDemandeImportCommand(
             var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, TypeDemande, ct).ConfigureAwait(false);
             var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileManifeste.Id, dossier.Id, maintenant, numeroBl);
             ticket.DeclarerCasParticuliers(requete.CasParticuliers);
+            ticket.DefinirDateEnlevementSouhaitee(requete.DateEnlevementSouhaitee);
 
             // PRI-01 : une règle administrable (module/type de demande/type de client) peut
             // attribuer automatiquement une priorité. Aucune règle configurée → comportement

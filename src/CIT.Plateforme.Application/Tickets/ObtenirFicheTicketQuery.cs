@@ -161,6 +161,18 @@ public sealed class ObtenirFicheTicketQuery(
 
         var societeNom = societe?.NomAffichable ?? string.Empty;
 
+        // Étape métier lisible par le client, dérivée de la file, du statut et de la proforma.
+        var enValidationPaiement = fileNom == CIT.Plateforme.Application.BillingImport.NomsFiles.ValidationPaiement;
+        var preuveDeposee = enValidationPaiement && documents.Any(d =>
+            d.Categorie == CIT.Plateforme.Domain.Documents.CategorieDocumentBillingImport.PreuvePaiement && d.DateDepotUtc >= ticket.DateArriveeEnFileUtc);
+        var etapeParcours = EtapeParcoursClient.Determiner(
+            ticket.Module, fileNom, ticket.Statut, ticket.EtatProforma,
+            estRejete: ticket.TypeAnnulationImport == TypeAnnulationImport.RejetManifeste || ticket.TypeAnnulationExport == TypeAnnulationExport.RejetBackOffice,
+            preuveDeposee);
+        var actifBilling = peutDemanderFacture;
+        bool peutRepondreProforma = actifBilling && ticket.EtatProforma == EtatProforma.EnAttenteValidation;
+        bool peutDeposerPreuvePaiement = actifBilling && enValidationPaiement;
+
         // SOC-10 — les tickets liés. La liaison se lit dans les deux sens (le repository couvre
         // les deux côtés) : un ticket créé plus tard et rattaché à celui-ci doit apparaître ici
         // aussi, sans quoi la liaison ne serait visible que depuis la fiche qui l'a posée.
@@ -235,7 +247,12 @@ public sealed class ObtenirFicheTicketQuery(
             Liaisons: liaisons,
             PeutLierTickets: peutLierTickets,
             LibellePaiementCdc: CIT.Plateforme.Application.BillingImport.LibellePaiementCdcHelper.PourFile(ticket.Module, fileNom),
-            CasParticuliers: ticket.CasParticuliers
+            CasParticuliers: ticket.CasParticuliers,
+            EtapeParcours: etapeParcours,
+            EtatProforma: ticket.EtatProforma,
+            DateEnlevementSouhaitee: ticket.DateEnlevementSouhaitee,
+            PeutRepondreProforma: peutRepondreProforma,
+            PeutDeposerPreuvePaiement: peutDeposerPreuvePaiement
         );
     }
 

@@ -106,6 +106,7 @@ public sealed class CircuitClientEnCompteTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-EC1");
         using var facture = Contenu("facture");
 
+        await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -122,6 +123,7 @@ public sealed class CircuitClientEnCompteTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-EC2");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var badt = Contenu("badt"))
@@ -146,6 +148,7 @@ public sealed class CircuitClientEnCompteTests
         var ticketId = await CreerEtValiderTicketAsync(c, "BL-EC3");
         using (var facture = Contenu("facture"))
         {
+            await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
         using (var badt = Contenu("badt"))

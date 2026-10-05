@@ -176,6 +176,7 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False(c.Ticket.EstEnEtatEngageant);
 
+        await ProformaDeTest.ValiderAsync(db, c.Ticket.Id, c.AgentId);
         await new EditerFactureCommand(
                 new TicketRepository(db), new DossierRepository(db), new FileDeTraitementRepository(db),
                 DepotDeTest(db, auto, journal, horloge, uow), auto, journal, horloge, uow)
@@ -203,6 +204,7 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False((await RechargerAsync(db, c.Ticket.Id)).EstEnEtatEngageant);
 
+        await ProformaDeTest.ValiderAsync(db, c.Ticket.Id, c.AgentId);
         await new EditerFactureExportCommand(
                 new TicketRepository(db), new DossierRepository(db), new FileDeTraitementRepository(db),
                 DepotDeTest(db, auto, journal, horloge, uow), auto, journal, horloge, uow)

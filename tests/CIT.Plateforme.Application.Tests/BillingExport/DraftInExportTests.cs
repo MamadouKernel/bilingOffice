@@ -127,6 +127,7 @@ public sealed class DraftInExportTests
         Assert.True(ticket.DraftInExportEmis);
         Assert.NotNull(ticket.DraftInExportEmisLeUtc);
 
+        await ProformaDeTest.ValiderAsync(c.Db, ticket.Id, c.AgentId);
         await c.EditerFacture.ExecuterAsync(
             c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", Fichier("facture"), 7, Regles);
 

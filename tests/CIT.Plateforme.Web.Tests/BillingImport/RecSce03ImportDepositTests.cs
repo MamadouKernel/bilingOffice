@@ -79,6 +79,11 @@ public sealed class RecSce03ImportDepositTests(PlateformeWebApplicationFactory f
         var editerFacture = services.GetRequiredService<EditerFactureCommand>();
         using (var facture = Contenu("facture"))
         {
+            // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
+            var proforma1 = Contenu("proforma");
+            await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
+                agentId, ticket.Id, "proforma.pdf", "application/pdf", proforma1, proforma1.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
+            await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(auteurId, ticket.Id);
             await editerFacture.ExecuterAsync(agentId, ticket.Id, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
 

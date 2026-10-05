@@ -124,6 +124,10 @@ else if (_dashboard is not null)
                                             {
                                                 <a href="/tickets/@t.TicketId" class="badge bg-light text-dark border text-decoration-none">
                                                     @(t.NumeroBl ?? t.NumeroTicket)
+                                                    @if (t.Etape is { } etape)
+                                                    {
+                                                        <span class="fw-normal text-primary"> · @Loc[etape]</span>
+                                                    }
                                                 </a>
                                             }
                                         </div>
