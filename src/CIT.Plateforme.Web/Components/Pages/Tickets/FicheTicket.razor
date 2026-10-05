@@ -350,9 +350,7 @@
 
                         @if (_fiche.PeutAnnuler)
                         {
-                            <button type="button" class="btn btn-outline-danger" @onclick="AnnulerTicketAsync">
-                                @Loc["Ticket.CancelMyRequest"]
-                            </button>
+                            <AnnulationClient TicketId="_fiche.TicketId" ClientId="_utilisateurId" Termine="ActionAgentTermineeAsync" />
                         }
                     </div>
                 </div>
@@ -723,13 +721,6 @@
         {
             _erreur = MessagesUtilisateur.Pour(ex);
         }
-    }
-
-    private async Task AnnulerTicketAsync()
-    {
-        // Rediriger vers l'espace client ou afficher confirmation
-        _actionFeedback = Loc["Ticket.MsgCancelSent"].Value;
-        await RechargerAsync();
     }
 
     private async Task EnvoyerMessageAsync()

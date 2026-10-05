@@ -130,5 +130,8 @@ public sealed record FicheTicketVue(
 
     /// <summary>Nom de l'agent qui a le ticket en charge quand l'appelant (agent non superviseur) ne
     /// peut pas le traiter : la fiche passe en lecture seule et propose la demande de réaffectation.</summary>
-    string? PrisEnChargeParAutre = null
+    string? PrisEnChargeParAutre = null,
+
+    /// <summary>IMP-15 : le client peut choisir de finaliser au Billing Office (BL validé, pas encore déclaré).</summary>
+    bool PeutFinaliserPresentiel = false
 );

@@ -130,4 +130,57 @@ public sealed class TraitementTicketTests
         Assert.DoesNotContain(options.Agents, a => a.AgentId == c.Agent);
         Assert.Contains(options.Agents, a => a.AgentId == c.Collegue);
     }
+
+    private static OptionsTraitementTicketQuery OptionsAvecHistorique(PlateformeDbContext db) =>
+        new(new TicketRepository(db), new FileDeTraitementRepository(db), new TransitionAutoriseeRepository(db),
+            new MotifTransfertRepository(db), new HabilitationRepository(db), new UtilisateurInfoRepository(db), new HistoriqueTicketRepository(db));
+
+    [Fact]
+    public async Task Un_ticket_cloture_ne_propose_que_la_reouverture_au_detenteur_du_droit()
+    {
+        var c = await ConstruireAsync();
+        var ticket = (await c.Db.Tickets.FindAsync(c.TicketId))!;
+        ticket.Cloturer(MotifClotureType.Normale, DateTime.UtcNow);
+        c.Db.Habilitations.Add(HabilitationUtilisateur.Attribuer(c.Superviseur, Permission.TicketRouvrir, ticket.FileCouranteId));
+        await c.Db.SaveChangesAsync();
+
+        var superviseur = await c.Options.ExecuterAsync(c.Superviseur, c.TicketId);
+        var agent = await c.Options.ExecuterAsync(c.Agent, c.TicketId);
+
+        Assert.True(superviseur.PeutRouvrir);
+        Assert.False(superviseur.PeutTransferer || superviseur.PeutEscalader || superviseur.PeutAffecter);
+        Assert.False(agent.PeutRouvrir);
+    }
+
+    [Fact]
+    public async Task La_cloture_pour_absence_de_reponse_est_proposee_a_l_agent_en_charge_d_un_ticket_en_attente_client()
+    {
+        var c = await ConstruireAsync();
+        var ticket = (await c.Db.Tickets.FindAsync(c.TicketId))!;
+        ticket.MettreEnAttenteClient(DateTime.UtcNow);
+        c.Db.Habilitations.Add(HabilitationUtilisateur.Attribuer(c.Agent, Permission.TicketClotureAbsenceReponse, ticket.FileCouranteId));
+        await c.Db.SaveChangesAsync();
+
+        Assert.True((await c.Options.ExecuterAsync(c.Agent, c.TicketId)).PeutCloturerAbsenceReponse);
+        Assert.False((await c.Options.ExecuterAsync(c.Collegue, c.TicketId)).PeutCloturerAbsenceReponse);
+    }
+
+    [Fact]
+    public async Task Une_demande_d_annulation_du_client_attend_la_decision_de_l_agent_en_charge_puis_disparait()
+    {
+        var c = await ConstruireAsync();
+        var ticket = (await c.Db.Tickets.FindAsync(c.TicketId))!;
+        c.Db.Habilitations.Add(HabilitationUtilisateur.Attribuer(c.Agent, Permission.TicketAnnuler, ticket.FileCouranteId));
+        c.Db.HistoriqueTickets.Add(CIT.Plateforme.Domain.Audit.EntreeHistorique.Creer(c.TicketId, "DemandeAnnulationSoumise", "Marchandise vendue en mer", Guid.NewGuid(), DateTime.UtcNow.AddMinutes(-5)));
+        await c.Db.SaveChangesAsync();
+        var options = OptionsAvecHistorique(c.Db);
+
+        var avant = await options.ExecuterAsync(c.Agent, c.TicketId);
+        Assert.True(avant.PeutDeciderAnnulation);
+        Assert.Equal("Marchandise vendue en mer", avant.DemandeAnnulationMotif);
+
+        c.Db.HistoriqueTickets.Add(CIT.Plateforme.Domain.Audit.EntreeHistorique.Creer(c.TicketId, "DemandeAnnulationRejetee", "Facture déjà payée", c.Agent, DateTime.UtcNow));
+        await c.Db.SaveChangesAsync();
+        Assert.False((await options.ExecuterAsync(c.Agent, c.TicketId)).PeutDeciderAnnulation);
+    }
 }

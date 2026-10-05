@@ -16,7 +16,9 @@ public sealed class ResolveurSuperviseursDeLaFile(
 
     public const string TypeEscalade = "EscaladeSuperviseur";
 
-    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeEvenement or TypeEscalade;
+    public const string TypeDemandeAnnulation = "DemandeAnnulationSoumise";
+
+    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeEvenement or TypeEscalade or TypeDemandeAnnulation;
 
     public async Task<IReadOnlyList<Guid>> ResoudreAsync(string typeEvenement, string chargeUtile, CancellationToken ct = default)
     {
@@ -27,7 +29,7 @@ public sealed class ResolveurSuperviseursDeLaFile(
         }
 
         var destinataires = (await habilitations.ListerUtilisateursAvecPermissionAsync(Permission.TicketReaffecter, ticket.FileCouranteId, ct).ConfigureAwait(false)).ToList();
-        if (typeEvenement == TypeEvenement && ticket.OperateurAssigneId is Guid affecte)
+        if (typeEvenement is TypeEvenement or TypeDemandeAnnulation && ticket.OperateurAssigneId is Guid affecte)
         {
             destinataires.Add(affecte);
         }

@@ -1,0 +1,87 @@
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IServiceScopeFactory ScopeFactory
+
+@* Annulation par le client (CYC-01 à CYC-03) : motif obligatoire et confirmation explicite. Tant
+   qu'aucune étape bloquante n'est atteinte, l'annulation est directe ; au-delà, elle devient une
+   DEMANDE d'annulation, décidée par l'agent en charge ou le superviseur. *@
+@if (!_ouvert)
+{
+    <button type="button" class="btn btn-outline-danger" @onclick="() => _ouvert = true">@Loc["Ticket.CancelMyRequest"]</button>
+}
+else
+{
+    <div class="border border-danger-subtle rounded p-2">
+        @if (_demandeRequise)
+        {
+            <div class="small mb-2">@_explication</div>
+        }
+        <label class="form-label small fw-semibold mb-1" for="motif-annulation">@Loc["Annulation.Motif"]</label>
+        <textarea id="motif-annulation" class="form-control form-control-sm mb-2" rows="2" maxlength="500" @bind="_motif" @bind:event="oninput"></textarea>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-danger btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motif))" @onclick="ConfirmerAsync">
+                @(_demandeRequise ? Loc["Annulation.EnvoyerDemande"] : Loc["Annulation.Confirmer"])
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _ouvert = false">@Loc["Common.Cancel"]</button>
+        </div>
+        @if (_erreur is not null)
+        {
+            <div class="small text-danger mt-2">@_erreur</div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid TicketId { get; set; }
+    [Parameter, EditorRequired] public Guid ClientId { get; set; }
+
+    /// <summary>Message de retour ; la fiche se recharge.</summary>
+    [Parameter] public EventCallback<string> Termine { get; set; }
+
+    private bool _ouvert;
+    private bool _demandeRequise;
+    private string? _explication;
+    private string _motif = string.Empty;
+    private bool _enCours;
+    private string? _erreur;
+
+    private async Task ConfirmerAsync()
+    {
+        _enCours = true;
+        _erreur = null;
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            var commande = portee.ServiceProvider.GetRequiredService<AnnulerTicketCommand>();
+            if (_demandeRequise)
+            {
+                await commande.DemanderAnnulationAsync(ClientId, TicketId, _motif.Trim());
+                _ouvert = false;
+                await Termine.InvokeAsync(Loc["Annulation.DemandeEnvoyee"].Value);
+                return;
+            }
+
+            await commande.AnnulerLibrementAsync(ClientId, TicketId, _motif.Trim());
+            _ouvert = false;
+            await Termine.InvokeAsync(Loc["Annulation.Effectuee"].Value);
+        }
+        catch (AnnulationLibreFermeeException ex)
+        {
+            // Étape bloquante atteinte : on bascule sur la demande d'annulation, motif conservé.
+            _demandeRequise = true;
+            _explication = MessagesUtilisateur.Pour(ex);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

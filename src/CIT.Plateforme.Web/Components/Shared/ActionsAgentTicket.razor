@@ -10,10 +10,23 @@
 @* Actions de traitement de l'agent sur la fiche (05/10/2026) : transférer (files permises par la
    matrice, motif du référentiel), escalader au superviseur (motif obligatoire), (ré)affecter
    (superviseur). Rien n'est proposé qui serait refusé ; les commandes revérifient tout. *@
-@if (_options is { } o && (o.PeutTransferer || o.PeutEscalader || o.PeutAffecter))
+@if (_options is { } o && (o.PeutTransferer || o.PeutEscalader || o.PeutAffecter || o.PeutRouvrir || o.PeutCloturerAbsenceReponse || o.PeutDeciderAnnulation))
 {
     <div class="cit-card mb-4">
         <h6 class="fw-bold text-dark mb-3">🧭 @Loc["Traitement.Titre"]</h6>
+        @if (o.PeutDeciderAnnulation)
+        {
+            @* CYC-02 : la demande d'annulation du client attend une décision motivée. *@
+            <div class="alert alert-warning py-2 small">
+                <div class="fw-semibold mb-1">🛑 @Loc["Annulation.DemandeRecue"]</div>
+                <div class="mb-2">@o.DemandeAnnulationMotif</div>
+                <input class="form-control form-control-sm mb-2" placeholder="@Loc["Annulation.MotifDecision"]" aria-label="@Loc["Annulation.MotifDecision"]" maxlength="500" @bind="_motifDecision" @bind:event="oninput" />
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-danger btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motifDecision))" @onclick="() => DeciderAnnulationAsync(true)">@Loc["Annulation.Accepter"]</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motifDecision))" @onclick="() => DeciderAnnulationAsync(false)">@Loc["Annulation.Refuser"]</button>
+                </div>
+            </div>
+        }
         <div class="d-flex flex-wrap gap-2 mb-2">
             @if (o.PeutTransferer)
             {
@@ -26,6 +39,14 @@
             @if (o.PeutAffecter)
             {
                 <button type="button" class="btn btn-sm @(_panneau == "affectation" ? "btn-secondary" : "btn-outline-secondary")" @onclick="@(() => Ouvrir("affectation"))">👥 @(o.EstAffecte ? Loc["Traitement.Reaffecter"] : Loc["Traitement.Affecter"])</button>
+            }
+            @if (o.PeutCloturerAbsenceReponse)
+            {
+                <button type="button" class="btn btn-sm @(_panneau == "cloture" ? "btn-danger" : "btn-outline-danger")" @onclick="@(() => Ouvrir("cloture"))">🔒 @Loc["Traitement.ClotureAbsence"]</button>
+            }
+            @if (o.PeutRouvrir)
+            {
+                <button type="button" class="btn btn-sm @(_panneau == "reouverture" ? "btn-info" : "btn-outline-info")" @onclick="@(() => Ouvrir("reouverture"))">↩️ @Loc["Traitement.Rouvrir"]</button>
             }
         </div>
 
@@ -83,6 +104,20 @@
                 </div>
                 break;
 
+            case "cloture":
+                @* Clôture irréversible (archivage) : explication puis confirmation explicite (AM-03). *@
+                <div class="small mb-2">@Loc["Traitement.ClotureAbsenceAide"]</div>
+                <button type="button" class="btn btn-danger btn-sm" disabled="@_enCours" @onclick="CloturerAbsenceAsync">@Loc["Traitement.ConfirmerCloture"]</button>
+                break;
+
+            case "reouverture":
+                <label class="form-label small fw-semibold mb-1" for="motif-reouverture">@Loc["Traitement.MotifReouverture"]</label>
+                <textarea id="motif-reouverture" class="form-control form-control-sm mb-2" rows="2" maxlength="500" @bind="_motifReouverture" @bind:event="oninput"></textarea>
+                <div class="text-end">
+                    <button type="button" class="btn btn-info btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motifReouverture))" @onclick="RouvrirAsync">@Loc["Traitement.Rouvrir"]</button>
+                </div>
+                break;
+
             case "affectation":
                 <div class="row g-2 align-items-end">
                     <div class="col-12 col-md-9">
@@ -124,6 +159,8 @@
     private Guid? _fileCible;
     private string _motif = string.Empty;
     private string _motifEscalade = string.Empty;
+    private string _motifReouverture = string.Empty;
+    private string _motifDecision = string.Empty;
     private Guid? _agentCible;
     private bool _enCours;
     private string? _erreur;
@@ -158,6 +195,18 @@
         s => s.GetRequiredService<EscaladerAuSuperviseurCommand>().ExecuterAsync(AgentId, TicketId, _motifEscalade),
         Loc["Traitement.MsgEscalade"].Value);
 
+    private Task CloturerAbsenceAsync() => ExecuterAsync(
+        s => s.GetRequiredService<CloturerTicketCommand>().ClorePourAbsenceReponseAsync(AgentId, TicketId),
+        Loc["Traitement.MsgCloture"].Value);
+
+    private Task RouvrirAsync() => ExecuterAsync(
+        s => s.GetRequiredService<ReouvrirTicketCommand>().RouvrirAsync(AgentId, TicketId, _motifReouverture),
+        Loc["Traitement.MsgRouvert"].Value);
+
+    private Task DeciderAnnulationAsync(bool accepter) => ExecuterAsync(
+        s => s.GetRequiredService<AnnulerTicketCommand>().DeciderAnnulationAsync(AgentId, TicketId, accepter, _motifDecision.Trim()),
+        accepter ? Loc["Annulation.MsgAcceptee"].Value : Loc["Annulation.MsgRefusee"].Value);
+
     private Task AffecterAsync() => ExecuterAsync(
         s => _options!.EstAffecte
             ? s.GetRequiredService<ReaffecterTicketCommand>().ExecuterAsync(AgentId, TicketId, _agentCible!.Value)
@@ -173,7 +222,7 @@
             using var portee = ScopeFactory.CreateScope();
             await action(portee.ServiceProvider);
             _panneau = null;
-            _motif = _motifEscalade = string.Empty;
+            _motif = _motifEscalade = _motifReouverture = _motifDecision = string.Empty;
             _fileCible = _agentCible = null;
             await Termine.InvokeAsync(succes);
             await OnParametersSetAsync();

@@ -8,6 +8,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
 
 @* Actions du client sur son ticket Billing, là où il les attend (parcours TO BE) : répondre à la
    proforma, puis joindre sa preuve de paiement. Les droits viennent de la fiche (requête serveur). *@
@@ -47,6 +48,17 @@
     </div>
 }
 
+@if (Fiche.PeutFinaliserPresentiel)
+{
+    @* IMP-15, option 1 du parcours : finaliser au Billing Office plutôt qu'en ligne — la bascule est
+       tracée sur le ticket, puis le client choisit son créneau de rendez-vous. *@
+    <div class="cit-card mb-4">
+        <h6 class="fw-bold text-dark mb-2">🏢 @Loc["Presentiel.Titre"]</h6>
+        <p class="small text-muted mb-2">@Loc["Presentiel.Intro"]</p>
+        <button type="button" class="btn btn-outline-primary btn-sm" disabled="@_enCours" @onclick="FinaliserPresentielAsync">@Loc["Presentiel.Bouton"]</button>
+    </div>
+}
+
 @if (Fiche.PeutDeposerPreuvePaiement)
 {
     <div class="cit-card mb-4 border-success">
@@ -67,6 +79,12 @@
     private string _motif = string.Empty;
     private DateOnly? _nouvelleDate;
     private bool _enCours;
+
+    private Task FinaliserPresentielAsync() => ExecuterAsync(async s =>
+    {
+        await s.GetRequiredService<DeclarerFinalisationPresentielleCommand>().ExecuterAsync(UtilisateurId, Fiche.TicketId);
+        Navigation.NavigateTo($"/rendez-vous/prendre/{Fiche.TicketId}");
+    }, "Presentiel.Declaree");
 
     private Task ValiderAsync() => ExecuterAsync(s => s.GetRequiredService<GestionProformaCommand>().ValiderAsync(UtilisateurId, Fiche.TicketId), "Proforma.MsgValidee");
 

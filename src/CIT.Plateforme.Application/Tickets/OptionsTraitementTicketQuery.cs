@@ -18,7 +18,12 @@ public sealed record OptionsTraitementTicketVue(
     bool PeutEscalader,
     bool PeutAffecter,
     bool EstAffecte,
-    IReadOnlyList<AgentAffectable> Agents);
+    IReadOnlyList<AgentAffectable> Agents,
+    bool PeutRouvrir = false,
+    bool PeutCloturerAbsenceReponse = false,
+    /// <summary>Motif de la demande d'annulation du client, si elle attend une décision.</summary>
+    string? DemandeAnnulationMotif = null,
+    bool PeutDeciderAnnulation = false);
 
 /// <summary>
 /// Options de traitement d'un ticket pour un agent (05/10/2026) :
@@ -37,14 +42,15 @@ public sealed class OptionsTraitementTicketQuery(
     ITransitionAutoriseeRepository transitions,
     IMotifTransfertRepository motifs,
     IHabilitationRepository habilitations,
-    IUtilisateurInfoRepository utilisateurs)
+    IUtilisateurInfoRepository utilisateurs,
+    IHistoriqueTicketRepository? historique = null)
 {
     private static readonly OptionsTraitementTicketVue Aucune = new(false, [], false, false, false, []);
 
     public async Task<OptionsTraitementTicketVue> ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
     {
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false);
-        if (ticket is null || ticket.Statut is StatutTicket.Cloture or StatutTicket.Annule)
+        if (ticket is null || ticket.Statut == StatutTicket.Annule)
         {
             return Aucune;
         }
@@ -54,6 +60,12 @@ public sealed class OptionsTraitementTicketQuery(
         if (!droits.Any(h => h.FileId == null || h.FileId == ticket.FileCouranteId))
         {
             return Aucune;
+        }
+
+        // Ticket clôturé : seule la réouverture motivée (CYC-06) reste possible.
+        if (ticket.Statut == StatutTicket.Cloture)
+        {
+            return Aucune with { PeutRouvrir = Detient(Permission.TicketRouvrir) };
         }
 
         var superviseur = Detient(Permission.TicketReaffecter);
@@ -108,7 +120,24 @@ public sealed class OptionsTraitementTicketQuery(
                 .OrderBy(a => a.TicketsEnCours).ThenBy(a => a.Nom, StringComparer.CurrentCulture));
         }
 
-        return new OptionsTraitementTicketVue(peutTransferer, destinations, peutEscalader, peutAffecter && agents.Count > 0, !libre, agents);
+        // CYC-04 : clôture pour absence de réponse d'un ticket en attente du client, par l'agent en charge.
+        var peutCloturerAbsence = ticket.Statut == StatutTicket.EnAttenteClient && (tenuParMoi || superviseur)
+            && Detient(Permission.TicketClotureAbsenceReponse);
+
+        // CYC-02 : demande d'annulation du client en attente — décidée par l'agent en charge ou le superviseur.
+        string? demandeAnnulation = null;
+        if (historique is not null && Detient(Permission.TicketAnnuler) && (tenuParMoi || libre || superviseur))
+        {
+            var derniere = (await historique.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
+                .Where(h => h.Evenement is "DemandeAnnulationSoumise" or "DemandeAnnulationAcceptee" or "DemandeAnnulationRejetee")
+                .MaxBy(h => h.HorodatageUtc);
+            demandeAnnulation = derniere?.Evenement == "DemandeAnnulationSoumise" ? derniere.Detail ?? "—" : null;
+        }
+
+        return new OptionsTraitementTicketVue(peutTransferer, destinations, peutEscalader, peutAffecter && agents.Count > 0, !libre, agents,
+            PeutCloturerAbsenceReponse: peutCloturerAbsence,
+            DemandeAnnulationMotif: demandeAnnulation,
+            PeutDeciderAnnulation: demandeAnnulation is not null);
     }
 }
 

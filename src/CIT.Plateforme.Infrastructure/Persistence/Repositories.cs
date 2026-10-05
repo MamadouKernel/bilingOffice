@@ -741,6 +741,13 @@ public sealed class UtilisateurInfoRepository(PlateformeDbContext dbContext) : I
 
 public sealed class HistoriqueTicketRepository(PlateformeDbContext dbContext) : IHistoriqueTicketRepository
 {
+    public async Task<IReadOnlyList<CIT.Plateforme.Domain.Audit.EntreeHistorique>> ListerParEvenementsAsync(
+        IReadOnlyCollection<string> evenements, DateTime depuisUtc, CancellationToken ct = default) =>
+        await dbContext.HistoriqueTickets
+            .Where(h => evenements.Contains(h.Evenement) && h.HorodatageUtc >= depuisUtc)
+            .OrderBy(h => h.HorodatageUtc)
+            .ToListAsync(ct).ConfigureAwait(false);
+
     public async Task<IReadOnlyList<Domain.Audit.EntreeHistorique>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
         await dbContext.HistoriqueTickets
             .Where(h => h.TicketId == ticketId)

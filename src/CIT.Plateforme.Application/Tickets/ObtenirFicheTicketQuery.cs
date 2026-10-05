@@ -253,10 +253,14 @@ public sealed class ObtenirFicheTicketQuery(
             DateEnlevementSouhaitee: ticket.DateEnlevementSouhaitee,
             PeutRepondreProforma: peutRepondreProforma,
             PeutDeposerPreuvePaiement: peutDeposerPreuvePaiement,
-            PrisEnChargeParAutre: !estClient && ticket.OperateurAssigneId is Guid affecte && affecte != appelantId
+            PrisEnChargeParAutre: !estClient && ticket.Statut is not (StatutTicket.Cloture or StatutTicket.Annule)
+                && ticket.OperateurAssigneId is Guid affecte && affecte != appelantId
                 && !habilitations.Any(h => h.PermissionCode == Permission.TicketReaffecter && (h.FileId == null || h.FileId == ticket.FileCouranteId))
                 ? operateurNom
-                : null
+                : null,
+            PeutFinaliserPresentiel: estClient && ticket.Module == CIT.Plateforme.Application.BillingImport.SoumettreDemandeImportCommand.Module
+                && ticket.Statut is not (StatutTicket.Cloture or StatutTicket.Annule) && !ticket.DeclarationPresentielle
+                && fileNom != CIT.Plateforme.Application.BillingImport.SoumettreDemandeImportCommand.FilePiloteManifeste
         );
     }
 

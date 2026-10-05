@@ -634,6 +634,11 @@ public sealed record UtilisateurInfo(
 public interface IHistoriqueTicketRepository
 {
     Task<IReadOnlyList<CIT.Plateforme.Domain.Audit.EntreeHistorique>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+
+    /// <summary>Entrées d'historique de certains types depuis une date (écrans de supervision).</summary>
+    Task<IReadOnlyList<CIT.Plateforme.Domain.Audit.EntreeHistorique>> ListerParEvenementsAsync(
+        IReadOnlyCollection<string> evenements, DateTime depuisUtc, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<CIT.Plateforme.Domain.Audit.EntreeHistorique>>([]);
 }
 
 /// <summary>FEATURE 006 : Customer Complaint (REC-02) — référentiel des catégories.</summary>

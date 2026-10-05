@@ -76,6 +76,12 @@ public sealed class ProvisionnementNotifications(
         ("ReaffectationDemandee", CanalNotification.Email, false, "Demande de réaffectation d'un ticket"),
         ("EscaladeSuperviseur", CanalNotification.InApp, false, "Un ticket vous est escaladé"),
         ("EscaladeSuperviseur", CanalNotification.Email, false, "Un ticket vous est escaladé"),
+        ("DemandeAnnulationSoumise", CanalNotification.InApp, false, "Un client demande l'annulation d'un ticket"),
+        ("DemandeAnnulationSoumise", CanalNotification.Email, false, "Un client demande l'annulation d'un ticket"),
+        ("DemandeAnnulationAcceptee", CanalNotification.InApp, false, "Votre demande d'annulation est acceptée"),
+        ("DemandeAnnulationAcceptee", CanalNotification.Email, false, "Votre demande d'annulation est acceptée"),
+        ("DemandeAnnulationRejetee", CanalNotification.InApp, false, "Votre demande d'annulation n'est pas retenue"),
+        ("DemandeAnnulationRejetee", CanalNotification.Email, false, "Votre demande d'annulation n'est pas retenue"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -101,6 +107,9 @@ public sealed class ProvisionnementNotifications(
         ["Votre proforma est à valider"] = "Your proforma is ready for approval",
         ["Demande de réaffectation d'un ticket"] = "Ticket reassignment request",
         ["Un ticket vous est escaladé"] = "A ticket has been escalated to you",
+        ["Un client demande l'annulation d'un ticket"] = "A customer requests a ticket cancellation",
+        ["Votre demande d'annulation est acceptée"] = "Your cancellation request is accepted",
+        ["Votre demande d'annulation n'est pas retenue"] = "Your cancellation request was not accepted",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -149,6 +158,9 @@ public sealed class ProvisionnementNotifications(
         "ProformaEmise" => $"{objet}. Consultez-la sur le ticket {{numeroTicket}}, puis validez-la ou demandez une correction : la facture définitive suivra.",
         "ReaffectationDemandee" => $"{objet}. Un agent demande à reprendre le ticket {{numeroTicket}}, pris en charge par un collègue : réaffectez-le si nécessaire.",
         "EscaladeSuperviseur" => $"{objet}. Un agent signale un blocage sur le ticket {{numeroTicket}} : le motif figure dans son historique. Décidez de la suite (réaffecter, prioriser, transférer).",
+        "DemandeAnnulationSoumise" => $"{objet}. Le ticket {{numeroTicket}} a dépassé l'étape d'annulation libre : acceptez ou refusez la demande depuis sa fiche.",
+        "DemandeAnnulationAcceptee" => $"{objet}. Le ticket {{numeroTicket}} est annulé.",
+        "DemandeAnnulationRejetee" => $"{objet}. Le traitement du ticket {{numeroTicket}} se poursuit ; le motif figure sur le ticket.",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
 
@@ -165,6 +177,9 @@ public sealed class ProvisionnementNotifications(
         "ProformaEmise" => $"{objet}. Review it on ticket {{numeroTicket}}, then approve it or request a correction: the final invoice will follow.",
         "ReaffectationDemandee" => $"{objet}. An agent asks to take over ticket {{numeroTicket}}, handled by a colleague: reassign it if needed.",
         "EscaladeSuperviseur" => $"{objet}. An agent reports a blocking issue on ticket {{numeroTicket}}: the reason is in its history. Decide what comes next (reassign, prioritise, transfer).",
+        "DemandeAnnulationSoumise" => $"{objet}. Ticket {{numeroTicket}} is past the free cancellation step: accept or refuse the request from its record.",
+        "DemandeAnnulationAcceptee" => $"{objet}. Ticket {{numeroTicket}} is cancelled.",
+        "DemandeAnnulationRejetee" => $"{objet}. Processing of ticket {{numeroTicket}} continues; the reason is on the ticket.",
         _ => $"{objet}. See the related ticket for details.",
     };
 

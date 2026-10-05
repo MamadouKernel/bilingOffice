@@ -44,6 +44,8 @@ public sealed class ResolveurClientDuDossier(
         "PreuvePaiementRefusee",
         "TicketCloture",
         "ProformaEmise",
+        "DemandeAnnulationAcceptee",
+        "DemandeAnnulationRejetee",
         // Enrôlement (03/10/2026) : ces règles existaient mais aucun résolveur ne les servait —
         // badge remis, badge bientôt expiré, document de flotte bientôt expiré.
         "BadgeRemisEtDossierCloture",

@@ -138,6 +138,8 @@ public sealed class AnnulerTicketCommand(
             ticket.Id, accepter ? "DemandeAnnulationAcceptee" : "DemandeAnnulationRejetee", motifDecision, agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(
             agentId, accepter ? "DemandeAnnulationAcceptee" : "DemandeAnnulationRejetee", nameof(Ticket), ticket.Id, null, motifDecision, ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync(
+            accepter ? "DemandeAnnulationAcceptee" : "DemandeAnnulationRejetee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
