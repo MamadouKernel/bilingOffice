@@ -182,12 +182,14 @@ public class RaccordementMentionTests
             .OrderBy(n => n)
             .ToList();
 
-        Assert.Equal(["ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte"], implementations);
+        // 05/10/2026 — ResolveurSuperviseursDeLaFile : demande de réaffectation (« qui a pris en charge,
+        // traite »). ALE-03 (Must) exige justement la notification du superviseur ; le résolveur reste
+        // NOMINATIF : les seuls habilités à réaffecter sur la file du ticket, plus l'agent en charge.
+        Assert.Equal(["ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurSuperviseursDeLaFile"], implementations);
 
-        // ALE-03 : aucun résolveur superviseur — F009 ne fournit que le point d'intégration.
-        Assert.DoesNotContain(implementations, n => n.Contains("Superviseur", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(implementations, n => n.Contains("File", StringComparison.OrdinalIgnoreCase));
+        // Toujours aucune diffusion collective.
         Assert.DoesNotContain(implementations, n => n.Contains("Broadcast", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(implementations, n => n.Contains("Tous", StringComparison.OrdinalIgnoreCase));
     }
 
     // ---- T094 : cas TEST-MSG-04-8 (aucune notification SLA) ----

@@ -85,6 +85,7 @@ public sealed class ValiderPreuvePaiementCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportPaiementValider, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
         return ticket;
     }
 }

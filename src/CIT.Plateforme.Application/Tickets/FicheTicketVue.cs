@@ -126,5 +126,9 @@ public sealed record FicheTicketVue(
     bool PeutRepondreProforma = false,
 
     /// <summary>Le client peut joindre sa preuve de paiement (file Validation Paiement).</summary>
-    bool PeutDeposerPreuvePaiement = false
+    bool PeutDeposerPreuvePaiement = false,
+
+    /// <summary>Nom de l'agent qui a le ticket en charge quand l'appelant (agent non superviseur) ne
+    /// peut pas le traiter : la fiche passe en lecture seule et propose la demande de réaffectation.</summary>
+    string? PrisEnChargeParAutre = null
 );

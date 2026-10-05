@@ -7,6 +7,10 @@
     }
   },
   "AllowedHosts": "REMPLACER_PAR_LE_DOMAINE (ex. portail.cit.ci)",
+  "_PortailCommentaire": "Adresse publique du portail : les e-mails ne peuvent proposer un bouton cliquable (Accéder au ticket, Définir mon mot de passe…) qu'avec un lien ABSOLU. Sans elle, les liens restent relatifs (/tickets/…) et inutilisables dans Outlook.",
+  "Portail": {
+    "UrlBase": "https://REMPLACER_PAR_L_ADRESSE_PUBLIQUE (ex. https://10.88.179.103:8443)"
+  },
   "ConnectionStrings": {
     "PlateformeDb": "Server=IP_OU_HOTE;Database=NOM_BASE;User Id=UTILISATEUR;Password=MOT_DE_PASSE;TrustServerCertificate=True;Encrypt=True"
   },

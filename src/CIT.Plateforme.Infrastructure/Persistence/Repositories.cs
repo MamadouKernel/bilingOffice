@@ -640,6 +640,11 @@ public sealed class UtilisateurSocieteRepository(PlateformeDbContext dbContext) 
 /// <summary>FEATURE 003.5.</summary>
 public sealed class HabilitationRepository(PlateformeDbContext dbContext) : IHabilitationRepository
 {
+    public async Task<IReadOnlyList<Guid>> ListerUtilisateursAvecPermissionAsync(string permissionCode, Guid fileId, CancellationToken ct = default) =>
+        await dbContext.Habilitations
+            .Where(h => h.PermissionCode == permissionCode && (h.FileId == null || h.FileId == fileId))
+            .Select(h => h.UtilisateurId).Distinct().ToListAsync(ct).ConfigureAwait(false);
+
     public async Task AjouterAsync(HabilitationUtilisateur habilitation, CancellationToken ct = default) =>
         await dbContext.Habilitations.AddAsync(habilitation, ct).ConfigureAwait(false);
 

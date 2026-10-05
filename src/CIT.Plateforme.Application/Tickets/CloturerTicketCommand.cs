@@ -32,6 +32,7 @@ public sealed class CloturerTicketCommand(
             ? Permission.TicketClotureAbsenceReponse
             : Permission.TicketCloturer;
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         ticket.Cloturer(motif, horloge.MaintenantUtc);
 

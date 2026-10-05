@@ -35,6 +35,7 @@ public sealed class ValiderTicketImportCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportManifesteInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         var dossier = await dossiers.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Dossier {ticket.DossierId} introuvable.");

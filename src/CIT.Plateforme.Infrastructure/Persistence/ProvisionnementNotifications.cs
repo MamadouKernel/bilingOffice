@@ -72,6 +72,8 @@ public sealed class ProvisionnementNotifications(
         ("TicketCloture", CanalNotification.Email, false, "Votre dossier est clôturé"),
         ("ProformaEmise", CanalNotification.InApp, false, "Votre proforma est à valider"),
         ("ProformaEmise", CanalNotification.Email, false, "Votre proforma est à valider"),
+        ("ReaffectationDemandee", CanalNotification.InApp, false, "Demande de réaffectation d'un ticket"),
+        ("ReaffectationDemandee", CanalNotification.Email, false, "Demande de réaffectation d'un ticket"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -95,6 +97,7 @@ public sealed class ProvisionnementNotifications(
         ["Votre preuve de paiement a été refusée"] = "Your proof of payment was refused",
         ["Votre dossier est clôturé"] = "Your file is closed",
         ["Votre proforma est à valider"] = "Your proforma is ready for approval",
+        ["Demande de réaffectation d'un ticket"] = "Ticket reassignment request",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -141,6 +144,7 @@ public sealed class ProvisionnementNotifications(
         "PreuvePaiementRefusee" => $"{objet}. Le motif est indiqué sur le ticket {{numeroTicket}} : déposez une nouvelle preuve.",
         "TicketCloture" => $"{objet}. Le détail et vos documents éventuels sont sur le ticket {{numeroTicket}}.",
         "ProformaEmise" => $"{objet}. Consultez-la sur le ticket {{numeroTicket}}, puis validez-la ou demandez une correction : la facture définitive suivra.",
+        "ReaffectationDemandee" => $"{objet}. Un agent demande à reprendre le ticket {{numeroTicket}}, pris en charge par un collègue : réaffectez-le si nécessaire.",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
 
@@ -155,6 +159,7 @@ public sealed class ProvisionnementNotifications(
         "PreuvePaiementRefusee" => $"{objet}. The reason is given on ticket {{numeroTicket}}: please upload a new proof.",
         "TicketCloture" => $"{objet}. Details and any documents are on ticket {{numeroTicket}}.",
         "ProformaEmise" => $"{objet}. Review it on ticket {{numeroTicket}}, then approve it or request a correction: the final invoice will follow.",
+        "ReaffectationDemandee" => $"{objet}. An agent asks to take over ticket {{numeroTicket}}, handled by a colleague: reassign it if needed.",
         _ => $"{objet}. See the related ticket for details.",
     };
 

@@ -1,0 +1,42 @@
+@using CIT.Plateforme.Application.Abstractions
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IServiceScopeFactory ScopeFactory
+
+@* Dans une file : signale le ticket tenu par un collègue — seul cet agent (ou un superviseur) peut le
+   traiter. Rien n'est affiché pour ses propres tickets ni pour un ticket non affecté. *@
+@if (_nom is not null)
+{
+    <div class="mt-1"><span class="badge bg-secondary-subtle text-secondary border" title="@Loc["Reaff.BadgeTitre"]">🔒 @Loc["Reaff.Badge", _nom]</span></div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Ticket Ticket { get; set; } = default!;
+    [Parameter, EditorRequired] public Guid AgentId { get; set; }
+
+    private string? _nom;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _nom = null;
+        if (Ticket.OperateurAssigneId is not Guid affecte || affecte == AgentId)
+        {
+            return;
+        }
+
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            var info = await portee.ServiceProvider.GetRequiredService<IUtilisateurInfoRepository>().ObtenirInfoAsync(affecte);
+            _nom = info?.NomAffiche ?? "—";
+        }
+        catch (Exception)
+        {
+            // Confort d'affichage : la règle elle-même est appliquée côté serveur par chaque commande.
+            _nom = "—";
+        }
+    }
+}

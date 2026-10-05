@@ -63,6 +63,7 @@ public sealed class EmettreDraftInExportCommand(
 
         await autorisation.ExigerAsync(
             agentId, Permission.BillingExportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         if (ticket.Module != SoumettreDemandeExportCommand.Module)
         {

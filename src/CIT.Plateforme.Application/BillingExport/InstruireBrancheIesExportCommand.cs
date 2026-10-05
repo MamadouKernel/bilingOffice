@@ -27,6 +27,7 @@ public sealed class InstruireBrancheIesExportCommand(
             : Permission.BillingExportIesControleDocumentaireInstruire;
 
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         // RG-SEC-01 — droit d'action au niveau bloc, symétrique de l'import.
         var bloc = branche == BrancheIes.BackOffice ? BlocDonneesIes.Manifeste : BlocDonneesIes.Douane;

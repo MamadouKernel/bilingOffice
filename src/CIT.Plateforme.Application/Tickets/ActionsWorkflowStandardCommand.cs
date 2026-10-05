@@ -37,6 +37,7 @@ public sealed class ActionsWorkflowStandardCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
         await autorisation.ExigerAsync(agentId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, evenement, detail, agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, evenement, nameof(Ticket), ticket.Id, null, detail, ct).ConfigureAwait(false);

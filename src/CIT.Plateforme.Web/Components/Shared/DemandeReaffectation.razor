@@ -1,0 +1,61 @@
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IServiceScopeFactory ScopeFactory
+
+@* « Qui a pris en charge, traite » : la fiche d'un ticket tenu par un collègue est en lecture seule ;
+   l'agent qui doit le reprendre demande sa réaffectation (superviseurs et agent en charge notifiés). *@
+<div class="alert alert-secondary mb-4" role="status">
+    <div class="fw-bold mb-1">🔒 @Loc["Reaff.Titre", Collegue]</div>
+    <div class="small mb-2">@Loc["Reaff.Intro"]</div>
+    @if (_envoyee)
+    {
+        <div class="small text-success fw-semibold">✅ @Loc["Reaff.Envoyee"]</div>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <input class="form-control form-control-sm w-auto flex-grow-1" placeholder="@Loc["Reaff.Motif"]" aria-label="@Loc["Reaff.Motif"]"
+                   maxlength="300" @bind="_motif" />
+            <button type="button" class="btn btn-outline-primary btn-sm" disabled="@_enCours" @onclick="DemanderAsync">🔁 @Loc["Reaff.Demander"]</button>
+        </div>
+        @if (_erreur is not null)
+        {
+            <div class="small text-danger mt-2">@_erreur</div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid TicketId { get; set; }
+    [Parameter, EditorRequired] public Guid AgentId { get; set; }
+    [Parameter, EditorRequired] public string Collegue { get; set; } = string.Empty;
+
+    private string? _motif;
+    private bool _enCours;
+    private bool _envoyee;
+    private string? _erreur;
+
+    private async Task DemanderAsync()
+    {
+        _enCours = true;
+        _erreur = null;
+        try
+        {
+            using var portee = ScopeFactory.CreateScope();
+            await portee.ServiceProvider.GetRequiredService<DemanderReaffectationCommand>().ExecuterAsync(AgentId, TicketId, _motif);
+            _envoyee = true;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

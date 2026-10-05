@@ -32,7 +32,8 @@ public sealed class TransfertSansAffectationTests
         dbContext.TransitionsAutorisees.Add(TransitionAutorisee.Definir(fileSource, fileCible, []));
         var dossier = Dossier.Creer("DOS-C03-000001", Guid.NewGuid(), horloge.MaintenantUtc);
         var ticket = Ticket.Creer("TCK-C03-000001", "BillingOffice", "Import", fileSource, dossier.Id, horloge.MaintenantUtc);
-        ticket.PrendreEnCharge(Guid.NewGuid(), horloge.MaintenantUtc); // ticket était affecté avant transfert
+        // Le ticket était affecté avant transfert — à l'agent qui transfère : « qui a pris en charge, traite ».
+        ticket.PrendreEnCharge(agentId, horloge.MaintenantUtc);
         dbContext.Dossiers.Add(dossier);
         dbContext.Tickets.Add(ticket);
         await dbContext.SaveChangesAsync();

@@ -108,7 +108,9 @@ public class Imp11EtProducteursTests
         // notifié à chaque étape (validation, rejet, complément, paiement confirmé ou refusé,
         // clôture) et la création d'un ticket export publie TicketCree comme l'import.
         // 47e producteur (05/10/2026) — GestionProformaCommand : proforma déposée, le client est notifié.
-        Assert.Equal(47, fichiersProducteurs.Count);
+        // 48e producteur (05/10/2026) — DemanderReaffectationCommand : superviseurs et agent en charge notifiés.
+        Assert.Equal(48, fichiersProducteurs.Count);
+        Assert.Contains("DemanderReaffectationCommand.cs", fichiersProducteurs);
         Assert.Contains("GestionProformaCommand.cs", fichiersProducteurs);
         foreach (var producteur in new[]
         {
@@ -342,11 +344,12 @@ public class Imp11EtProducteursTests
             .Where(t => t is { IsAbstract: false, IsInterface: false } && t.IsAssignableTo(typeof(IResolveurDestinataires)))
             .ToList();
 
-        // Trois depuis CPT-01 (cf. RaccordementMentionTests, ou l'inventaire est nominatif).
-        Assert.Equal(3, implementations.Count);
+        // Quatre depuis le 05/10/2026 (cf. RaccordementMentionTests, ou l'inventaire est nominatif).
+        Assert.Equal(4, implementations.Count);
 
-        // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale.
-        foreach (var implementation in implementations)
+        // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale — sauf celui des
+        // superviseurs, qui lit les habilitations « réaffecter » de LA file du ticket (ALE-03).
+        foreach (var implementation in implementations.Where(i => i.Name != "ResolveurSuperviseursDeLaFile"))
         {
             var dependances = implementation.GetConstructors().Single().GetParameters()
                 .Select(p => p.ParameterType.Name).ToList();

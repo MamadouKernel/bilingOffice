@@ -32,6 +32,7 @@ public sealed class EditerFactureCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         // Parcours TO BE (05/10/2026) : la facture définitive suit la proforma validée par le client
         // (paramétrable : « Proforma obligatoire » dans les paramètres de la plateforme).

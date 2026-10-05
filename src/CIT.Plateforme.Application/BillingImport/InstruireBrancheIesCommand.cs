@@ -30,6 +30,7 @@ public sealed class InstruireBrancheIesCommand(
             ? Permission.BillingImportIesManifesteInstruire
             : Permission.BillingImportIesControleDocumentaireInstruire;
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         // RG-SEC-01 — le droit d'ACTION sur le bloc de la branche, décidé par la matrice du CDC.
         // Cette vérification ne remplace pas celle du dessus : la permission dit « cet agent peut

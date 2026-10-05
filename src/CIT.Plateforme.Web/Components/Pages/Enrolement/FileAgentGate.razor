@@ -79,7 +79,7 @@ else
                                 <td class="fw-bold text-decoration-none text-primary font-monospace">@t.Numero</td>
                                 <td>
                                     <div class="fw-semibold text-dark">@(t.Objet ?? "—")</div>
-                                    <ClientTicket DossierId="t.DossierId" />
+                                    <ClientTicket DossierId="t.DossierId" /><PrisEnChargePar Ticket="t" AgentId="_agentId" />
                                     @if (_doublons.TryGetValue(t.Id, out var autres))
                                     {
                                         <div class="small text-warning-emphasis mt-1" title="@Loc["AgentGate.DoublonTitle"]">⚠️ @Loc["AgentGate.Doublon", string.Join(", ", autres)]</div>

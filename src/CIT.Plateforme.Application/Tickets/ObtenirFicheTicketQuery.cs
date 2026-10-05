@@ -252,7 +252,11 @@ public sealed class ObtenirFicheTicketQuery(
             EtatProforma: ticket.EtatProforma,
             DateEnlevementSouhaitee: ticket.DateEnlevementSouhaitee,
             PeutRepondreProforma: peutRepondreProforma,
-            PeutDeposerPreuvePaiement: peutDeposerPreuvePaiement
+            PeutDeposerPreuvePaiement: peutDeposerPreuvePaiement,
+            PrisEnChargeParAutre: !estClient && ticket.OperateurAssigneId is Guid affecte && affecte != appelantId
+                && !habilitations.Any(h => h.PermissionCode == Permission.TicketReaffecter && (h.FileId == null || h.FileId == ticket.FileCouranteId))
+                ? operateurNom
+                : null
         );
     }
 

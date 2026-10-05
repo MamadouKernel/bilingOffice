@@ -504,6 +504,10 @@ public interface IHabilitationRepository
 
     Task<IReadOnlyList<CIT.Plateforme.Domain.Securite.HabilitationUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
 
+    /// <summary>Utilisateurs détenant une permission sur une file (ou sur toutes les files).</summary>
+    Task<IReadOnlyList<Guid>> ListerUtilisateursAvecPermissionAsync(string permissionCode, Guid fileId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<Guid>>([]);
+
     /// <summary>Lecture groupée par utilisateurs — évite un N+1 (un ListerParUtilisateur par agent).
     /// L'implémentation par défaut retombe sur des lectures unitaires ; le dépôt EF l'écrase par une
     /// requête unique regroupée par utilisateur.</summary>

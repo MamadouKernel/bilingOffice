@@ -236,6 +236,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Sans adresse publique, les liens des e-mails restent relatifs (/tickets/…) : ni bouton, ni lien
+// cliquable dans la messagerie. Signalé au démarrage plutôt que découvert par les destinataires.
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(app.Configuration["Portail:UrlBase"]))
+{
+    app.Logger.LogWarning("Portail:UrlBase non configuré : les e-mails contiendront des liens relatifs, sans bouton cliquable. Renseignez l'adresse publique du portail dans appsettings.Production.json.");
+}
+
 // APPLICATION DES MIGRATIONS EF CORE AU DÉMARRAGE.
 //
 // F4 (audit sécurité) — l'auto-migration au démarrage est commode en Dev/UAT mais risquée en

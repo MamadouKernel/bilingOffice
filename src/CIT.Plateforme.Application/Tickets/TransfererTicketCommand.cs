@@ -55,6 +55,7 @@ public sealed class TransfererTicketCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
         await autorisation.ExigerAsync(initiateurId, Permission.TicketTransferer, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, initiateurId, ticket, ct).ConfigureAwait(false);
 
         var transitionAutorisee = await transitions.ObtenirAsync(ticket.FileCouranteId, fileCibleId, ct).ConfigureAwait(false);
         if (transitionAutorisee is null || !transitionAutorisee.AutoriseLeMotif(motif))

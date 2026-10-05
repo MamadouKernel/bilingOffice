@@ -85,7 +85,7 @@ else
                                 </td>
                                 <td>
                                     <span class="fw-bold text-dark font-monospace">@t.NumeroBl</span><BadgesCasParticuliers Cas="t.CasParticuliers" />
-                                    <ClientTicket DossierId="t.DossierId" />
+                                    <ClientTicket DossierId="t.DossierId" /><PrisEnChargePar Ticket="t" AgentId="_agentId" />
                                     @if (t.DeclarationPresentielle)
                                     {
                                         <span class="badge bg-dark ms-1 small">@Loc["FileManif.BadgePresentiel"]</span>

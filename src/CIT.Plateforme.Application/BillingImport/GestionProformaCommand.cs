@@ -53,6 +53,7 @@ public sealed class GestionProformaCommand(
             _ => throw new InvalidOperationException($"La proforma n'existe que pour les parcours Billing (ticket {ticket.Numero})."),
         };
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
         if (ticket.Module == SoumettreDemandeExportCommand.Module && !ticket.DraftInExportEmis)
         {
