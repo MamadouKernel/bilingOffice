@@ -137,6 +137,8 @@ public static partial class TraductionMessagesMetier
         ["La configuration de durée de validité et de délai de rappel des badges est requise."] = "The badge validity period and reminder delay configuration is required.",
         ["La conversation doit avoir un propriétaire."] = "The conversation must have an owner.",
         ["La conversation {0} n'appartient pas à l'utilisateur {1} (CPT-04)."] = "Conversation {0} does not belong to user {1} (CPT-04).",
+        ["La date d'enlèvement du ticket {0} ne peut plus être modifiée en ligne : la facture est éditée. Contactez le Billing Office via la messagerie du ticket."] = "The pick-up date of ticket {0} can no longer be changed online: the invoice has been issued. Contact the Billing Office through the ticket messaging.",
+        ["La date d'enlèvement ne peut pas être dans le passé."] = "The pick-up date cannot be in the past.",
         ["La date d'enlèvement prévisionnel ({0}) ne peut pas être antérieure à la date d'arrivée ({1})."] = "The planned pick-up date ({0}) cannot be earlier than the arrival date ({1}).",
         ["La date d'enlèvement prévisionnel ne peut pas être antérieure à la date d'arrivée."] = "The planned pick-up date cannot be earlier than the arrival date.",
         ["La date d'expiration du badge doit être postérieure à sa remise."] = "The badge expiry date must be after its handover.",

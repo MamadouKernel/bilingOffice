@@ -61,6 +61,11 @@ public sealed class RappelExpirationBadgesService(
             .ExecuterAsync(ct).ConfigureAwait(false);
         logger.LogInformation("Rappel d'échéance des documents de flotte : {NombreRappels} rappel(s) émis.", echeances);
 
+        // Rappels de date d'enlèvement (05/10/2026) : veille et dépassement, indépendants du paramétrage des badges.
+        var enlevements = await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.BillingImport.RappelerDatesEnlevementCommand>()
+            .ExecuterAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("Rappel de date d'enlèvement : {NombreRappels} rappel(s) émis.", enlevements);
+
         // Tant que les deux paramètres ne sont pas administrés, il n'y a rien à faire : ce n'est
         // pas une panne, et cela ne doit pas remplir le journal d'erreurs à chaque réveil.
         var parametres = scope.ServiceProvider.GetRequiredService<IParametresEnrolementProvider>();

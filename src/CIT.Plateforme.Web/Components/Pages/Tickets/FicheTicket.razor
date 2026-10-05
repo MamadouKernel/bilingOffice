@@ -262,6 +262,20 @@
                                 <span class="text-muted">@Loc["Proforma.DateEnlevement"]</span>
                                 <span class="fw-semibold">🚚 @enlevement.ToString("dd/MM/yyyy")</span>
                             </li>
+                            @if (_estClient)
+                            {
+                                <li class="mb-2">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <input type="date" class="form-control form-control-sm" style="max-width: 170px;"
+                                               value="@enlevement.ToString("yyyy-MM-dd")"
+                                               @onchange="e => _nouvelleDateEnlevement = e.Value?.ToString()" />
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                @onclick="ModifierDateEnlevementAsync" disabled="@_changementDateEnCours">
+                                            @Loc["FicheTicket.ChangerDateEnlevement"]
+                                        </button>
+                                    </div>
+                                </li>
+                            }
                         }
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">@Loc["Ticket.CurrentQueue"]</span>
@@ -559,6 +573,8 @@
         .Where(e => EvenementsDemandeClient.Contains(e.Evenement) && !string.IsNullOrWhiteSpace(e.Detail))
         .OrderByDescending(e => e.HorodatageUtc).FirstOrDefault()?.Detail;
     private bool _factureDemandee;
+    private string? _nouvelleDateEnlevement;
+    private bool _changementDateEnCours;
     private string _ongletActif = "messages";
     private string _numeroALier = string.Empty;
     private string? _erreurLiaison;
@@ -720,6 +736,33 @@
         catch (Exception ex)
         {
             _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private async Task ModifierDateEnlevementAsync()
+    {
+        if (!DateOnly.TryParse(_nouvelleDateEnlevement, out var nouvelleDate))
+        {
+            return;
+        }
+
+        _changementDateEnCours = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var modifier = scope.ServiceProvider
+                .GetRequiredService<CIT.Plateforme.Application.BillingImport.ModifierDateEnlevementCommand>();
+            await modifier.ExecuterAsync(_utilisateurId, _fiche!.TicketId, nouvelleDate);
+            _nouvelleDateEnlevement = null;
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _changementDateEnCours = false;
         }
     }
 

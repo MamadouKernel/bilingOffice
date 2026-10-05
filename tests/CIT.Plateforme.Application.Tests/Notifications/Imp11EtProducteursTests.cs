@@ -110,7 +110,8 @@ public class Imp11EtProducteursTests
         // 47e producteur (05/10/2026) — GestionProformaCommand : proforma déposée, le client est notifié.
         // 48e producteur (05/10/2026) — DemanderReaffectationCommand : superviseurs et agent en charge notifiés.
         // 49e producteur (05/10/2026) — OptionsTraitementTicketQuery.cs porte EscaladerAuSuperviseurCommand.
-        Assert.Equal(49, fichiersProducteurs.Count);
+        // 50e producteur (05/10/2026) — DateEnlevementCommands.cs : rappels d'enlèvement (veille, dépassement).
+        Assert.Equal(50, fichiersProducteurs.Count);
         Assert.Contains("OptionsTraitementTicketQuery.cs", fichiersProducteurs);
         Assert.Contains("DemanderReaffectationCommand.cs", fichiersProducteurs);
         Assert.Contains("GestionProformaCommand.cs", fichiersProducteurs);

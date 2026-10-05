@@ -516,6 +516,28 @@ public sealed partial class Ticket
     }
 
     /// <summary>
+    /// Le client change sa date d'enlèvement avant la facture. Le magasinage dépend de cette date :
+    /// une proforma déjà envoyée ou validée ne vaut plus et repasse en « correction demandée ».
+    /// Retourne vrai si la proforma doit être refaite.
+    /// </summary>
+    public bool ModifierDateEnlevement(DateOnly nouvelleDate, DateTime maintenantUtc)
+    {
+        DateEnlevementSouhaitee = nouvelleDate;
+        DateDerniereActiviteUtc = maintenantUtc;
+        switch (EtatProforma)
+        {
+            case EtatProforma.EnAttenteValidation:
+                DemanderCorrectionProforma(maintenantUtc);
+                return true;
+            case EtatProforma.Validee:
+                EtatProforma = EtatProforma.CorrectionDemandee;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
     /// La proforma est déposée : le ticket attend la réponse du client, temps interne suspendu
     /// (TPS-02). Une nouvelle proforma (après correction) remplace la précédente.
     /// </summary>

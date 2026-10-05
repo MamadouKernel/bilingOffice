@@ -340,6 +340,8 @@ public static class DependencyInjection
         services.AddScoped<Application.BillingImport.EditerFactureCommand>();
         services.AddScoped<Application.BillingImport.DeposerPreuvePaiementCommand>();
         services.AddScoped<Application.BillingImport.GestionProformaCommand>();
+        services.AddScoped<Application.BillingImport.ModifierDateEnlevementCommand>();
+        services.AddScoped<Application.BillingImport.RappelerDatesEnlevementCommand>();
         services.AddScoped<Application.Tickets.DemanderReaffectationCommand>();
         services.AddScoped<Application.Tickets.OptionsTraitementTicketQuery>();
         services.AddScoped<Application.Tickets.EscaladerAuSuperviseurCommand>();
