@@ -14,35 +14,35 @@
             <div class="cit">CÔTE D'IVOIRE TERMINAL<small>ABIDJAN</small></div>
         </div>
         <div class="f-title">
-            <div class="t1">FACTURE PROFORMA</div>
-            <div class="t2">Simulation — document non contractuel</div>
+            <div class="t1">@TexteProforma.T("FACTURE PROFORMA")</div>
+            <div class="t2">@TexteProforma.T("Simulation — document non contractuel")</div>
         </div>
         <div class="f-num">
-            N° simulation<br />
+            @TexteProforma.T("N° simulation")<br />
             <b>@(string.IsNullOrWhiteSpace(Reference) ? "SIM-" + DateTime.UtcNow.Ticks.ToString()[^8..] : Reference)</b>
         </div>
     </div>
 
     <div class="f-meta">
         <div>
-            <div class="line"><span class="k">Client</span><span>@Ou(ClientNom)</span></div>
-            <div class="line"><span class="k">Type client</span><span>@Ou(TypeClient)</span></div>
-            <div class="line"><span class="k">Trafic</span><span>@trafic</span></div>
-            <div class="line"><span class="k">Port de chargement</span><span>@Ou(PortChargement)</span></div>
-            <div class="line"><span class="k">Port de déchargement</span><span>@Ou(PortDechargement)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Client")</span><span>@Ou(ClientNom)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Type client")</span><span>@Ou(TypeClient)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Trafic")</span><span>@trafic</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Port de chargement")</span><span>@Ou(PortChargement)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Port de déchargement")</span><span>@Ou(PortDechargement)</span></div>
         </div>
         <div>
-            <div class="line"><span class="k">Date d'arrivée navire</span><span>@DateArrivee.ToString("dd/MM/yyyy")</span></div>
-            <div class="line"><span class="k">Date d'enlèvement</span><span>@DateEnlevement.ToString("dd/MM/yyyy")</span></div>
-            <div class="line"><span class="k">Durée de séjour</span><span>@Duree jour(s)</span></div>
-            <div class="line"><span class="k">Escale</span><span>@Ou(Escale)</span></div>
-            <div class="line"><span class="k">Grille appliquée</span><span>@Ou(GrilleLibelle)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Date d'arrivée navire")</span><span>@DateArrivee.ToString("dd/MM/yyyy")</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Date d'enlèvement")</span><span>@DateEnlevement.ToString("dd/MM/yyyy")</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Durée de séjour")</span><span>@Duree @TexteProforma.T("jour(s)")</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Escale")</span><span>@Ou(Escale)</span></div>
+            <div class="line"><span class="k">@TexteProforma.T("Grille appliquée")</span><span>@Ou(GrilleLibelle)</span></div>
         </div>
     </div>
 
     <table class="f-esc">
         <thead>
-            <tr><th>Navire</th><th>Voyage</th><th>BL / Booking</th></tr>
+            <tr><th>@TexteProforma.T("Navire")</th><th>@TexteProforma.T("Voyage")</th><th>BL / Booking</th></tr>
         </thead>
         <tbody>
             <tr>
@@ -55,12 +55,12 @@
 
     <table class="f-rub">
         <thead>
-            <tr><th>Rubriques</th><th class="num">Montant CFA</th><th class="num">Total CFA</th></tr>
+            <tr><th>@TexteProforma.T("Rubriques")</th><th class="num">@TexteProforma.T("Montant CFA")</th><th class="num">@TexteProforma.T("Total CFA")</th></tr>
         </thead>
         <tbody>
             @if (rubriques.Count == 0)
             {
-                <tr><td colspan="3" class="vide">Aucune rubrique facturable.</td></tr>
+                <tr><td colspan="3" class="vide">@TexteProforma.T("Aucune rubrique facturable.")</td></tr>
             }
             else
             {
@@ -69,7 +69,7 @@
                     <tr>
                         <td>
                             <div class="grp-title">@r.Presta</div>
-                            <div class="grp-calc">@r.Qte Unité(s) &nbsp;*&nbsp; @Fmt(r.Pu) XOF</div>
+                            <div class="grp-calc">@r.Qte @TexteProforma.T("Unité(s)") &nbsp;*&nbsp; @Fmt(r.Pu) XOF</div>
                         </td>
                         <td class="num">@Fmt(r.Total)</td>
                         <td class="grp-total">@Fmt(r.Total)</td>
@@ -80,14 +80,14 @@
     </table>
 
     <div class="f-totes">
-        <div class="l"><span>Montant Total Hors Taxes Prestations</span><span>@Fmt(Total) CFA</span></div>
-        <div class="l"><span>Montant Total TVA</span><span>0 CFA</span></div>
-        <div class="l big"><span>Montant Total à Payer</span><span>@Fmt(Total) CFA</span></div>
+        <div class="l"><span>@TexteProforma.T("Montant Total Hors Taxes Prestations")</span><span>@Fmt(Total) CFA</span></div>
+        <div class="l"><span>@TexteProforma.T("Montant Total TVA")</span><span>0 CFA</span></div>
+        <div class="l big"><span>@TexteProforma.T("Montant Total à Payer")</span><span>@Fmt(Total) CFA</span></div>
     </div>
 
     @if (Total > 0)
     {
-        <div class="f-lettres">@MontantFrancsCfa.EnLettres(Total).ToUpperInvariant()</div>
+        <div class="f-lettres">@TexteProforma.MontantEnLettres(Total).ToUpperInvariant()</div>
     }
 
     @if (!string.IsNullOrWhiteSpace(MentionLegale))
@@ -149,15 +149,15 @@
         foreach (var l in Lignes)
         {
             var t = l.Taille.Code;
-            Ajouter("Acconage Plein", t, l.Acconage, 1);
-            Ajouter("Relevage Plein", t, l.Relevage, 2);
-            Ajouter("Branchement Frigo", t, l.BranchementFrigorifique, 3);
-            Ajouter("Majoration Lourd", t, l.MajorationLourd, 4);
-            Ajouter("Majoration Dangereux", t, l.MajorationDangereux, 5);
-            Ajouter("Majoration Hors Gabarit", t, l.MajorationHorsGabarit, 6);
+            Ajouter(TexteProforma.T("Acconage Plein"), t, l.Acconage, 1);
+            Ajouter(TexteProforma.T("Relevage Plein"), t, l.Relevage, 2);
+            Ajouter(TexteProforma.T("Branchement Frigo"), t, l.BranchementFrigorifique, 3);
+            Ajouter(TexteProforma.T("Majoration Lourd"), t, l.MajorationLourd, 4);
+            Ajouter(TexteProforma.T("Majoration Dangereux"), t, l.MajorationDangereux, 5);
+            Ajouter(TexteProforma.T("Majoration Hors Gabarit"), t, l.MajorationHorsGabarit, 6);
             foreach (var part in l.RepartitionStationnement)
             {
-                Ajouter($"Stationnement {part.Beneficiaire}", t, part.Montant, 7);
+                Ajouter($"{TexteProforma.T("Stationnement")} {part.Beneficiaire}", t, part.Montant, 7);
             }
         }
 

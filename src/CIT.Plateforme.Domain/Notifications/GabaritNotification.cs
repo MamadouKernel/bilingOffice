@@ -53,7 +53,7 @@ public static class GabaritNotification
     /// RG-COM-01 — garantit la présence du lien direct dans le corps du message. Sans effet si le
     /// gabarit l'a déjà placé lui-même, ou s'il n'y a aucun ticket à désigner.
     /// </summary>
-    public static string GarantirLienVersTicket(string corps, string? lienTicket)
+    public static string GarantirLienVersTicket(string corps, string? lienTicket, bool anglais = false)
     {
         if (string.IsNullOrWhiteSpace(lienTicket) || corps.Contains(lienTicket, StringComparison.Ordinal))
         {
@@ -61,6 +61,6 @@ public static class GabaritNotification
         }
 
         var separateur = string.IsNullOrWhiteSpace(corps) ? string.Empty : Environment.NewLine + Environment.NewLine;
-        return $"{corps}{separateur}Accéder au ticket : {lienTicket}";
+        return $"{corps}{separateur}{(anglais ? "Open the ticket:" : "Accéder au ticket :")} {lienTicket}";
     }
 }

@@ -580,8 +580,21 @@ app.MapPost("/contexte/espace", ([Microsoft.AspNetCore.Mvc.FromForm] string espa
     return Results.Redirect("/");
 }).RequireAuthorization();
 
-app.MapPost("/culture/set", ([Microsoft.AspNetCore.Mvc.FromForm] string culture, [Microsoft.AspNetCore.Mvc.FromForm] string? redirectUri, HttpContext http) =>
+app.MapPost("/culture/set", async ([Microsoft.AspNetCore.Mvc.FromForm] string culture, [Microsoft.AspNetCore.Mvc.FromForm] string? redirectUri, HttpContext http,
+    Microsoft.AspNetCore.Identity.UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> comptes) =>
 {
+    // Langue retenue sur le compte connecté : celle de ses notifications et e-mails.
+    if (!string.IsNullOrEmpty(culture) && http.User.Identity?.IsAuthenticated == true
+        && await comptes.GetUserAsync(http.User) is { } compte)
+    {
+        var langue = culture.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en" : "fr";
+        if (compte.LanguePreferee != langue)
+        {
+            compte.LanguePreferee = langue;
+            await comptes.UpdateAsync(compte);
+        }
+    }
+
     if (!string.IsNullOrEmpty(culture))
     {
         var selectedCulture = culture.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en-US" : "fr-FR";

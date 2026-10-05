@@ -70,7 +70,7 @@ else
                             <select id="file-cible" class="form-select form-select-sm" @bind="_fileCible">
                                 @foreach (var file in _files)
                                 {
-                                    <option value="@file.Id">@file.Nom — @file.Module</option>
+                                    <option value="@file.Id">@Loc.File(file.Nom) — @file.Module</option>
                                 }
                             </select>
                         </div>

@@ -48,7 +48,7 @@ else if (_fiche is not null)
             <h1 class="cit-page-title">
                 <span>🚚</span> @Loc["FicheAvoirExo.FileWord"] @f.NumeroTicket
             </h1>
-            <div class="cit-page-subtitle">@(f.Objet ?? Loc["FicheEnrol.SubtitleObjectFallback"].Value) — @Loc["FicheEnrol.QueueWord"] @f.FileNom</div>
+            <div class="cit-page-subtitle">@(f.Objet ?? Loc["FicheEnrol.SubtitleObjectFallback"].Value) — @Loc["FicheEnrol.QueueWord"] @Loc.File(f.FileNom)</div>
         </div>
         <div class="mt-3 mt-md-0">
             <StatutBadge Statut="@f.Statut" />
@@ -252,7 +252,7 @@ else if (_fiche is not null)
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

@@ -225,7 +225,7 @@ else
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -282,7 +282,7 @@ else
         {
             _apercuDoc = null;
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -316,12 +316,12 @@ else
         catch (AccesRefuseException ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Texte(ex);
         }
         catch (DocumentNonAccessibleException ex)
         {
             _erreur = true;
-            _message = ex.Message;
+            _message = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -369,7 +369,7 @@ else
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

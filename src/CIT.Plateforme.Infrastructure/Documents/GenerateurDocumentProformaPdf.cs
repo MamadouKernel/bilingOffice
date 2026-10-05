@@ -56,8 +56,8 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                         });
                         row.RelativeItem().AlignRight().Column(c =>
                         {
-                            c.Item().AlignRight().Text("FACTURE PROFORMA").Bold().FontSize(14);
-                            c.Item().AlignRight().Text("Simulation — document non contractuel").FontSize(8).FontColor("#666");
+                            c.Item().AlignRight().Text(TexteProforma.T("FACTURE PROFORMA")).Bold().FontSize(14);
+                            c.Item().AlignRight().Text(TexteProforma.T("Simulation — document non contractuel")).FontSize(8).FontColor("#666");
                             c.Item().AlignRight().Text($"N° {simulation.Reference}").FontSize(9).FontColor("#333");
                         });
                     });
@@ -73,20 +73,20 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            Meta(c, "Client", Ou(simulation.ClientAFacturer));
-                            Meta(c, "Type client", Ou(simulation.TypeClientLibelle));
-                            Meta(c, "Trafic", trafic);
-                            Meta(c, "Port de chargement", Ou(simulation.PortChargement));
-                            Meta(c, "Port de déchargement", Ou(simulation.PortDechargement));
+                            Meta(c, TexteProforma.T("Client"), Ou(simulation.ClientAFacturer));
+                            Meta(c, TexteProforma.T("Type client"), Ou(simulation.TypeClientLibelle));
+                            Meta(c, TexteProforma.T("Trafic"), trafic);
+                            Meta(c, TexteProforma.T("Port de chargement"), Ou(simulation.PortChargement));
+                            Meta(c, TexteProforma.T("Port de déchargement"), Ou(simulation.PortDechargement));
                         });
                         row.ConstantItem(20);
                         row.RelativeItem().Column(c =>
                         {
-                            Meta(c, "Date d'arrivée navire", simulation.DateArrivee.ToString("dd/MM/yyyy", Fr));
-                            Meta(c, "Date d'enlèvement", simulation.DateEnlevementPrevisionnel.ToString("dd/MM/yyyy", Fr));
-                            Meta(c, "Durée de séjour", $"{simulation.DureeSejourJours} jour(s)");
-                            Meta(c, "Escale", Ou(simulation.Escale));
-                            Meta(c, "Grille appliquée", Ou(simulation.VersionGrilleLibelle));
+                            Meta(c, TexteProforma.T("Date d'arrivée navire"), simulation.DateArrivee.ToString("dd/MM/yyyy", Fr));
+                            Meta(c, TexteProforma.T("Date d'enlèvement"), simulation.DateEnlevementPrevisionnel.ToString("dd/MM/yyyy", Fr));
+                            Meta(c, TexteProforma.T("Durée de séjour"), $"{simulation.DureeSejourJours} {TexteProforma.T("jour(s)")}");
+                            Meta(c, TexteProforma.T("Escale"), Ou(simulation.Escale));
+                            Meta(c, TexteProforma.T("Grille appliquée"), Ou(simulation.VersionGrilleLibelle));
                         });
                     });
 
@@ -96,8 +96,8 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                         t.ColumnsDefinition(c => { c.RelativeColumn(); c.RelativeColumn(); c.RelativeColumn(); });
                         t.Header(h =>
                         {
-                            EnteteEscale(h, "Navire");
-                            EnteteEscale(h, "Voyage");
+                            EnteteEscale(h, TexteProforma.T("Navire"));
+                            EnteteEscale(h, TexteProforma.T("Voyage"));
                             EnteteEscale(h, "BL / Booking");
                         });
                         t.Cell().Border(0.5f).BorderColor("#cfd6e2").Padding(4).Text(Ou(simulation.NomNavire));
@@ -111,14 +111,14 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                         t.ColumnsDefinition(c => { c.RelativeColumn(4); c.RelativeColumn(1.4f); c.RelativeColumn(1.4f); });
                         t.Header(h =>
                         {
-                            h.Cell().Background(Navy).Padding(5).Text("Rubriques").FontColor("#fff").Bold();
-                            h.Cell().Background(Navy).Padding(5).AlignRight().Text("Montant CFA").FontColor("#fff").Bold();
-                            h.Cell().Background(Navy).Padding(5).AlignRight().Text("Total CFA").FontColor("#fff").Bold();
+                            h.Cell().Background(Navy).Padding(5).Text(TexteProforma.T("Rubriques")).FontColor("#fff").Bold();
+                            h.Cell().Background(Navy).Padding(5).AlignRight().Text(TexteProforma.T("Montant CFA")).FontColor("#fff").Bold();
+                            h.Cell().Background(Navy).Padding(5).AlignRight().Text(TexteProforma.T("Total CFA")).FontColor("#fff").Bold();
                         });
 
                         if (rubriques.Count == 0)
                         {
-                            t.Cell().ColumnSpan(3).Padding(8).Text("Aucune rubrique facturable.").Italic().FontColor("#999");
+                            t.Cell().ColumnSpan(3).Padding(8).Text(TexteProforma.T("Aucune rubrique facturable.")).Italic().FontColor("#999");
                         }
                         foreach (var r in rubriques)
                         {
@@ -135,11 +135,11 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                     // Totaux
                     col.Item().AlignRight().Width(260).Column(c =>
                     {
-                        LigneTotal(c, "Montant Total Hors Taxes Prestations", $"{Fmt(total)} CFA");
-                        LigneTotal(c, "Montant Total TVA", "0 CFA");
+                        LigneTotal(c, TexteProforma.T("Montant Total Hors Taxes Prestations"), $"{Fmt(total)} CFA");
+                        LigneTotal(c, TexteProforma.T("Montant Total TVA"), "0 CFA");
                         c.Item().PaddingTop(4).BorderTop(2).BorderColor(Navy).PaddingTop(4).Row(row =>
                         {
-                            row.RelativeItem().Text("Montant Total à Payer").Bold().FontColor(Navy).FontSize(11);
+                            row.RelativeItem().Text(TexteProforma.T("Montant Total à Payer")).Bold().FontColor(Navy).FontSize(11);
                             row.ConstantItem(120).AlignRight().Text($"{Fmt(total)} CFA").Bold().FontColor(Navy).FontSize(11);
                         });
                     });
@@ -147,7 +147,7 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
                     if (total > 0)
                     {
                         col.Item().Background("#fafafa").Border(0.5f).BorderColor("#eee").Padding(6)
-                            .Text(MontantFrancsCfa.EnLettres(total).ToUpperInvariant()).Italic().FontSize(8.5f).FontColor("#333");
+                            .Text(TexteProforma.MontantEnLettres(total).ToUpperInvariant()).Italic().FontSize(8.5f).FontColor("#333");
                     }
 
                     col.Item().PaddingTop(6).BorderTop(0.5f).BorderColor("#ddd").PaddingTop(6)
@@ -210,14 +210,14 @@ public sealed class GenerateurDocumentProformaPdf : IGenerateurDocumentProformaP
         foreach (var l in simulation.LignesConteneurs)
         {
             var t = referentiels.Taille(l.TailleConteneurId).Code;
-            Ajouter("Acconage Plein", t, l.MontantAcconage, 1);
-            Ajouter("Relevage Plein", t, l.MontantRelevage, 2);
-            Ajouter("Branchement Frigo", t, l.MontantBranchement, 3);
-            Ajouter("Majoration Lourd", t, l.MontantMajorationLourd, 4);
-            Ajouter("Majoration Dangereux", t, l.MontantMajorationDangereux, 5);
-            Ajouter("Majoration Hors Gabarit", t, l.MontantMajorationOog, 6);
+            Ajouter(TexteProforma.T("Acconage Plein"), t, l.MontantAcconage, 1);
+            Ajouter(TexteProforma.T("Relevage Plein"), t, l.MontantRelevage, 2);
+            Ajouter(TexteProforma.T("Branchement Frigo"), t, l.MontantBranchement, 3);
+            Ajouter(TexteProforma.T("Majoration Lourd"), t, l.MontantMajorationLourd, 4);
+            Ajouter(TexteProforma.T("Majoration Dangereux"), t, l.MontantMajorationDangereux, 5);
+            Ajouter(TexteProforma.T("Majoration Hors Gabarit"), t, l.MontantMajorationOog, 6);
             foreach (var part in l.RepartitionStationnement)
-                Ajouter($"Stationnement {part.Beneficiaire}", t, part.Montant, 7);
+                Ajouter($"{TexteProforma.T("Stationnement")} {part.Beneficiaire}", t, part.Montant, 7);
         }
 
         return groupes.Values

@@ -82,7 +82,7 @@ else
         catch (Exception ex) when (ex is AccesRefuseException or DocumentNonAccessibleException)
         {
             _apercuOuvert = false;
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

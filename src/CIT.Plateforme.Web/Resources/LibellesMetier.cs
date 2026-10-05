@@ -12,6 +12,9 @@ public static class LibellesMetier
 
     public static string TypeDemande(this IStringLocalizer loc, string? code) => Traduire(loc, "TypeDemande", code);
 
+    /// <summary>Nom d'une file du référentiel (« Comptabilité Client » → « Customer Accounting »).</summary>
+    public static string File(this IStringLocalizer loc, string? nom) => Traduire(loc, "File", nom);
+
     public static string StatutTicket(this IStringLocalizer loc, object? statut) => Traduire(loc, "Statut.Ticket", statut?.ToString());
 
     public static string StatutRendezVous(this IStringLocalizer loc, object? statut) => Traduire(loc, "Statut.RendezVous", statut?.ToString());

@@ -80,7 +80,7 @@ public sealed class ObtenirFicheTicketQuery(
 
         var chronologie = historique.Select(h =>
         {
-            string auteurNom = "Système CIT";
+            string auteurNom = LangueCourante.T("Système CIT", "CIT system");
             if (h.AuteurId.HasValue && auteursInfo.TryGetValue(h.AuteurId.Value, out var a))
             {
                 auteurNom = a.NomAffiche ?? a.Email;

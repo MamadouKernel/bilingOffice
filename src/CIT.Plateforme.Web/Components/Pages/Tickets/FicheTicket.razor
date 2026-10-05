@@ -237,7 +237,7 @@
                         }
                         <li class="mb-2 d-flex justify-content-between">
                             <span class="text-muted">@Loc["Ticket.CurrentQueue"]</span>
-                            <span class="badge bg-light text-dark border">@_fiche.FileNom</span>
+                            <span class="badge bg-light text-dark border">@Loc.File(_fiche.FileNom)</span>
                         </li>
                         @if (!string.IsNullOrWhiteSpace(_fiche.LibellePaiementCdc))
                         {
@@ -571,7 +571,7 @@
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

@@ -256,7 +256,7 @@ else
         catch (CIT.Plateforme.Application.Securite.AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

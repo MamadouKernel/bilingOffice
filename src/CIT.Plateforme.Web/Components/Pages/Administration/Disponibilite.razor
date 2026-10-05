@@ -188,7 +188,7 @@ else
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -221,7 +221,7 @@ else
         }
         catch (AccesRefuseException ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

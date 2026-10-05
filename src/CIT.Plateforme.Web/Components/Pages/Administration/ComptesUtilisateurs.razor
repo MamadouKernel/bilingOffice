@@ -231,7 +231,7 @@ else
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -288,7 +288,7 @@ else
         }
         catch (AccesRefuseException ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Texte(ex);
         }
         catch (AutoReinitialisation2FaInterditeException)
         {

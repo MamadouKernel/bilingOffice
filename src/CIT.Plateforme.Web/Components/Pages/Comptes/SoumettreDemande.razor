@@ -475,7 +475,7 @@
             {
                 RccmDejaUtiliseException => Loc["Account.RccmTaken"].Value,
                 ArgumentException => Loc["Account.RccmInvalid"].Value,
-                _ => ex.Message,
+                _ => MessagesUtilisateur.Texte(ex),
             };
             return;
         }

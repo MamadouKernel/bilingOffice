@@ -36,11 +36,13 @@ public static class DependencyInjection
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<PlateformeDbContext>()
             .AddSignInManager()
+            .AddErrorDescriber<Identity.IdentityErreursBilingues>()
             // FEATURE 002 (CPT-03 : récupération de mot de passe en autonomie ; CPT-07 : 2FA
             // optionnelle) : Feature 001 n'enregistrait aucun fournisseur de jeton (fonctionnalité
             // explicitement hors périmètre de son propre socle) — extension additive pure, sans
             // impact sur le comportement d'authentification déjà validé.
             .AddDefaultTokenProviders();
+        services.AddScoped<Application.Abstractions.ILanguesUtilisateurs, Identity.LanguesUtilisateurs>();
 
         // Liens de définition / réinitialisation du mot de passe (invitation d'agent, « mot de
         // passe oublié ») : valables 2 heures seulement (défaut Identity : 1 jour). Une fenêtre

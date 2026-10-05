@@ -465,6 +465,8 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
         // « canal » et « statut d'envoi » par EnvoiNotification (research.md D3).
         // ====================================================================================
 
+        builder.Entity<ApplicationUser>().Property(u => u.LanguePreferee).HasMaxLength(5);
+
         builder.Entity<Domain.Notifications.Notification>(b =>
         {
             // Justification : CDC §20 (destinataire, modèle) + NOT-01 (état Lu/Non lu).
@@ -472,6 +474,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(n => n.TypeEvenement).IsRequired().HasMaxLength(128);
             b.Property(n => n.Titre).IsRequired().HasMaxLength(256);
             b.Property(n => n.Corps).IsRequired();
+            b.Property(n => n.Langue).IsRequired().HasMaxLength(2).HasDefaultValue("fr");
             b.HasIndex(n => n.DestinataireId).HasDatabaseName("IX_Notifications_DestinataireId");
             // Justification : idempotence de la distribution (RSQ-02, tasks.md I9). Cet index est
             // la SECONDE ligne de défense contre une double distribution concurrente : même si la
@@ -503,6 +506,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(m => m.Canal).HasConversion<string>().IsRequired().HasMaxLength(32);
             b.Property(m => m.GabaritTitre).IsRequired().HasMaxLength(256);
             b.Property(m => m.GabaritCorps).IsRequired();
+            b.Property(m => m.GabaritTitreEn).HasMaxLength(256);
             // Un seul modèle actif par couple (événement, canal).
             b.HasIndex(m => new { m.TypeEvenement, m.Canal })
                 .IsUnique()

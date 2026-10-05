@@ -66,7 +66,7 @@ public sealed record EntreeJournalAuditVue(
     /// reste imputée à son identifiant, jamais effacée.
     /// </summary>
     public string AuteurLibelle => AuteurId is null
-        ? "Système CIT"
+        ? LangueCourante.T("Système CIT", "CIT system")
         : !string.IsNullOrWhiteSpace(AuteurNomAffiche) ? AuteurNomAffiche!
         : !string.IsNullOrWhiteSpace(AuteurEmail) ? AuteurEmail!
         : "Compte supprimé";

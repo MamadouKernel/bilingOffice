@@ -111,10 +111,10 @@
                 <div class="col-12 col-md-6">
                     <label for="n-typeclient" class="form-label small fw-semibold text-muted text-uppercase">@Loc["Sim.ClientType"]</label>
                     <select id="n-typeclient" class="form-select" @bind="_typeClient">
-                        <option value="Client Comptant">Client Comptant</option>
-                        <option value="Client en compte">Client en compte</option>
-                        <option value="Client deposit">Client deposit</option>
-                        <option value="Client IES">Client IES</option>
+                        <option value="Client Comptant">@Loc["Simu.TypeClientComptant"]</option>
+                        <option value="Client en compte">@Loc["Simu.TypeClientEnCompte"]</option>
+                        <option value="Client deposit">@Loc["Simu.TypeClientDeposit"]</option>
+                        <option value="Client IES">@Loc["Simu.TypeClientIes"]</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-6">
@@ -590,8 +590,8 @@
                 c.TailleConteneurId, c.TypeConteneurId, c.CategorieMarchandiseId,
                 AvecBranchementFrigorifique: false, c.PoidsTonnes)).ToList());
 
-        _alertesCoherence = validation.Alertes;
-        _aidesCoherence = validation.MessagesAide;
+        _alertesCoherence = [.. validation.Alertes.Select(TraductionMessagesMetier.VersCultureCourante)];
+        _aidesCoherence = [.. validation.MessagesAide.Select(TraductionMessagesMetier.VersCultureCourante)];
         return validation.EstValide;
     }
 
@@ -612,7 +612,7 @@
         }
         catch (TarifNonTrouveException ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

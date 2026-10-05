@@ -35,7 +35,13 @@ public interface ICanalNotification
 /// </summary>
 /// <param name="DestinataireId">Utilisateur destinataire, toujours nommé.</param>
 /// <param name="Adresse">Coordonnée applicable au canal, ou <c>null</c> si absente du profil.</param>
-public sealed record DestinationEnvoi(Guid DestinataireId, string? Adresse);
+public sealed record DestinationEnvoi(Guid DestinataireId, string? Adresse, string? Langue = null);
+
+/// <summary>Langue préférée d'un utilisateur (choisie dans l'interface), pour ses notifications et e-mails.</summary>
+public interface ILanguesUtilisateurs
+{
+    Task<bool> EstAnglophoneAsync(Guid utilisateurId, CancellationToken ct = default);
+}
 
 /// <summary>
 /// Résultat d'une tentative. <paramref name="Motif"/> est un motif TECHNIQUE et borné : il ne

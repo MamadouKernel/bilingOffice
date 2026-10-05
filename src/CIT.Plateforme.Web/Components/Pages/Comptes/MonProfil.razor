@@ -255,7 +255,7 @@ else if (_profil is not null)
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

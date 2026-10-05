@@ -74,7 +74,7 @@ else
                         <option value="">@Loc["RecAdm.ChooseFile"]</option>
                         @foreach (var file in _filesCible)
                         {
-                            <option value="@file.Id">@file.Nom</option>
+                            <option value="@file.Id">@Loc.File(file.Nom)</option>
                         }
                     </select>
                 </div>
@@ -149,7 +149,7 @@ else
                                         <option value="">@Loc["RecAdm.OptAucune"]</option>
                                         @foreach (var file in _filesCible)
                                         {
-                                            <option value="@file.Id">@file.Nom</option>
+                                            <option value="@file.Id">@Loc.File(file.Nom)</option>
                                         }
                                     </select>
                                 }
@@ -275,7 +275,7 @@ else
             _filesCible = [];
             _nomsFiles = [];
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
     }
 

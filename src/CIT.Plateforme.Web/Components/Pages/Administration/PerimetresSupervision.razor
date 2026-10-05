@@ -87,7 +87,7 @@ else if (_vue is not null)
                                            checked="@_selection.Contains(f.Id)"
                                            @onchange="e => BasculerFile(f.Id, (bool?)e.Value == true)" />
                                     <label class="form-check-label small" for="@($"file-{f.Id}")">
-                                        @f.Nom <span class="text-muted">· @Loc.Module(f.Module)</span>
+                                        @Loc.File(f.Nom) <span class="text-muted">· @Loc.Module(f.Module)</span>
                                     </label>
                                 </div>
                             </div>
@@ -213,7 +213,7 @@ else if (_vue is not null)
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -295,7 +295,7 @@ else if (_vue is not null)
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

@@ -69,7 +69,7 @@ else
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblLibelle"]</label>
-                        <input class="form-control form-control-sm" @bind="_nouveauTypeLibelle" placeholder="Open Top" maxlength="100" />
+                        <input class="form-control form-control-sm" @bind="_nouveauTypeLibelle" placeholder="@Loc["RefCont.ExempleType"]" maxlength="100" />
                     </div>
                     <div class="col-md-3 form-check ms-2 mb-1">
                         <input type="checkbox" class="form-check-input" id="nouveauTypeFrigo" @bind="_nouveauTypeFrigo" />
@@ -174,7 +174,7 @@ else
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblLibelle"]</label>
-                        <input class="form-control form-control-sm" @bind="_nouvelleTailleLibelle" placeholder="45 pieds" maxlength="50" />
+                        <input class="form-control form-control-sm" @bind="_nouvelleTailleLibelle" placeholder="@Loc["RefCont.ExempleTaille"]" maxlength="50" />
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button type="button" class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerTailleAsync" disabled="@(string.IsNullOrWhiteSpace(_nouvelleTailleCode) || string.IsNullOrWhiteSpace(_nouvelleTailleLibelle))">@Loc["RefConteneur.BtnCreer"]</button>
@@ -274,7 +274,7 @@ else
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold text-dark">@Loc["RefConteneur.LblLibelle"]</label>
-                        <input class="form-control form-control-sm" @bind="_nouvelleCategorieLibelle" placeholder="Catégorie 6 — import local" maxlength="150" />
+                        <input class="form-control form-control-sm" @bind="_nouvelleCategorieLibelle" placeholder="@Loc["RefCont.ExempleCategorie"]" maxlength="150" />
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button type="button" class="btn btn-success btn-sm fw-bold flex-grow-1" @onclick="CreerCategorieAsync" disabled="@(string.IsNullOrWhiteSpace(_nouvelleCategorieSens) || string.IsNullOrWhiteSpace(_nouvelleCategorieCode) || string.IsNullOrWhiteSpace(_nouvelleCategorieLibelle))">@Loc["RefConteneur.BtnCreer"]</button>
@@ -427,7 +427,7 @@ else
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
     }
 
@@ -551,7 +551,7 @@ else
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

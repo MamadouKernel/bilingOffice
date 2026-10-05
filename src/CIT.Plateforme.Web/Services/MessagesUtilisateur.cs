@@ -1,4 +1,6 @@
-﻿using CIT.Plateforme.Application.BillingExport;
+﻿using System.Globalization;
+using CIT.Plateforme.Web.Resources;
+using CIT.Plateforme.Application.BillingExport;
 using CIT.Plateforme.Application.Documents;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Application.Tickets;
@@ -34,12 +36,21 @@ public static class MessagesUtilisateur
         "L'opération n'a pas pu être effectuée en raison d'une erreur technique. "
         + "L'incident a été journalisé. Réessayez, et contactez l'administrateur si le problème persiste.";
 
+    public const string GeneriqueAnglais =
+        "The operation could not be completed because of a technical error. "
+        + "The incident has been logged. Try again, and contact the administrator if the problem persists.";
+
     /// <summary>
-    /// Rend le message à afficher pour <paramref name="exception"/>.
+    /// Rend le message à afficher pour <paramref name="exception"/>, dans la langue de l'utilisateur.
     /// </summary>
     public static string Pour(Exception exception) => EstMessageMetier(exception)
-        ? exception.Message
-        : Generique;
+        ? Texte(exception)
+        : CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? GeneriqueAnglais : Generique;
+
+    /// <summary>
+    /// Message d'une exception métier déjà filtrée par l'écran (catch typé), dans la langue de l'utilisateur.
+    /// </summary>
+    public static string Texte(Exception exception) => TraductionMessagesMetier.VersCultureCourante(exception.Message);
 
     /// <summary>
     /// Vrai lorsque le message de l'exception a été rédigé à destination de l'utilisateur.

@@ -65,16 +65,16 @@ public sealed class ObtenirDashboardClientQuery(
                                  estExport ? TypeActionRequise.ComplementExport : 
                                  TypeActionRequise.ComplementManifeste;
                                  
-                var referenceMetier = estComplaint ? $"Réclamation {ticket.Numero}" :
+                var referenceMetier = estComplaint ? LangueCourante.T($"Réclamation {ticket.Numero}", $"complaint {ticket.Numero}") :
                                       estExport ? $"Booking {ticket.NumeroBooking ?? ticket.Numero}" : 
                                       $"BL {ticket.NumeroBl ?? ticket.Numero}";
                                       
-                var roleInstructeur = estComplaint ? "Le Service Client" :
-                                      estExport ? "Le Back Office Export" : 
-                                      "Le Pilote Manifeste";
+                var roleInstructeur = estComplaint ? LangueCourante.T("Le Service Client", "Customer Service") :
+                                      estExport ? LangueCourante.T("Le Back Office Export", "The Export Back Office") : 
+                                      LangueCourante.T("Le Pilote Manifeste", "The Manifest Pilot");
 
-                var titre = estComplaint ? $"Complément demandé pour votre {referenceMetier}" :
-                            $"Complément demandé pour le {referenceMetier}";
+                var titre = estComplaint ? LangueCourante.T($"Complément demandé pour votre {referenceMetier}", $"Additional information requested for your {referenceMetier}") :
+                            LangueCourante.T($"Complément demandé pour le {referenceMetier}", $"Additional information requested for {referenceMetier}");
 
                 actionsRequises.Add(new ActionRequiseItemVue(
                     TicketId: ticket.Id,
@@ -83,7 +83,7 @@ public sealed class ObtenirDashboardClientQuery(
                     TypeAction: typeAction,
                     Titre: titre,
                     Description: await DescriptionComplementAsync(ticket.Id, roleInstructeur, ct).ConfigureAwait(false),
-                    ActionLibelle: "Déposer le complément",
+                    ActionLibelle: LangueCourante.T("Déposer le complément", "Submit the additional information"),
                     UrlCible: $"/tickets/{ticket.Id}#complement",
                     DateDeclenchementUtc: ticket.DateCreationUtc,
                     NumeroBooking: ticket.NumeroBooking
@@ -167,7 +167,7 @@ public sealed class ObtenirDashboardClientQuery(
             .MaxBy(e => e.HorodatageUtc);
 
         return demande is null
-            ? $"{roleInstructeur} a sollicité un complément d'information ou des pièces justificatives."
-            : $"{roleInstructeur} attend : {demande.Detail}";
+            ? LangueCourante.T($"{roleInstructeur} a sollicité un complément d'information ou des pièces justificatives.", $"{roleInstructeur} has requested additional information or supporting documents.")
+            : LangueCourante.T($"{roleInstructeur} attend : {demande.Detail}", $"{roleInstructeur} is waiting for: {demande.Detail}");
     }
 }

@@ -81,7 +81,7 @@ public sealed class CanalEmailSmtp(IConfiguration configuration, ILogger<CanalEm
         message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
             corps, Encoding.UTF8, "text/plain"));
         message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
-            GabaritEmailHtml.Construire(titre, corps), Encoding.UTF8, "text/html"));
+            GabaritEmailHtml.Construire(titre, corps, destination.Langue == "en"), Encoding.UTF8, "text/html"));
 
         using var limite = CancellationTokenSource.CreateLinkedTokenSource(ct);
         limite.CancelAfter(delai);

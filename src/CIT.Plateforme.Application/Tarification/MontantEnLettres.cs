@@ -32,6 +32,53 @@ public static class MontantFrancsCfa
         return string.Join(" ", parts).Trim() + " francs CFA";
     }
 
+    private static readonly string[] UnitsEn =
+        ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+         "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+
+    private static readonly string[] TensEn =
+        ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+
+    /// <summary>Même montant en toutes lettres, en anglais (« one thousand two hundred CFA francs »).</summary>
+    public static string EnLettresAnglais(decimal montant)
+    {
+        var n = (long)Math.Round(montant);
+        if (n < 0) n = -n;
+        if (n == 0) return "zero CFA francs";
+
+        var parts = new List<string>();
+        foreach (var (taille, nom) in new[] { (1_000_000_000L, "billion"), (1_000_000L, "million"), (1000L, "thousand") })
+        {
+            if (n >= taille)
+            {
+                parts.Add(TriEn((int)(n / taille)) + " " + nom);
+                n %= taille;
+            }
+        }
+        if (n > 0) parts.Add(TriEn((int)n));
+
+        return string.Join(" ", parts) + " CFA francs";
+    }
+
+    private static string TriEn(int x)
+    {
+        var mots = new List<string>();
+        if (x >= 100)
+        {
+            mots.Add(UnitsEn[x / 100] + " hundred");
+            x %= 100;
+        }
+        if (x >= 20)
+        {
+            mots.Add(TensEn[x / 10] + (x % 10 > 0 ? "-" + UnitsEn[x % 10] : ""));
+        }
+        else if (x > 0)
+        {
+            mots.Add(UnitsEn[x]);
+        }
+        return string.Join(" ", mots);
+    }
+
     private static string Tri(int x)
     {
         var s = "";

@@ -119,7 +119,13 @@ else
                     <tr>
                         <td>@Loc.Evenement(modele.TypeEvenement)<div><code class="small text-muted">@modele.TypeEvenement</code></div></td>
                         <td>@Loc[$"Canal.{modele.Canal}"]</td>
-                        <td>@modele.GabaritTitre</td>
+                        <td>
+                            @modele.GabaritTitre
+                            @if (modele.GabaritTitreEn is not null)
+                            {
+                                <div class="small text-muted">EN · @modele.GabaritTitreEn</div>
+                            }
+                        </td>
                         <td>@(modele.EstActif ? Loc["NotifAdm.Oui"] : Loc["NotifAdm.Non"])</td>
                     </tr>
                 }

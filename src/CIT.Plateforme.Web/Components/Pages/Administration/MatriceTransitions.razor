@@ -75,7 +75,7 @@ else
                         <option value="">@Loc["AdmComp.ChooseOption"]</option>
                         @foreach (var f in _vue.Files)
                         {
-                            <option value="@f.Id">@f.Nom (@f.Module)</option>
+                            <option value="@f.Id">@Loc.File(f.Nom) (@f.Module)</option>
                         }
                     </select>
                 </div>
@@ -85,7 +85,7 @@ else
                         <option value="">@Loc["AdmComp.ChooseOption"]</option>
                         @foreach (var f in _vue.Files)
                         {
-                            <option value="@f.Id">@f.Nom (@f.Module)</option>
+                            <option value="@f.Id">@Loc.File(f.Nom) (@f.Module)</option>
                         }
                     </select>
                 </div>
@@ -138,7 +138,7 @@ else
                             {
                                 <tr>
                                     <td class="ps-4 fw-semibold text-dark">@t.FileSourceNom</td>
-                                    <td class="fw-semibold text-dark">@t.FileCibleNom</td>
+                                    <td class="fw-semibold text-dark">@Loc.File(t.FileCibleNom)</td>
                                     <td>
                                         @if (t.MotifsAutorises.Count == 0)
                                         {
@@ -227,7 +227,7 @@ else
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {
@@ -268,7 +268,7 @@ else
         catch (AccesRefuseException ex)
         {
             _refuse = true;
-            _messageRefus = ex.Message;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

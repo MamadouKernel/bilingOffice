@@ -28,6 +28,11 @@ public sealed class ModeleNotification
 
     public bool EstActif { get; private set; }
 
+    /// <summary>Version anglaise facultative : sans elle, un destinataire anglophone reçoit le français.</summary>
+    public string? GabaritTitreEn { get; private set; }
+
+    public string? GabaritCorpsEn { get; private set; }
+
     private ModeleNotification() { }
 
     public static ModeleNotification Creer(string typeEvenement, CanalNotification canal, string gabaritTitre, string gabaritCorps)
@@ -55,6 +60,18 @@ public sealed class ModeleNotification
         GabaritTitre = gabaritTitre;
         GabaritCorps = gabaritCorps;
     }
+
+    public void DefinirAnglais(string? gabaritTitreEn, string? gabaritCorpsEn)
+    {
+        GabaritTitreEn = string.IsNullOrWhiteSpace(gabaritTitreEn) ? null : gabaritTitreEn.Trim();
+        GabaritCorpsEn = string.IsNullOrWhiteSpace(gabaritCorpsEn) ? null : gabaritCorpsEn;
+    }
+
+    /// <summary>Titre dans la langue du destinataire (repli sur le français).</summary>
+    public string Titre(bool anglais) => anglais && GabaritTitreEn is not null ? GabaritTitreEn : GabaritTitre;
+
+    /// <summary>Corps dans la langue du destinataire (repli sur le français).</summary>
+    public string Corps(bool anglais) => anglais && GabaritCorpsEn is not null ? GabaritCorpsEn : GabaritCorps;
 
     public void Activer() => EstActif = true;
 

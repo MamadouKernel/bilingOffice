@@ -40,7 +40,8 @@ public sealed class DistribuerNotificationsUseCase(
     IExecuteurTransactionnel executeur,
     IJournalisationService journalisation,
     IHorloge horloge,
-    IUniteDeTravail uniteDeTravail)
+    IUniteDeTravail uniteDeTravail,
+    ILanguesUtilisateurs? langues = null)
 {
     /// <summary>Borne de lecture par tour — valeur technique de pagination, sans effet métier.</summary>
     public const int TailleLotParDefaut = 200;
@@ -158,6 +159,7 @@ public sealed class DistribuerNotificationsUseCase(
         CancellationToken ct)
     {
         var modeleInApp = await modeles.ObtenirActifAsync(typeEvenement, CanalNotification.InApp, ct).ConfigureAwait(false);
+        var anglais = langues is not null && await langues.EstAnglophoneAsync(destinataireId, ct).ConfigureAwait(false);
 
         // RG-COM-01 / COM-02 (remédiation P1-02) : les gabarits étaient recopiés VERBATIM. Un
         // modèle portant « {numeroTicket} » restituait ce texte littéral, et rien ne permettait
@@ -180,13 +182,14 @@ public sealed class DistribuerNotificationsUseCase(
 
         // Le rendu est FIGÉ à la création : modifier un modèle plus tard n'altère jamais une
         // notification déjà émise (cas TEST-NOT-02-3).
-        var titre = GabaritNotification.Interpoler(modeleInApp?.GabaritTitre ?? typeEvenement, valeurs);
+        var titre = GabaritNotification.Interpoler(modeleInApp?.Titre(anglais) ?? typeEvenement, valeurs);
         var corps = GabaritNotification.GarantirLienVersTicket(
-            GabaritNotification.Interpoler(modeleInApp?.GabaritCorps ?? string.Empty, valeurs),
-            lienTicket);
+            GabaritNotification.Interpoler(modeleInApp?.Corps(anglais) ?? string.Empty, valeurs),
+            lienTicket,
+            anglais);
 
         var notification = Notification.Creer(
-            evenementId, destinataireId, typeEvenement, modeleInApp?.Id, titre, corps, ticketId, horloge.MaintenantUtc);
+            evenementId, destinataireId, typeEvenement, modeleInApp?.Id, titre, corps, ticketId, horloge.MaintenantUtc, anglais ? "en" : "fr");
 
         await notifications.AjouterAsync(notification, ct).ConfigureAwait(false);
 

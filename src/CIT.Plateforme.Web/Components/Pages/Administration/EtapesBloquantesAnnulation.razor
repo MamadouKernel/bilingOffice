@@ -69,7 +69,7 @@ else
                     <option value="@Guid.Empty">@Loc["AdmSeuil.ChooseOption"]</option>
                     @foreach (var f in _files)
                     {
-                        <option value="@f.Id">@f.Module — @f.Nom</option>
+                        <option value="@f.Id">@f.Module — @Loc.File(f.Nom)</option>
                     }
                 </select>
             </div>
@@ -112,7 +112,7 @@ else
                             <tr>
                                 <td class="fw-semibold">@Loc.Module(s.Module)</td>
                                 <td>@(s.TypeDemande is null ? Loc["AdmSeuil.TypeAll"].Value : Loc.TypeDemande(s.TypeDemande))</td>
-                                <td>@s.FileNom</td>
+                                <td>@Loc.File(s.FileNom)</td>
                                 <td class="text-muted small">@s.Motif</td>
                                 <td>
                                     @if (s.EstActif)

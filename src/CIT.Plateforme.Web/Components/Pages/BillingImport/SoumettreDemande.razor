@@ -342,11 +342,11 @@
         }
         catch (AccesRefuseException ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Texte(ex);
         }
         catch (CIT.Plateforme.Domain.Tickets.LimiteBlDepasseeException ex)
         {
-            _erreur = ex.Message;
+            _erreur = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

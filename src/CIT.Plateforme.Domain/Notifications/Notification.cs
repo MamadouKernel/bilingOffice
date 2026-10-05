@@ -48,6 +48,9 @@ public sealed class Notification
 
     public DateTime CreeeLeUtc { get; private set; }
 
+    /// <summary>Langue du destinataire à la création (« fr » / « en ») : celle de l'e-mail associé.</summary>
+    public string Langue { get; private set; } = "fr";
+
     private Notification() { }
 
     public static Notification Creer(
@@ -58,7 +61,8 @@ public sealed class Notification
         string titre,
         string corps,
         Guid? ticketId,
-        DateTime maintenantUtc)
+        DateTime maintenantUtc,
+        string langue = "fr")
     {
         if (evenementSourceId == Guid.Empty)
         {
@@ -92,6 +96,7 @@ public sealed class Notification
             TicketId = ticketId,
             EstLue = false,
             CreeeLeUtc = maintenantUtc,
+            Langue = langue == "en" ? "en" : "fr",
         };
     }
 

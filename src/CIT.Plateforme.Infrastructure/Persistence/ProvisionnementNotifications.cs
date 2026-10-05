@@ -58,8 +58,25 @@ public sealed class ProvisionnementNotifications(
         ("TicketIncidentResolu", CanalNotification.Email, false, "Votre incident technique a été résolu"),
     ];
 
+    private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
+    {
+        ["Votre demande a été enregistrée"] = "Your request has been registered",
+        ["Votre compte entreprise est activé"] = "Your company account is activated",
+        ["Votre demande de compte n'a pas été retenue"] = "Your account request was not accepted",
+        ["Un complément est attendu sur votre dossier"] = "Additional information is expected on your file",
+        ["Votre facture est disponible"] = "Your invoice is available",
+        ["Votre dossier a été réorienté"] = "Your file has been redirected",
+        ["Vous avez été mentionné sur un ticket"] = "You have been mentioned on a ticket",
+        ["Rappel concernant votre dossier"] = "Reminder about your file",
+        ["Votre badge arrive à expiration"] = "Your badge is about to expire",
+        ["Un document de votre flotte arrive à échéance"] = "A document of your fleet is about to expire",
+        ["Vos cartes / BAT sont prêts"] = "Your cards / BAT are ready",
+        ["Votre incident technique a été résolu"] = "Your technical incident has been resolved",
+    };
+
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
+        await CompleterAnglaisAsync(ct).ConfigureAwait(false);
         if (await contexte.ReglesDiffusion.AnyAsync(ct).ConfigureAwait(false))
         {
             return;
@@ -71,7 +88,9 @@ public sealed class ProvisionnementNotifications(
 
             if (!await contexte.ModelesNotification.AnyAsync(m => m.TypeEvenement == type && m.Canal == canal, ct).ConfigureAwait(false))
             {
-                contexte.ModelesNotification.Add(ModeleNotification.Creer(type, canal, objet, Corps(type, objet)));
+                var modele = ModeleNotification.Creer(type, canal, objet, Corps(type, objet));
+                modele.DefinirAnglais(ObjetsAnglais[objet], CorpsAnglais(type, ObjetsAnglais[objet]));
+                contexte.ModelesNotification.Add(modele);
             }
         }
 
@@ -86,4 +105,34 @@ public sealed class ProvisionnementNotifications(
         "CompteRejete" => $"{objet}. Pour en connaître le motif, contactez le Billing Office de CIT ; vous pouvez déposer une nouvelle demande.",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
+
+    private static string CorpsAnglais(string type, string objet) => type switch
+    {
+        "CompteValide" => $"{objet}. You can now sign in to YABA with the e-mail address and password chosen in your request.",
+        "CompteRejete" => $"{objet}. To find out why, contact the CIT Billing Office; you may submit a new request.",
+        _ => $"{objet}. See the related ticket for details.",
+    };
+
+    /// <summary>
+    /// Bases déjà en service : ajoute l'anglais aux modèles de départ restés tels quels. Un modèle dont
+    /// le titre a été personnalisé n'est pas touché (l'administrateur garde la main).
+    /// </summary>
+    private async Task CompleterAnglaisAsync(CancellationToken ct)
+    {
+        var sansAnglais = await contexte.ModelesNotification.Where(m => m.GabaritTitreEn == null).ToListAsync(ct).ConfigureAwait(false);
+        var completes = 0;
+        foreach (var modele in sansAnglais)
+        {
+            if (ObjetsAnglais.TryGetValue(modele.GabaritTitre, out var titreEn) && modele.GabaritCorps == Corps(modele.TypeEvenement, modele.GabaritTitre))
+            {
+                modele.DefinirAnglais(titreEn, CorpsAnglais(modele.TypeEvenement, titreEn));
+                completes++;
+            }
+        }
+        if (completes > 0)
+        {
+            await contexte.SaveChangesAsync(ct).ConfigureAwait(false);
+            journal.LogInformation("{Nombre} modèle(s) de notification complété(s) en anglais.", completes);
+        }
+    }
 }

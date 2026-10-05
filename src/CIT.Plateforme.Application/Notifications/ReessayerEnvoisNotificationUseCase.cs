@@ -122,7 +122,7 @@ public sealed class ReessayerEnvoisNotificationUseCase(
         }
 
         var resultat = await canal
-            .EnvoyerAsync(new DestinationEnvoi(notification.DestinataireId, adresse), notification.Titre, notification.Corps, ct)
+            .EnvoyerAsync(new DestinationEnvoi(notification.DestinataireId, adresse, notification.Langue), notification.Titre, notification.Corps, ct)
             .ConfigureAwait(false);
 
         if (resultat.Abouti)

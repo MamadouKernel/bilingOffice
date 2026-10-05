@@ -94,7 +94,7 @@ else if (vuesFiles is not null)
                                    de ses tickets, seul endroit où le superviseur peut en désigner un. *@
                                 <button type="button" class="btn btn-link p-0 text-decoration-none fw-semibold text-start"
                                         @onclick="() => OuvrirFileAsync(vue.FileId, vue.Nom)">
-                                    @(string.IsNullOrWhiteSpace(vue.Nom) ? Loc["Sup.FileSansNom"].Value : vue.Nom)
+                                    @(string.IsNullOrWhiteSpace(vue.Nom) ? Loc["Sup.FileSansNom"].Value : Loc.File(vue.Nom))
                                 </button>
                                 @if (!string.IsNullOrWhiteSpace(vue.Module))
                                 {
@@ -417,7 +417,7 @@ else if (vuesFiles is not null)
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         catch (Exception ex)
         {

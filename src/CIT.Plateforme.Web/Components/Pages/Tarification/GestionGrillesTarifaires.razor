@@ -77,7 +77,7 @@
                         <ul class="mb-0 small ps-3">
                             @foreach (var erreur in _resultatImport.Erreurs)
                             {
-                                <li>@erreur</li>
+                                <li>@TraductionMessagesMetier.VersCultureCourante(erreur)</li>
                             }
                         </ul>
                     </div>

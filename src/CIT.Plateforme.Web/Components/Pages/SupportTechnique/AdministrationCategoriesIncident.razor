@@ -62,7 +62,7 @@ else
                     <option value="">@Loc["IncidentAdm.ChooseQueue"]</option>
                     @foreach (var f in _files)
                     {
-                        <option value="@f.Id">@f.Nom</option>
+                        <option value="@f.Id">@Loc.File(f.Nom)</option>
                     }
                 </select>
             </div>
@@ -201,7 +201,7 @@ else
         catch (AccesRefuseException ex)
         {
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
     }
 

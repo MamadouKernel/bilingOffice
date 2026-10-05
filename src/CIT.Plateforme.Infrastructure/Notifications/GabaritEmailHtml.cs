@@ -32,10 +32,10 @@ public static class GabaritEmailHtml
     private static readonly Regex Url = new(@"https?:\/\/[^\s<>""]+", RegexOptions.Compiled);
 
     /// <summary>Produit l'e-mail HTML complet à partir du titre et du corps en texte simple.</summary>
-    public static string Construire(string titre, string corps)
+    public static string Construire(string titre, string corps, bool anglais = false)
     {
         var titreSur = WebUtility.HtmlEncode(titre ?? string.Empty);
-        var (paragraphes, actions) = Decouper(corps ?? string.Empty);
+        var (paragraphes, actions) = Decouper(corps ?? string.Empty, anglais);
 
         var contenu = new StringBuilder();
         foreach (var p in paragraphes)
@@ -44,7 +44,7 @@ public static class GabaritEmailHtml
         }
         foreach (var (libelle, lien) in actions)
         {
-            contenu.Append(Bouton(libelle, lien));
+            contenu.Append(Bouton(libelle, lien, anglais));
         }
 
         // Préheader : texte d'aperçu affiché par la boîte mail, masqué dans le corps.
@@ -52,7 +52,7 @@ public static class GabaritEmailHtml
 
         return $$"""
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>{{titreSur}}</title></head>
+<html lang="{{(anglais ? "en" : "fr")}}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>{{titreSur}}</title></head>
 <body style="margin:0;padding:0;background:{{Fond}};">
 <span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;mso-hide:all;">{{preheader}}</span>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{{Fond}};padding:24px 12px;">
@@ -67,9 +67,9 @@ public static class GabaritEmailHtml
 {{contenu}}
 </td></tr>
 <tr><td style="padding:20px 32px;background:#f6f8fa;border-top:1px solid {{Trait}};">
-<p style="margin:0 0 6px;font-size:12px;line-height:1.5;color:{{EncreDouce}};">E-mail automatique de la plateforme YABA — merci de ne pas y répondre.</p>
-<p style="margin:0;font-size:12px;line-height:1.5;color:{{EncreDouce}};">Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>
-<p style="margin:12px 0 0;font-size:11px;color:#8899aa;">© {{DateTime.UtcNow.Year}} Côte d'Ivoire Terminal. Tous droits réservés.</p>
+<p style="margin:0 0 6px;font-size:12px;line-height:1.5;color:{{EncreDouce}};">{{(anglais ? "Automatic e-mail from the YABA platform — please do not reply." : "E-mail automatique de la plateforme YABA — merci de ne pas y répondre.")}}</p>
+<p style="margin:0;font-size:12px;line-height:1.5;color:{{EncreDouce}};">{{(anglais ? "If you did not make this request, please ignore this message." : "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.")}}</p>
+<p style="margin:12px 0 0;font-size:11px;color:#8899aa;">© {{DateTime.UtcNow.Year}} Côte d'Ivoire Terminal. {{(anglais ? "All rights reserved." : "Tous droits réservés.")}}</p>
 </td></tr>
 </table>
 </td></tr>
@@ -78,7 +78,7 @@ public static class GabaritEmailHtml
 """;
     }
 
-    private static string Bouton(string libelle, string lien)
+    private static string Bouton(string libelle, string lien, bool anglais)
     {
         var l = WebUtility.HtmlEncode(libelle);
         var href = WebUtility.HtmlEncode(lien);
@@ -86,7 +86,7 @@ public static class GabaritEmailHtml
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;"><tr><td style="border-radius:8px;background:{Azure};">
 <a href="{href}" style="display:inline-block;padding:13px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;border:1px solid {AzureFonce};">{l}</a>
 </td></tr></table>
-<p style="margin:0 0 16px;font-size:12px;line-height:1.5;color:{EncreDouce};word-break:break-all;">Ou copiez ce lien : <a href="{href}" style="color:{Azure};">{href}</a></p>
+<p style="margin:0 0 16px;font-size:12px;line-height:1.5;color:{EncreDouce};word-break:break-all;">{(anglais ? "Or copy this link:" : "Ou copiez ce lien :")} <a href="{href}" style="color:{Azure};">{href}</a></p>
 """;
     }
 
@@ -95,7 +95,7 @@ public static class GabaritEmailHtml
     /// (une ligne « Libellé : URL » ou une URL seule devient un bouton). Toute URL restée dans le
     /// texte est transformée en lien cliquable.
     /// </summary>
-    private static (List<string> Paragraphes, List<(string Libelle, string Lien)> Actions) Decouper(string corps)
+    private static (List<string> Paragraphes, List<(string Libelle, string Lien)> Actions) Decouper(string corps, bool anglais)
     {
         var paragraphes = new List<string>();
         var actions = new List<(string, string)>();
@@ -107,7 +107,7 @@ public static class GabaritEmailHtml
 
             foreach (var ligne in lignes)
             {
-                var action = ExtraireAction(ligne);
+                var action = ExtraireAction(ligne, anglais);
                 if (action is { } a)
                 {
                     if (tampon.Count > 0) { paragraphes.Add(JoindreLignes(tampon)); tampon.Clear(); }
@@ -126,7 +126,7 @@ public static class GabaritEmailHtml
     }
 
     /// <summary>Une ligne « Libellé : lien » ou un lien seul (URL http/https) → action ; sinon null.</summary>
-    private static (string Libelle, string Lien)? ExtraireAction(string ligne)
+    private static (string Libelle, string Lien)? ExtraireAction(string ligne, bool anglais)
     {
         var t = ligne.Trim();
         var urls = Url.Matches(t);
@@ -146,7 +146,7 @@ public static class GabaritEmailHtml
             return null;
         }
 
-        var libelle = avant.Length is > 0 and <= 40 ? avant : "Ouvrir le lien";
+        var libelle = avant.Length is > 0 and <= 40 ? avant : (anglais ? "Open the link" : "Ouvrir le lien");
         return (libelle, url);
     }
 

@@ -1192,8 +1192,15 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("GabaritCorpsEn")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("GabaritTitre")
                         .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("GabaritTitreEn")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -1235,6 +1242,13 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("EvenementSourceId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Langue")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)")
+                        .HasDefaultValue("fr");
 
                     b.Property<DateTime?>("LueLeUtc")
                         .HasColumnType("datetime2");
@@ -2753,6 +2767,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("EstActif")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LanguePreferee")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");

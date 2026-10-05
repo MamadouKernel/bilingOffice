@@ -220,7 +220,7 @@ else
         {
             demandes = [];
             _nonAutorise = true;
-            _messageNonAutorise = ex.Message;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
         }
         finally
         {
@@ -318,7 +318,7 @@ else
         }
         catch (AccesRefuseException ex)
         {
-            erreur = ex.Message;
+            erreur = MessagesUtilisateur.Texte(ex);
         }
     }
 

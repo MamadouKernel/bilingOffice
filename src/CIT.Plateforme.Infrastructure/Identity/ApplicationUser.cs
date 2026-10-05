@@ -15,4 +15,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     public NatureUtilisateur Nature { get; set; }
 
     public bool EstActif { get; set; } = true;
+
+    /// <summary>Langue choisie dans l'interface (« fr » / « en ») : celle des notifications et e-mails.</summary>
+    public string? LanguePreferee { get; set; }
 }
