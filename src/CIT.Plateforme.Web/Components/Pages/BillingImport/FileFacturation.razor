@@ -116,11 +116,18 @@ else
                                     @if (t.EtatProforma == EtatProforma.Validee)
                                     {
                                         <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
-                                        <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
                                     }
                                     else
                                     {
                                         <CelluleProforma Ticket="t" AgentId="_agentId" AvecDateEnlevement="true" Termine="ProformaTermineeAsync" />
+                                    }
+                                    @if (GestionProformaCommand.FacturePermise(t))
+                                    {
+                                        @if (t.EtatProforma == EtatProforma.Aucune)
+                                        {
+                                            <div class="small text-muted mt-2">@Loc["Proforma.OuFactureDirecte"]</div>
+                                        }
+                                        <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
                                     }
                                     @if (t.DateEnlevementSouhaitee is DateOnly enlevement)
                                     {

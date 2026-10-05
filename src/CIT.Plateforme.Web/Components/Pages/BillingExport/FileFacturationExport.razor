@@ -112,16 +112,26 @@ else
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        @if (t.DraftInExportEmis && t.EtatProforma == EtatProforma.Validee)
+                                        @if (t.DraftInExportEmis)
                                         {
                                             <div>
-                                                <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
-                                                <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
+                                                @if (t.EtatProforma == EtatProforma.Validee)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
+                                                }
+                                                else
+                                                {
+                                                    <CelluleProforma Ticket="t" AgentId="_agentId" Termine="ProformaTermineeAsync" />
+                                                }
+                                                @if (CIT.Plateforme.Application.BillingImport.GestionProformaCommand.FacturePermise(t))
+                                                {
+                                                    @if (t.EtatProforma == EtatProforma.Aucune)
+                                                    {
+                                                        <div class="small text-muted mt-2">@Loc["Proforma.OuFactureDirecte"]</div>
+                                                    }
+                                                    <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
+                                                }
                                             </div>
-                                        }
-                                        else if (t.DraftInExportEmis)
-                                        {
-                                            <CelluleProforma Ticket="t" AgentId="_agentId" Termine="ProformaTermineeAsync" />
                                         }
                                         else
                                         {

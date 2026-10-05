@@ -238,6 +238,27 @@ public sealed class ProformaEtReglementTests
         Assert.Contains(c.Db.Documents, d => d.TicketId == ticketId && d.Categorie == CategorieDocumentBillingImport.PreuvePaiement);
     }
 
+    /// <summary>Paramètre « Proforma obligatoire » : par défaut la facture exige une proforma validée ;
+    /// désactivé, la facture directe est permise — jamais par-dessus une proforma en cours d'échange.</summary>
+    [Fact]
+    public async Task La_proforma_obligatoire_est_parametrable_sans_jamais_facturer_par_dessus_un_echange_en_cours()
+    {
+        Assert.Equal(1, CIT.Plateforme.Application.Exploitation.CatalogueParametresPlateforme
+            .Trouver(CIT.Plateforme.Application.Exploitation.CatalogueParametresPlateforme.ProformaObligatoire)!.Defaut);
+
+        var c = await ConstruireAsync();
+        var ticket = (await c.Db.Tickets.FindAsync(await TicketEnFacturationAsync(c, "BL-PARAM-1")))!;
+
+        Assert.False(GestionProformaCommand.FacturePermise(ticket, proformaObligatoire: true));
+        Assert.True(GestionProformaCommand.FacturePermise(ticket, proformaObligatoire: false));
+
+        await EmettreProformaAsync(c, ticket.Id, c.Aujourdhui.AddDays(2));
+        Assert.False(GestionProformaCommand.FacturePermise(ticket, proformaObligatoire: false));
+
+        await c.Proforma.ValiderAsync(c.AuteurId, ticket.Id);
+        Assert.True(GestionProformaCommand.FacturePermise(ticket, proformaObligatoire: true));
+    }
+
     [Theory]
     [InlineData("Pilote Manifeste", StatutTicket.EnAttenteDePriseEnCharge, EtatProforma.Aucune, false, "Etape.Soumis")]
     [InlineData("Pilote Manifeste", StatutTicket.EnAttenteClient, EtatProforma.Aucune, false, "Etape.ComplementDemande")]

@@ -33,8 +33,9 @@ public sealed class EditerFactureCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
 
-        // Parcours TO BE (05/10/2026) : la facture définitive suit la proforma validée par le client.
-        if (ticket.EtatProforma != EtatProforma.Validee)
+        // Parcours TO BE (05/10/2026) : la facture définitive suit la proforma validée par le client
+        // (paramétrable : « Proforma obligatoire » dans les paramètres de la plateforme).
+        if (!GestionProformaCommand.FacturePermise(ticket))
         {
             throw new ProformaNonValideeException(ticket.Numero);
         }

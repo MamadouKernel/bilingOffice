@@ -28,6 +28,17 @@ public sealed class GestionProformaCommand(
     IHorloge horloge,
     IUniteDeTravail uniteDeTravail)
 {
+    /// <summary>
+    /// La facture suit une proforma validée par le client. Si le paramètre « proforma obligatoire »
+    /// est désactivé, elle peut aussi être éditée directement — sauf quand une proforma est en cours
+    /// d'échange avec le client : on ne facture pas par-dessus une proposition qu'il n'a pas tranchée.
+    /// </summary>
+    public static bool FacturePermise(Ticket ticket) => FacturePermise(ticket, Exploitation.ParametresCourants.ProformaObligatoire);
+
+    public static bool FacturePermise(Ticket ticket, bool proformaObligatoire) =>
+        ticket.EtatProforma == EtatProforma.Validee
+        || (ticket.EtatProforma == EtatProforma.Aucune && !proformaObligatoire);
+
     public async Task EmettreAsync(
         Guid agentId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
         ReglesDepotDocument reglesEtape, DateOnly? dateEnlevementRetenue, CancellationToken ct = default)
