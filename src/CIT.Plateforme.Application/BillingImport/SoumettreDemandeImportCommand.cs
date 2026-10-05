@@ -13,7 +13,8 @@ public sealed record SoumettreDemandeImportRequete(
     Guid SocieteId,
     Guid AuteurId,
     IReadOnlyList<string> NumerosBl,
-    string? ReferenceSimulationProforma = null);
+    string? ReferenceSimulationProforma = null,
+    CasParticulierImport CasParticuliers = CasParticulierImport.Aucun);
 
 /// <summary>
 /// UNI-01, CPT-04 : un BL refusé (déjà actif) ne révèle <see cref="TicketExistantId"/> que si le
@@ -148,6 +149,7 @@ public sealed class SoumettreDemandeImportCommand(
         {
             var numeroTicket = await numerotation.ProchainNumeroTicketAsync(Module, TypeDemande, ct).ConfigureAwait(false);
             var ticket = Ticket.Creer(numeroTicket, Module, TypeDemande, fileManifeste.Id, dossier.Id, maintenant, numeroBl);
+            ticket.DeclarerCasParticuliers(requete.CasParticuliers);
 
             // PRI-01 : une règle administrable (module/type de demande/type de client) peut
             // attribuer automatiquement une priorité. Aucune règle configurée → comportement
@@ -156,7 +158,16 @@ public sealed class SoumettreDemandeImportCommand(
                 ? await resoudrePriorite.ResoudreAsync(Module, TypeDemande, societe.Profil.ToString(), ct).ConfigureAwait(false)
                 : null;
 
-            if (prioriteParRegle is Guid idRegle)
+            // Enlèvement sous palan : livraison directe au déchargement, sous peine de réembarquement
+            // du conteneur -> niveau de priorité le plus élevé du référentiel (« Critique »).
+            var niveauCritique = requete.CasParticuliers.HasFlag(CasParticulierImport.EnlevementSousPalan) && priorites is not null
+                ? (await priorites.ListerNiveauxAsync(ct).ConfigureAwait(false)).OrderByDescending(n => n.Rang).FirstOrDefault()
+                : null;
+            if (niveauCritique is not null)
+            {
+                ticket.DefinirPriorite(niveauCritique.Id);
+            }
+            else if (prioriteParRegle is Guid idRegle)
             {
                 ticket.DefinirPriorite(idRegle);
             }
@@ -189,7 +200,9 @@ public sealed class SoumettreDemandeImportCommand(
             }
 
             ticketsCrees.Add(ticket);
-            await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketImportCree", $"numeroBl={numeroBl}", requete.AuteurId, ct).ConfigureAwait(false);
+            await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketImportCree",
+                requete.CasParticuliers == CasParticulierImport.Aucun ? $"numeroBl={numeroBl}" : $"numeroBl={numeroBl}; cas={requete.CasParticuliers}",
+                requete.AuteurId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(requete.AuteurId, "TicketImportCree", nameof(Ticket), ticket.Id, null, numeroBl, ct).ConfigureAwait(false);
             await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
             await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);

@@ -180,6 +180,9 @@ public sealed partial class Ticket
     /// </summary>
     public bool DeclarationPresentielle { get; private set; }
 
+    /// <summary>Cas particuliers signalés à la demande d'import (dangereux, sous palan, véhicule usagé).</summary>
+    public CasParticulierImport CasParticuliers { get; private set; }
+
     /// <summary>
     /// EXTENSION FEATURE 003 (research.md D13bis) : distingue un rejet Pilote Manifeste (IMP-04)
     /// d'une annulation client ordinaire (CYC-01) — les deux partagent <see cref="StatutTicket.Annule"/>
@@ -489,6 +492,12 @@ public sealed partial class Ticket
     public void DeclarerFinalisationPresentielle()
     {
         DeclarationPresentielle = true;
+    }
+
+    /// <summary>Cas particuliers déclarés par le client à la soumission de la demande d'import.</summary>
+    public void DeclarerCasParticuliers(CasParticulierImport cas)
+    {
+        CasParticuliers = cas;
     }
 
     /// <summary>

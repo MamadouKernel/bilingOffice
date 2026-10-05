@@ -1,0 +1,23 @@
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Cas particuliers d'un BL import (dangereux, sous palan, véhicule usagé) : visibles d'un coup d'œil
+   dans les files et sur la fiche, car ils exigent des pièces et, pour le sous palan, une action rapide. *@
+@if (Cas.HasFlag(CasParticulierImport.EnlevementSousPalan))
+{
+    <span class="badge bg-danger ms-1" title="@Loc["CasPart.SousPalan.Aide"]">🏗️ @Loc["CasPart.SousPalan"]</span>
+}
+@if (Cas.HasFlag(CasParticulierImport.MarchandiseDangereuse))
+{
+    <span class="badge bg-warning text-dark ms-1" title="@Loc["CasPart.Dangereuse.Aide"]">⚠️ @Loc["CasPart.Dangereuse"]</span>
+}
+@if (Cas.HasFlag(CasParticulierImport.VehiculeUsage))
+{
+    <span class="badge bg-info text-dark ms-1" title="@Loc["CasPart.Vehicule.Aide"]">🚗 @Loc["CasPart.Vehicule"]</span>
+}
+
+@code {
+    [Parameter] public CasParticulierImport Cas { get; set; }
+}

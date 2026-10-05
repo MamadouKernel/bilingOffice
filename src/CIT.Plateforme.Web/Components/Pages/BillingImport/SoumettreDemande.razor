@@ -83,11 +83,39 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <div class="form-label fw-semibold text-dark mb-1">@Loc["CasPart.Titre"]</div>
+                    <div class="form-text small text-muted mb-2">@Loc["CasPart.Intro"]</div>
+                    @foreach (var (cas, cle) in CasProposes)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="@($"cas-{cas}")" checked="@_cas.HasFlag(cas)"
+                                   @onchange="e => BasculerCas(cas, e.Value is true)" />
+                            <label class="form-check-label" for="@($"cas-{cas}")">@Loc[cle] <span class="text-muted small">— @Loc[$"{cle}.Aide"]</span></label>
+                        </div>
+                    }
+                    @foreach (var piece in PiecesCas.Where(p => _cas.HasFlag(p.Cas)))
+                    {
+                        <div class="mt-2 ms-4">
+                            <label class="form-label small fw-semibold mb-1" for="@($"piece-{piece.Code}")">
+                                @Loc[$"CasPart.Piece.{piece.Code}"] @(piece.Requise ? "*" : $"({Loc["CasPart.Facultatif"]})")
+                                @if (_piecesCas.ContainsKey(piece.Code)) { <span class="text-success">✓ @_piecesCas[piece.Code].Name</span> }
+                            </label>
+                            <InputFile id="@($"piece-{piece.Code}")" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                                       OnChange="e => _piecesCas[piece.Code] = e.File" />
+                        </div>
+                    }
+                    @if (!PiecesCasCompletes)
+                    {
+                        <div class="small text-danger mt-2">@Loc["CasPart.PiecesManquantes"]</div>
+                    }
+                </div>
+
                 <PiecesJointesFormulaire Fichiers="_pieces" />
 
                 <div class="d-flex justify-content-end gap-2 pt-2">
                     <a href="/client/dashboard" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
-                    <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBl) || _soumissionEnCours || _nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande)">
+                    <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBl) || _soumissionEnCours || _nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande || !PiecesCasCompletes)">
                         @if (_soumissionEnCours)
                         {
                             <span>@Loc["BImp.Submitting"]</span>
@@ -227,6 +255,40 @@
     private Guid _auteurId;
     private string _auteurNom = string.Empty;
 
+    // Cas particuliers (documents métier du 05/10/2026) : chaque cas coché exige ses pièces avant
+    // l'envoi ; elles sont jointes à chaque ticket créé, nommées d'après la pièce attendue.
+    private CIT.Plateforme.Domain.Tickets.CasParticulierImport _cas;
+    private readonly Dictionary<string, IBrowserFile> _piecesCas = [];
+
+    private static readonly (CIT.Plateforme.Domain.Tickets.CasParticulierImport Cas, string Cle)[] CasProposes =
+    [
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.MarchandiseDangereuse, "CasPart.Dangereuse"),
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.EnlevementSousPalan, "CasPart.SousPalan"),
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.VehiculeUsage, "CasPart.Vehicule"),
+    ];
+
+    private static readonly (CIT.Plateforme.Domain.Tickets.CasParticulierImport Cas, string Code, bool Requise)[] PiecesCas =
+    [
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.MarchandiseDangereuse, "Escorte", true),
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.MarchandiseDangereuse, "Entreposage", false),
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.EnlevementSousPalan, "SousPalan", true),
+        (CIT.Plateforme.Domain.Tickets.CasParticulierImport.VehiculeUsage, "Requisition", true),
+    ];
+
+    private bool PiecesCasCompletes => PiecesCas.Where(p => p.Requise && _cas.HasFlag(p.Cas)).All(p => _piecesCas.ContainsKey(p.Code));
+
+    private void BasculerCas(CIT.Plateforme.Domain.Tickets.CasParticulierImport cas, bool actif)
+    {
+        _cas = actif ? _cas | cas : _cas & ~cas;
+        if (!actif)
+        {
+            foreach (var piece in PiecesCas.Where(p => p.Cas == cas))
+            {
+                _piecesCas.Remove(piece.Code);
+            }
+        }
+    }
+
     private ModeleFormulaire _modele = new();
     private SoumettreDemandeImportResultat? _resultat;
     private readonly List<IBrowserFile> _pieces = [];
@@ -315,7 +377,8 @@
 
             _resultat = await Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(
                 _societeId, _auteurId, numerosBl,
-                string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim()));
+                string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim(),
+                _cas));
 
             // Pièces jointes au formulaire : déposées sur chaque ticket (un par BL) du dossier créé.
             _messagePieces = null;
@@ -329,6 +392,21 @@
                 _messagePieces = string.Join(" ", bilans.Distinct());
                 _pieces.Clear();
             }
+            if (_piecesCas.Count > 0 && _resultat.TicketsCrees.Count > 0)
+            {
+                var bilansCas = new List<string>();
+                foreach (var ticket in _resultat.TicketsCrees)
+                {
+                    foreach (var (code, fichier) in _piecesCas)
+                    {
+                        var libelle = Loc[$"CasPart.Piece.{code}"].Value;
+                        bilansCas.Add((await DepotFichiers.JoindreAsync(ScopeFactory, [fichier], ticket.Id, _auteurId, estClient: true, f => $"{libelle} - {f.Name}")).Message(Loc));
+                    }
+                }
+                _messagePieces = string.Join(" ", new[] { _messagePieces }.Concat(bilansCas.Distinct()).Where(m => !string.IsNullOrWhiteSpace(m)));
+            }
+            _cas = CIT.Plateforme.Domain.Tickets.CasParticulierImport.Aucun;
+            _piecesCas.Clear();
 
             using (var scope = ScopeFactory.CreateScope())
             {

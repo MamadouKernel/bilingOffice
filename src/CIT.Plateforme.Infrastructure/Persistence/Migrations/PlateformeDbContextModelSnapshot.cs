@@ -2623,6 +2623,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("CasParticuliers")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("CategorieIncidentId")
                         .HasColumnType("uniqueidentifier");
 
