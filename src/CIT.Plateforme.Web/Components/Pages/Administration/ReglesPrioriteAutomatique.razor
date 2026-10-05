@@ -53,7 +53,10 @@ else
 
     @if (_niveaux is null || _niveaux.Count == 0)
     {
-        <div class="alert alert-warning border-0 mb-4 rounded-3 p-3">@Loc["AdmReglePrio.NoLevels"]</div>
+        <div class="alert alert-warning border-0 mb-4 rounded-3 p-3">
+            @Loc["AdmReglePrio.NoLevels"]
+            <a href="/administration/priorites" class="alert-link ms-1">@Loc["AdmReglePrio.NoLevelsLink"]</a>
+        </div>
     }
     else
     {
