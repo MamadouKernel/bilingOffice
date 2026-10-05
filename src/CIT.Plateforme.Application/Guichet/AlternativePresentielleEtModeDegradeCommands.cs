@@ -34,6 +34,8 @@ public sealed class BasculerAlternativePresentielleCommand(
 
         var maintenant = horloge.MaintenantUtc;
 
+        ticket.DeclarerFinalisationPresentielle();
+
         // Trace dans l'historique du ticket
         await journal.ConsignerHistoriqueAsync(
             ticket.Id,

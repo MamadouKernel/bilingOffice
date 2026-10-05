@@ -564,6 +564,7 @@ public static class DependencyInjection
 
         services.AddScoped<Application.Guichet.RechercherGuichetQuery>();
         services.AddScoped<Application.Guichet.ConsulterDossierGuichetQuery>();
+        services.AddScoped<Application.Guichet.OuvrirDossierAuGuichetCommand>();
         services.AddScoped<Application.Guichet.ListerCreneauxDisponiblesQuery>();
         services.AddScoped<Application.Guichet.ReserverRendezVousCommand>();
         services.AddScoped<Application.Guichet.AnnulerRendezVousCommand>();

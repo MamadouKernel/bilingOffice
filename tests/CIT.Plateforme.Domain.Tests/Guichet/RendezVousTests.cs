@@ -82,7 +82,7 @@ public class RendezVousTests
         var rdv = RendezVous.Creer(TicketIdTest, null, DemandeurIdTest, DateTest, HeureDebutTest, HeureFinTest, "Paiement", MaintenantUtc);
         var datePassage = MaintenantUtc.AddHours(24);
 
-        rdv.Honorer(AgentIdTest, "Usager reçu au comptoir", datePassage);
+        rdv.Honorer(AgentIdTest, "FILE-001", "Usager reçu au comptoir", datePassage);
 
         Assert.Equal(StatutRendezVous.Honore, rdv.Statut);
         Assert.Equal("Usager reçu au comptoir", rdv.CommentaireAgent);
@@ -138,9 +138,9 @@ public class RendezVousTests
     {
         // Depuis Honore
         var rdvHonore = RendezVous.Creer(TicketIdTest, null, DemandeurIdTest, DateTest, HeureDebutTest, HeureFinTest, "Paiement", MaintenantUtc);
-        rdvHonore.Honorer(AgentIdTest, "OK", MaintenantUtc);
+        rdvHonore.Honorer(AgentIdTest, "FILE-001", "OK", MaintenantUtc);
 
-        Assert.Throws<InvalidOperationException>(() => rdvHonore.Honorer(AgentIdTest, "OK", MaintenantUtc));
+        Assert.Throws<InvalidOperationException>(() => rdvHonore.Honorer(AgentIdTest, "FILE-002", "OK", MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvHonore.Annuler("Annuler", MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvHonore.Reporter(DateTest.AddDays(1), HeureDebutTest, HeureFinTest, MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvHonore.MarquerNonPresente("Absent", MaintenantUtc));
@@ -149,7 +149,7 @@ public class RendezVousTests
         var rdvAnnule = RendezVous.Creer(TicketIdTest, null, DemandeurIdTest, DateTest, HeureDebutTest, HeureFinTest, "Paiement", MaintenantUtc);
         rdvAnnule.Annuler("Annulé", MaintenantUtc);
 
-        Assert.Throws<InvalidOperationException>(() => rdvAnnule.Honorer(AgentIdTest, "OK", MaintenantUtc));
+        Assert.Throws<InvalidOperationException>(() => rdvAnnule.Honorer(AgentIdTest, "FILE-003", "OK", MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvAnnule.Annuler("Annuler", MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvAnnule.Reporter(DateTest.AddDays(1), HeureDebutTest, HeureFinTest, MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvAnnule.MarquerNonPresente("Absent", MaintenantUtc));
@@ -158,7 +158,7 @@ public class RendezVousTests
         var rdvNonPresente = RendezVous.Creer(TicketIdTest, null, DemandeurIdTest, DateTest, HeureDebutTest, HeureFinTest, "Paiement", MaintenantUtc);
         rdvNonPresente.MarquerNonPresente("Absent", MaintenantUtc);
 
-        Assert.Throws<InvalidOperationException>(() => rdvNonPresente.Honorer(AgentIdTest, "OK", MaintenantUtc));
+        Assert.Throws<InvalidOperationException>(() => rdvNonPresente.Honorer(AgentIdTest, "FILE-004", "OK", MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvNonPresente.Annuler("Annuler", MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvNonPresente.Reporter(DateTest.AddDays(1), HeureDebutTest, HeureFinTest, MaintenantUtc));
         Assert.Throws<InvalidOperationException>(() => rdvNonPresente.MarquerNonPresente("Absent", MaintenantUtc));

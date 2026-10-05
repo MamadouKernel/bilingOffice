@@ -2848,7 +2848,8 @@ html { scroll-padding-top: var(--header-h); }
 /* ==========================================================================
    AIDE CONTEXTUELLE (bouton « ? ») — panneau latéral droit, rendu serveur.
    ========================================================================== */
-.cit-aide-bouton { font-weight: 800; font-size: 1rem; }
+.cit-aide-bouton { width: auto; padding-inline: .65rem; gap: .4rem; font-weight: 800; font-size: .95rem; }
+.cit-aide-libelle { font-size: .8rem; }
 .cit-aide[open] .cit-aide-bouton { background: var(--accent); color: var(--deep-900); }
 .cit-aide-panneau {
     position: fixed;

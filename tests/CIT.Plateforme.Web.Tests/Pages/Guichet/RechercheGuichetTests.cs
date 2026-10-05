@@ -18,6 +18,7 @@ using CIT.Plateforme.Web.Components.Pages.Guichet;
 using CIT.Plateforme.Web.Services;
 using CIT.Plateforme.Web.Tests.Components.Layout;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace CIT.Plateforme.Web.Tests.Pages.Guichet;
@@ -172,6 +173,13 @@ public sealed class RechercheGuichetTests : BunitContext
         Services.AddSingleton<RechercherGuichetQuery>();
         Services.AddSingleton<ConsulterDossierGuichetQuery>();
         Services.AddSingleton<RegulariserModeDegradeCommand>();
+
+        // Ouverture d'un dossier au guichet : la page injecte la commande, qui n'est exécutée que
+        // sur clic. Ces tests ne font que rendre la page, donc des doubles suffisent à la construire.
+        Services.AddSingleton(Mock.Of<ISocieteClienteRepository>());
+        Services.AddSingleton(Mock.Of<IFileDeTraitementRepository>());
+        Services.AddSingleton(Mock.Of<IServiceNumerotation>());
+        Services.AddSingleton<OuvrirDossierAuGuichetCommand>();
     }
 
     [Fact]

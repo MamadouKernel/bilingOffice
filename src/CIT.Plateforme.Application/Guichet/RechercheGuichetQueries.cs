@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Domain.Audit;
+using CIT.Plateforme.Domain.Messagerie;
 using CIT.Plateforme.Domain.Securite;
 
 namespace CIT.Plateforme.Application.Guichet;
@@ -40,9 +42,19 @@ public sealed record DossierGuichetCompletDto(
     string ClientNom,
     string? ReferenceBlOuBooking,
     string Statut,
+    string EtapeCourante,
     DateTime DateCreationUtc,
     IReadOnlyList<DocumentGuichetDto> Documents,
+    IReadOnlyList<HistoriqueGuichetDto> Historique,
     RendezVousGuichetDto? RendezVousActif
+);
+
+public sealed record HistoriqueGuichetDto(
+    DateTime HorodatageUtc,
+    string Auteur,
+    string Nature,
+    string Detail,
+    bool EstInterne
 );
 
 public sealed record DocumentGuichetDto(
@@ -68,7 +80,10 @@ public sealed class ConsulterDossierGuichetQuery(
     IDocumentRepository docRepo,
     IRendezVousRepository rdvRepo,
     IUtilisateurInfoRepository utilisateurInfoRepo,
-    IAutorisationService autorisation)
+    IAutorisationService autorisation,
+    IHistoriqueTicketRepository? historiqueRepo = null,
+    IMessageRepository? messageRepo = null,
+    IFileDeTraitementRepository? fileRepo = null)
 {
     public async Task<DossierGuichetCompletDto?> ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
     {
@@ -80,6 +95,16 @@ public sealed class ConsulterDossierGuichetQuery(
         var dossier = await dossierRepo.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false);
         var docs = await docRepo.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
         var rdv = await rdvRepo.ObtenirActifParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var historique = historiqueRepo is null
+            ? Array.Empty<EntreeHistorique>()
+            : await historiqueRepo.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var messages = messageRepo is null
+            ? Array.Empty<Message>()
+            : await messageRepo.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var auteursIds = historique.Select(h => h.AuteurId).Where(id => id.HasValue).Select(id => id!.Value)
+            .Concat(messages.Select(m => m.AuteurId)).Distinct().ToArray();
+        var auteurs = await utilisateurInfoRepo.ObtenirInfosAsync(auteursIds, ct).ConfigureAwait(false);
+        var file = fileRepo is null ? null : await fileRepo.ObtenirParIdAsync(ticket.FileCouranteId, ct).ConfigureAwait(false);
 
         string clientNom = "Client";
         if (dossier is not null)
@@ -103,8 +128,23 @@ public sealed class ConsulterDossierGuichetQuery(
             clientNom,
             refMetier,
             ticket.Statut.ToString(),
+            file?.Nom ?? ticket.Statut.ToString(),
             ticket.DateCreationUtc,
             docs.Select(d => new DocumentGuichetDto(d.Id, d.NomFichier, d.TypeContenu, d.DateDepotUtc)).ToList(),
+            historique.Select(h => new HistoriqueGuichetDto(
+                    h.HorodatageUtc,
+                    h.AuteurId is Guid auteurId && auteurs.TryGetValue(auteurId, out var info) ? info.NomAffiche ?? info.Email : "Système",
+                    h.Evenement,
+                    h.Detail ?? string.Empty,
+                    false))
+                .Concat(messages.Select(m => new HistoriqueGuichetDto(
+                    m.HorodatageUtc,
+                    auteurs.TryGetValue(m.AuteurId, out var info) ? info.NomAffiche ?? info.Email : "Utilisateur",
+                    m.Type == TypeMessage.NoteInterne ? "Note interne" : "Message client",
+                    m.Contenu,
+                    m.Type == TypeMessage.NoteInterne)))
+                .OrderBy(h => h.HorodatageUtc)
+                .ToList(),
             rdv is not null ? new RendezVousGuichetDto(rdv.Id, rdv.Date, rdv.HeureDebut, rdv.HeureFin, rdv.Motif, rdv.Statut.ToString(), rdv.DateCreationUtc) : null
         );
     }

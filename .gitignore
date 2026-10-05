@@ -70,5 +70,6 @@ logs/
 
 # Artefacts de deploiement locaux (bundles IIS, dumps de migration) — jamais versionnes
 .build-artifacts/
+outputs/
 deploy/*.zip
 deploy/*.sql

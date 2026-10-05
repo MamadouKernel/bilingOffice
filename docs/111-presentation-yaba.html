@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102e57">
+  <title>YABA — Présentation métier</title>
+  <style>
+    /* Base viewport-safe du guide frontend-slides */
+    html, body { height:100%; overflow-x:hidden; }
+    html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+    .slide { width:100vw; height:100vh; height:100dvh; overflow:hidden; scroll-snap-align:start; display:flex; flex-direction:column; position:relative; }
+    .slide-content { flex:1; display:flex; flex-direction:column; justify-content:center; max-height:100%; overflow:hidden; padding:var(--pad); }
+    :root {
+      --navy:#102e57; --navy2:#1b3a6b; --gold:#d8ae54; --paper:#f6f4ef; --ink:#16263b;
+      --muted:#566578; --white:#fff; --green:#3a765b; --line:#d9dedf;
+      --title-size:clamp(1.5rem,5vw,4rem); --h2-size:clamp(1.25rem,3.5vw,2.5rem);
+      --h3-size:clamp(1rem,2.5vw,1.75rem); --body-size:clamp(.75rem,1.5vw,1.125rem);
+      --small-size:clamp(.65rem,1vw,.875rem); --pad:clamp(1rem,4vw,4rem);
+      --gap:clamp(.5rem,2vw,2rem); --tight:clamp(.25rem,1vw,1rem);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:Arial,Helvetica,sans-serif; }
+    h1,h2,h3,p { margin:0; }
+    h1 { font-size:var(--title-size); line-height:1.02; letter-spacing:-.035em; }
+    h2 { font-size:var(--h2-size); line-height:1.06; letter-spacing:-.025em; }
+    h3 { font-size:var(--h3-size); line-height:1.1; }
+    p,li { font-size:var(--body-size); line-height:1.42; }
+    .eyebrow { text-transform:uppercase; letter-spacing:.15em; font-size:var(--small-size); font-weight:700; color:var(--gold); }
+    .cover { color:#fff; background:var(--navy); }
+    .cover:before { content:""; position:absolute; width:56vw; height:56vw; right:-15vw; top:-19vw; border:1px solid #ffffff24; border-radius:50%; box-shadow:0 0 0 4vw #ffffff08,0 0 0 9vw #ffffff05; }
+    .cover:after { content:""; position:absolute; width:45vw; height:1px; right:5vw; bottom:20vh; background:linear-gradient(90deg,transparent,var(--gold)); transform:rotate(-28deg); opacity:.8; }
+    .cover .slide-content { position:relative; z-index:1; }
+    .cover h1 { max-width:900px; margin:1rem 0; }
+    .cover .sub { max-width:640px; color:#dce5ee; }
+    .cover-mark { position:absolute; right:var(--pad); bottom:var(--pad); font-size:var(--small-size); letter-spacing:.12em; }
+    .topline { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:var(--gap); }
+    .section-no { color:var(--gold); font-weight:700; font-size:var(--small-size); }
+    .lead { max-width:820px; color:var(--muted); margin-top:.65rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:clamp(.5rem,1.5vw,1rem); margin-top:var(--gap); }
+    .card { max-width:min(90vw,1000px); max-height:min(80vh,700px); background:#fff; border:1px solid var(--line); border-radius:14px; padding:clamp(.8rem,2vw,1.35rem); box-shadow:0 8px 22px #102e570a; }
+    .card h3 { margin-bottom:.45rem; color:var(--navy2); }
+    .card p,.card li { color:var(--muted); }
+    .chip { display:inline-flex; border-radius:99px; background:#e8eef5; color:var(--navy2); padding:.3rem .65rem; font-size:var(--small-size); font-weight:700; }
+    .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:.55rem; margin-top:var(--gap); }
+    .step { min-width:0; border-top:4px solid var(--gold); background:#fff; padding:clamp(.65rem,1.5vw,1rem); border-radius:0 0 12px 12px; }
+    .step b { display:block; color:var(--navy2); font-size:var(--body-size); margin-bottom:.35rem; }
+    .step span { display:block; color:var(--muted); font-size:var(--small-size); line-height:1.35; }
+    .data-table { width:100%; border-collapse:collapse; background:#fff; margin-top:var(--gap); font-size:var(--body-size); border-radius:12px; overflow:hidden; }
+    .data-table th { text-align:left; background:var(--navy2); color:#fff; padding:.7rem .8rem; }
+    .data-table td { padding:.65rem .8rem; border-bottom:1px solid var(--line); }
+    .data-table tr:last-child td { border-bottom:0; }
+    .status { color:var(--green); font-weight:700; }
+    .columns { display:grid; grid-template-columns:1.05fr .95fr; gap:var(--gap); margin-top:var(--gap); align-items:stretch; }
+    .quote { font-size:clamp(1.1rem,2.4vw,2rem); line-height:1.18; color:var(--navy); font-weight:700; }
+    .metric { font-size:clamp(2rem,5vw,4rem); color:var(--navy2); font-weight:800; letter-spacing:-.05em; }
+    .note { color:var(--muted); font-size:var(--small-size); margin-top:.5rem; }
+    .demo-label { display:inline-block; padding:.35rem .65rem; background:#fff3d5; color:#705214; font-size:var(--small-size); font-weight:700; border-radius:99px; }
+    .slide.dark { color:#fff; background:var(--navy); }
+    .slide.dark .lead,.slide.dark .card p,.slide.dark .card li { color:#dbe5ee; }
+    .slide.dark .card { background:#17375f; border-color:#315173; }
+    .slide.dark .card h3 { color:#fff; }
+    .slide.dark .chip { background:#25466e; color:#fff; }
+    .deck-controls { position:fixed; z-index:10; right:1rem; bottom:1rem; display:flex; align-items:center; gap:.45rem; padding:.4rem; background:#102e57ed; border-radius:999px; color:#fff; box-shadow:0 5px 20px #0003; }
+    .deck-controls button { border:0; border-radius:99px; min-width:2.3rem; min-height:2.3rem; padding:.35rem .65rem; background:#ffffff18; color:#fff; font-weight:700; cursor:pointer; }
+    .deck-controls button:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+    .deck-controls button:hover { background:#ffffff35; }
+    #counter { min-width:3.6rem; text-align:center; font-variant-numeric:tabular-nums; font-size:.85rem; }
+    .progress { position:fixed; top:0; left:0; height:4px; width:0; background:var(--gold); z-index:11; transition:width .25s ease; }
+    .foot { position:absolute; left:var(--pad); bottom:1rem; font-size:var(--small-size); color:var(--muted); }
+    .dark .foot { color:#aebed0; }
+    @media (max-width:800px) {
+      .flow { grid-template-columns:repeat(3,1fr); }
+      .columns { grid-template-columns:1fr; }
+    }
+    @media (max-height:700px) {
+      :root { --pad:clamp(.75rem,3vw,2rem); --gap:clamp(.4rem,1.5vw,1rem); --title-size:clamp(1.25rem,4.5vw,2.5rem); --h2-size:clamp(1rem,3vw,1.75rem); }
+    }
+    @media (max-height:600px) {
+      :root { --pad:clamp(.5rem,2.5vw,1.5rem); --title-size:clamp(1.1rem,4vw,2rem); --body-size:clamp(.7rem,1.2vw,.95rem); }
+      .foot { display:none; }
+    }
+    @media (max-height:500px) { :root { --pad:clamp(.4rem,2vw,1rem); --title-size:clamp(1rem,3.5vw,1.5rem); --h2-size:clamp(.9rem,2.5vw,1.25rem); --body-size:clamp(.65rem,1vw,.85rem); } }
+    @media (max-width:600px) { :root { --title-size:clamp(1.25rem,7vw,2.5rem); } .grid { grid-template-columns:1fr 1fr; } .flow { grid-template-columns:repeat(2,1fr); } .data-table th,.data-table td { padding:.45rem; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } html { scroll-behavior:auto; } }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <main aria-label="Présentation de YABA">
+    <section class="slide cover" aria-labelledby="s1-title">
+      <div class="slide-content">
+        <p class="eyebrow">Côte d’Ivoire Terminal · YABA</p>
+        <h1 id="s1-title">Les démarches terminal, plus faciles à suivre.</h1>
+        <p class="sub">Une présentation métier pour les clients, les équipes CIT et les personnes qui découvrent la plateforme.</p>
+        <div style="margin-top:2rem"><span class="demo-label">Démo avec données fictives</span></div>
+      </div>
+      <div class="cover-mark">PARCOURS · SUIVI · ACCOMPAGNEMENT</div>
+    </section>
+
+    <section class="slide" aria-labelledby="s2-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">01 · Pourquoi YABA</p><span class="section-no">02 / 08</span></div>
+        <h2 id="s2-title">Un même endroit pour déposer, traiter et suivre.</h2>
+        <p class="lead">Le client envoie sa demande et suit son avancement. Les équipes CIT traitent chaque étape dans la file prévue. Chacun sait ce qui est attendu.</p>
+        <div class="grid">
+          <article class="card"><span class="chip">CLIENT</span><h3 style="margin-top:.7rem">Déposer</h3><p>Importer, exporter, demander un avoir, signaler un problème ou préparer un enrôlement.</p></article>
+          <article class="card"><span class="chip">CIT</span><h3 style="margin-top:.7rem">Traiter</h3><p>Les dossiers avancent entre les personnes habilitées, avec motifs, pièces et historique.</p></article>
+          <article class="card"><span class="chip">TOUS</span><h3 style="margin-top:.7rem">Comprendre</h3><p>Les statuts, notifications et aides expliquent où en est le dossier et quelle est la prochaine action.</p></article>
+        </div>
+        <p class="foot">YABA · Présentation métier · 2 octobre 2026</p>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s3-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">02 · Qui fait quoi</p><span class="section-no">03 / 08</span></div>
+        <h2 id="s3-title">Chaque personne a son espace et sa prochaine étape.</h2>
+        <div class="grid">
+          <article class="card"><h3>Client société</h3><p>Prépare une demande, joint les pièces, suit les réponses et agit si un complément est demandé.</p></article>
+          <article class="card"><h3>Administrateur société</h3><p>Fait les mêmes démarches et invite les collègues de sa société.</p></article>
+          <article class="card"><h3>Transporteur</h3><p>Dépose et suit son dossier chauffeur. Son accès est distinct du compte de facturation.</p></article>
+          <article class="card"><h3>Agent CIT</h3><p>Vérifie les dossiers de sa file et explique les compléments ou décisions.</p></article>
+          <article class="card"><h3>Superviseur</h3><p>Suit les délais et la charge des équipes de son périmètre.</p></article>
+          <article class="card"><h3>Administration et support</h3><p>Gèrent les paramètres autorisés ou aident sur les incidents de la plateforme.</p></article>
+        </div>
+        <p class="foot">Les accès sont personnels; les comptes ne doivent pas être partagés.</p>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s4-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">03 · La vie d’une demande</p><span class="section-no">04 / 08</span></div>
+        <h2 id="s4-title">Le statut indique quoi faire ensuite.</h2>
+        <div class="flow" aria-label="Étapes générales d'une demande">
+          <div class="step"><b>1. Préparer</b><span>Remplir le formulaire et réunir les pièces demandées.</span></div>
+          <div class="step"><b>2. Envoyer</b><span>La plateforme confirme la réception et donne une référence.</span></div>
+          <div class="step"><b>3. Vérifier</b><span>Un agent examine le dossier dans sa file.</span></div>
+          <div class="step"><b>4. Répondre</b><span>Si un complément est demandé, ajouter les éléments depuis le dossier.</span></div>
+          <div class="step"><b>5. Terminer</b><span>Suivre la décision et récupérer les documents lorsqu’ils sont disponibles.</span></div>
+        </div>
+        <div class="columns">
+          <article class="card"><h3>Ce que voit le client</h3><p>Le statut, l’historique, les messages et les pièces liées au dossier.</p></article>
+          <article class="card"><h3>Ce que fait CIT</h3><p>L’équipe prend en charge, contrôle, demande une précision ou fait avancer le dossier selon la procédure.</p></article>
+        </div>
+        <p class="foot">Les étapes précises dépendent du type de demande et du profil client.</p>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s5-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">04 · Jeu de démonstration</p><span class="section-no">05 / 08</span></div>
+        <span class="demo-label">Toutes les données ci-dessous sont fictives</span>
+        <h2 id="s5-title" style="margin-top:.8rem">Quatre demandes montrent quatre situations.</h2>
+        <table class="data-table">
+          <thead><tr><th>Référence</th><th>Situation de démo</th><th>Prochaine action à montrer</th></tr></thead>
+          <tbody>
+            <tr><td><strong>BIL-IMP-DEMO-0001</strong></td><td>Nouvelle</td><td>Un agent ouvre et prend le dossier.</td></tr>
+            <tr><td><strong>BIL-IMP-DEMO-0002</strong></td><td>En cours</td><td>Montrer l’historique et l’étape de traitement.</td></tr>
+            <tr><td><strong>BIL-IMP-DEMO-0003</strong></td><td>En attente du client</td><td>Le client ouvre le message et répond au complément.</td></tr>
+            <tr><td><strong>BIL-IMP-DEMO-0004</strong></td><td>Clôturée</td><td>Montrer le résultat final et l’historique.</td></tr>
+          </tbody>
+        </table>
+        <p class="lead" style="margin-top:1rem">Société fictive : Société Démo Import SARL · Profil : En compte · BL d’exemple : DEMOBL0001</p>
+        <p class="foot">Ne jamais utiliser ces données pour une opération réelle.</p>
+      </div>
+    </section>
+
+    <section class="slide dark" aria-labelledby="s6-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">05 · Démonstration en direct</p><span class="section-no">06 / 08</span></div>
+        <h2 id="s6-title">Une démo simple en trois temps.</h2>
+        <div class="grid">
+          <article class="card"><div class="metric">01</div><h3>Le client</h3><p>Voir ses quatre demandes, ouvrir celle qui attend un complément, puis lire l’aide et les notifications.</p></article>
+          <article class="card"><div class="metric">02</div><h3>L’agent</h3><p>Ouvrir la nouvelle demande, la prendre en charge et expliquer une action dans l’historique.</p></article>
+          <article class="card"><div class="metric">03</div><h3>Le superviseur</h3><p>Voir les files et les délais; expliquer comment une demande est suivie et attribuée.</p></article>
+        </div>
+        <p class="lead" style="margin-top:1.1rem">Comptes de démonstration locaux : `client.demo@cit-demo.ci` et `m.konate@cotedivoireterminal.com`. Demander le mot de passe de démo à l’équipe projet.</p>
+        <p class="foot">Activer et vérifier le code de sécurité avant la présentation.</p>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s7-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">06 · Aide dans l’application</p><span class="section-no">07 / 08</span></div>
+        <h2 id="s7-title">On peut se faire guider à chaque étape.</h2>
+        <div class="columns">
+          <article class="card"><p class="quote">« À quoi sert cet écran ? Qu’est-ce que je dois faire ? »</p><p style="margin-top:1rem">Le bouton <strong>Aide</strong> explique la page en cours. Le centre d’aide rassemble les fiches. La visite guidée montre les commandes principales.</p></article>
+          <article class="card"><h3>Si quelque chose bloque</h3><ul style="padding-left:1.2rem;margin:.5rem 0 0"><li>Pour une question de dossier : utiliser les échanges du dossier.</li><li>Pour un problème de la plateforme : signaler un incident.</li><li>Pour une demande de compte : contacter le référent CIT indiqué.</li></ul></article>
+        </div>
+        <p class="lead">La simulation proforma aide à estimer un montant. La facture PDF est un document de simulation, non contractuel.</p>
+        <p class="foot">Les menus varient selon le compte; une action absente peut nécessiter un accès supplémentaire.</p>
+      </div>
+    </section>
+
+    <section class="slide dark" aria-labelledby="s8-title">
+      <div class="slide-content">
+        <div class="topline"><p class="eyebrow">07 · À retenir</p><span class="section-no">08 / 08</span></div>
+        <h2 id="s8-title">Des dossiers suivis, des responsabilités claires.</h2>
+        <div class="grid">
+          <article class="card"><h3>Pour la recette</h3><p>Utiliser un environnement de test, des comptes dédiés et les scénarios du cahier de tests.</p></article>
+          <article class="card"><h3>Pour les utilisateurs</h3><p>Lire le statut, répondre dans le dossier et garder son compte personnel sécurisé.</p></article>
+          <article class="card"><h3>Pour les équipes CIT</h3><p>Traiter dans la file attendue, expliquer les demandes de complément et consigner les décisions.</p></article>
+        </div>
+        <p class="lead" style="margin-top:1.2rem">Documentation : guide des parcours, cahier de tests et script de démonstration dans le dossier `docs` du projet.</p>
+        <p class="foot">Fin · Questions</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="deck-controls" aria-label="Navigation des diapositives">
+    <button type="button" id="prev" aria-label="Diapositive précédente">←</button>
+    <span id="counter" aria-live="polite">1 / 8</span>
+    <button type="button" id="next" aria-label="Diapositive suivante">→</button>
+    <button type="button" id="full" aria-label="Plein écran">⛶</button>
+  </nav>
+  <script>
+    class SlideController {
+      constructor() {
+        this.slides = [...document.querySelectorAll('.slide')];
+        this.active = 0;
+        this.wheeling = false;
+        this.counter = document.getElementById('counter');
+        this.progress = document.getElementById('progress');
+        this.observer = new IntersectionObserver(entries => entries.forEach(entry => {
+          if (entry.isIntersecting) this.update(this.slides.indexOf(entry.target));
+        }), { threshold:.6 });
+        this.slides.forEach(slide => this.observer.observe(slide));
+        document.getElementById('prev').addEventListener('click', () => this.go(this.active - 1));
+        document.getElementById('next').addEventListener('click', () => this.go(this.active + 1));
+        document.getElementById('full').addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.());
+        document.addEventListener('keydown', event => this.onKey(event));
+        document.addEventListener('wheel', event => this.onWheel(event), { passive:false });
+        let touchX = null;
+        document.addEventListener('touchstart', event => { touchX = event.changedTouches[0].screenX; }, { passive:true });
+        document.addEventListener('touchend', event => {
+          if (touchX === null) return;
+          const delta = event.changedTouches[0].screenX - touchX;
+          if (Math.abs(delta) > 55) this.go(this.active + (delta < 0 ? 1 : -1));
+          touchX = null;
+        }, { passive:true });
+        this.go(0);
+      }
+      update(index) {
+        this.active = index;
+        this.counter.textContent = `${index + 1} / ${this.slides.length}`;
+        this.progress.style.width = `${((index + 1) / this.slides.length) * 100}%`;
+      }
+      go(index) {
+        const next = Math.max(0, Math.min(this.slides.length - 1, index));
+        this.update(next);
+        this.slides[next].scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      }
+      onKey(event) {
+        if (['ArrowRight','PageDown',' '].includes(event.key)) { event.preventDefault(); this.go(this.active + 1); }
+        if (['ArrowLeft','PageUp'].includes(event.key)) { event.preventDefault(); this.go(this.active - 1); }
+        if (event.key === 'Home') this.go(0);
+        if (event.key === 'End') this.go(this.slides.length - 1);
+      }
+      onWheel(event) {
+        if (Math.abs(event.deltaY) < 18 || this.wheeling) return;
+        event.preventDefault();
+        this.wheeling = true;
+        this.go(this.active + (event.deltaY > 0 ? 1 : -1));
+        setTimeout(() => { this.wheeling = false; }, 650);
+      }
+    }
+    new SlideController();
+  </script>
+</body>
+</html>

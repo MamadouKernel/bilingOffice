@@ -154,7 +154,7 @@ public class GestionRendezVousTests
         rdvRepo.RendezVousList.Add(rdv);
 
         var command = new MarquerRendezVousHonoreCommand(rdvRepo, auto, journalisation, uow, horloge);
-        await command.ExecuterAsync(new MarquerHonoreRequest(agentId, rdv.Id, "Présence validée"));
+        await command.ExecuterAsync(new MarquerHonoreRequest(agentId, rdv.Id, "Présence validée", "FILE-001"));
 
         Assert.Equal(StatutRendezVous.Honore, rdv.Statut);
         Assert.Single(journalisation.Evenements);

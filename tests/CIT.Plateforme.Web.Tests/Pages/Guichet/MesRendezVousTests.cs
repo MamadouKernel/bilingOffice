@@ -12,6 +12,7 @@ using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Web.Components.Pages.Guichet;
 using CIT.Plateforme.Web.Services;
 using CIT.Plateforme.Web.Tests.Components.Layout;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -102,6 +103,7 @@ public sealed class MesRendezVousTests : BunitContext
         Services.AddSingleton<IHorloge>(new FakeHorloge());
         Services.AddSingleton<IExecuteurTransactionnel>(new FakeExecuteurTransactionnel());
         Services.AddSingleton(new ParametresRendezVous(5, TimeSpan.FromMinutes(30), new TimeSpan(8, 0, 0), new TimeSpan(16, 30, 0), 50));
+        Services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
 
         Services.AddSingleton<ListerMesRendezVousQuery>();
         Services.AddSingleton<AnnulerRendezVousCommand>();

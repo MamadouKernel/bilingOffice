@@ -175,15 +175,15 @@ public static class ContenuAideInitial
             Estimez le montant de vos opérations avant de soumettre un dossier.
             1. Ajoutez vos conteneurs (taille, type, catégorie de marchandise, poids, options dangereux / hors gabarit).
             2. Calculez : le montant est établi selon la grille tarifaire en vigueur.
-            3. Ouvrez le PDF en aperçu ou retrouvez-le dans « Historique simulations ».
-            ! Une simulation est indicative : si la grille change, les anciennes simulations sont signalées obsolètes.
+            3. Cliquez sur « Exporter en PDF » pour télécharger la facture proforma. Si vous enregistrez la simulation, vous la retrouverez aussi dans « Historique simulations ».
+            ! Le PDF est une estimation indicative, pas une facture contractuelle. Si la grille change, les anciennes simulations enregistrées sont signalées obsolètes.
             """,
             """
             Estimate the amount of your operations before submitting a file.
             1. Add your containers (size, type, goods category, weight, dangerous / out-of-gauge options).
             2. Calculate: the amount is based on the tariff grid in force.
-            3. Open the PDF preview or find it in "Simulation history".
-            ! A simulation is indicative: if the grid changes, older simulations are flagged as outdated.
+            3. Select "Export to PDF" to download the proforma invoice. If you save the simulation, you can also find it in "Simulation history".
+            ! The PDF is an estimate, not a contractual invoice. If the tariff grid changes, older saved simulations are flagged as outdated.
             """),
 
         new("/reclamations/soumettre", "Nouvelle réclamation", "New complaint",

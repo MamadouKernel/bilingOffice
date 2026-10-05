@@ -13,6 +13,17 @@ sortie, aujourd'hui traités au guichet.
 | **Enrôlement Transporteurs** | Constitution à distance du dossier chauffeur, instruction par les agents Gate |
 | **Socle transverse** | Tickets, files par rôle, messagerie, documents, notifications, audit |
 
+## Guides utilisateurs
+
+- [Parcours complets et responsabilités par profil](docs/94-parcours-par-role.md) — inscription,
+  accès, démarches client, traitement des dossiers, administration et support.
+- [Cahier de tests utilisateurs](docs/110-cahier-tests-utilisateurs.md) — essais pas à pas avec
+  données fictives et résultats attendus.
+- [Présentation métier YABA](docs/111-presentation-yaba.html) — diaporama hors ligne pour une
+  démonstration auprès des équipes et partenaires.
+- [Architecture d'autorisation](docs/architecture-autorisation.md) — règles de sécurité et
+  habilitations côté serveur.
+
 ## Architecture
 
 Quatre projets, dépendances orientées vers le domaine :

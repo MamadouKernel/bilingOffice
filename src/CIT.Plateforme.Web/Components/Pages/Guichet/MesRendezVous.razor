@@ -17,6 +17,7 @@
 @inject ReporterRendezVousCommand ReporterCommand
 @inject ListerCreneauxDisponiblesQuery ListerCreneauxQuery
 @inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 <PageTitle>@Loc["Rdv.PageTitle"]</PageTitle>
 
@@ -37,6 +38,18 @@
 }
 else
 {
+    <div class="alert alert-info" role="note">
+        <div>@Loc["Rdv.ArrivalInstructions"]</div>
+        @if (UrlFileAttente is not null)
+        {
+            <a class="alert-link" href="@UrlFileAttente" target="_blank" rel="noopener noreferrer">@Loc["Rdv.QueueSystem"]</a>
+        }
+        else
+        {
+            <div class="small mt-1">@Loc["Rdv.QueueNotConfigured"]</div>
+        }
+    </div>
+
     @if (_messageErreur is not null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -189,6 +202,10 @@ else
                                     <td>
                                         <div class="fw-bold">📅 @r.Date.ToString("dd/MM/yyyy")</div>
                                         <small class="text-muted">⏱️ @r.HeureDebut.ToString(@"hh\:mm") - @r.HeureFin.ToString(@"hh\:mm")</small>
+                                        @if (!string.IsNullOrWhiteSpace(r.ReferenceFilePhysique))
+                                        {
+                                            <div class="small text-success fw-semibold" role="status">@Loc["Rdv.BillingAccessConfirmed", r.ReferenceFilePhysique]</div>
+                                        }
                                     </td>
                                     <td>@r.Motif</td>
                                     <td>
@@ -259,6 +276,18 @@ else
     private bool _enAction = false;
     private string? _messageErreur;
     private string? _messageSucces;
+
+    private string? UrlFileAttente
+    {
+        get
+        {
+            var value = Configuration["Guichet:FileAttente:Url"];
+            return Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+                   (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                ? uri.AbsoluteUri
+                : null;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

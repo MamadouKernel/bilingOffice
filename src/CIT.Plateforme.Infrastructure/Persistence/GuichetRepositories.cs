@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Domain.Guichet;
+using CIT.Plateforme.Domain.Comptes;
 using Microsoft.EntityFrameworkCore;
 
 namespace CIT.Plateforme.Infrastructure.Persistence;
@@ -111,10 +111,19 @@ public sealed class RechercheGuichetRepository(PlateformeDbContext dbContext) : 
 
         if (!string.IsNullOrWhiteSpace(terme))
         {
+            var motif = $"%{terme}%";
             query = query.Where(t =>
-                EF.Functions.Like(t.Numero, $"%{terme}%") ||
-                (t.NumeroBl != null && EF.Functions.Like(t.NumeroBl, $"%{terme}%")) ||
-                (t.NumeroBooking != null && EF.Functions.Like(t.NumeroBooking, $"%{terme}%")));
+                EF.Functions.Like(t.Numero, motif) ||
+                (t.NumeroBl != null && EF.Functions.Like(t.NumeroBl, motif)) ||
+                (t.NumeroBooking != null && EF.Functions.Like(t.NumeroBooking, motif)) ||
+                dbContext.Dossiers.Any(d => d.Id == t.DossierId &&
+                    ((d.AuteurId.HasValue && dbContext.Users.Any(u => u.Id == d.AuteurId.Value &&
+                        ((u.NomAffiche != null && EF.Functions.Like(u.NomAffiche, motif)) ||
+                         (u.Email != null && EF.Functions.Like(u.Email, motif)) ||
+                         (u.UserName != null && EF.Functions.Like(u.UserName, motif))))) ||
+                     dbContext.Societes.Any(s => s.Id == d.ClientId &&
+                        ((s.RaisonSociale != null && EF.Functions.Like(s.RaisonSociale, motif)) ||
+                         EF.Functions.Like(s.InformationsDeclarees, motif))))));
         }
 
         var tickets = await query
@@ -134,7 +143,13 @@ public sealed class RechercheGuichetRepository(PlateformeDbContext dbContext) : 
         var clientIds = dossiers.Values.Select(d => d.ClientId).Distinct().ToList();
         var societes = await dbContext.Societes.AsNoTracking()
             .Where(s => clientIds.Contains(s.Id))
-            .ToDictionaryAsync(s => s.Id, s => s.InformationsDeclarees, ct)
+            .ToDictionaryAsync(s => s.Id, s => (s.RaisonSociale ?? string.Empty), ct)
+            .ConfigureAwait(false);
+
+        var fileIds = tickets.Select(t => t.FileCouranteId).Distinct().ToList();
+        var nomsFiles = await dbContext.Files.AsNoTracking()
+            .Where(f => fileIds.Contains(f.Id))
+            .ToDictionaryAsync(f => f.Id, f => f.Nom, ct)
             .ConfigureAwait(false);
 
         var rdvsActifs = await dbContext.RendezVous.AsNoTracking()
@@ -151,18 +166,7 @@ public sealed class RechercheGuichetRepository(PlateformeDbContext dbContext) : 
             string clientNom = "Client";
             if (dossier is not null && societes.TryGetValue(dossier.ClientId, out var infosJson))
             {
-                try
-                {
-                    using var doc = JsonDocument.Parse(infosJson);
-                    if (doc.RootElement.TryGetProperty("RaisonSociale", out var prop))
-                    {
-                        clientNom = prop.GetString() ?? "Client";
-                    }
-                }
-                catch
-                {
-                    clientNom = "Client";
-                }
+                clientNom = infosJson;
             }
 
             var refMetier = t.NumeroBl ?? t.NumeroBooking;
@@ -174,7 +178,7 @@ public sealed class RechercheGuichetRepository(PlateformeDbContext dbContext) : 
                 t.Module,
                 clientNom,
                 refMetier,
-                t.Statut.ToString(),
+                nomsFiles.GetValueOrDefault(t.FileCouranteId, t.Statut.ToString()),
                 t.Statut.ToString(),
                 t.DateCreationUtc,
                 rdvsActifs.Contains(t.Id)

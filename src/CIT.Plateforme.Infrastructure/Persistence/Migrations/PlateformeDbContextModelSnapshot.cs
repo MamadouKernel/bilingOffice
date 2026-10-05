@@ -1098,6 +1098,10 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ReferenceFilePhysique")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Statut")
                         .IsRequired()
                         .HasMaxLength(32)

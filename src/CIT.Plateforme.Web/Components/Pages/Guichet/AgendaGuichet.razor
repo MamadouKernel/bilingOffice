@@ -14,6 +14,7 @@
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
+@inject IConfiguration Configuration
 @inject CIT.Plateforme.Application.Guichet.ListerAgendaGuichetQuery ListerAgenda
 @inject MarquerRendezVousHonoreCommand MarquerHonoreCommand
 @inject MarquerRendezVousNonPresenteCommand MarquerNonPresenteCommand
@@ -55,6 +56,29 @@ else
             @_messageSucces
             <button type="button" class="btn-close" @onclick="() => _messageSucces = null"></button>
         </div>
+    }
+    @if (_rdvPourPresence is not null)
+    {
+        <section class="cit-card border-success mb-3" aria-labelledby="validation-presence-title">
+            <div class="p-3">
+                <h2 id="validation-presence-title" class="h5">@Loc["GuiAgenda.VerifyQueueTicketTitle"]</h2>
+                <p class="mb-2">@Loc["GuiAgenda.VerifyQueueTicketHelp"]</p>
+                @if (UrlFileAttente is not null)
+                {
+                    <p><a href="@UrlFileAttente" target="_blank" rel="noopener noreferrer">@Loc["GuiAgenda.OpenQueueSystem"]</a></p>
+                }
+                <label for="reference-file-physique" class="form-label">@Loc["GuiAgenda.QueueTicketNumber"]</label>
+                <input id="reference-file-physique" class="form-control mb-3" maxlength="100" required autocomplete="off" @bind="_referenceFilePhysique" />
+                <div class="form-check mb-3">
+                    <input id="ticket-file-verifie" class="form-check-input" type="checkbox" @bind="_ticketPhysiqueVerifie" />
+                    <label class="form-check-label" for="ticket-file-verifie">@Loc["GuiAgenda.QueueTicketVerified"]</label>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="FermerPresence">@Loc["Common.Cancel"]</button>
+                    <button type="button" class="btn btn-success" disabled="@(string.IsNullOrWhiteSpace(_referenceFilePhysique) || !_ticketPhysiqueVerifie)" @onclick="ConfirmerPresenceAsync">@Loc["GuiAgenda.ConfirmBillingAccess"]</button>
+                </div>
+            </div>
+        </section>
     }
 
     @* ── Barre d'outils façon Teams : aujourd'hui, précédent/suivant, période, vue ── *@
@@ -219,6 +243,13 @@ else
 
     private string? _messageErreur;
     private string? _messageSucces;
+    private RendezVous? _rdvPourPresence;
+    private string _referenceFilePhysique = string.Empty;
+    private bool _ticketPhysiqueVerifie;
+    private string? UrlFileAttente => Uri.TryCreate(Configuration["Guichet:FileAttente:Url"], UriKind.Absolute, out var uri) &&
+                                      (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+        ? uri.AbsoluteUri
+        : null;
 
     private static DateOnly Aujourdhui => DateOnly.FromDateTime(DateTime.Today);
 
@@ -399,7 +430,7 @@ else
         if (rdv.Statut == StatutRendezVous.Reserve)
         {
             <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-success" @onclick="() => ValiderPresenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnPresentTitle"]">@Loc["GuiAgenda.BtnPresent"]</button>
+                <button type="button" class="btn btn-success" @onclick="() => OuvrirPresence(rdv)" title="@Loc["GuiAgenda.BtnPresentTitle"]">@Loc["GuiAgenda.BtnPresent"]</button>
                 <button type="button" class="btn btn-outline-danger" @onclick="() => MarquerAbsenceAsync(rdv.Id)" title="@Loc["GuiAgenda.BtnAbsentTitle"]">@Loc["GuiAgenda.BtnAbsent"]</button>
             </div>
         }
@@ -411,14 +442,32 @@ else
 
     // ------------------------------------------------------------------ actions (inchangées)
 
-    private async Task ValiderPresenceAsync(Guid rdvId)
+    private void OuvrirPresence(RendezVous rdv)
     {
+        _rdvPourPresence = rdv;
+        _referenceFilePhysique = string.Empty;
+        _ticketPhysiqueVerifie = false;
+        _messageErreur = null;
+    }
+
+    private void FermerPresence()
+    {
+        _rdvPourPresence = null;
+        _referenceFilePhysique = string.Empty;
+        _ticketPhysiqueVerifie = false;
+    }
+
+    private async Task ConfirmerPresenceAsync()
+    {
+        if (_rdvPourPresence is null || string.IsNullOrWhiteSpace(_referenceFilePhysique) || !_ticketPhysiqueVerifie) return;
         _messageErreur = null;
         _messageSucces = null;
         try
         {
-            await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(_agentId, rdvId, Loc["GuiAgenda.PresenceComment"].Value));
-            _messageSucces = Loc["GuiAgenda.SuccessPresence"].Value;
+            await MarquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(_agentId, _rdvPourPresence.Id,
+                Loc["GuiAgenda.PresenceComment"].Value, _referenceFilePhysique.Trim()));
+            _messageSucces = string.Format(Loc["GuiAgenda.SuccessBillingAccess"].Value, _referenceFilePhysique.Trim());
+            FermerPresence();
             await ChargerAgendaAsync();
         }
         catch (Exception ex)

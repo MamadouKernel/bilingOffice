@@ -150,7 +150,7 @@ public sealed class RecSce14ContinuiteGuichetRendezVousE2ETests : IClassFixture<
         // === ÉTAPE 11 & 12 : Validation de la présence physique de l'usager (C10-07 / CON-04) ===
         var marquerHonoreCommand = sp.GetRequiredService<MarquerRendezVousHonoreCommand>();
         await marquerHonoreCommand.ExecuterAsync(new MarquerHonoreRequest(
-            agentGuichet.Id, rdvId, "Usager accueilli et orienté vers la caisse"));
+            agentGuichet.Id, rdvId, "Usager accueilli et orienté vers la caisse", "FILE-E2E-001"));
 
         var rdvApresPresence = await rdvRepo.ObtenirParIdAsync(rdvId);
         Assert.NotNull(rdvApresPresence);

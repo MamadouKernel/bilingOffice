@@ -68,7 +68,11 @@ public class ConsulterDossierGuichetTests
     {
         public Task<UtilisateurInfo?> ObtenirInfoAsync(Guid utilisateurId, CancellationToken ct = default)
             => Task.FromResult<UtilisateurInfo?>(new UtilisateurInfo(utilisateurId, "client.test", "client@sococim.ci", "SOCOCIM CI", true, NatureUtilisateur.Client));
-        public Task<IReadOnlyDictionary<Guid, UtilisateurInfo>> ObtenirInfosAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default) => throw new NotImplementedException();
+        public Task<IReadOnlyDictionary<Guid, UtilisateurInfo>> ObtenirInfosAsync(IEnumerable<Guid> utilisateursIds, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyDictionary<Guid, UtilisateurInfo>>(
+                utilisateursIds.Distinct().ToDictionary(
+                    id => id,
+                    id => new UtilisateurInfo(id, "agent.test", "agent@cit.ci", "CIT", true, NatureUtilisateur.Agent)));
         public Task<UtilisateurInfo?> ObtenirParEmailAsync(string email, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<ProfilUtilisateur?> ObtenirProfilAsync(Guid utilisateurId, CancellationToken ct = default) => throw new NotImplementedException();
         public Task<bool> MettreAJourProfilAsync(Guid utilisateurId, string nomAffiche, string? telephone, CancellationToken ct = default) => throw new NotImplementedException();

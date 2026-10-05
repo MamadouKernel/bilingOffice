@@ -15,6 +15,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject RechercherGuichetQuery RechercheQuery
 @inject ConsulterDossierGuichetQuery ConsulterDossierQuery
+@inject OuvrirDossierAuGuichetCommand OuvrirDossierCommand
 @inject RegulariserModeDegradeCommand RegulariserCommand
 @inject TelechargerDocumentQuery TelechargerDocument
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -94,6 +95,47 @@ else
                         else
                         {
                             <span>@Loc["GuiRech.BtnRechercher"]</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Ouverture d'un dossier au guichet pour un client walk-in (sans ticket en ligne) *@
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <h5 class="card-title text-primary mb-1">@Loc["GuiRech.NouveauTitle"]</h5>
+            <p class="card-text small text-muted mb-3">@Loc["GuiRech.NouveauDesc"]</p>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="email-client-guichet" class="form-label fw-bold">@Loc["GuiRech.LblEmailClient"]</label>
+                    <input id="email-client-guichet" type="email" class="form-control" @bind="_nouveauEmail" />
+                </div>
+                <div class="col-md-3">
+                    <label for="sens-operation-guichet" class="form-label fw-bold">@Loc["GuiRech.LblSensOp"]</label>
+                    <select id="sens-operation-guichet" class="form-select" @bind="_nouveauSens">
+                        <option value="Import">@Loc["GuiRech.ModuleImport"]</option>
+                        <option value="Export">@Loc["GuiRech.ModuleExport"]</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="reference-nouveau-dossier" class="form-label fw-bold">@Loc["GuiRech.LblRefNouveau"]</label>
+                    <input id="reference-nouveau-dossier" type="text" class="form-control" @bind="_nouveauReference" />
+                </div>
+                <div class="col-md-9">
+                    <label for="motif-passage-guichet" class="form-label fw-bold">@Loc["GuiRech.LblMotifPassage"]</label>
+                    <input id="motif-passage-guichet" type="text" class="form-control" placeholder="@Loc["GuiRech.PlaceholderMotifPassage"]" @bind="_nouveauMotif" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-success w-100" @onclick="OuvrirDossierAuGuichetAsync" disabled="@_enOuverture">
+                        @if (_enOuverture)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        else
+                        {
+                            <span>@Loc["GuiRech.BtnOuvrirDossier"]</span>
                         }
                     </button>
                 </div>
@@ -311,6 +353,12 @@ else
     private DocumentGuichetDto? _apercuDoc;
     private string? _apercuBase64;
 
+    private string _nouveauEmail = string.Empty;
+    private string _nouveauSens = "Import";
+    private string _nouveauReference = string.Empty;
+    private string _nouveauMotif = string.Empty;
+    private bool _enOuverture = false;
+
     private string? _messageErreur;
     private string? _messageSucces;
 
@@ -356,6 +404,32 @@ else
         finally
         {
             _enRecherche = false;
+        }
+    }
+
+    private async Task OuvrirDossierAuGuichetAsync()
+    {
+        _enOuverture = true;
+        _messageErreur = null;
+        _messageSucces = null;
+        try
+        {
+            var sens = string.Equals(_nouveauSens, "Export", StringComparison.OrdinalIgnoreCase)
+                ? SensOperationGuichet.Export
+                : SensOperationGuichet.Import;
+            var (_, numeroTicket) = await OuvrirDossierCommand.ExecuterAsync(new OuvrirDossierAuGuichetRequest(
+                _agentId, _nouveauEmail, sens, _nouveauReference, _nouveauMotif));
+            _messageSucces = Loc["GuiRech.SuccessDossierCree", numeroTicket].Value;
+            _nouveauEmail = _nouveauReference = _nouveauMotif = string.Empty;
+            _nouveauSens = "Import";
+        }
+        catch (Exception ex)
+        {
+            _messageErreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _enOuverture = false;
         }
     }
 

@@ -30,7 +30,8 @@ public sealed record RendezVousClientDto(
     string Motif,
     string Statut,
     DateTime DateCreationUtc,
-    string? CommentaireAgent
+    string? CommentaireAgent,
+    string? ReferenceFilePhysique
 );
 
 /// <summary>
@@ -270,7 +271,8 @@ public sealed class ReporterRendezVousCommand(
 public sealed record MarquerHonoreRequest(
     Guid AgentId,
     Guid RendezVousId,
-    string? Commentaire
+    string? Commentaire,
+    string ReferenceFilePhysique = ""
 );
 
 /// <summary>
@@ -290,18 +292,19 @@ public sealed class MarquerRendezVousHonoreCommand(
         var rdv = await rdvRepo.ObtenirParIdAsync(request.RendezVousId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Rendez-vous introuvable.");
 
-        rdv.Honorer(request.AgentId, request.Commentaire, horloge.MaintenantUtc);
+        rdv.Honorer(request.AgentId, request.ReferenceFilePhysique, request.Commentaire, horloge.MaintenantUtc);
 
         var chargeUtile = JsonSerializer.Serialize(new
         {
             RendezVousId = rdv.Id,
             TicketId = rdv.TicketId,
             AgentId = request.AgentId,
-            Commentaire = request.Commentaire
+            Commentaire = request.Commentaire,
+            ReferenceFilePhysique = rdv.ReferenceFilePhysique
         });
 
         await journal.PublierEvenementAsync("RendezVousHonore", chargeUtile, ct).ConfigureAwait(false);
-        await journal.ConsignerHistoriqueAsync(rdv.TicketId, "RendezVousHonore", $"Présence guichet validée par l'agent : {request.Commentaire}", request.AgentId, ct).ConfigureAwait(false);
+        await journal.ConsignerHistoriqueAsync(rdv.TicketId, "RendezVousHonore", $"Accès Billing Office confirmé après vérification du ticket de file physique {rdv.ReferenceFilePhysique}. {request.Commentaire}".Trim(), request.AgentId, ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }
@@ -364,7 +367,8 @@ public sealed class ListerMesRendezVousQuery(
                 rdv.Motif,
                 rdv.Statut.ToString(),
                 rdv.DateCreationUtc,
-                rdv.CommentaireAgent
+                rdv.CommentaireAgent,
+                rdv.ReferenceFilePhysique
             ));
         }
 

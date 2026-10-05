@@ -41,6 +41,9 @@ public sealed class RendezVous
     /// <summary>Commentaire ou motif renseigné lors d'un changement d'état (annulation, présence, etc.).</summary>
     public string? CommentaireAgent { get; private set; }
 
+    /// <summary>Numéro du ticket remis par le système physique distinct, vérifié par l'agent à l'accueil.</summary>
+    public string? ReferenceFilePhysique { get; private set; }
+
     /// <summary>Jeton de concurrence optimiste géré par EF Core / SQL Server (RowVersion).</summary>
     public byte[] VersionConcurrence { get; private set; } = [];
 
@@ -83,11 +86,15 @@ public sealed class RendezVous
         };
     }
 
-    public void Honorer(Guid agentId, string? commentaire, DateTime maintenantUtc)
+    public void Honorer(Guid agentId, string referenceFilePhysique, string? commentaire, DateTime maintenantUtc)
     {
         ValiderTransitionDepuisReserve("marquer comme honoré");
 
+        if (string.IsNullOrWhiteSpace(referenceFilePhysique) || referenceFilePhysique.Trim().Length > 100)
+            throw new ArgumentException("Le numéro du ticket de file physique est obligatoire (100 caractères maximum).", nameof(referenceFilePhysique));
+
         Statut = StatutRendezVous.Honore;
+        ReferenceFilePhysique = referenceFilePhysique.Trim();
         CommentaireAgent = commentaire?.Trim();
         DateModificationUtc = maintenantUtc;
     }

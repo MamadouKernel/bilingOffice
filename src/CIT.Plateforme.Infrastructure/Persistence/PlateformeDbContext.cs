@@ -1142,6 +1142,7 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(r => r.Statut).HasConversion<string>().HasMaxLength(32).IsRequired();
             b.Property(r => r.DateCreationUtc).IsRequired();
             b.Property(r => r.CommentaireAgent).HasMaxLength(500);
+            b.Property(r => r.ReferenceFilePhysique).HasMaxLength(100);
             b.Property(r => r.VersionConcurrence).IsRowVersion();
 
             // Clés étrangères vers Tickets et Dossiers avec suppression restreinte

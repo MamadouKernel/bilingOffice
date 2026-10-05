@@ -65,14 +65,14 @@ public static class ParametrageInitialAnnexeA
     /// </summary>
     public static readonly (string SensCode, string Code, string Libelle)[] Categories =
     [
-        (SensImportLocal, "C1", "Catégorie 1 — import local"),
-        (SensImportLocal, "C2", "Catégorie 2 — import local"),
-        (SensImportLocal, "C3", "Catégorie 3 — import local"),
-        (SensExportLocal, "C1", "Catégorie 1 — export local"),
-        (SensExportLocal, "C2", "Catégorie 2 — export local"),
-        (SensExportLocal, "C3", "Catégorie 3 — export local"),
-        (SensImportTransit, "C4", "Catégorie 4 — import transit"),
-        (SensExportTransit, "C5", "Catégorie 5 — export transit"),
+        (SensImportLocal, "C1", "C1 : Produits de première nécessité"),
+        (SensImportLocal, "C2", "C2 : Produits alimentaires de base, produits agricoles"),
+        (SensImportLocal, "C3", "C3 : Marchandises diverses"),
+        (SensExportLocal, "C1", "C1 : Produits agricoles de base et halieutiques"),
+        (SensExportLocal, "C2", "C2 : Autres produits agricoles et dérivés"),
+        (SensExportLocal, "C3", "C3 : Marchandises diverses"),
+        (SensImportTransit, "C4", "C4 : Conteneurs en transit (toutes marchandises)"),
+        (SensExportTransit, "C5", "C5 : Conteneurs en transit (toutes marchandises)"),
     ];
 
     /// <summary>
