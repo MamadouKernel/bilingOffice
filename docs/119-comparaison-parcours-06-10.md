@@ -61,6 +61,11 @@ Suites : Domain 306 · Application 1111 · Infrastructure 210 · Web 546 — 0 �
 
 > Pour être **iso-doc** en prod : passer `Facturation.ModeConfirmationPaiement = 1` (déclaratif), désormais disponible IMPORT **et** EXPORT.
 
+### Correctifs de fidélité au document (06/10/2026)
+- **Retour en file Facturation** : à la déclaration « Règlement effectué », le ticket **revient en file Facturation** (doc §3.6/§4.6) — le facturier le voit et le confirme depuis sa file. IMPORT + EXPORT. (Avant, il restait en Validation Paiement et échappait à l'écran facturier.)
+- **Libellé** : un ticket en Facturation avec règlement déclaré affiche **« En attente de confirmation du règlement »** (`LibellePaiementCdcHelper`).
+- Il ne reste **aucun écart fonctionnel** vs les documents (hors SMS/WhatsApp, hors périmètre). Reste : recette signée (PV) et le réglage du paramètre en prod.
+
 ---
 
 ## Écarts résiduels (état initial — désormais résorbés par le lot A+B ci-dessus)

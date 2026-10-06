@@ -14,16 +14,32 @@ public static class LibellePaiementCdcHelper
     public const string EnAttenteValidationPaiement = "En attente validation paiement";
     public const string PayeConfirme = "Payé confirmé";
 
+    /// <summary>Écart 06/10 #2 (mode déclaratif) : le client a déclaré le règlement, en attente de
+    /// confirmation du facturier (ticket revenu en Facturation).</summary>
+    public const string EnAttenteConfirmationReglement = "En attente de confirmation du règlement";
+
     /// <summary>
     /// Retourne le libellé littéral CDC (IMP-13) correspondant à la file courante d'un ticket
     /// Billing IMPORT, ou <c>null</c> si le ticket n'est pas dans une étape du cycle paiement
     /// (ex. Pilote Manifeste, ou tout autre module).
     /// </summary>
-    public static string? PourFile(string module, string fileNom)
+    public static string? PourFile(string module, string fileNom) => PourFile(module, fileNom, reglementDeclare: false);
+
+    /// <summary>
+    /// <paramref name="reglementDeclare"/> : en mode déclaratif, un ticket revenu en Facturation
+    /// avec un règlement déclaré affiche « En attente de confirmation du règlement » plutôt que le
+    /// générique « En attente paiement ».
+    /// </summary>
+    public static string? PourFile(string module, string fileNom, bool reglementDeclare)
     {
         if (module != SoumettreDemandeImportCommand.Module)
         {
             return null;
+        }
+
+        if (fileNom == NomsFiles.Facturation && reglementDeclare)
+        {
+            return EnAttenteConfirmationReglement;
         }
 
         return fileNom switch

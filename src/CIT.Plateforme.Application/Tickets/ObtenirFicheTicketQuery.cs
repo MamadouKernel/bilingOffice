@@ -246,7 +246,7 @@ public sealed class ObtenirFicheTicketQuery(
             PeutDemanderFacture: peutDemanderFacture,
             Liaisons: liaisons,
             PeutLierTickets: peutLierTickets,
-            LibellePaiementCdc: CIT.Plateforme.Application.BillingImport.LibellePaiementCdcHelper.PourFile(ticket.Module, fileNom),
+            LibellePaiementCdc: CIT.Plateforme.Application.BillingImport.LibellePaiementCdcHelper.PourFile(ticket.Module, fileNom, ticket.ReglementDeclareUtc is not null),
             CasParticuliers: ticket.CasParticuliers,
             EtapeParcours: etapeParcours,
             EtatProforma: ticket.EtatProforma,

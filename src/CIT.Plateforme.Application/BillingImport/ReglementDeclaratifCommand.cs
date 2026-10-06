@@ -38,7 +38,17 @@ public sealed class ReglementDeclaratifCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
         ExigerModuleImport(ticket);
 
-        ticket.DeclarerReglement(horloge.MaintenantUtc);
+        var maintenant = horloge.MaintenantUtc;
+        ticket.DeclarerReglement(maintenant);
+
+        // Doc §3.6 : « le ticket revient alors dans la file Facturation » pour que le facturier le
+        // confirme. Sans ce retour, le ticket resterait en Validation Paiement, hors de la file du
+        // facturier.
+        var fileFacturation = await ObtenirFileAsync(NomsFiles.Facturation, ct).ConfigureAwait(false);
+        if (ticket.FileCouranteId != fileFacturation.Id)
+        {
+            ticket.Transferer(fileFacturation.Id, destinataireId: null, maintenant);
+        }
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ReglementDeclare", null, clientId, ct).ConfigureAwait(false);
         await journalisation.PublierEvenementAsync("ReglementDeclare", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
@@ -65,9 +75,7 @@ public sealed class ReglementDeclaratifCommand(
         }
 
         var maintenant = horloge.MaintenantUtc;
-        var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
-        var fileControleDocumentaire = toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeImportCommand.Module && f.Nom == NomsFiles.ControleDocumentaire)
-            ?? throw new InvalidOperationException($"File « {NomsFiles.ControleDocumentaire} » non paramétrée.");
+        var fileControleDocumentaire = await ObtenirFileAsync(NomsFiles.ControleDocumentaire, ct).ConfigureAwait(false);
 
         ticket.MarquerEtatEngageant();
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
@@ -82,6 +90,13 @@ public sealed class ReglementDeclaratifCommand(
     /// <summary>Cette commande est propre au parcours IMPORT (file Contrôle Documentaire import). Un
     /// ticket export suit <c>ReglementDeclaratifExportCommand</c> — refus explicite pour éviter tout
     /// mauvais aiguillage si l'écran commun l'appelait par erreur.</summary>
+    private async Task<Domain.Files.FileDeTraitement> ObtenirFileAsync(string nom, CancellationToken ct)
+    {
+        var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
+        return toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeImportCommand.Module && f.Nom == nom)
+            ?? throw new InvalidOperationException($"File « {nom} » (module {SoumettreDemandeImportCommand.Module}) non paramétrée.");
+    }
+
     private static void ExigerModuleImport(Domain.Tickets.Ticket ticket)
     {
         if (ticket.Module != SoumettreDemandeImportCommand.Module)

@@ -96,7 +96,13 @@ public sealed class PaiementDeclaratifParametrableTests : IDisposable
         var c = await ConstruireAsync();
         var ticketId = await TicketEnFacturationAsync(c, "BL-DECL-1");
 
-        // Le client déclare « Règlement effectué » : pas de preuve, pas encore engageant.
+        // Après facture, le ticket d'un client normal est en Validation Paiement : on reproduit cet état.
+        var vp = c.Db.Files.Single(f => f.Module == SoumettreDemandeImportCommand.Module && f.Nom == NomsFiles.ValidationPaiement);
+        (await c.Db.Tickets.FindAsync(ticketId))!.Transferer(vp.Id, null, DateTime.UtcNow);
+        await c.Db.SaveChangesAsync();
+
+        // Le client déclare « Règlement effectué » : pas de preuve, pas encore engageant, et le
+        // ticket REVIENT en file Facturation (doc §3.6) pour que le facturier le confirme.
         await c.Reglement.DeclarerAsync(c.AuteurId, ticketId);
         var ticket = (await c.Db.Tickets.FindAsync(ticketId))!;
         Assert.NotNull(ticket.ReglementDeclareUtc);

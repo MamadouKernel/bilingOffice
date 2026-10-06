@@ -36,7 +36,15 @@ public sealed class ReglementDeclaratifExportCommand(
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
         ExigerModuleExport(ticket);
 
-        ticket.DeclarerReglement(horloge.MaintenantUtc);
+        var maintenant = horloge.MaintenantUtc;
+        ticket.DeclarerReglement(maintenant);
+
+        // Doc §4.6 : « le ticket revient dans la file Facturation » pour que le facturier le confirme.
+        var fileFacturation = await ObtenirFileAsync(NomsFilesExport.Facturation, ct).ConfigureAwait(false);
+        if (ticket.FileCouranteId != fileFacturation.Id)
+        {
+            ticket.Transferer(fileFacturation.Id, destinataireId: null, maintenant);
+        }
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ReglementDeclare", null, clientId, ct).ConfigureAwait(false);
         await journalisation.PublierEvenementAsync("ReglementDeclare", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
@@ -63,9 +71,7 @@ public sealed class ReglementDeclaratifExportCommand(
         }
 
         var maintenant = horloge.MaintenantUtc;
-        var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
-        var fileControleDocumentaire = toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == NomsFilesExport.ControleDocumentaire)
-            ?? throw new InvalidOperationException($"File « {NomsFilesExport.ControleDocumentaire} » non paramétrée.");
+        var fileControleDocumentaire = await ObtenirFileAsync(NomsFilesExport.ControleDocumentaire, ct).ConfigureAwait(false);
 
         ticket.MarquerEtatEngageant();
         ticket.Transferer(fileControleDocumentaire.Id, destinataireId: null, maintenant);
@@ -75,6 +81,13 @@ public sealed class ReglementDeclaratifExportCommand(
         await journalisation.ConsignerAuditAsync(agentId, "ReglementConfirme", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task<Domain.Files.FileDeTraitement> ObtenirFileAsync(string nom, CancellationToken ct)
+    {
+        var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
+        return toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == nom)
+            ?? throw new InvalidOperationException($"File « {nom} » (module {SoumettreDemandeExportCommand.Module}) non paramétrée.");
     }
 
     private static void ExigerModuleExport(Domain.Tickets.Ticket ticket)

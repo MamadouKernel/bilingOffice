@@ -42,6 +42,16 @@ public sealed class LibellePaiementCdcHelperTests
     }
 
     [Fact]
+    public void File_Facturation_Avec_Reglement_Declare_Donne_En_Attente_Confirmation()
+    {
+        // Écart 06/10 #2 (mode déclaratif) : ticket revenu en Facturation avec règlement déclaré.
+        var libelle = LibellePaiementCdcHelper.PourFile(
+            SoumettreDemandeImportCommand.Module, NomsFiles.Facturation, reglementDeclare: true);
+
+        Assert.Equal("En attente de confirmation du règlement", libelle);
+    }
+
+    [Fact]
     public void Module_Different_De_BillingImport_Ne_Donne_Aucun_Libelle()
     {
         var libelle = LibellePaiementCdcHelper.PourFile("BillingExport", NomsFiles.Facturation);

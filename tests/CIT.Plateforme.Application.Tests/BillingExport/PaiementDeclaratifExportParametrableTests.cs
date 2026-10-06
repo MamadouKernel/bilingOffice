@@ -84,10 +84,17 @@ public sealed class PaiementDeclaratifExportParametrableTests : IDisposable
         var c = await ConstruireAsync();
         var ticketId = await TicketEnFacturationAsync(c, "BK-DECL-1");
 
+        // Après facture, le ticket d'un client normal est en Validation Paiement : on reproduit cet état.
+        var vp = c.Db.Files.Single(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == NomsFilesExport.ValidationPaiement);
+        (await c.Db.Tickets.FindAsync(ticketId))!.Transferer(vp.Id, null, DateTime.UtcNow);
+        await c.Db.SaveChangesAsync();
+
+        // Déclaration : le ticket REVIENT en file Facturation (doc §4.6).
         await c.Reglement.DeclarerAsync(c.AuteurId, ticketId);
         var ticket = (await c.Db.Tickets.FindAsync(ticketId))!;
         Assert.NotNull(ticket.ReglementDeclareUtc);
         Assert.False(ticket.EstEnEtatEngageant);
+        Assert.Equal(NomsFilesExport.Facturation, (await c.Db.Files.FindAsync(ticket.FileCouranteId))!.Nom);
 
         await c.Reglement.ConfirmerAsync(c.AgentId, ticketId);
         ticket = (await c.Db.Tickets.FindAsync(ticketId))!;
