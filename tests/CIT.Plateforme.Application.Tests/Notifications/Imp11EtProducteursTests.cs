@@ -113,8 +113,11 @@ public class Imp11EtProducteursTests
         // 50e producteur (05/10/2026) — DateEnlevementCommands.cs : rappels d'enlèvement (veille, dépassement).
         // 51e producteur (06/10/2026) — ReglementDeclaratifCommand.cs (écart #2, mode déclaratif) :
         // publie ReglementDeclare (client) et PaiementConfirme (facturier).
-        Assert.Equal(51, fichiersProducteurs.Count);
+        // 52e producteur (06/10/2026) — ReglementDeclaratifExportCommand.cs (écart #2 export) :
+        // publie ReglementDeclare (client) et PaiementConfirme (facturier).
+        Assert.Equal(52, fichiersProducteurs.Count);
         Assert.Contains("ReglementDeclaratifCommand.cs", fichiersProducteurs);
+        Assert.Contains("ReglementDeclaratifExportCommand.cs", fichiersProducteurs);
         Assert.Contains("OptionsTraitementTicketQuery.cs", fichiersProducteurs);
         Assert.Contains("DemanderReaffectationCommand.cs", fichiersProducteurs);
         Assert.Contains("GestionProformaCommand.cs", fichiersProducteurs);

@@ -121,6 +121,8 @@
 
                 <PiecesJointesFormulaire Fichiers="_pieces" />
 
+                <DocumentsCommunsFormulaire References="ReferencesSaisies" Documents="_documentsCommuns" />
+
                 <div class="d-flex justify-content-end gap-2 pt-2">
                     <a href="/client/dashboard" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
                     <button type="submit" class="btn btn-primary px-4 fw-bold" disabled="@(string.IsNullOrWhiteSpace(_modele.NumerosBl) || _soumissionEnCours || _nombreBl > SoumettreDemandeImportCommand.NombreMaxBlParDemande || !PiecesCasCompletes)">
@@ -301,6 +303,14 @@
     private ModeleFormulaire _modele = new();
     private SoumettreDemandeImportResultat? _resultat;
     private readonly List<IBrowserFile> _pieces = [];
+    // Écart 06/10 #1 : documents communs à plusieurs BL (un seul dépôt, références cochées).
+    private readonly List<DocumentCommunSaisi> _documentsCommuns = [];
+
+    /// <summary>BL saisis (mêmes règles de découpage que la soumission), proposés à la sélection des documents communs.</summary>
+    private IReadOnlyList<string> ReferencesSaisies => _modele.NumerosBl
+        .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToList();
     private string? _messagePieces;
     private string? _erreur;
 
@@ -415,6 +425,18 @@
                 }
                 _messagePieces = string.Join(" ", new[] { _messagePieces }.Concat(bilansCas.Distinct()).Where(m => !string.IsNullOrWhiteSpace(m)));
             }
+            // Écart 06/10 #1 : chaque document commun est déposé UNE fois et rattaché aux tickets
+            // des BL cochés (un seul upload physique quel que soit le nombre de BL).
+            foreach (var doc in _documentsCommuns)
+            {
+                var ticketIds = _resultat.TicketsCrees
+                    .Where(t => t.NumeroBl is not null && doc.References.Contains(t.NumeroBl))
+                    .Select(t => t.Id).ToList();
+                if (ticketIds.Count == 0) continue;
+                await DepotFichiers.JoindreCommunAsync(ScopeFactory, doc.Fichier, ticketIds, _auteurId);
+            }
+            _documentsCommuns.Clear();
+
             _cas = CIT.Plateforme.Domain.Tickets.CasParticulierImport.Aucun;
             _piecesCas.Clear();
 

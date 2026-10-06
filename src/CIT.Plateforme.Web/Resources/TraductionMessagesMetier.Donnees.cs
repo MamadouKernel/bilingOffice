@@ -33,6 +33,8 @@ public static partial class TraductionMessagesMetier
         ["Au moins un ticket doit être sélectionné pour un document commun."] = "At least one ticket must be selected for a common document.",
         ["La déclaration de règlement n'est disponible qu'en mode « déclaratif » (le mode preuve + caisse est actif)."] = "Declaring payment is only available in \"declarative\" mode (the proof + cashier mode is active).",
         ["Le ticket {0} n'a pas de règlement déclaré à confirmer."] = "Ticket {0} has no declared payment to confirm.",
+        ["Le ticket {0} n'est pas un ticket import : règlement déclaratif import non applicable."] = "Ticket {0} is not an import ticket: import declarative payment does not apply.",
+        ["Le ticket {0} n'est pas un ticket export : règlement déclaratif export non applicable."] = "Ticket {0} is not an export ticket: export declarative payment does not apply.",
         ["Catégorie de marchandise « {0} » inconnue pour le sens « {1} ». Une catégorie n'existe que pour un sens donné (Annexe A.6)."] = "Goods category \"{0}\" is unknown for direction \"{1}\". A category only exists for a given direction (Appendix A.6).",
         ["Ce compte est déjà inactif ou clôturé."] = "This account is already inactive or closed.",
         ["Ce contrat ne traite que les incidents techniques du module Support IT."] = "This contract only handles technical incidents of the IT Support module.",

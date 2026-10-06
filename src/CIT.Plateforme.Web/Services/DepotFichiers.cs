@@ -32,6 +32,23 @@ public static class DepotFichiers
             : deposer.DeposerPourAgentAsync(appelantId, ticketId, nom, type, contenu, contenu.Length, ReglesStandard), nommer);
     }
 
+    /// <summary>
+    /// Écart 06/10 #1 — document commun à plusieurs BL/bookings : un SEUL dépôt physique (lecture,
+    /// stockage et antivirus une fois) rattaché à plusieurs tickets. Le fichier n'est lu qu'une fois.
+    /// </summary>
+    public static async Task JoindreCommunAsync(
+        IServiceScopeFactory portees, IBrowserFile fichier, IReadOnlyList<Guid> ticketIds, Guid clientId)
+    {
+        using var portee = portees.CreateScope();
+        var deposer = portee.ServiceProvider.GetRequiredService<DeposerDocumentCommand>();
+        await using var flux = fichier.OpenReadStream(ReglesStandard.TailleMaxOctets);
+        await using var memoire = new MemoryStream();
+        await flux.CopyToAsync(memoire);
+        memoire.Position = 0;
+        await deposer.DeposerDocumentCommunPourClientAsync(
+            clientId, ticketIds, fichier.Name, fichier.ContentType, memoire, memoire.Length, ReglesStandard);
+    }
+
     /// <summary>Fichiers choisis, ou <c>null</c> si la sélection dépasse le plafond.</summary>
     public static IReadOnlyList<IBrowserFile>? Lire(InputFileChangeEventArgs e) =>
         e.FileCount > MaxParDepot ? null : e.GetMultipleFiles(MaxParDepot);
@@ -66,6 +83,12 @@ public static class DepotFichiers
         return new ResultatDepot(deposes, refuses);
     }
 }
+
+/// <summary>
+/// Écart 06/10 #1 — saisie d'un document commun : le fichier et les références (BL/booking) qu'il
+/// concerne. La sélection est modifiée par cases à cocher dans le formulaire de soumission.
+/// </summary>
+public sealed record DocumentCommunSaisi(IBrowserFile Fichier, HashSet<string> References);
 
 /// <summary>Bilan d'un dépôt multiple : nombre de pièces acceptées et motif de chaque refus.</summary>
 public sealed record ResultatDepot(int Deposes, IReadOnlyList<string> Refuses)

@@ -10,6 +10,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject SoumettreDemandeExportCommand Soumettre
 @inject NavigationManager Navigation
+@inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 
 <PageTitle>@Loc["BillingExport.Title"] — @Loc["Common.AppTitle"]</PageTitle>
 
@@ -83,6 +84,8 @@
                         @((MarkupString)Loc["BImp.SimRefHint"].Value)
                     </div>
                 </div>
+
+                <DocumentsCommunsFormulaire References="ReferencesSaisies" Documents="_documentsCommuns" />
 
                 <div class="d-flex justify-content-end gap-2 pt-2">
                     <a href="/client/dashboard" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
@@ -181,6 +184,14 @@
 
     private ModeleFormulaire _modele = new();
     private SoumettreDemandeExportResultat? _resultat;
+    // Écart 06/10 #1 : documents communs à plusieurs bookings (un seul dépôt, références cochées).
+    private readonly List<DocumentCommunSaisi> _documentsCommuns = [];
+
+    /// <summary>Bookings saisis (mêmes règles de découpage que la soumission), proposés à la sélection des documents communs.</summary>
+    private IReadOnlyList<string> ReferencesSaisies => (_modele.NumerosBooking ?? string.Empty)
+        .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToList();
     private string? _erreur;
 
     protected override async Task OnInitializedAsync()
@@ -244,6 +255,19 @@
                 ReferenceSimulationProforma: string.IsNullOrWhiteSpace(_modele.ReferenceSimulationProforma) ? null : _modele.ReferenceSimulationProforma.Trim());
 
             _resultat = await Soumettre.ExecuterAsync(requete);
+
+            // Écart 06/10 #1 : chaque document commun est déposé UNE fois et rattaché aux tickets
+            // des bookings cochés (un seul upload physique quel que soit le nombre de bookings).
+            foreach (var doc in _documentsCommuns)
+            {
+                var ticketIds = _resultat.TicketsCrees
+                    .Where(t => t.NumeroBooking is not null && doc.References.Contains(t.NumeroBooking))
+                    .Select(t => t.Id).ToList();
+                if (ticketIds.Count == 0) continue;
+                await DepotFichiers.JoindreCommunAsync(ScopeFactory, doc.Fichier, ticketIds, _auteurId);
+            }
+            _documentsCommuns.Clear();
+
             _modele = new ModeleFormulaire();
         }
         catch (AccesRefuseException ex)

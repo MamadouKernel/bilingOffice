@@ -348,6 +348,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Tickets.EscaladerAuSuperviseurCommand>();
         services.AddScoped<Application.BillingImport.ValiderPreuvePaiementCommand>();
         services.AddScoped<Application.BillingImport.ReglementDeclaratifCommand>();
+        services.AddScoped<Application.BillingExport.ReglementDeclaratifExportCommand>();
         services.AddScoped<Application.BillingImport.DeposerDocumentsControleEtCloturerCommand>();
 
         // FEATURE 003 — Phase 8 (US6) : circuit Client En Compte.

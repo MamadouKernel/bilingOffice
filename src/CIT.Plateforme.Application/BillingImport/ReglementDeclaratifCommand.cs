@@ -36,6 +36,7 @@ public sealed class ReglementDeclaratifCommand(
         await cloisonnement.ExigerProprieteClientAsync(clientId, ticketId, ct).ConfigureAwait(false);
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
+        ExigerModuleImport(ticket);
 
         ticket.DeclarerReglement(horloge.MaintenantUtc);
 
@@ -53,6 +54,7 @@ public sealed class ReglementDeclaratifCommand(
         var ticket = await tickets.ObtenirParIdAsync(ticketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {ticketId} introuvable.");
 
+        ExigerModuleImport(ticket);
         await autorisation.ExigerAsync(agentId, Permission.BillingImportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
 
@@ -75,5 +77,17 @@ public sealed class ReglementDeclaratifCommand(
         await journalisation.ConsignerAuditAsync(agentId, "ReglementConfirme", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Cette commande est propre au parcours IMPORT (file Contrôle Documentaire import). Un
+    /// ticket export suit <c>ReglementDeclaratifExportCommand</c> — refus explicite pour éviter tout
+    /// mauvais aiguillage si l'écran commun l'appelait par erreur.</summary>
+    private static void ExigerModuleImport(Domain.Tickets.Ticket ticket)
+    {
+        if (ticket.Module != SoumettreDemandeImportCommand.Module)
+        {
+            throw new InvalidOperationException(
+                $"Le ticket {ticket.Numero} n'est pas un ticket import : règlement déclaratif import non applicable.");
+        }
     }
 }

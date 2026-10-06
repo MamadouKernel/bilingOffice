@@ -101,7 +101,10 @@
         ExecuterAsync(s => s.GetRequiredService<GestionProformaCommand>().DemanderCorrectionAsync(UtilisateurId, Fiche.TicketId, _motif, _nouvelleDate), "Proforma.MsgCorrection");
 
     private Task DeclarerReglementAsync() => ExecuterAsync(
-        s => s.GetRequiredService<ReglementDeclaratifCommand>().DeclarerAsync(UtilisateurId, Fiche.TicketId), "Reglement.MsgDeclaree");
+        s => Fiche.Module == CIT.Plateforme.Application.BillingExport.SoumettreDemandeExportCommand.Module
+            ? s.GetRequiredService<CIT.Plateforme.Application.BillingExport.ReglementDeclaratifExportCommand>().DeclarerAsync(UtilisateurId, Fiche.TicketId)
+            : s.GetRequiredService<ReglementDeclaratifCommand>().DeclarerAsync(UtilisateurId, Fiche.TicketId),
+        "Reglement.MsgDeclaree");
 
     private Task DeposerPreuveAsync(InputFileChangeEventArgs e) => ExecuterAsync(async s =>
     {
