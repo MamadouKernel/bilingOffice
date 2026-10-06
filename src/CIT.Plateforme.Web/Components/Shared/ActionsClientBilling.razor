@@ -63,8 +63,17 @@
 {
     <div class="cit-card mb-4 border-success">
         <h6 class="fw-bold text-dark mb-2">💳 @Loc["Preuve.ClientTitre"]</h6>
-        <p class="small text-muted mb-2">@Loc["Preuve.ClientIntro"]</p>
-        <InputFile class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" disabled="@_enCours" OnChange="DeposerPreuveAsync" />
+        @if (CIT.Plateforme.Application.Exploitation.ParametresCourants.PaiementDeclaratif)
+        {
+            @* Écart 06/10 #2, mode déclaratif : le client déclare le règlement, le facturier confirme. *@
+            <p class="small text-muted mb-2">@Loc["Reglement.ClientIntro"]</p>
+            <button type="button" class="btn btn-success btn-sm" disabled="@_enCours" @onclick="DeclarerReglementAsync">✅ @Loc["Reglement.Declarer"]</button>
+        }
+        else
+        {
+            <p class="small text-muted mb-2">@Loc["Preuve.ClientIntro"]</p>
+            <InputFile class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" disabled="@_enCours" OnChange="DeposerPreuveAsync" />
+        }
     </div>
 }
 
@@ -90,6 +99,9 @@
 
     private Task DemanderCorrectionAsync() =>
         ExecuterAsync(s => s.GetRequiredService<GestionProformaCommand>().DemanderCorrectionAsync(UtilisateurId, Fiche.TicketId, _motif, _nouvelleDate), "Proforma.MsgCorrection");
+
+    private Task DeclarerReglementAsync() => ExecuterAsync(
+        s => s.GetRequiredService<ReglementDeclaratifCommand>().DeclarerAsync(UtilisateurId, Fiche.TicketId), "Reglement.MsgDeclaree");
 
     private Task DeposerPreuveAsync(InputFileChangeEventArgs e) => ExecuterAsync(async s =>
     {

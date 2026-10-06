@@ -632,6 +632,20 @@ public sealed partial class Ticket
     }
 
     /// <summary>
+    /// Écart 06/10 #2 (mode de confirmation du paiement « déclaratif ») : le client déclare
+    /// « Règlement effectué » sans déposer de preuve. Le ticket attend alors la confirmation du
+    /// facturier ; il ne devient engageant qu'à cette confirmation (<see cref="MarquerEtatEngageant"/>).
+    /// Idempotent : une double déclaration ne redéfinit pas la date initiale.
+    /// </summary>
+    public DateTime? ReglementDeclareUtc { get; private set; }
+
+    public void DeclarerReglement(DateTime maintenantUtc)
+    {
+        ReglementDeclareUtc ??= maintenantUtc;
+        DateDerniereActiviteUtc = maintenantUtc;
+    }
+
+    /// <summary>
     /// RG-EXP-03 (remédiation post-audit final) — le Pilote Facturation a émis le <b>Draft IN</b>.
     ///
     /// C'est l'adaptation que le CDC exige à l'export et qui manquait entièrement : « le Pilote

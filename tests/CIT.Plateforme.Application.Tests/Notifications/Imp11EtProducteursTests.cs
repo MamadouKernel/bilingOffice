@@ -111,7 +111,10 @@ public class Imp11EtProducteursTests
         // 48e producteur (05/10/2026) — DemanderReaffectationCommand : superviseurs et agent en charge notifiés.
         // 49e producteur (05/10/2026) — OptionsTraitementTicketQuery.cs porte EscaladerAuSuperviseurCommand.
         // 50e producteur (05/10/2026) — DateEnlevementCommands.cs : rappels d'enlèvement (veille, dépassement).
-        Assert.Equal(50, fichiersProducteurs.Count);
+        // 51e producteur (06/10/2026) — ReglementDeclaratifCommand.cs (écart #2, mode déclaratif) :
+        // publie ReglementDeclare (client) et PaiementConfirme (facturier).
+        Assert.Equal(51, fichiersProducteurs.Count);
+        Assert.Contains("ReglementDeclaratifCommand.cs", fichiersProducteurs);
         Assert.Contains("OptionsTraitementTicketQuery.cs", fichiersProducteurs);
         Assert.Contains("DemanderReaffectationCommand.cs", fichiersProducteurs);
         Assert.Contains("GestionProformaCommand.cs", fichiersProducteurs);

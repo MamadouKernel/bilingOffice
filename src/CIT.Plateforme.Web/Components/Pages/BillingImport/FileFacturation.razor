@@ -16,6 +16,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject EditerFactureCommand EditerFacture
+@inject ReglementDeclaratifCommand ReglementDeclaratif
 @inject ConsulterFileBillingImportQuery ConsulterFile
 
 <PageTitle>@Loc["FileFact.PageTitle"]</PageTitle>
@@ -128,6 +129,12 @@ else
                                             <div class="small text-muted mt-2">@Loc["Proforma.OuFactureDirecte"]</div>
                                         }
                                         <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EditerFactureAsync)" />
+                                    }
+                                    @if (t.ReglementDeclareUtc is not null)
+                                    {
+                                        @* Écart 06/10 #2, mode déclaratif : le client a déclaré le règlement, le facturier confirme. *@
+                                        <div class="small text-info mt-2">🕗 @Loc["Reglement.EnAttenteConfirmation"]</div>
+                                        <button type="button" class="btn btn-success btn-sm mt-1" @onclick="() => ConfirmerReglementAsync(t.Id)">✅ @Loc["Reglement.Confirmer"]</button>
                                     }
                                     @if (t.DateEnlevementSouhaitee is DateOnly enlevement)
                                     {
@@ -257,6 +264,23 @@ else
         await ChargerAsync();
         _message = resultat.Message;
         _erreur = resultat.Erreur;
+    }
+
+    private async Task ConfirmerReglementAsync(Guid ticketId)
+    {
+        _message = null;
+        try
+        {
+            await ReglementDeclaratif.ConfirmerAsync(_agentId, ticketId);
+            _message = Loc["Reglement.MsgConfirmee"].Value;
+            _erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _message = MessagesUtilisateur.Pour(ex);
+            _erreur = true;
+        }
     }
 
     private async Task EditerFactureAsync(Guid ticketId, InputFileChangeEventArgs e)

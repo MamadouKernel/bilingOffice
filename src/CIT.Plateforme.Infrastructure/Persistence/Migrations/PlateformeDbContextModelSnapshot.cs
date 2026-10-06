@@ -2765,6 +2765,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("PrioriteId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ReglementDeclareUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ReponseFormalisee")
                         .HasColumnType("nvarchar(max)");
 

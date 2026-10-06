@@ -95,6 +95,7 @@ public sealed class FileFacturationTests : BunitContext
         Services.AddSingleton(new ConsulterFileBillingImportQuery(ticketRepo, fileRepo, autorisation, priorites));
         Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
         Services.AddSingleton(new EditerFactureCommand(ticketRepo, dossierRepo, fileRepo, deposerDocument, autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new ReglementDeclaratifCommand(ticketRepo, fileRepo, cloisonnement, autorisation, journalisation, horloge, uow));
     }
 
     private static FakeContexteUtilisateurWeb ContexteAgent(Guid agentId)
