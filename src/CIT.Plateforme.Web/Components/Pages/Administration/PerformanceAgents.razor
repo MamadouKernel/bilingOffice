@@ -12,6 +12,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject RapportPerformanceAgentsQuery Rapport
+@inject RapportActiviteOperateurQuery RapportActivite
 
 <PageTitle>@Loc["Perf.PageTitle"]</PageTitle>
 
@@ -116,6 +117,48 @@ else
                 </div>
             </div>
         }
+
+        @if (_activite is not null)
+        {
+            <h2 class="h5 mt-4 mb-3"><span>🎯</span> @Loc["Perf.ActiviteTitle"]</h2>
+            <div class="cit-page-subtitle small mb-2">@Loc["Perf.ActiviteSubtitle"]</div>
+            @if (_activite.Count == 0)
+            {
+                <div class="cit-card p-4 text-center text-muted small">@Loc["Perf.VideDesc"]</div>
+            }
+            else
+            {
+                <div class="cit-card p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>@Loc["Perf.ColAgent"]</th>
+                                    <th class="text-end">@Loc["Perf.ColPrisEnCharge"]</th>
+                                    <th class="text-end">@Loc["Perf.ColTraites"]</th>
+                                    <th class="text-end">@Loc["Perf.ColDelaiPEC"]</th>
+                                    <th class="text-end">@Loc["Perf.ColDelaiTrait"]</th>
+                                    <th class="text-end">@Loc["Perf.ColDerniereActivite"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in _activite)
+                                {
+                                    <tr>
+                                        <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(a.Nom) ? Loc["Perf.AgentNonId"].Value : a.Nom)</td>
+                                        <td class="text-end font-monospace">@a.TicketsPrisEnCharge</td>
+                                        <td class="text-end font-monospace fw-bold">@a.TicketsTraites</td>
+                                        <td class="text-end small text-muted font-monospace">@FormaterDuree(a.DelaiMoyenPriseEnCharge)</td>
+                                        <td class="text-end small text-muted font-monospace">@FormaterDuree(a.DelaiMoyenTraitement)</td>
+                                        <td class="text-end small text-muted font-monospace">@(a.DerniereActiviteUtc?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
     }
 }
 
@@ -125,6 +168,7 @@ else
     private string _messageNonAutorise = string.Empty;
     private string? _erreur;
     private IReadOnlyList<LignePerformanceAgent>? _lignes;
+    private IReadOnlyList<LigneActiviteOperateurVue>? _activite;
 
     // Période par défaut : les 30 derniers jours.
     private DateTime _debut = DateTime.UtcNow.Date.AddDays(-30);
@@ -151,6 +195,7 @@ else
             var finUtc = DateTime.SpecifyKind(_fin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
 
             _lignes = await Rapport.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
+            _activite = await RapportActivite.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
             _nonAutorise = false;
         }
         catch (AccesRefuseException ex)

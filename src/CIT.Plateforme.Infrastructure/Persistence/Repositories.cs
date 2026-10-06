@@ -425,6 +425,18 @@ public sealed class PassageEnFileRepository(PlateformeDbContext dbContext) : IPa
             .OrderBy(p => p.Rang)
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Domain.Tickets.PassageEnFile>> ListerParFilesEtPeriodeAsync(
+        IEnumerable<Guid> fileIds, DateTime debutUtc, DateTime finUtc, CancellationToken ct = default)
+    {
+        var ids = fileIds.ToList();
+        return await dbContext.PassagesEnFile
+            .Where(p => ids.Contains(p.FileId)
+                && ((p.DatePriseEnChargeUtc != null && p.DatePriseEnChargeUtc >= debutUtc && p.DatePriseEnChargeUtc <= finUtc)
+                    || (p.DateSortieUtc != null && p.DateSortieUtc >= debutUtc && p.DateSortieUtc <= finUtc)))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
 }
 
 public sealed class PeriodeAttenteClientRepository(PlateformeDbContext dbContext) : IPeriodeAttenteClientRepository

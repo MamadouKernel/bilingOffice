@@ -399,6 +399,11 @@ public interface IPassageEnFileRepository
 
     /// <summary>La chronologie complète, ordonnée par rang (TPS-05).</summary>
     Task<IReadOnlyList<PassageEnFile>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+
+    /// <summary>§9.9.3 — passages des files données ayant une activité (prise en charge OU sortie)
+    /// dans la fenêtre, pour le rapport d'activité opérateur.</summary>
+    Task<IReadOnlyList<PassageEnFile>> ListerParFilesEtPeriodeAsync(
+        IEnumerable<Guid> fileIds, DateTime debutUtc, DateTime finUtc, CancellationToken ct = default);
 }
 
 public interface IPeriodeAttenteClientRepository
