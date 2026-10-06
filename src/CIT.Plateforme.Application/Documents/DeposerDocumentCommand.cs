@@ -67,6 +67,58 @@ public sealed class DeposerDocumentCommand(
         return await DeposerValideAsync(clientId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, categorie, ct).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Écart 06/10 #1 — « document commun à plusieurs BL/bookings » : dépôt d'une pièce unique
+    /// rattachée à plusieurs tickets de la demande du client. Le contenu est lu, stocké et analysé
+    /// UNE SEULE fois (pas de dépôt multiple) ; un <see cref="Document"/> est créé par ticket,
+    /// partageant la même clé de stockage et le même résultat antivirus. Le cloisonnement est
+    /// exigé sur CHAQUE ticket AVANT tout upload : si un seul ticket n'appartient pas au client,
+    /// rien n'est stocké.
+    /// </summary>
+    public async Task<IReadOnlyList<Document>> DeposerDocumentCommunPourClientAsync(
+        Guid clientId, IReadOnlyList<Guid> ticketIds, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
+        ReglesDepotDocument reglesEtape, CategorieDocumentBillingImport? categorie = null, CancellationToken ct = default)
+    {
+        if (ticketIds is null || ticketIds.Count == 0)
+        {
+            throw new ArgumentException("Au moins un ticket doit être sélectionné pour un document commun.", nameof(ticketIds));
+        }
+
+        // Cloisonnement d'abord, sur tous les tickets : aucun octet n'est stocké si l'un d'eux
+        // n'appartient pas au client (sinon un document d'autrui porterait la même clé).
+        foreach (var ticketId in ticketIds)
+        {
+            await cloisonnement.ExigerProprieteClientAsync(clientId, ticketId, ct).ConfigureAwait(false);
+        }
+
+        if (!reglesEtape.Valide(nomFichier, tailleOctets, out var erreur))
+        {
+            throw new DepotDocumentRefuseException(erreur!);
+        }
+
+        // Un seul upload physique + une seule analyse antivirus, quel que soit le nombre de tickets.
+        await using var rejouable = await FluxRejouable
+            .CreerAsync(contenu, reglesEtape.TailleMaxOctets, ct).ConfigureAwait(false);
+        var cle = await stockage.EnregistrerAsync(rejouable.Flux, nomFichier, ct).ConfigureAwait(false);
+        rejouable.Rembobiner();
+        var resultat = await antivirus.AnalyserAsync(rejouable.Flux, ct).ConfigureAwait(false);
+
+        var maintenant = horloge.MaintenantUtc;
+        var crees = new List<Document>(ticketIds.Count);
+        foreach (var ticketId in ticketIds)
+        {
+            var document = Document.Deposer(ticketId, clientId, nomFichier, typeContenu, tailleOctets, cle, maintenant, categorie);
+            document.MarquerResultatAntivirus(resultat);
+            await documents.AjouterAsync(document, ct).ConfigureAwait(false);
+            await journalisation.ConsignerHistoriqueAsync(ticketId, "DocumentDepose", nomFichier, clientId, ct).ConfigureAwait(false);
+            await journalisation.ConsignerAuditAsync(clientId, "DocumentDepose", nameof(Document), document.Id, null, nomFichier, ct).ConfigureAwait(false);
+            crees.Add(document);
+        }
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+        return crees;
+    }
+
     private async Task<Document> DeposerValideAsync(
         Guid deposantId, Guid ticketId, string nomFichier, string typeContenu, Stream contenu, long tailleOctets,
         ReglesDepotDocument reglesEtape, CategorieDocumentBillingImport? categorie, CancellationToken ct)
