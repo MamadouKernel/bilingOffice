@@ -124,25 +124,45 @@ else
                         {
                             <tr class="@(p.EstActif ? "" : "opacity-50")">
                                 <td><code>@p.Code</code></td>
-                                <td class="fw-semibold">@p.Libelle</td>
-                                <td>@p.NomEtape</td>
-                                <td>@(p.Module is null ? Loc["AdmPieceE.ModuleAll"].Value : Loc.Module(p.Module))</td>
-                                <td>@(p.Obligatoire ? Loc["Common.Yes"] : Loc["Common.No"])</td>
-                                <td>
-                                    @if (p.EstActif)
-                                    {
-                                        <span class="badge bg-success bg-opacity-25 text-success-emphasis">@Loc["AdmPieceE.StateActive"]</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary bg-opacity-25 text-dark">@Loc["AdmPieceE.StateInactive"]</span>
-                                    }
-                                </td>
-                                <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => BasculerAsync(p.Id, !p.EstActif)">
-                                        @(p.EstActif ? Loc["Common.Deactivate"] : Loc["Common.Activate"])
-                                    </button>
-                                </td>
+                                @if (_editId == p.Id)
+                                {
+                                    <td><input class="form-control form-control-sm" @bind="_editLibelle" /></td>
+                                    <td>@p.NomEtape</td>
+                                    <td>@(p.Module is null ? Loc["AdmPieceE.ModuleAll"].Value : Loc.Module(p.Module))</td>
+                                    <td>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="edit-oblig-@p.Id" @bind="_editObligatoire" />
+                                        </div>
+                                    </td>
+                                    <td><input type="number" class="form-control form-control-sm" style="width: 72px;" @bind="_editOrdre" /></td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-primary me-1" @onclick="EnregistrerEditionAsync">@Loc["Common.Save"]</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => _editId = null">@Loc["Common.Cancel"]</button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="fw-semibold">@p.Libelle</td>
+                                    <td>@p.NomEtape</td>
+                                    <td>@(p.Module is null ? Loc["AdmPieceE.ModuleAll"].Value : Loc.Module(p.Module))</td>
+                                    <td>@(p.Obligatoire ? Loc["Common.Yes"] : Loc["Common.No"])</td>
+                                    <td>
+                                        @if (p.EstActif)
+                                        {
+                                            <span class="badge bg-success bg-opacity-25 text-success-emphasis">@Loc["AdmPieceE.StateActive"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-25 text-dark">@Loc["AdmPieceE.StateInactive"]</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" @onclick="() => CommencerEdition(p)">@Loc["Common.Edit"]</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => BasculerAsync(p.Id, !p.EstActif)">
+                                            @(p.EstActif ? Loc["Common.Deactivate"] : Loc["Common.Activate"])
+                                        </button>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -169,6 +189,11 @@ else
     private string _fileId = string.Empty;
     private string _module = string.Empty;
     private bool _obligatoire = true;
+
+    private Guid? _editId;
+    private string _editLibelle = string.Empty;
+    private bool _editObligatoire;
+    private int _editOrdre;
 
     protected override async Task OnInitializedAsync()
     {
@@ -246,4 +271,23 @@ else
 
     private Task BasculerAsync(Guid pieceId, bool active) => ExecuterAsync(sp =>
         sp.GetRequiredService<GererPiecesExigeesEtapeCommand>().DefinirActivationAsync(_appelantId, pieceId, active));
+
+    private void CommencerEdition(PieceExigeeEtapeVue p)
+    {
+        _editId = p.Id;
+        _editLibelle = p.Libelle;
+        _editObligatoire = p.Obligatoire;
+        _editOrdre = p.Ordre;
+    }
+
+    private Task EnregistrerEditionAsync()
+    {
+        if (_editId is not { } id) return Task.CompletedTask;
+        return ExecuterAsync(async sp =>
+        {
+            await sp.GetRequiredService<GererPiecesExigeesEtapeCommand>()
+                .ModifierAsync(_appelantId, id, _editLibelle, _editObligatoire, _editOrdre);
+            _editId = null;
+        });
+    }
 }

@@ -61,6 +61,23 @@ public sealed class GererPiecesExigeesEtapeCommand(
         return piece.Id;
     }
 
+    public async Task ModifierAsync(
+        Guid administrateurId, Guid pieceId, string libelle, bool obligatoire, int ordre, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(administrateurId, Permission.AdministrationFiles, ct: ct).ConfigureAwait(false);
+
+        var piece = await pieces.ObtenirAsync(pieceId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Pièce exigée {pieceId} introuvable.");
+
+        var avant = $"{piece.Libelle} (obligatoire={piece.Obligatoire}, ordre={piece.Ordre})";
+        piece.Modifier(libelle, obligatoire, ordre);
+
+        await journalisation.ConsignerAuditAsync(
+            administrateurId, "PieceExigeeEtapeModifiee", nameof(PieceExigeeEtape), pieceId,
+            avant, $"{piece.Libelle} (obligatoire={piece.Obligatoire}, ordre={piece.Ordre})", ct).ConfigureAwait(false);
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+
     /// <summary>Activation/désactivation plutôt que suppression : les documents déjà déposés
     /// référencent ce code, et leur historique doit rester lisible (SEC-05).</summary>
     public async Task DefinirActivationAsync(Guid administrateurId, Guid pieceId, bool active, CancellationToken ct = default)

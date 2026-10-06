@@ -111,34 +111,56 @@ else
                         @foreach (var motif in _pagination1.Appliquer(_motifs.OrderBy(m => m.Ordre)))
                         {
                             <tr>
-                                <td class="ps-4 font-monospace fw-bold text-muted">#@motif.Ordre</td>
-                                <td>
-                                    <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">
-                                        @motif.Code
-                                    </span>
-                                </td>
-                                <td class="fw-semibold text-dark">@motif.Libelle</td>
-                                <td>
-                                    <span class="badge @(motif.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
-                                        @(motif.EstActif ? Loc["AdmMotif.StateActive"] : Loc["AdmMotif.StateDisabled"])
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    @if (motif.EstActif)
-                                    {
-                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                                @onclick="() => BasculerAsync(motif.Id, false)">
-                                            @Loc["AdmMotif.Deactivate"]
+                                @if (_editId == motif.Id)
+                                {
+                                    <td class="ps-4"><input type="number" class="form-control form-control-sm" style="width: 72px;" @bind="_editOrdre" /></td>
+                                    <td><span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">@motif.Code</span></td>
+                                    <td><input class="form-control form-control-sm" @bind="_editLibelle" /></td>
+                                    <td>
+                                        <span class="badge @(motif.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                            @(motif.EstActif ? Loc["AdmMotif.StateActive"] : Loc["AdmMotif.StateDisabled"])
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 me-1" @onclick="EnregistrerEditionAsync">@Loc["Common.Save"]</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" @onclick="() => _editId = null">@Loc["Common.Cancel"]</button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="ps-4 font-monospace fw-bold text-muted">#@motif.Ordre</td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary font-monospace px-2 py-1 rounded-pill">
+                                            @motif.Code
+                                        </span>
+                                    </td>
+                                    <td class="fw-semibold text-dark">@motif.Libelle</td>
+                                    <td>
+                                        <span class="badge @(motif.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                            @(motif.EstActif ? Loc["AdmMotif.StateActive"] : Loc["AdmMotif.StateDisabled"])
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 me-1"
+                                                @onclick="() => CommencerEdition(motif)">
+                                            @Loc["Common.Edit"]
                                         </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3"
-                                                @onclick="() => BasculerAsync(motif.Id, true)">
-                                            @Loc["AdmMotif.Reactivate"]
-                                        </button>
-                                    }
-                                </td>
+                                        @if (motif.EstActif)
+                                        {
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                                    @onclick="() => BasculerAsync(motif.Id, false)">
+                                                @Loc["AdmMotif.Deactivate"]
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3"
+                                                    @onclick="() => BasculerAsync(motif.Id, true)">
+                                                @Loc["AdmMotif.Reactivate"]
+                                            </button>
+                                        }
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -162,6 +184,10 @@ else
     private string _code = string.Empty;
     private string _libelle = string.Empty;
     private int _ordre = 1;
+
+    private Guid? _editId;
+    private string _editLibelle = string.Empty;
+    private int _editOrdre;
 
     protected override async Task OnInitializedAsync()
     {
@@ -234,4 +260,22 @@ else
         var gererMotifs = sp.GetRequiredService<GererMotifsTransfertCommand>();
         return gererMotifs.DefinirActivationAsync(_appelantId, motifId, actif);
     });
+
+    private void CommencerEdition(MotifTransfertVue motif)
+    {
+        _editId = motif.Id;
+        _editLibelle = motif.Libelle;
+        _editOrdre = motif.Ordre;
+    }
+
+    private Task EnregistrerEditionAsync()
+    {
+        if (_editId is not { } id) return Task.CompletedTask;
+        return ExecuterAsync(async sp =>
+        {
+            var gererMotifs = sp.GetRequiredService<GererMotifsTransfertCommand>();
+            await gererMotifs.ModifierAsync(_appelantId, id, _editLibelle, _editOrdre);
+            _editId = null;
+        });
+    }
 }
