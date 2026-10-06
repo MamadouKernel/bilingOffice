@@ -91,15 +91,31 @@ else
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">@Loc["AdmPriorite.ColLibelle"]</th>
-                            <th class="text-end pe-4">@Loc["AdmPriorite.ColRang"]</th>
+                            <th class="text-end">@Loc["AdmPriorite.ColRang"]</th>
+                            <th class="text-end pe-4">@Loc["AdmPieceC.ColActions"]</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var n in _pagination1.Appliquer(_niveaux))
                         {
                             <tr>
-                                <td class="ps-4 fw-semibold text-dark">@n.Libelle</td>
-                                <td class="text-end pe-4 font-monospace">@n.Rang</td>
+                                @if (_editId == n.Id)
+                                {
+                                    <td class="ps-4"><input class="form-control form-control-sm" @bind="_editLibelle" /></td>
+                                    <td class="text-end"><input type="number" class="form-control form-control-sm text-end" style="max-width: 90px; margin-left:auto;" @bind="_editRang" /></td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-primary btn-sm me-1" @onclick="EnregistrerEditionAsync">@Loc["Common.Save"]</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _editId = null">@Loc["Common.Cancel"]</button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="ps-4 fw-semibold text-dark">@n.Libelle</td>
+                                    <td class="text-end font-monospace">@n.Rang</td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => CommencerEdition(n)">@Loc["Common.Edit"]</button>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -123,6 +139,36 @@ else
 
     private string _libelle = string.Empty;
     private int _rang;
+
+    private Guid? _editId;
+    private string _editLibelle = string.Empty;
+    private int _editRang;
+
+    private void CommencerEdition(NiveauPrioriteVue n)
+    {
+        _editId = n.Id;
+        _editLibelle = n.Libelle;
+        _editRang = n.Rang;
+    }
+
+    private async Task EnregistrerEditionAsync()
+    {
+        if (_editId is not { } id) return;
+        _erreur = null;
+        _succes = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<GererNiveauxPrioriteCommand>()
+                .ModifierAsync(_appelantId, id, _editLibelle, _editRang);
+            _editId = null;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 

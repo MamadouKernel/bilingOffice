@@ -20,6 +20,13 @@ public sealed class NiveauPriorite
         Libelle = libelle,
         Rang = rang,
     };
+
+    /// <summary>Renommer ou réordonner un niveau existant (le code d'identité reste l'Id).</summary>
+    public void Modifier(string libelle, int rang)
+    {
+        Libelle = libelle;
+        Rang = rang;
+    }
 }
 
 /// <summary>PRI-03 : toute modification manuelle de priorité enregistre l'ancienne valeur, la

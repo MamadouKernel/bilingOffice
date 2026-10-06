@@ -39,6 +39,28 @@ public sealed class GererNiveauxPrioriteCommand(
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
         return niveau.Id;
     }
+
+    public async Task ModifierAsync(
+        Guid appelantId, Guid niveauId, string libelle, int rang, CancellationToken ct = default)
+    {
+        await autorisation.ExigerAsync(appelantId, Permission.AdministrationFiles, ct: ct).ConfigureAwait(false);
+
+        if (string.IsNullOrWhiteSpace(libelle))
+        {
+            throw new ArgumentException("Le libellé du niveau de priorité est obligatoire.", nameof(libelle));
+        }
+
+        var niveau = await priorites.ObtenirNiveauAsync(niveauId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Niveau de priorité {niveauId} introuvable.");
+
+        var avant = $"{niveau.Libelle} (rang {niveau.Rang})";
+        niveau.Modifier(libelle.Trim(), rang);
+
+        await journalisation.ConsignerAuditAsync(
+            appelantId, "NiveauPrioriteModifie", nameof(NiveauPriorite), niveau.Id, avant, $"{niveau.Libelle} (rang {niveau.Rang})", ct).ConfigureAwait(false);
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
 }
 
 /// <summary>CDC § 17.3 — lecture du référentiel des niveaux de priorité.</summary>
