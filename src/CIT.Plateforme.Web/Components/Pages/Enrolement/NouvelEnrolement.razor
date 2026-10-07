@@ -53,6 +53,13 @@
             </div>
 
             <h6 class="fw-bold text-dark mt-4 mb-2">@Loc["Enrol.UploadDocTitle"]</h6>
+            <div class="alert alert-info border-0 bg-info bg-opacity-10 small py-2 mb-2" role="note">
+                @Loc["Enrol.PiecesRequisesIntro"]
+                <ul class="mb-0 mt-1 ps-3">
+                    <li>@Loc["Enrol.PhotoPermis"]</li>
+                    <li>@Loc["Enrol.PhotoIdentite"]</li>
+                </ul>
+            </div>
             <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" multiple />
             <div class="form-text">@Loc["Docs.MultipleHint"]</div>
             @if (_messagePiece is not null)
