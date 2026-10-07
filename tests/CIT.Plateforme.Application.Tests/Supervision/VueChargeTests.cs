@@ -4,84 +4,91 @@ using CIT.Plateforme.Application.Supervision;
 using CIT.Plateforme.Application.Tests.Support;
 using CIT.Plateforme.Application.Tickets;
 using CIT.Plateforme.Domain.Affectation;
+using CIT.Plateforme.Domain.Files;
 using CIT.Plateforme.Domain.Securite;
+using CIT.Plateforme.Domain.Supervision;
 using CIT.Plateforme.Infrastructure.Identity;
 using CIT.Plateforme.Infrastructure.Persistence;
 using Xunit;
 
 namespace CIT.Plateforme.Application.Tests.Supervision;
 
-/// <summary>Complète la couverture directe de SUP-03/SUP-05 (vue de la charge et de la
-/// disponibilité par opérateur) et DIS-02 (le superviseur consulte la disponibilité et la charge
-/// restante d'un opérateur).</summary>
+/// <summary>Couvre SUP-03/SUP-05 (charge et disponibilité par opérateur) et DIS-02 — BORNÉS AU
+/// PÉRIMÈTRE du superviseur : la charge ne montre que les opérateurs traitant les files de son
+/// périmètre ; ceux des autres files (autres rôles) n'apparaissent jamais.</summary>
 public sealed class VueChargeTests
 {
+    private static VueChargeQuery Query(PlateformeDbContext db, AutorisationService autorisation) =>
+        new(new DisponibiliteRepository(db), new TicketRepository(db), autorisation,
+            new PerimetreSupervisionRepository(db), new FileDeTraitementRepository(db));
+
     [Fact]
-    public async Task Un_superviseur_consulte_la_disponibilite_et_la_charge_de_chaque_operateur()
+    public async Task La_charge_est_bornee_au_perimetre_et_montre_les_absents_avec_charge()
     {
-        var dbContext = ContexteDeTest.CreerNouveauContexte();
+        var db = ContexteDeTest.CreerNouveauContexte();
         var horloge = HorlogeDeTest.Defaut();
-        var journalisation = new JournalisationService(dbContext, horloge);
-        var uniteDeTravail = new UniteDeTravail(dbContext);
-        var autorisation = new AutorisationService(dbContext);
-        var ticketRepo = new TicketRepository(dbContext);
+        var journalisation = new JournalisationService(db, horloge);
+        var uow = new UniteDeTravail(db);
+        var autorisation = new AutorisationService(db);
+        var ticketRepo = new TicketRepository(db);
         var numerotation = new NumerotationEnMemoirePourTests();
 
         var superviseurId = Guid.NewGuid();
-        var operateurA = Guid.NewGuid();
-        var operateurB = Guid.NewGuid();
-        var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateurA), Permission.TicketPrendreEnCharge, fileId));
+        var opA = Guid.NewGuid(); var opB = Guid.NewGuid(); var opC = Guid.NewGuid();
 
-        var disponibiliteRepo = new DisponibiliteRepository(dbContext);
-        var gererDisponibilite = new GererDisponibiliteCommand(disponibiliteRepo, autorisation, journalisation, horloge, uniteDeTravail);
-        await gererDisponibilite.DefinirAsync(operateurA, operateurA, StatutDisponibilite.Disponible);
-        await gererDisponibilite.DefinirAsync(operateurB, operateurB, StatutDisponibilite.Absent); // DIS-02 : agent Absent avec charge à identifier
+        var fileDuPerimetre = FileDeTraitement.Creer("BillingOffice", "Pilote Manifeste");
+        var fileHorsPerimetre = FileDeTraitement.Creer("BillingOffice", "Facturation");
+        db.Files.AddRange(fileDuPerimetre, fileHorsPerimetre);
 
-        var creer = new CreerTicketCommand(ticketRepo, new DossierRepository(dbContext), numerotation, journalisation, horloge, uniteDeTravail);
-        var ticket = await creer.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileId, null));
-        var prendreEnCharge = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uniteDeTravail);
-        await prendreEnCharge.ExecuterAsync(operateurA, ticket.Id);
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, superviseurId), Permission.SupervisionConsulter));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, opA), Permission.TicketPrendreEnCharge, fileDuPerimetre.Id));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, opB), Permission.TicketPrendreEnCharge, fileDuPerimetre.Id));
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, opC), Permission.TicketPrendreEnCharge, fileHorsPerimetre.Id));
+        // Le périmètre du superviseur ne couvre QUE la file Pilote Manifeste.
+        db.PerimetresSupervision.Add(PerimetreSupervision.Definir(superviseurId, [fileDuPerimetre.Id]));
+        await db.SaveChangesAsync();
 
-        var vueCharge = new VueChargeQuery(disponibiliteRepo, ticketRepo, autorisation);
-        var vues = await vueCharge.ExecuterAsync(superviseurId);
+        var dispoRepo = new DisponibiliteRepository(db);
+        var gererDispo = new GererDisponibiliteCommand(dispoRepo, autorisation, journalisation, horloge, uow);
+        var creer = new CreerTicketCommand(ticketRepo, new DossierRepository(db), numerotation, journalisation, horloge, uow);
+        var prendre = new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow);
+
+        // A : disponible, 1 ticket dans le périmètre.
+        var tA = await creer.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileDuPerimetre.Id, null));
+        await prendre.ExecuterAsync(opA, tA.Id);
+        await gererDispo.DefinirAsync(opA, opA, StatutDisponibilite.Disponible);
+
+        // B : ABSENT mais détient 1 ticket dans le périmètre (DIS-02 : charge d'un absent à identifier).
+        var tB = await creer.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileDuPerimetre.Id, null));
+        await prendre.ExecuterAsync(opB, tB.Id);
+        await gererDispo.DefinirAsync(opB, opB, StatutDisponibilite.Absent);
+
+        // C : 1 ticket dans une file HORS périmètre → ne doit pas apparaître.
+        var tC = await creer.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileHorsPerimetre.Id, null));
+        await prendre.ExecuterAsync(opC, tC.Id);
+        await gererDispo.DefinirAsync(opC, opC, StatutDisponibilite.Disponible);
+
+        var vues = await Query(db, autorisation).ExecuterAsync(superviseurId);
 
         Assert.Equal(2, vues.Count);
-        var vueOperateurA = vues.Single(v => v.OperateurId == operateurA);
-        Assert.Equal(StatutDisponibilite.Disponible, vueOperateurA.Disponibilite);
-        Assert.Equal(1, vueOperateurA.TicketsEnCours);
-
-        var vueOperateurB = vues.Single(v => v.OperateurId == operateurB);
-        Assert.Equal(StatutDisponibilite.Absent, vueOperateurB.Disponibilite); // DIS-02
-        Assert.Equal(0, vueOperateurB.TicketsEnCours);
+        Assert.DoesNotContain(vues, v => v.OperateurId == opC); // hors périmètre exclu
+        Assert.Equal(StatutDisponibilite.Disponible, vues.Single(v => v.OperateurId == opA).Disponibilite);
+        Assert.Equal(1, vues.Single(v => v.OperateurId == opA).TicketsEnCours);
+        Assert.Equal(StatutDisponibilite.Absent, vues.Single(v => v.OperateurId == opB).Disponibilite); // DIS-02
+        Assert.Equal(1, vues.Single(v => v.OperateurId == opB).TicketsEnCours);
     }
 
-    /// <summary>Revue UX du 04/10/2026 : un agent qui n'a jamais basculé sa disponibilité (donc
-    /// « disponible » par défaut) mais qui traite des tickets restait absent de la vue.</summary>
     [Fact]
-    public async Task Un_agent_sans_disponibilite_enregistree_mais_avec_des_tickets_en_cours_apparait()
+    public async Task Sans_perimetre_la_charge_est_vide()
     {
-        var dbContext = ContexteDeTest.CreerNouveauContexte();
-        var horloge = HorlogeDeTest.Defaut();
-        var journalisation = new JournalisationService(dbContext, horloge);
-        var uniteDeTravail = new UniteDeTravail(dbContext);
-        var autorisation = new AutorisationService(dbContext);
-        var ticketRepo = new TicketRepository(dbContext);
+        var db = ContexteDeTest.CreerNouveauContexte();
+        var autorisation = new AutorisationService(db);
         var superviseurId = Guid.NewGuid();
-        var operateur = Guid.NewGuid();
-        var fileId = Guid.NewGuid();
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, superviseurId), Permission.SupervisionConsulter));
-        dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, operateur), Permission.TicketPrendreEnCharge, fileId));
-        var creer = new CreerTicketCommand(ticketRepo, new DossierRepository(dbContext), new NumerotationEnMemoirePourTests(), journalisation, horloge, uniteDeTravail);
-        var ticket = await creer.ExecuterAsync(new CreerTicketRequete(Guid.NewGuid(), "BillingOffice", "Import", fileId, null));
-        await new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uniteDeTravail).ExecuterAsync(operateur, ticket.Id);
+        db.Habilitations.Add(HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(db, superviseurId), Permission.SupervisionConsulter));
+        await db.SaveChangesAsync();
 
-        var vues = await new VueChargeQuery(new DisponibiliteRepository(dbContext), ticketRepo, autorisation).ExecuterAsync(superviseurId);
+        var vues = await Query(db, autorisation).ExecuterAsync(superviseurId);
 
-        var vue = Assert.Single(vues);
-        Assert.Equal(operateur, vue.OperateurId);
-        Assert.Equal(StatutDisponibilite.Disponible, vue.Disponibilite);
-        Assert.Equal(1, vue.TicketsEnCours);
+        Assert.Empty(vues);
     }
 }

@@ -33,7 +33,7 @@ public sealed class DisponibiliteTests : BunitContext
         var journalisation = new JournalisationService(db, new HorlogeSysteme());
         var horloge = new HorlogeSysteme();
         var uow = new UniteDeTravail(db);
-        Services.AddScoped(_ => new VueChargeQuery(disponibilites, tickets, autorisation, utilisateurs));
+        Services.AddScoped(_ => new VueChargeQuery(disponibilites, tickets, autorisation, new PerimetreSupervisionRepository(db), new FileDeTraitementRepository(db), utilisateurs));
         Services.AddScoped(_ => new GererDisponibiliteCommand(disponibilites, autorisation, journalisation, horloge, uow));
     }
 
