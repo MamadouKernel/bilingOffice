@@ -471,6 +471,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Enrolement.ValiderEnrolementCommand>();
         services.AddScoped<Application.Enrolement.DeclencherConvocationCommand>();
         services.AddScoped<Application.Enrolement.ConstaterRemiseBadgeCommand>();
+        services.AddScoped<Application.Enrolement.CorrigerExpirationBadgeCommand>();
         services.AddScoped<Application.Enrolement.ConsulterFileAgentGateQuery>();
         services.AddScoped<Application.Enrolement.ObtenirFicheEnrolementQuery>();
 

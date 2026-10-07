@@ -45,7 +45,10 @@ public sealed record FicheEnrolementVue(
     IReadOnlyList<ChronologieItemVue> Chronologie,
     IReadOnlyList<DocumentItemVue> Documents,
     IReadOnlyList<MessageItemVue> Messages,
-    IReadOnlyList<ChampEnrolementRenseigneVue> ChampsRenseignes);
+    IReadOnlyList<ChampEnrolementRenseigneVue> ChampsRenseignes,
+    string? BadgeNumero = null,
+    DateTime? BadgeExpirationUtc = null,
+    bool PeutCorrigerBadge = false);
 
 /// <summary>ENR-01 (remédiation) — valeur d'un champ structuré du formulaire, telle que renseignée
 /// à la soumission, présentée avec son libellé courant.</summary>
@@ -62,6 +65,7 @@ public sealed class ObtenirFicheEnrolementQuery(
     IUtilisateurInfoRepository utilisateurInfoRepository,
     IValeurChampEnrolementRepository valeursChamp,
     IChampFormulaireEnrolementRepository champsFormulaire,
+    IBadgeEnrolementRepository badgeRepository,
     ControleAccesRessourceService controleAcces)
 {
     public async Task<FicheEnrolementVue> ExecuterAsync(Guid appelantId, Guid ticketId, CancellationToken ct = default)
@@ -166,6 +170,10 @@ public sealed class ObtenirFicheEnrolementQuery(
         var peutDeposerDocument = aDroitDepot && ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
         var peutAjouterMessage = ticket.Statut != StatutTicket.Cloture && ticket.Statut != StatutTicket.Annule;
 
+        // D (07/10/2026) — correction de la date d'expiration du badge si l'agent s'est trompé.
+        var badge = await badgeRepository.ObtenirParTicketAsync(ticketId, ct).ConfigureAwait(false);
+        var peutCorrigerBadge = !estClient && aDroitInstruction && badge is not null;
+
         return new FicheEnrolementVue(
             TicketId: ticket.Id,
             NumeroTicket: ticket.Numero,
@@ -195,6 +203,9 @@ public sealed class ObtenirFicheEnrolementQuery(
             Chronologie: chronologie,
             Documents: documents,
             Messages: messages,
-            ChampsRenseignes: champsRenseignes);
+            ChampsRenseignes: champsRenseignes,
+            BadgeNumero: badge?.Numero,
+            BadgeExpirationUtc: badge?.DateExpirationUtc,
+            PeutCorrigerBadge: peutCorrigerBadge);
     }
 }

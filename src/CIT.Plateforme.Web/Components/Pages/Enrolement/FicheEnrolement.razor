@@ -24,6 +24,7 @@
 @inject ValiderEnrolementCommand ValiderEnrolement
 @inject DeclencherConvocationCommand DeclencherConvocation
 @inject ConstaterRemiseBadgeCommand ConstaterRemiseBadge
+@inject CorrigerExpirationBadgeCommand CorrigerExpirationBadge
 @inject PublierMessageCommand PublierMessage
 @inject DeposerDocumentCommand DeposerDocument
 
@@ -73,6 +74,24 @@ else if (_fiche is not null)
         </div>
     }
 
+    @* E — durée de traitement : soumission → clôture (dérivée de la chronologie horodatée). *@
+    <div class="cit-card mb-4">
+        <div class="row g-3 small">
+            <div class="col-6 col-md-4">
+                <div class="text-muted">@Loc["FicheEnrol.SoumisLe"]</div>
+                <div class="fw-semibold">@(SoumisLe is { } s ? s.Horodate() : "—")</div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="text-muted">@Loc["FicheEnrol.ClotureLe"]</div>
+                <div class="fw-semibold">@(ClotureLe is { } c ? c.Horodate() : "—")</div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="text-muted">@Loc["FicheEnrol.DureeTraitement"]</div>
+                <div class="fw-semibold">@DureeTraitement</div>
+            </div>
+        </div>
+    </div>
+
     <div class="cit-card mb-4">
         <h6 class="fw-bold text-dark mb-2">@Loc["Enrol.DescLabel"]</h6>
         <p class="mb-0">@(f.Description ?? "—")</p>
@@ -118,8 +137,50 @@ else if (_fiche is not null)
                         <input id="expiration-badge" type="date" class="form-control form-control-sm" @bind="_expirationBadge" />
                     </div>
                     <div class="col-12 col-md-3">
-                        <button type="button" class="btn btn-dark btn-sm w-100 fw-semibold" @onclick="ConstaterBadgeAsync"
+                        <button type="button" class="btn btn-dark btn-sm w-100 fw-semibold" @onclick="() => _afficherRecapCloture = true"
                                 disabled="@(string.IsNullOrWhiteSpace(_numeroBadge))">@Loc["FicheEnrol.BtnBadgeConfirm"]</button>
+                    </div>
+                </div>
+            }
+
+            @* C — clôture en deux temps : récapitulatif complet puis confirmation. La clôture
+               notifie le demandeur (e-mail + in-app) : rien ne part tant que l'agent n'a pas confirmé. *@
+            @if (_afficherRecapCloture && f.PeutConstaterBadge)
+            {
+                <div class="mt-3 border rounded-3 p-3 bg-light">
+                    <h6 class="fw-bold text-dark mb-3">@Loc["FicheEnrol.RecapTitle"]</h6>
+                    <dl class="row small mb-2">
+                        <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["FicheEnrol.RecapTicket"]</dt>
+                        <dd class="col-7 col-md-8 fw-semibold">@f.NumeroTicket</dd>
+                        @if (f.TypeObjet is not null)
+                        {
+                            <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["FicheEnrol.TypeSensLabel"]</dt>
+                            <dd class="col-7 col-md-8">@Loc[$"Enrol.Objet.{f.TypeObjet}"] — @Loc[$"Enrol.Sens.{f.Sens}"]</dd>
+                        }
+                        <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["Enrol.ObjectLabel"]</dt>
+                        <dd class="col-7 col-md-8">@(f.Objet ?? "—")</dd>
+                        <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["Enrol.DescLabel"]</dt>
+                        <dd class="col-7 col-md-8">@(f.Description ?? "—")</dd>
+                        <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["FicheEnrol.RecapPieces"]</dt>
+                        <dd class="col-7 col-md-8">
+                            @if (f.Documents.Count == 0)
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                            else
+                            {
+                                <ul class="mb-0 ps-3">@foreach (var d in f.Documents){<li>@d.NomFichier</li>}</ul>
+                            }
+                        </dd>
+                        <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["FicheEnrol.BadgeNumero"]</dt>
+                        <dd class="col-7 col-md-8 font-monospace">@_numeroBadge</dd>
+                        <dt class="col-5 col-md-4 text-muted fw-normal">@Loc["FicheEnrol.BadgeExpiration"]</dt>
+                        <dd class="col-7 col-md-8">@_expirationBadge.ToString("dd/MM/yyyy")</dd>
+                    </dl>
+                    <div class="alert alert-info py-2 small mb-3">@Loc["FicheEnrol.RecapNotifHint"]</div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-dark btn-sm fw-semibold" @onclick="ConstaterBadgeAsync">@Loc["FicheEnrol.RecapConfirm"]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _afficherRecapCloture = false">@Loc["Common.Cancel"]</button>
                     </div>
                 </div>
             }
@@ -131,6 +192,36 @@ else if (_fiche is not null)
                     <div class="input-group">
                         <input id="motif-du-complement-demande" class="form-control" @bind="_motifComplement" @bind:event="oninput" placeholder="@Loc["FicheEnrol.ComplementMotifPlaceholder"]" />
                         <button type="button" class="btn btn-warning fw-bold" @onclick="DemanderComplementAsync" disabled="@string.IsNullOrWhiteSpace(_motifComplement)">@Loc["FicheEnrol.Send"]</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* D — correction de la date d'expiration du badge (carte transporteur) après clôture, si l'agent
+       s'est trompé. Pas de réouverture du dossier : seule l'échéance est rectifiée, action journalisée. *@
+    @if (!_estClient && f.PeutCorrigerBadge)
+    {
+        <div class="cit-card mb-4">
+            <h6 class="fw-bold text-dark mb-2">@Loc["FicheEnrol.CorrBadgeTitle"]</h6>
+            <p class="small text-muted mb-2">
+                @Loc["FicheEnrol.BadgeNumero"] : <span class="font-monospace">@f.BadgeNumero</span> —
+                @Loc["FicheEnrol.CorrBadgeActuelle"] : <span class="fw-semibold">@(f.BadgeExpirationUtc?.ToString("dd/MM/yyyy") ?? "—")</span>
+            </p>
+            @if (!_afficherCorrectionBadge)
+            {
+                <button type="button" class="btn btn-outline-warning btn-sm fw-semibold" @onclick="OuvrirCorrectionBadge">@Loc["FicheEnrol.CorrBadgeBtn"]</button>
+            }
+            else
+            {
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-5">
+                        <label for="correction-expiration" class="form-label small fw-semibold">@Loc["FicheEnrol.CorrBadgeNouvelle"]</label>
+                        <input id="correction-expiration" type="date" class="form-control form-control-sm" @bind="_correctionExpiration" />
+                    </div>
+                    <div class="col-12 col-md-7 d-flex gap-2">
+                        <button type="button" class="btn btn-warning btn-sm fw-semibold" @onclick="CorrigerExpirationAsync">@Loc["FicheEnrol.CorrBadgeConfirm"]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => _afficherCorrectionBadge = false">@Loc["Common.Cancel"]</button>
                     </div>
                 </div>
             }
@@ -271,10 +362,35 @@ else if (_fiche is not null)
     private async Task ConvoquerAsync() => await ExecuterActionAsync(() => DeclencherConvocation.ExecuterAsync(_appelantId, TicketId), Loc["FicheEnrol.MsgConvened"].Value);
 
     private bool _afficherFormulaireBadge;
+    private bool _afficherRecapCloture;
     private string _numeroBadge = string.Empty;
 
     // ponytail: validité proposée d'un an ; l'agent corrige selon le badge réellement imprimé.
     private DateTime _expirationBadge = DateTime.Today.AddYears(1);
+
+    // E — durée de traitement, dérivée de la chronologie horodatée (pas de nouveau champ en base).
+    private DateTime? SoumisLe => _fiche?.Chronologie.OrderBy(e => e.HorodatageUtc).FirstOrDefault()?.HorodatageUtc;
+
+    private DateTime? ClotureLe => _fiche?.Chronologie
+        .Where(e => e.Evenement is "BadgeRemisEtDossierCloture" or "TicketCloture")
+        .OrderByDescending(e => e.HorodatageUtc).FirstOrDefault()?.HorodatageUtc;
+
+    private string DureeTraitement
+    {
+        get
+        {
+            if (SoumisLe is not { } debut) return "—";
+            var fin = ClotureLe ?? DateTime.UtcNow;
+            var d = fin - debut;
+            if (d < TimeSpan.Zero) d = TimeSpan.Zero;
+            var txt = d.TotalDays >= 1
+                ? string.Format(Loc["FicheEnrol.DureeJoursHeures"].Value, (int)d.TotalDays, d.Hours)
+                : d.TotalHours >= 1
+                    ? string.Format(Loc["FicheEnrol.DureeHeuresMinutes"].Value, (int)d.TotalHours, d.Minutes)
+                    : string.Format(Loc["FicheEnrol.DureeMinutes"].Value, (int)d.TotalMinutes);
+            return ClotureLe is null ? $"{txt} ({Loc["FicheEnrol.DureeEnCours"].Value})" : txt;
+        }
+    }
 
     private async Task ConstaterBadgeAsync()
     {
@@ -282,6 +398,25 @@ else if (_fiche is not null)
             () => ConstaterRemiseBadge.ExecuterAsync(_appelantId, TicketId, _numeroBadge, DateTime.SpecifyKind(_expirationBadge.Date, DateTimeKind.Utc)),
             Loc["FicheEnrol.MsgBadge"].Value);
         _afficherFormulaireBadge = false;
+        _afficherRecapCloture = false;
+    }
+
+    // D — correction de la date d'expiration du badge après clôture.
+    private bool _afficherCorrectionBadge;
+    private DateTime _correctionExpiration = DateTime.Today.AddYears(1);
+
+    private void OuvrirCorrectionBadge()
+    {
+        _correctionExpiration = _fiche?.BadgeExpirationUtc?.Date ?? DateTime.Today.AddYears(1);
+        _afficherCorrectionBadge = true;
+    }
+
+    private async Task CorrigerExpirationAsync()
+    {
+        await ExecuterActionAsync(
+            () => CorrigerExpirationBadge.ExecuterAsync(_appelantId, TicketId, DateTime.SpecifyKind(_correctionExpiration.Date, DateTimeKind.Utc)),
+            Loc["FicheEnrol.MsgCorrBadge"].Value);
+        _afficherCorrectionBadge = false;
     }
 
     /// <summary>Ce que l'agent a demandé : motif de la dernière mise en attente.</summary>

@@ -132,6 +132,7 @@ public sealed class ObtenirFicheEnrolementQueryTests
         return new ObtenirFicheEnrolementQuery(
             ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
             valeursChampRepo, champsFormulaireRepo,
+            new CIT.Plateforme.Infrastructure.Persistence.BadgeEnrolementRepository(db),
             Support.FabriqueRequetes.ControleAcces(db));
     }
 }

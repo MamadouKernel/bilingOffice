@@ -200,7 +200,10 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             cutFiche.Find("button.btn-outline-dark.btn-sm").Click();
             // Décision du 03/10/2026 : la remise enregistre le numéro et l'expiration du badge.
             cutFiche.Find("#numero-badge").Input("BADGE-E2E-0001");
+            // Clôture en deux temps : ce bouton ouvre le récapitulatif, puis on confirme la clôture.
             cutFiche.Find("button.btn-dark.btn-sm").Click();
+            cutFiche.WaitForState(() => cutFiche.Markup.Contains("Récapitulatif avant clôture"), TimeSpan.FromSeconds(10));
+            cutFiche.FindAll("button").First(b => b.TextContent.Contains("Confirmer la clôture")).Click();
             cutFiche.WaitForState(() => cutFiche.Markup.Contains("dossier clôturé"), TimeSpan.FromSeconds(25));
         }
 
@@ -245,6 +248,7 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
         bunit.Services.AddSingleton(sp.GetRequiredService<ValiderEnrolementCommand>());
         bunit.Services.AddSingleton(sp.GetRequiredService<DeclencherConvocationCommand>());
         bunit.Services.AddSingleton(sp.GetRequiredService<ConstaterRemiseBadgeCommand>());
+        bunit.Services.AddSingleton(sp.GetRequiredService<CorrigerExpirationBadgeCommand>());
         bunit.Services.AddSingleton(sp.GetRequiredService<CIT.Plateforme.Application.Messagerie.PublierMessageCommand>());
         bunit.Services.AddSingleton(sp.GetRequiredService<CIT.Plateforme.Application.Documents.DeposerDocumentCommand>());
     }

@@ -52,12 +52,14 @@ public sealed class FicheEnrolementTests : BunitContext
 
         Services.AddSingleton(new ObtenirFicheEnrolementQuery(ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
             new ValeurChampEnrolementRepository(db), new ChampFormulaireEnrolementRepository(db),
+            new BadgeEnrolementRepository(db),
             Support.FabriqueSecurite.ControleAcces(db)));
         Services.AddSingleton(new PrendreEnChargeCommand(ticketRepo, autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new AttenteClientCommand(ticketRepo, new PeriodeAttenteClientRepository(db), autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new ValiderEnrolementCommand(ticketRepo, autorisation, journalisation, uow));
         Services.AddSingleton(new DeclencherConvocationCommand(ticketRepo, autorisation, journalisation, uow));
         Services.AddSingleton(new ConstaterRemiseBadgeCommand(ticketRepo, new BadgeEnrolementRepository(db), autorisation, journalisation, horloge, uow));
+        Services.AddSingleton(new CorrigerExpirationBadgeCommand(ticketRepo, new BadgeEnrolementRepository(db), autorisation, journalisation, horloge, uow));
         Services.AddSingleton(new PublierMessageCommand(messageRepo, ticketRepo, autorisation, cloisonnement, journalisation, horloge, uow));
         Services.AddSingleton(new DeposerDocumentCommand(documentRepo, ticketRepo, new StockageDocumentsFichiers(configuration, new EnvironnementDeTest("Development")), new AucuneAnalyseAntivirusConfiguree(), autorisation, cloisonnement, journalisation, horloge, uow));
     }

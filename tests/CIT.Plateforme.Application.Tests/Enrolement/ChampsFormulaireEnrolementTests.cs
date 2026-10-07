@@ -51,7 +51,9 @@ public sealed class ChampsFormulaireEnrolementTests
 
         var obtenirFiche = new ObtenirFicheEnrolementQuery(
             ticketRepo, dossierRepo, fileRepo, historiqueRepo, documentRepo, messageRepo, habilitationRepo, utilisateurInfoRepo,
-            valeursChampRepo, champsFormulaireRepo, Support.FabriqueRequetes.ControleAcces(db));
+            valeursChampRepo, champsFormulaireRepo,
+            new CIT.Plateforme.Infrastructure.Persistence.BadgeEnrolementRepository(db),
+            Support.FabriqueRequetes.ControleAcces(db));
 
         return (db, soumettre, obtenirFiche, transporteurId);
     }

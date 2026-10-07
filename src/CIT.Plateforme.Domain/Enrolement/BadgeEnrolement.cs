@@ -51,4 +51,20 @@ public sealed class BadgeEnrolement
             AgentId = agentId,
         };
     }
+
+    /// <summary>
+    /// Correction d'une date d'expiration saisie par erreur (décision 07/10/2026). Le badge déjà
+    /// remis n'est pas recréé : seule l'échéance est rectifiée, et elle doit rester future (une
+    /// carte déjà expirée n'a pas d'intérêt). La traçabilité de la correction est portée par
+    /// l'historique du ticket, côté commande.
+    /// </summary>
+    public void CorrigerExpiration(DateTime nouvelleExpirationUtc, DateTime maintenantUtc)
+    {
+        if (nouvelleExpirationUtc <= maintenantUtc)
+        {
+            throw new ArgumentException("La date d'expiration corrigée doit être postérieure à aujourd'hui.", nameof(nouvelleExpirationUtc));
+        }
+
+        DateExpirationUtc = nouvelleExpirationUtc;
+    }
 }
