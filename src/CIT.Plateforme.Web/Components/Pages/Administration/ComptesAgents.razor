@@ -399,6 +399,35 @@ else
                         </div>
                     </div>
 
+                    <!-- Bandeau d'aide (C) : explique la démarche d'affectation -->
+                    <div class="alert alert-info border-0 bg-info bg-opacity-10 text-dark small rounded-3 mb-3 d-flex gap-2" role="note">
+                        <span aria-hidden="true">💡</span>
+                        <span>@Loc["AdmCompte.ModalHelp"]</span>
+                    </div>
+
+                    <!-- Profils métier (B) : préréglages en 1 clic, puis ajustement fin -->
+                    <div class="cit-category-box mb-4">
+                        <div class="cit-category-header d-flex align-items-center gap-2">
+                            <span>🧩</span>
+                            <span class="text-dark fw-bold">@Loc["AdmCompte.ProfilsTitre"]</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="small text-muted mb-2">@Loc["AdmCompte.ProfilsIntro"]</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var profil in ProfilsMetierUi)
+                                {
+                                    var p = profil;
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 d-inline-flex align-items-center gap-1"
+                                            title="@Loc[p.DescCle]"
+                                            disabled="@_enCours"
+                                            @onclick="() => DemanderConfirmationProfilMetier(_agentEnEdition!, p)">
+                                        <span aria-hidden="true">@p.Icone</span> @Loc[p.NomCle]
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Filtre de recherche dans les permissions -->
                     <div class="mb-4">
                         <div class="input-group">
@@ -422,12 +451,18 @@ else
 
                         <div class="cit-category-box">
                             <div class="cit-category-header d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span>@groupe.Icone</span>
-                                    <span class="text-dark">@groupe.Nom</span>
-                                    <span class="badge @(nbActives > 0 ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-light text-muted") rounded-pill px-2 py-0 small">
-                                        @nbActives / @permsDuGroupe.Count
-                                    </span>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span>@groupe.Icone</span>
+                                        <span class="text-dark">@groupe.Nom</span>
+                                        <span class="badge @(nbActives > 0 ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-light text-muted") rounded-pill px-2 py-0 small">
+                                            @nbActives / @permsDuGroupe.Count
+                                        </span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(groupe.Description))
+                                    {
+                                        <div class="small text-muted mt-1">@groupe.Description</div>
+                                    }
                                 </div>
                                 <div>
                                     <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 small fw-bold"
@@ -442,14 +477,21 @@ else
                                     {
                                         var estAccordee = _agentEnEdition.Permissions.Contains(perm.Code);
                                         <div class="col-12 col-md-6">
+                                            @* Le code technique (perm.Code) n'est plus affiché : il reste
+                                               consultable au survol (title) — l'utilisateur métier voit le
+                                               libellé + la description « ce que ça autorise ». *@
                                             <div class="cit-perm-card @(estAccordee ? "active" : "") d-flex align-items-start gap-2"
+                                                 title="@perm.Code"
                                                  @onclick="() => BasculerPermissionAsync(_agentEnEdition.Id, perm.Code, !estAccordee)">
                                                 <input type="checkbox" class="form-check-input mt-1 flex-shrink-0"
                                                        checked="@estAccordee"
                                                        @onchange="() => BasculerPermissionAsync(_agentEnEdition.Id, perm.Code, !estAccordee)" />
                                                 <div class="flex-grow-1 overflow-hidden">
-                                                    <div class="small fw-bold text-dark text-truncate">@perm.Libelle</div>
-                                                    <div class="font-monospace text-muted u-fs-2xs">@perm.Code</div>
+                                                    <div class="small fw-bold text-dark">@perm.Libelle</div>
+                                                    @if (DescriptionsPermission.TryGetValue(perm.Code, out var cleDesc))
+                                                    {
+                                                        <div class="text-muted u-fs-2xs">@Loc[cleDesc]</div>
+                                                    }
                                                 </div>
                                             </div>
                                         </div>
@@ -972,14 +1014,124 @@ else
     }
 
     // Référentiel des Métadonnées & Catégories de Permissions
-    private sealed record ElementPermission(string Code, string Libelle);
-    private sealed record GroupePermissions(string Nom, string Icone, IReadOnlyList<ElementPermission> Permissions);
+    // (A) Description : une phrase « ce que ça autorise » par permission.
+    private sealed record ElementPermission(string Code, string Libelle, string Description = "");
+    // (C) Description : raison d'être du groupe.
+    private sealed record GroupePermissions(string Nom, string Icone, string Description, IReadOnlyList<ElementPermission> Permissions);
     private sealed record ResumeCategorie(string Nom, string Icone, int Nombre);
+
+    // (A) Description « ce que ça autorise » par permission (clé i18n), affichée sous chaque carte.
+    private static readonly IReadOnlyDictionary<string, string> DescriptionsPermission =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [Permission.BillingImportSoumettre] = "AdmCompte.D.BiSoumettre",
+            [Permission.BillingImportManifesteInstruire] = "AdmCompte.D.BiManifeste",
+            [Permission.BillingImportFacturationEditer] = "AdmCompte.D.BiFacturation",
+            [Permission.BillingImportPaiementValider] = "AdmCompte.D.BiPaiement",
+            [Permission.BillingImportComptabiliteConfirmerLettrage] = "AdmCompte.D.BiLettrage",
+            [Permission.BillingImportControleDocumentaireTraiter] = "AdmCompte.D.BiControleDoc",
+            [Permission.BillingImportIesManifesteInstruire] = "AdmCompte.D.BiIesManifeste",
+            [Permission.BillingImportIesControleDocumentaireInstruire] = "AdmCompte.D.BiIesControleDoc",
+            [Permission.BillingExportSoumettre] = "AdmCompte.D.BeSoumettre",
+            [Permission.BillingExportBackOfficeInstruire] = "AdmCompte.D.BeBackOffice",
+            [Permission.BillingExportFacturationEditer] = "AdmCompte.D.BeFacturation",
+            [Permission.BillingExportPaiementValider] = "AdmCompte.D.BePaiement",
+            [Permission.BillingExportComptabiliteConfirmerLettrage] = "AdmCompte.D.BeLettrage",
+            [Permission.BillingExportControleDocumentaireTraiter] = "AdmCompte.D.BeControleDoc",
+            [Permission.BillingExportIesBackOfficeInstruire] = "AdmCompte.D.BeIesBackOffice",
+            [Permission.BillingExportIesControleDocumentaireInstruire] = "AdmCompte.D.BeIesControleDoc",
+            [Permission.TicketCreer] = "AdmCompte.D.TCreer",
+            [Permission.TicketPrendreEnCharge] = "AdmCompte.D.TPrendre",
+            [Permission.TicketAffecterManuellement] = "AdmCompte.D.TAffecter",
+            [Permission.TicketReaffecter] = "AdmCompte.D.TReaffecter",
+            [Permission.TicketTransferer] = "AdmCompte.D.TTransferer",
+            [Permission.TicketAnnuler] = "AdmCompte.D.TAnnuler",
+            [Permission.TicketCloturer] = "AdmCompte.D.TCloturer",
+            [Permission.TicketClotureAbsenceReponse] = "AdmCompte.D.TClotureAbsence",
+            [Permission.TicketRouvrir] = "AdmCompte.D.TRouvrir",
+            [Permission.MessageNoteInterne] = "AdmCompte.D.MsgNote",
+            [Permission.DocumentDeposer] = "AdmCompte.D.DocDeposer",
+            [Permission.DocumentTelecharger] = "AdmCompte.D.DocTelecharger",
+            [Permission.TarificationAdministrer] = "AdmCompte.D.TarifAdmin",
+            [Permission.AvoirInstruire] = "AdmCompte.D.AvoirInstruire",
+            [Permission.AvoirDecider] = "AdmCompte.D.AvoirDecider",
+            [Permission.ExonerationInstruire] = "AdmCompte.D.ExonerationInstruire",
+            [Permission.ExonerationDecider] = "AdmCompte.D.ExonerationDecider",
+            [Permission.ComplaintSoumettre] = "AdmCompte.D.ComplaintSoumettre",
+            [Permission.ComplaintInstruire] = "AdmCompte.D.ComplaintInstruire",
+            [Permission.ComplaintRepondre] = "AdmCompte.D.ComplaintRepondre",
+            [Permission.AdministrationCategoriesReclamation] = "AdmCompte.D.ComplaintCategories",
+            [Permission.EnrolementSoumettre] = "AdmCompte.D.EnrolSoumettre",
+            [Permission.EnrolementInstruire] = "AdmCompte.D.EnrolInstruire",
+            [Permission.AdministrationChampsEnrolement] = "AdmCompte.D.EnrolChampsAdmin",
+            [Permission.GuichetRecherche] = "AdmCompte.D.GuichetRecherche",
+            [Permission.RendezVousGerer] = "AdmCompte.D.RdvGerer",
+            [Permission.SupervisionConsulter] = "AdmCompte.D.SupConsulter",
+            [Permission.SupervisionAgir] = "AdmCompte.D.SupAgir",
+            [Permission.ActionDeMasse] = "AdmCompte.D.ActionMasse",
+            [Permission.PrioriteModifier] = "AdmCompte.D.PrioModifier",
+            [Permission.DisponibiliteGerer] = "AdmCompte.D.DispoGerer",
+            [Permission.CompetenceGerer] = "AdmCompte.D.CompetenceGerer",
+            [Permission.AdministrationComptes] = "AdmCompte.D.AdminComptes",
+            [Permission.CompteValider] = "AdmCompte.D.CompteValider",
+            [Permission.CompteTypeModifier] = "AdmCompte.D.CompteType",
+            [Permission.CompteGererCollaborateurs] = "AdmCompte.D.CompteCollab",
+            [Permission.AdministrationFiles] = "AdmCompte.D.AdminFiles",
+            [Permission.AdministrationSla] = "AdmCompte.D.AdminSla",
+            [Permission.AdministrationPerimetresSupervision] = "AdmCompte.D.AdminPerim",
+            [Permission.AdministrationNotifications] = "AdmCompte.D.AdminNotif",
+            [Permission.AuditConsulter] = "AdmCompte.D.AuditConsulter",
+            [Permission.SupportIncidentInstruire] = "AdmCompte.D.IncidentN1",
+            [Permission.SupportIncidentInstruireN2] = "AdmCompte.D.IncidentN2",
+            [Permission.AdministrationCategoriesIncident] = "AdmCompte.D.IncidentCategories",
+        };
+
+    // (B) Profils métier affichés dans la modale (préréglages 1 clic). Id = clé de Permission.ProfilsMetier.
+    private sealed record ProfilMetierUi(string Id, string Icone, string NomCle, string DescCle);
+
+    private static readonly IReadOnlyList<ProfilMetierUi> ProfilsMetierUi =
+    [
+        new("PiloteManifeste", "📦", "AdmCompte.Profil.PiloteManifeste.Nom", "AdmCompte.Profil.PiloteManifeste.Desc"),
+        new("BackOfficeExport", "📤", "AdmCompte.Profil.BackOfficeExport.Nom", "AdmCompte.Profil.BackOfficeExport.Desc"),
+        new("Facturier", "🧾", "AdmCompte.Profil.Facturier.Nom", "AdmCompte.Profil.Facturier.Desc"),
+        new("Caisse", "💰", "AdmCompte.Profil.Caisse.Nom", "AdmCompte.Profil.Caisse.Desc"),
+        new("ComptableClient", "📒", "AdmCompte.Profil.ComptableClient.Nom", "AdmCompte.Profil.ComptableClient.Desc"),
+        new("ControleDocumentaire", "📑", "AdmCompte.Profil.ControleDocumentaire.Nom", "AdmCompte.Profil.ControleDocumentaire.Desc"),
+        new("SupportOperationnel", "📢", "AdmCompte.Profil.SupportOperationnel.Nom", "AdmCompte.Profil.SupportOperationnel.Desc"),
+        new("AgentGate", "🚚", "AdmCompte.Profil.AgentGate.Nom", "AdmCompte.Profil.AgentGate.Desc"),
+        new("Superviseur", "📊", "AdmCompte.Profil.Superviseur.Nom", "AdmCompte.Profil.Superviseur.Desc"),
+        new("AdminFonctionnel", "🛡️", "AdmCompte.Profil.AdminFonctionnel.Nom", "AdmCompte.Profil.AdminFonctionnel.Desc"),
+        new("SupportN2", "🎧", "AdmCompte.Profil.SupportN2.Nom", "AdmCompte.Profil.SupportN2.Desc"),
+    ];
+
+    private void DemanderConfirmationProfilMetier(CompteAgentVue cible, ProfilMetierUi profil)
+    {
+        var codes = Domain.Securite.Permission.ProfilsMetier[profil.Id];
+        var manquantes = codes.Except(cible.Permissions).Count();
+        if (manquantes == 0)
+        {
+            AfficherToast("info", Loc["AdmCompte.NoChangeTitle"].Value, Loc["AdmCompte.NoChangeProfilMetier", Loc[profil.NomCle].Value, cible.NomAffiche].Value);
+            return;
+        }
+
+        _confirmation = new ConfirmationEnAttente(
+            Loc["AdmCompte.ConfProfilTitle", Loc[profil.NomCle].Value].Value,
+            Loc["AdmCompte.ConfProfilMsg", Loc[profil.NomCle].Value, cible.NomAffiche, manquantes].Value
+                + " " + Loc[profil.DescCle].Value,
+            Loc["AdmCompte.ConfProfilBtn"].Value,
+            "btn-primary",
+            () => ExecuterProfilMetierAsync(cible.Id, profil.Id));
+    }
+
+    private async Task ExecuterProfilMetierAsync(Guid cibleId, string profilId) =>
+        await ExecuterEnMasseAsync(
+            (commande, ct) => commande.AppliquerProfilAsync(_appelantId, cibleId, profilId, ct),
+            resultat => Loc["AdmCompte.ResultProfilMetier", resultat.PermissionsAppliquees].Value);
 
     // Instance (et non statique) : les libellés sont localisés via Loc injecté.
     private IReadOnlyList<GroupePermissions> TousLesGroupes =>
     [
-        new GroupePermissions(Loc["AdmCompte.G.Import"].Value, "📦", [
+        new GroupePermissions(Loc["AdmCompte.G.Import"].Value, "📦", Loc["AdmCompte.GD.Import"].Value, [
             new ElementPermission(Permission.BillingImportSoumettre, Loc["AdmCompte.P.BiSoumettre"].Value),
             new ElementPermission(Permission.BillingImportManifesteInstruire, Loc["AdmCompte.P.BiManifeste"].Value),
             new ElementPermission(Permission.BillingImportFacturationEditer, Loc["AdmCompte.P.BiFacturation"].Value),
@@ -989,7 +1141,7 @@ else
             new ElementPermission(Permission.BillingImportIesManifesteInstruire, Loc["AdmCompte.P.BiIesManifeste"].Value),
             new ElementPermission(Permission.BillingImportIesControleDocumentaireInstruire, Loc["AdmCompte.P.BiIesControleDoc"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.Export"].Value, "📤", [
+        new GroupePermissions(Loc["AdmCompte.G.Export"].Value, "📤", Loc["AdmCompte.GD.Export"].Value, [
             new ElementPermission(Permission.BillingExportSoumettre, Loc["AdmCompte.P.BeSoumettre"].Value),
             new ElementPermission(Permission.BillingExportBackOfficeInstruire, Loc["AdmCompte.P.BeBackOffice"].Value),
             new ElementPermission(Permission.BillingExportFacturationEditer, Loc["AdmCompte.P.BeFacturation"].Value),
@@ -999,7 +1151,7 @@ else
             new ElementPermission(Permission.BillingExportIesBackOfficeInstruire, Loc["AdmCompte.P.BeIesBackOffice"].Value),
             new ElementPermission(Permission.BillingExportIesControleDocumentaireInstruire, Loc["AdmCompte.P.BeIesControleDoc"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.Tickets"].Value, "🎫", [
+        new GroupePermissions(Loc["AdmCompte.G.Tickets"].Value, "🎫", Loc["AdmCompte.GD.Tickets"].Value, [
             new ElementPermission(Permission.TicketCreer, Loc["AdmCompte.P.TCreer"].Value),
             new ElementPermission(Permission.TicketPrendreEnCharge, Loc["AdmCompte.P.TPrendre"].Value),
             new ElementPermission(Permission.TicketAffecterManuellement, Loc["AdmCompte.P.TAffecter"].Value),
@@ -1013,27 +1165,27 @@ else
             new ElementPermission(Permission.DocumentDeposer, Loc["AdmCompte.P.DocDeposer"].Value),
             new ElementPermission(Permission.DocumentTelecharger, Loc["AdmCompte.P.DocTelecharger"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.Tarif"].Value, "💰", [
+        new GroupePermissions(Loc["AdmCompte.G.Tarif"].Value, "💰", Loc["AdmCompte.GD.Tarif"].Value, [
             new ElementPermission(Permission.TarificationAdministrer, Loc["AdmCompte.P.TarifAdmin"].Value),
             new ElementPermission(Permission.AvoirInstruire, Loc["AdmCompte.P.AvoirInstruire"].Value),
             new ElementPermission(Permission.AvoirDecider, Loc["AdmCompte.P.AvoirDecider"].Value),
             new ElementPermission(Permission.ExonerationInstruire, Loc["AdmCompte.P.ExonerationInstruire"].Value),
             new ElementPermission(Permission.ExonerationDecider, Loc["AdmCompte.P.ExonerationDecider"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.Complaints"].Value, "📢", [
+        new GroupePermissions(Loc["AdmCompte.G.Complaints"].Value, "📢", Loc["AdmCompte.GD.Complaints"].Value, [
             new ElementPermission(Permission.ComplaintSoumettre, Loc["AdmCompte.P.ComplaintSoumettre"].Value),
             new ElementPermission(Permission.ComplaintInstruire, Loc["AdmCompte.P.ComplaintInstruire"].Value),
             new ElementPermission(Permission.ComplaintRepondre, Loc["AdmCompte.P.ComplaintRepondre"].Value),
             new ElementPermission(Permission.AdministrationCategoriesReclamation, Loc["AdmCompte.P.ComplaintCategories"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.Enrolement"].Value, "🚚", [
+        new GroupePermissions(Loc["AdmCompte.G.Enrolement"].Value, "🚚", Loc["AdmCompte.GD.Enrolement"].Value, [
             new ElementPermission(Permission.EnrolementSoumettre, Loc["AdmCompte.P.EnrolSoumettre"].Value),
             new ElementPermission(Permission.EnrolementInstruire, Loc["AdmCompte.P.EnrolInstruire"].Value),
             new ElementPermission(Permission.AdministrationChampsEnrolement, Loc["AdmCompte.P.EnrolChampsAdmin"].Value),
             new ElementPermission(Permission.GuichetRecherche, Loc["AdmCompte.P.GuichetRecherche"].Value),
             new ElementPermission(Permission.RendezVousGerer, Loc["AdmCompte.P.RdvGerer"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.Supervision"].Value, "📊", [
+        new GroupePermissions(Loc["AdmCompte.G.Supervision"].Value, "📊", Loc["AdmCompte.GD.Supervision"].Value, [
             new ElementPermission(Permission.SupervisionConsulter, Loc["AdmCompte.P.SupConsulter"].Value),
             new ElementPermission(Permission.SupervisionAgir, Loc["AdmCompte.P.SupAgir"].Value),
             new ElementPermission(Permission.ActionDeMasse, Loc["AdmCompte.P.ActionMasse"].Value),
@@ -1041,7 +1193,7 @@ else
             new ElementPermission(Permission.DisponibiliteGerer, Loc["AdmCompte.P.DispoGerer"].Value),
             new ElementPermission(Permission.CompetenceGerer, Loc["AdmCompte.P.CompetenceGerer"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.AdminSec"].Value, "🛡️", [
+        new GroupePermissions(Loc["AdmCompte.G.AdminSec"].Value, "🛡️", Loc["AdmCompte.GD.AdminSec"].Value, [
             new ElementPermission(Permission.AdministrationComptes, Loc["AdmCompte.P.AdminComptes"].Value),
             new ElementPermission(Permission.CompteValider, Loc["AdmCompte.P.CompteValider"].Value),
             new ElementPermission(Permission.CompteTypeModifier, Loc["AdmCompte.P.CompteType"].Value),
@@ -1052,7 +1204,7 @@ else
             new ElementPermission(Permission.AdministrationNotifications, Loc["AdmCompte.P.AdminNotif"].Value),
             new ElementPermission(Permission.AuditConsulter, Loc["AdmCompte.P.AuditConsulter"].Value),
         ]),
-        new GroupePermissions(Loc["AdmCompte.G.SupportIt"].Value, "🎧", [
+        new GroupePermissions(Loc["AdmCompte.G.SupportIt"].Value, "🎧", Loc["AdmCompte.GD.SupportIt"].Value, [
             new ElementPermission(Permission.SupportIncidentInstruire, Loc["AdmCompte.P.IncidentN1"].Value),
             new ElementPermission(Permission.SupportIncidentInstruireN2, Loc["AdmCompte.P.IncidentN2"].Value),
             new ElementPermission(Permission.AdministrationCategoriesIncident, Loc["AdmCompte.P.IncidentCategories"].Value),
@@ -1071,6 +1223,7 @@ else
                 .Select(g => new GroupePermissions(
                     g.Nom,
                     g.Icone,
+                    g.Description,
                     g.Permissions.Where(p => p.Libelle.Contains(q, StringComparison.OrdinalIgnoreCase)
                                           || p.Code.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList()))
                 .Where(g => g.Permissions.Count > 0);

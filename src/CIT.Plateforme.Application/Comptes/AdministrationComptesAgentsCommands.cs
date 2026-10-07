@@ -328,6 +328,50 @@ public sealed class DefinirHabilitationsEnMasseCommand(
     }
 
     /// <summary>
+    /// Applique un PROFIL MÉTIER nommé (<see cref="Permission.ProfilsMetier"/>) à
+    /// <paramref name="cibleId"/> : accorde, en UNE unité de travail, les permissions du profil qu'il
+    /// ne détient pas encore. Mêmes garanties que <see cref="AppliquerProfilSupportN1Async"/> : liste
+    /// issue du référentiel serveur (jamais de l'appelant), autorisation vérifiée une fois, ajout
+    /// additif (n'en retire aucune), idempotent, chaque attribution tracée + une synthèse.
+    /// </summary>
+    /// <exception cref="ArgumentException">Profil inconnu.</exception>
+    public async Task<ResultatHabilitationsEnMasse> AppliquerProfilAsync(
+        Guid appelantId, Guid cibleId, string profilId, CancellationToken ct = default)
+    {
+        if (!Permission.ProfilsMetier.TryGetValue(profilId, out var profil))
+        {
+            throw new ArgumentException($"Profil métier inconnu : {profilId}.", nameof(profilId));
+        }
+
+        await autorisation.ExigerAsync(appelantId, Permission.AdministrationComptes, ct: ct).ConfigureAwait(false);
+        await ExigerCibleConnueAsync(utilisateurs, cibleId, ct).ConfigureAwait(false);
+
+        var detenues = await PermissionsNonBorneesAsync(cibleId, ct).ConfigureAwait(false);
+        var aAccorder = profil
+            .Where(p => !detenues.Contains(p))
+            .OrderBy(p => p, StringComparer.Ordinal)
+            .ToList();
+
+        foreach (var permissionCode in aAccorder)
+        {
+            await habilitations
+                .AjouterAsync(HabilitationUtilisateur.Attribuer(cibleId, permissionCode), ct)
+                .ConfigureAwait(false);
+            await journalisation.ConsignerAuditAsync(
+                appelantId, "HabilitationAttribuee", "HabilitationUtilisateur", cibleId, null, permissionCode, ct)
+                .ConfigureAwait(false);
+        }
+
+        await journalisation.ConsignerAuditAsync(
+            appelantId, "ProfilMetierApplique", "HabilitationUtilisateur", cibleId,
+            null, $"{profilId}: {aAccorder.Count} permission(s)", ct).ConfigureAwait(false);
+
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+
+        return new ResultatHabilitationsEnMasse(aAccorder.Count, profil.Count - aAccorder.Count, []);
+    }
+
+    /// <summary>
     /// Retire à <paramref name="cibleId"/> toutes ses permissions.
     ///
     /// COMPORTEMENT DÉTERMINISTE SUR L'AUTO-RETRAIT : si l'appelant s'applique l'opération à

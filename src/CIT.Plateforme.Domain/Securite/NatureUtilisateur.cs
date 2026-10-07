@@ -229,6 +229,76 @@ public static class Permission
     ];
 
     /// <summary>
+    /// PROFILS MÉTIER — préréglages nommés correspondant aux rôles du CDC. Comme
+    /// <see cref="ProfilSupportN1"/>, un profil n'est qu'une LISTE DE CODES que l'administrateur
+    /// applique d'un geste (ajout additif, jamais une remise à zéro) ; le socle ne nomme toujours
+    /// aucun rôle en dur dans le modèle de droits. Rend l'affectation des rôles lisible et sûre.
+    /// Ce n'est pas un <c>const string</c> : <see cref="Tous"/> ne le capte pas (référentiel inchangé).
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> ProfilsMetier =
+        new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal)
+        {
+            ["SupportN1"] = ProfilSupportN1,
+            ["SupportN2"] = [.. ProfilSupportN1, SupportIncidentInstruireN2],
+            ["PiloteManifeste"] =
+            [
+                BillingImportManifesteInstruire, BillingImportIesManifesteInstruire,
+                TicketPrendreEnCharge, TicketTransferer, MessageNoteInterne,
+                DocumentDeposer, DocumentTelecharger,
+            ],
+            ["BackOfficeExport"] =
+            [
+                BillingExportBackOfficeInstruire, BillingExportIesBackOfficeInstruire,
+                TicketPrendreEnCharge, TicketTransferer, MessageNoteInterne,
+                DocumentDeposer, DocumentTelecharger,
+            ],
+            ["Facturier"] =
+            [
+                BillingImportFacturationEditer, BillingExportFacturationEditer,
+                TicketPrendreEnCharge, DocumentDeposer, DocumentTelecharger, MessageNoteInterne,
+            ],
+            ["Caisse"] =
+            [
+                BillingImportPaiementValider, BillingExportPaiementValider,
+                TicketPrendreEnCharge, DocumentTelecharger, MessageNoteInterne,
+            ],
+            ["ComptableClient"] =
+            [
+                BillingImportComptabiliteConfirmerLettrage, BillingExportComptabiliteConfirmerLettrage,
+                TicketPrendreEnCharge, DocumentTelecharger, MessageNoteInterne,
+            ],
+            ["ControleDocumentaire"] =
+            [
+                BillingImportControleDocumentaireTraiter, BillingExportControleDocumentaireTraiter,
+                BillingImportIesControleDocumentaireInstruire, BillingExportIesControleDocumentaireInstruire,
+                TicketPrendreEnCharge, TicketCloturer, DocumentDeposer, DocumentTelecharger, MessageNoteInterne,
+            ],
+            ["SupportOperationnel"] =
+            [
+                ComplaintInstruire, ComplaintRepondre,
+                TicketPrendreEnCharge, MessageNoteInterne, DocumentTelecharger,
+            ],
+            ["AgentGate"] =
+            [
+                EnrolementInstruire, GuichetRecherche, RendezVousGerer,
+                TicketPrendreEnCharge, TicketCloturer, MessageNoteInterne, DocumentTelecharger,
+            ],
+            ["Superviseur"] =
+            [
+                SupervisionConsulter, SupervisionAgir, ActionDeMasse, PrioriteModifier,
+                DisponibiliteGerer, CompetenceGerer,
+                TicketAffecterManuellement, TicketReaffecter, TicketTransferer, AuditConsulter,
+            ],
+            ["AdminFonctionnel"] =
+            [
+                AdministrationComptes, CompteValider, CompteTypeModifier, CompteGererCollaborateurs,
+                AdministrationFiles, AdministrationSla, AdministrationPerimetresSupervision,
+                AdministrationNotifications, AuditConsulter, AdministrationCategoriesReclamation,
+                AdministrationCategoriesIncident, AdministrationChampsEnrolement, TarificationAdministrer,
+            ],
+        };
+
+    /// <summary>
     /// Ensemble exhaustif des codes de permission definis ci-dessus, obtenu par reflexion sur les
     /// constantes de cette classe. Le faire ainsi plutot qu'a la main garantit qu'une permission
     /// ajoutee plus tard y figure sans qu'on ait a penser a l'y inscrire — une liste tenue
