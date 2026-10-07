@@ -73,7 +73,6 @@ else
                     <tr>
                         <th style="width: 160px;">@Loc["EnrolSoc.ColType"]</th>
                         <th>@Loc["EnrolSoc.ColObjet"]</th>
-                        <th>@Loc["EnrolSoc.ColDesc"]</th>
                         <th style="width: 220px;">@Loc["EnrolSoc.ColEcheances"]</th>
                         <th style="width: 100px;">@Loc["EnrolSoc.ColActions"]</th>
                     </tr>
@@ -94,10 +93,6 @@ else
                                        placeholder="@(ligne.Type == TypeObjetEnrolement.Camion ? Loc["EnrolSoc.ObjectPlaceholderCamion"].Value : Loc["EnrolSoc.ObjectPlaceholderChauffeur"].Value)" maxlength="200" />
                             </td>
                             <td>
-                                <input class="form-control form-control-sm" @bind="ligne.Description" @bind:event="oninput"
-                                       placeholder="@Loc["EnrolSoc.DescPlaceholder"]" maxlength="500" />
-                            </td>
-                            <td>
                                 @* Dates d'expiration facultatives : permis (chauffeur), assurance et visite technique (camion). *@
                                 @foreach (var document in EcheanceDocumentEnrolement.DocumentsAttendus(ligne.Type))
                                 {
@@ -113,7 +108,7 @@ else
                         </tr>
                         @* Pièces justificatives de la ligne : photo (téléphone) ou scan PDF, une par face. *@
                         <tr @key="(ligne.Cle, 1)">
-                            <td colspan="5" class="pt-0">
+                            <td colspan="4" class="pt-0">
                                 <div class="small fw-semibold text-muted mb-1">@Loc["EnrolSoc.PiecesTitle"]</div>
                                 <div class="d-flex flex-wrap gap-3">
                                     @foreach (var exigee in PiecesEnrolement.Exigees(ligne.Type))
@@ -205,7 +200,7 @@ else
 
     private bool PeutSoumettre =>
         _lignes.Count > 0 && _signataire.EstComplet &&
-        _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet) && !string.IsNullOrWhiteSpace(l.Description)
+        _lignes.All(l => !string.IsNullOrWhiteSpace(l.Objet)
                          // Dates d'expiration obligatoires pour chaque document attendu (03/10/2026).
                          && EcheanceDocumentEnrolement.DocumentsAttendus(l.Type).All(l.Echeances.ContainsKey)
                          // Pièces obligatoires (04/10/2026) : permis recto/verso et pièce d'identité ;
@@ -306,7 +301,13 @@ else
         try
         {
             var objets = _lignes
-                .Select(l => new ObjetEnrolementSoumission(l.Type, l.Objet.Trim(), l.Description.Trim(), l.EcheancesPertinentes()))
+                // La colonne « Précisions » a été retirée : la description est renseignée
+                // automatiquement (« Enrôlement chauffeur/camion — <identité> ») car la commande
+                // l'exige. L'agent dispose du type, de l'identité, des pièces et des échéances.
+                .Select(l => new ObjetEnrolementSoumission(
+                    l.Type, l.Objet.Trim(),
+                    $"{Loc[$"Enrol.Objet.{l.Type}"].Value} — {l.Objet.Trim()}",
+                    l.EcheancesPertinentes()))
                 .ToList();
             var resultat = await SoumettreEnrolementSociete.ExecuterAsync(
                 _utilisateurId,

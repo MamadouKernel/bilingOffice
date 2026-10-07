@@ -10,14 +10,15 @@ public enum PieceEnrolement
     CarteGriseRecto,
     CarteGriseVerso,
     Assurance,
+    PhotoIdentite,
 }
 
 public sealed record PieceEnrolementExigee(PieceEnrolement Piece, bool Obligatoire);
 
 /// <summary>
-/// Pièces exigées par type d'objet (04/10/2026) : chauffeur — permis de conduire recto/verso et
-/// pièce d'identité ; camion — carte grise recto/verso et attestation d'assurance. Le verso de la
-/// pièce d'identité reste facultatif (passeport : une seule page d'identité).
+/// Pièces exigées par type d'objet : chauffeur — photo du permis de conduire recto/verso et photo
+/// d'identité (07/10/2026 : la pièce d'identité CNI recto/verso n'est plus demandée, seule une photo
+/// d'identité l'est) ; camion — carte grise recto/verso et attestation d'assurance.
 /// </summary>
 public static class PiecesEnrolement
 {
@@ -27,8 +28,7 @@ public static class PiecesEnrolement
         [
             new(PieceEnrolement.PermisRecto, true),
             new(PieceEnrolement.PermisVerso, true),
-            new(PieceEnrolement.PieceIdentiteRecto, true),
-            new(PieceEnrolement.PieceIdentiteVerso, false),
+            new(PieceEnrolement.PhotoIdentite, true),
         ],
         TypeObjetEnrolement.Camion =>
         [

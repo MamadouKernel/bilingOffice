@@ -4,19 +4,20 @@ using Xunit;
 namespace CIT.Plateforme.Domain.Tests.Enrolement;
 
 /// <summary>
-/// Pièces justificatives exigées à l'enrôlement (04/10/2026) : chauffeur — permis recto/verso et
-/// pièce d'identité ; camion — carte grise recto/verso et attestation d'assurance.
+/// Pièces justificatives exigées à l'enrôlement : chauffeur — photo du permis recto/verso et photo
+/// d'identité (07/10/2026 : la pièce d'identité CNI n'est plus demandée) ; camion — carte grise
+/// recto/verso et attestation d'assurance.
 /// </summary>
 public sealed class PiecesEnrolementTests
 {
     [Fact]
-    public void Un_chauffeur_fournit_son_permis_recto_verso_et_sa_piece_d_identite()
+    public void Un_chauffeur_fournit_son_permis_recto_verso_et_sa_photo_d_identite()
     {
         var obligatoires = PiecesEnrolement.Exigees(TypeObjetEnrolement.Chauffeur).Where(p => p.Obligatoire).Select(p => p.Piece);
 
-        Assert.Equal([PieceEnrolement.PermisRecto, PieceEnrolement.PermisVerso, PieceEnrolement.PieceIdentiteRecto], obligatoires);
-        // Verso facultatif : un passeport n'a qu'une page d'identité.
-        Assert.Contains(PiecesEnrolement.Exigees(TypeObjetEnrolement.Chauffeur), p => p.Piece == PieceEnrolement.PieceIdentiteVerso && !p.Obligatoire);
+        Assert.Equal([PieceEnrolement.PermisRecto, PieceEnrolement.PermisVerso, PieceEnrolement.PhotoIdentite], obligatoires);
+        // La pièce d'identité CNI (recto/verso) n'est plus demandée.
+        Assert.DoesNotContain(PiecesEnrolement.Exigees(TypeObjetEnrolement.Chauffeur), p => p.Piece is PieceEnrolement.PieceIdentiteRecto or PieceEnrolement.PieceIdentiteVerso);
     }
 
     [Fact]
@@ -34,6 +35,6 @@ public sealed class PiecesEnrolementTests
 
         Assert.Equal([PieceEnrolement.CarteGriseVerso, PieceEnrolement.Assurance], manquantes);
         Assert.Empty(PiecesEnrolement.Manquantes(TypeObjetEnrolement.Chauffeur,
-            [PieceEnrolement.PermisRecto, PieceEnrolement.PermisVerso, PieceEnrolement.PieceIdentiteRecto]));
+            [PieceEnrolement.PermisRecto, PieceEnrolement.PermisVerso, PieceEnrolement.PhotoIdentite]));
     }
 }
