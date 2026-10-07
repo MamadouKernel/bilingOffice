@@ -30,7 +30,19 @@ public sealed class TelechargerDocumentQuery(
         var ticket = await tickets.ObtenirParIdAsync(document.TicketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {document.TicketId} introuvable.");
 
-        await autorisation.ExigerAsync(agentId, Permission.DocumentTelecharger, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        // L'accès documentaire suit le droit d'agir sur le ticket (07/10/2026) : un agent qui détient
+        // DocumentTelecharger, OU — pour un enrôlement — le droit d'instruire la file
+        // (EnrolementInstruire), peut lire les pièces qu'il voit déjà dans la fiche. Évite qu'un agent
+        // gate habilité à traiter le dossier soit refusé à l'ouverture de ses propres documents.
+        var autorise = await autorisation.EstAutoriseAsync(agentId, Permission.DocumentTelecharger, ticket.FileCouranteId, ct).ConfigureAwait(false)
+            || (ticket.Module == "Enrolement"
+                && await autorisation.EstAutoriseAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false));
+        if (!autorise)
+        {
+            // Aucun des droits : on relève le refus standard (message et journalisation habituels).
+            await autorisation.ExigerAsync(agentId, Permission.DocumentTelecharger, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
+
         return await TelechargerValideAsync(agentId, document, ct).ConfigureAwait(false);
     }
 

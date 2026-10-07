@@ -88,4 +88,57 @@ public sealed class AccesDocumentAutoriseTests
         await using var flux = await query.TelechargerPourAgentAsync(agentHabilite, document.Id);
         Assert.NotNull(flux);
     }
+
+    // 07/10/2026 — un agent gate habilité à INSTRUIRE l'enrôlement peut lire les pièces du dossier
+    // sans détenir DocumentTelecharger séparément (elles figurent déjà dans sa fiche).
+    private static async Task<(TelechargerDocumentQuery Query, Document Document, Guid Agent)>
+        ConstruireEnrolementAsync(string? permissionAgent)
+    {
+        var dbContext = ContexteDeTest.CreerNouveauContexte();
+        var horloge = HorlogeDeTest.Defaut();
+        var stockage = new StockageDocumentsFichiers(new ConfigurationBuilder().AddInMemoryCollection().Build(), new EnvironnementDeTest("Development"));
+        var ticketRepo = new TicketRepository(dbContext);
+        var agent = Guid.NewGuid();
+        var fileId = Guid.NewGuid();
+        var client = Guid.NewGuid();
+
+        if (permissionAgent is not null)
+        {
+            dbContext.Habilitations.Add(HabilitationUtilisateur.Attribuer(
+                CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agent), permissionAgent, fileId));
+        }
+
+        var dossier = Dossier.Creer("DOS-ENR-000001", CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, client, NatureUtilisateur.Client), horloge.MaintenantUtc);
+        var ticket = Ticket.Creer("ENR-ACC-000001", "Enrolement", "Enrolement", fileId, dossier.Id, horloge.MaintenantUtc);
+        dbContext.Dossiers.Add(dossier);
+        dbContext.Tickets.Add(ticket);
+
+        var cle = await stockage.EnregistrerAsync(new MemoryStream(Encoding.UTF8.GetBytes("piece")), "permis.pdf");
+        var document = Document.Deposer(ticket.Id, client, "permis.pdf", "application/pdf", 5, cle, horloge.MaintenantUtc);
+        document.MarquerResultatAntivirus(StatutAnalyseAntivirus.Sain);
+        dbContext.Documents.Add(document);
+        await dbContext.SaveChangesAsync();
+
+        var query = new TelechargerDocumentQuery(new DocumentRepository(dbContext), stockage, new AutorisationService(dbContext),
+            ticketRepo, new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext)),
+            new JournalisationService(dbContext, horloge), new UniteDeTravail(dbContext));
+        return (query, document, agent);
+    }
+
+    [Fact]
+    public async Task Un_agent_gate_qui_instruit_l_enrolement_accede_aux_pieces_sans_DocumentTelecharger()
+    {
+        var (query, document, agent) = await ConstruireEnrolementAsync(Permission.EnrolementInstruire);
+
+        await using var flux = await query.TelechargerPourAgentAsync(agent, document.Id);
+        Assert.NotNull(flux);
+    }
+
+    [Fact]
+    public async Task Un_agent_sans_aucun_droit_sur_l_enrolement_est_refuse()
+    {
+        var (query, document, agent) = await ConstruireEnrolementAsync(permissionAgent: null);
+
+        await Assert.ThrowsAsync<AccesRefuseException>(() => query.TelechargerPourAgentAsync(agent, document.Id));
+    }
 }
