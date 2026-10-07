@@ -99,9 +99,29 @@
                                     <span class="text-danger">*</span>
                                 }
                             </label>
-                            <input id="@("champ-" + champ.Code)" class="form-control"
-                                   value="@ObtenirValeurChamp(champ.Code)"
-                                   @oninput="e => DefinirValeurChamp(champ.Code, e.Value?.ToString() ?? string.Empty)" />
+                            @switch (champ.Type)
+                            {
+                                case CIT.Plateforme.Domain.Enrolement.TypeChampEnrolement.Date:
+                                    <input id="@("champ-" + champ.Code)" type="date" class="form-control w-auto"
+                                           value="@ObtenirValeurChamp(champ.Code)"
+                                           @oninput="e => DefinirValeurChamp(champ.Code, e.Value?.ToString() ?? string.Empty)" />
+                                    break;
+                                case CIT.Plateforme.Domain.Enrolement.TypeChampEnrolement.Liste:
+                                    <select id="@("champ-" + champ.Code)" class="form-select"
+                                            @onchange="e => DefinirValeurChamp(champ.Code, e.Value?.ToString() ?? string.Empty)">
+                                        <option value="">—</option>
+                                        @foreach (var opt in (champ.Options ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                        {
+                                            <option value="@opt" selected="@(ObtenirValeurChamp(champ.Code) == opt)">@opt</option>
+                                        }
+                                    </select>
+                                    break;
+                                default:
+                                    <input id="@("champ-" + champ.Code)" class="form-control"
+                                           value="@ObtenirValeurChamp(champ.Code)"
+                                           @oninput="e => DefinirValeurChamp(champ.Code, e.Value?.ToString() ?? string.Empty)" />
+                                    break;
+                            }
                         </div>
                     }
                 </div>

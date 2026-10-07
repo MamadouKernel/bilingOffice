@@ -95,6 +95,10 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             cutSoumission.WaitForState(() => cutSoumission.Markup.Contains("Objet"), TimeSpan.FromSeconds(25));
             cutSoumission.Find("#objet").Input("Enrôlement chauffeur — REC-SCE-08");
             cutSoumission.Find("#description").Input("Camion frigorifique, dépôt d'Abidjan.");
+            // Champs chauffeur obligatoires désormais amorcés (NOM, Prénoms, date d'expiration du permis).
+            cutSoumission.Find("[id='champ-chauffeur.nom']").Input("TANOH");
+            cutSoumission.Find("[id='champ-chauffeur.prenoms']").Input("Yavoh");
+            cutSoumission.Find("[id='champ-chauffeur.permis_expiration']").Input("2030-12-31");
             cutSoumission.Find("button.btn-primary").Click();
             cutSoumission.WaitForState(() => cutSoumission.Markup.Contains("Enrôlement soumis avec succès"), TimeSpan.FromSeconds(25));
         }

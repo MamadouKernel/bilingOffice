@@ -1,6 +1,19 @@
 namespace CIT.Plateforme.Domain.Enrolement;
 
 /// <summary>
+/// Nature de saisie d'un champ d'enrôlement, pour un rendu adapté (bonne pratique UX) : texte libre,
+/// date (sélecteur), ou liste de choix (<see cref="ChampFormulaireEnrolement.Options"/>). La valeur
+/// soumise reste stockée en texte (<see cref="ValeurChampEnrolement"/>) — le type ne pilote que la
+/// saisie et la validation côté formulaire.
+/// </summary>
+public enum TypeChampEnrolement
+{
+    Texte = 0,
+    Date = 1,
+    Liste = 2,
+}
+
+/// <summary>
 /// ENR-01 (remédiation) — « […] la liste des informations et pièces est paramétrable. » Le
 /// formulaire de soumission d'enrôlement ne captait jusqu'ici qu'un objet et une description en
 /// texte libre : ce référentiel permet à CIT de définir, sans développement, un ensemble de champs
@@ -40,9 +53,16 @@ public sealed class ChampFormulaireEnrolement
     /// </summary>
     public TypeObjetEnrolement? TypeObjet { get; private set; }
 
+    /// <summary>Nature de saisie du champ (texte par défaut — rétro-compatible).</summary>
+    public TypeChampEnrolement Type { get; private set; } = TypeChampEnrolement.Texte;
+
+    /// <summary>Options d'une liste de choix, séparées par « ; » (ex. « B;C;D;E »). <c>null</c> hors
+    /// type <see cref="TypeChampEnrolement.Liste"/>.</summary>
+    public string? Options { get; private set; }
+
     private ChampFormulaireEnrolement() { }
 
-    public static ChampFormulaireEnrolement Definir(string code, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null)
+    public static ChampFormulaireEnrolement Definir(string code, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null, TypeChampEnrolement type = TypeChampEnrolement.Texte, string? options = null)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -63,10 +83,12 @@ public sealed class ChampFormulaireEnrolement
             EstActif = true,
             Ordre = ordre,
             TypeObjet = typeObjet,
+            Type = type,
+            Options = NormaliserOptions(type, options),
         };
     }
 
-    public void Modifier(string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null)
+    public void Modifier(string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null, TypeChampEnrolement type = TypeChampEnrolement.Texte, string? options = null)
     {
         if (string.IsNullOrWhiteSpace(libelle))
         {
@@ -77,6 +99,20 @@ public sealed class ChampFormulaireEnrolement
         EstObligatoire = estObligatoire;
         Ordre = ordre;
         TypeObjet = typeObjet;
+        Type = type;
+        Options = NormaliserOptions(type, options);
+    }
+
+    /// <summary>Les options ne sont conservées que pour une liste, et nettoyées (vides retirés).</summary>
+    private static string? NormaliserOptions(TypeChampEnrolement type, string? options)
+    {
+        if (type != TypeChampEnrolement.Liste || string.IsNullOrWhiteSpace(options))
+        {
+            return null;
+        }
+
+        var valeurs = options.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return valeurs.Length == 0 ? null : string.Join(";", valeurs);
     }
 
     /// <summary>

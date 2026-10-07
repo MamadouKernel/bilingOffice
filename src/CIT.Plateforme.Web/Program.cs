@@ -367,6 +367,11 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementReferentiels>()
         .ExecuterAsync();
+    // Champs d'enrôlement chauffeur (valeurs métier 07/10/2026 : NOM, Prénoms, date d'expiration du
+    // permis, catégorie optionnelle). Additif, idempotent : aucun champ Chauffeur déjà présent n'est touché.
+    await scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementChampsEnrolement>()
+        .ExecuterAsync();
     // Aide contextuelle de départ (additif : un article retouché n'est jamais réécrit).
     await scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementAide>()

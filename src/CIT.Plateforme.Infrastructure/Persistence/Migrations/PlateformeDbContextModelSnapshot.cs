@@ -780,8 +780,17 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("Options")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
                     b.Property<int>("Ordre")
                         .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("TypeObjet")
                         .HasMaxLength(32)
@@ -796,6 +805,8 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
                     b.ToTable("ChampsFormulaireEnrolement", t =>
                         {
+                            t.HasCheckConstraint("CK_ChampsFormulaireEnrolement_Type", "[Type] IN (N'Texte', N'Date', N'Liste')");
+
                             t.HasCheckConstraint("CK_ChampsFormulaireEnrolement_TypeObjet", "[TypeObjet] IN (N'Chauffeur', N'Camion')");
                         });
                 });

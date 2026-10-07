@@ -7,7 +7,7 @@ namespace CIT.Plateforme.Application.Administration;
 
 /// <summary>Un champ du formulaire d'enrôlement tel que présenté à l'administrateur et au chauffeur/transporteur.
 /// <para>LOT 4 : <see cref="TypeObjet"/> nul = champ applicable à tous les types ; sinon restreint à un type.</para></summary>
-public sealed record ChampFormulaireEnrolementVue(Guid Id, string Code, string Libelle, bool EstObligatoire, bool EstActif, int Ordre, TypeObjetEnrolement? TypeObjet);
+public sealed record ChampFormulaireEnrolementVue(Guid Id, string Code, string Libelle, bool EstObligatoire, bool EstActif, int Ordre, TypeObjetEnrolement? TypeObjet, TypeChampEnrolement Type = TypeChampEnrolement.Texte, string? Options = null);
 
 /// <summary>
 /// ENR-01 — « la liste des informations et pièces est paramétrable » : les champs structurés du
@@ -24,7 +24,8 @@ public sealed class GererChampsFormulaireEnrolementCommand(
     IUniteDeTravail uniteDeTravail)
 {
     public async Task<Guid> DefinirAsync(
-        Guid appelantId, string code, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null, CancellationToken ct = default)
+        Guid appelantId, string code, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null,
+        TypeChampEnrolement type = TypeChampEnrolement.Texte, string? options = null, CancellationToken ct = default)
     {
         await autorisation.ExigerAsync(appelantId, Permission.AdministrationChampsEnrolement, ct: ct).ConfigureAwait(false);
 
@@ -33,7 +34,7 @@ public sealed class GererChampsFormulaireEnrolementCommand(
             throw new InvalidOperationException($"Un champ portant le code « {code.Trim()} » existe déjà.");
         }
 
-        var champ = ChampFormulaireEnrolement.Definir(code, libelle, estObligatoire, ordre, typeObjet);
+        var champ = ChampFormulaireEnrolement.Definir(code, libelle, estObligatoire, ordre, typeObjet, type, options);
         await champs.AjouterAsync(champ, ct).ConfigureAwait(false);
 
         await journalisation.ConsignerAuditAsync(
@@ -44,7 +45,8 @@ public sealed class GererChampsFormulaireEnrolementCommand(
     }
 
     public async Task ModifierAsync(
-        Guid appelantId, Guid champId, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null, CancellationToken ct = default)
+        Guid appelantId, Guid champId, string libelle, bool estObligatoire, int ordre, TypeObjetEnrolement? typeObjet = null,
+        TypeChampEnrolement type = TypeChampEnrolement.Texte, string? options = null, CancellationToken ct = default)
     {
         await autorisation.ExigerAsync(appelantId, Permission.AdministrationChampsEnrolement, ct: ct).ConfigureAwait(false);
 
@@ -52,7 +54,7 @@ public sealed class GererChampsFormulaireEnrolementCommand(
             ?? throw new InvalidOperationException($"Champ {champId} introuvable.");
 
         var avant = champ.Libelle;
-        champ.Modifier(libelle, estObligatoire, ordre, typeObjet);
+        champ.Modifier(libelle, estObligatoire, ordre, typeObjet, type, options);
 
         await journalisation.ConsignerAuditAsync(
             appelantId, "ChampFormulaireEnrolementModifie", nameof(ChampFormulaireEnrolement), champ.Id,
@@ -121,7 +123,7 @@ public sealed class ListerChampsFormulaireEnrolementQuery(
             .Where(c => pourType is null || c.EstApplicableA(pourType.Value))
             .OrderBy(c => c.Ordre)
             .ThenBy(c => c.Libelle, StringComparer.CurrentCulture)
-            .Select(c => new ChampFormulaireEnrolementVue(c.Id, c.Code, c.Libelle, c.EstObligatoire, c.EstActif, c.Ordre, c.TypeObjet))
+            .Select(c => new ChampFormulaireEnrolementVue(c.Id, c.Code, c.Libelle, c.EstObligatoire, c.EstActif, c.Ordre, c.TypeObjet, c.Type, c.Options))
             .ToList();
     }
 }

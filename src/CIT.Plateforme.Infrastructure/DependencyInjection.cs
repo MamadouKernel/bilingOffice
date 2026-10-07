@@ -193,6 +193,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Comptes.ModifierParametreTypeClientCommand>();
         // Référentiels métier issus des énumérations (Merise, 3FN).
         services.AddScoped<Persistence.ProvisionnementReferentiels>();
+        services.AddScoped<Persistence.ProvisionnementChampsEnrolement>();
         // Aide contextuelle (bouton « ? »).
         services.AddScoped<Persistence.ProvisionnementAide>();
         services.AddScoped<Persistence.RattrapageAnalyseAntivirus>();

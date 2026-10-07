@@ -781,6 +781,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // LOT 4 — type d'objet auquel le champ s'applique (null = tous), stocke en chaine comme
             // les autres enums.
             b.Property(c => c.TypeObjet).HasConversion<string>().HasMaxLength(32);
+            // Nature de saisie (texte/date/liste), stockée en chaîne comme les autres enums.
+            b.Property(c => c.Type).HasConversion<string>().HasMaxLength(16);
+            b.Property(c => c.Options).HasMaxLength(512);
             // Le code identifie le champ de facon stable : deux definitions homonymes rendraient
             // les valeurs soumises ambigues.
             b.HasIndex(c => c.Code).IsUnique();
