@@ -15,4 +15,9 @@ public interface ILienPortail
 {
     /// <summary>Lien absolu vers la fiche d'un ticket.</summary>
     string VersTicket(Guid ticketId);
+
+    /// <summary>Lien de repli vers l'entrée du portail (connexion) — utilisé comme bouton
+    /// d'action quand une notification n'est rattachée à aucun ticket (ex. décision de compte),
+    /// afin que TOUT e-mail porte un bouton « aller sur le site ».</summary>
+    string VersConnexion();
 }

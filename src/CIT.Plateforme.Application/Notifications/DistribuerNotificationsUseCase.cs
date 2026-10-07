@@ -183,10 +183,13 @@ public sealed class DistribuerNotificationsUseCase(
         // Le rendu est FIGÉ à la création : modifier un modèle plus tard n'altère jamais une
         // notification déjà émise (cas TEST-NOT-02-3).
         var titre = GabaritNotification.Interpoler(modeleInApp?.Titre(anglais) ?? typeEvenement, valeurs);
-        var corps = GabaritNotification.GarantirLienVersTicket(
-            GabaritNotification.Interpoler(modeleInApp?.Corps(anglais) ?? string.Empty, valeurs),
-            lienTicket,
-            anglais);
+        var corpsInterpole = GabaritNotification.Interpoler(modeleInApp?.Corps(anglais) ?? string.Empty, valeurs);
+
+        // Bouton d'action garanti dans TOUT message : lien direct vers le ticket si l'événement y
+        // est rattaché, sinon lien de repli vers l'entrée du portail (ex. décision de compte).
+        var corps = lienTicket is not null
+            ? GabaritNotification.GarantirLienVersTicket(corpsInterpole, lienTicket, anglais)
+            : GabaritNotification.GarantirLienVersPortail(corpsInterpole, lienPortail.VersConnexion(), anglais);
 
         var notification = Notification.Creer(
             evenementId, destinataireId, typeEvenement, modeleInApp?.Id, titre, corps, ticketId, horloge.MaintenantUtc, anglais ? "en" : "fr");

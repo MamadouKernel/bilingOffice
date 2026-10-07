@@ -228,7 +228,10 @@ public class DistribuerNotificationsUseCaseTests
 
         var notification = Assert.Single(_notificationsAjoutees);
         Assert.Equal("Titre du modèle", notification.Titre);
-        Assert.Equal("Corps du modèle", notification.Corps);
+        // Sans ticket rattaché, un lien de repli vers le portail est ajouté pour garantir un bouton
+        // d'action dans l'e-mail ; le rendu figé porte sur le texte capté à la création.
+        Assert.StartsWith("Corps du modèle", notification.Corps);
+        Assert.Contains($"{Support.LienPortailDeTest.UrlBase}/comptes/connexion", notification.Corps);
         Assert.Equal(modele.Id, notification.ModeleId);
     }
 

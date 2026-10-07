@@ -63,4 +63,20 @@ public static class GabaritNotification
         var separateur = string.IsNullOrWhiteSpace(corps) ? string.Empty : Environment.NewLine + Environment.NewLine;
         return $"{corps}{separateur}{(anglais ? "Open the ticket:" : "Accéder au ticket :")} {lienTicket}";
     }
+
+    /// <summary>
+    /// Lien d'action de repli vers le portail, pour les notifications SANS ticket (décision de
+    /// compte, etc.) : garantit qu'un bouton « aller sur le site » figure dans TOUT e-mail. Sans
+    /// effet si le lien est absent ou déjà présent dans le corps.
+    /// </summary>
+    public static string GarantirLienVersPortail(string corps, string? lienPortail, bool anglais = false)
+    {
+        if (string.IsNullOrWhiteSpace(lienPortail) || corps.Contains(lienPortail, StringComparison.Ordinal))
+        {
+            return corps;
+        }
+
+        var separateur = string.IsNullOrWhiteSpace(corps) ? string.Empty : Environment.NewLine + Environment.NewLine;
+        return $"{corps}{separateur}{(anglais ? "Open YABA:" : "Accéder à YABA :")} {lienPortail}";
+    }
 }

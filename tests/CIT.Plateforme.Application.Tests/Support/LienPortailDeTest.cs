@@ -11,4 +11,6 @@ public sealed class LienPortailDeTest : ILienPortail
     public const string UrlBase = "https://portail.test.cit";
 
     public string VersTicket(Guid ticketId) => $"{UrlBase}/tickets/{ticketId}";
+
+    public string VersConnexion() => $"{UrlBase}/comptes/connexion";
 }

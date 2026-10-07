@@ -13,11 +13,13 @@ namespace CIT.Plateforme.Infrastructure.Notifications;
 /// </summary>
 public sealed class LienPortailConfigure(IConfiguration configuration) : ILienPortail
 {
-    public string VersTicket(Guid ticketId)
-    {
-        var chemin = $"/tickets/{ticketId}";
-        var baseUrl = configuration["Portail:UrlBase"]?.TrimEnd('/');
+    public string VersTicket(Guid ticketId) => Vers($"/tickets/{ticketId}");
 
+    public string VersConnexion() => Vers("/comptes/connexion");
+
+    private string Vers(string chemin)
+    {
+        var baseUrl = configuration["Portail:UrlBase"]?.TrimEnd('/');
         return string.IsNullOrWhiteSpace(baseUrl) ? chemin : baseUrl + chemin;
     }
 }
