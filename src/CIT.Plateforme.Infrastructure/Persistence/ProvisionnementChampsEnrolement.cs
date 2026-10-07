@@ -19,20 +19,16 @@ public sealed class ProvisionnementChampsEnrolement(
     [
         ("chauffeur.nom", "NOM", true, 1, TypeChampEnrolement.Texte, null),
         ("chauffeur.prenoms", "Prénoms", true, 2, TypeChampEnrolement.Texte, null),
-        ("chauffeur.permis_expiration", "Date d'expiration du permis", true, 3, TypeChampEnrolement.Date, null),
-        ("chauffeur.permis_categorie", "Catégorie du permis", false, 4, TypeChampEnrolement.Liste, "B;C;D;E;F"),
+        ("chauffeur.telephone", "Numéro de téléphone", true, 3, TypeChampEnrolement.Texte, null),
+        ("chauffeur.permis_expiration", "Date d'expiration du permis", true, 4, TypeChampEnrolement.Date, null),
+        ("chauffeur.permis_categorie", "Catégorie du permis", false, 5, TypeChampEnrolement.Liste, "B;C;D;E;F"),
     ];
 
     public async Task ExecuterAsync(CancellationToken ct = default)
     {
-        var dejaConfigure = await contexte.ChampsFormulaireEnrolement
-            .AnyAsync(c => c.TypeObjet == TypeObjetEnrolement.Chauffeur, ct).ConfigureAwait(false);
-        if (dejaConfigure)
-        {
-            return;
-        }
-
-        // Un code peut avoir été utilisé pour un champ global : on ne crée que ceux qui manquent.
+        // Idempotent PAR CODE : on ajoute les champs standard manquants (y compris ceux introduits
+        // après un premier amorçage). Un code déjà présent — même désactivé par l'admin — n'est pas
+        // recréé : l'administrateur garde la main.
         var codesExistants = (await contexte.ChampsFormulaireEnrolement.Select(c => c.Code).ToListAsync(ct).ConfigureAwait(false))
             .ToHashSet(StringComparer.Ordinal);
 

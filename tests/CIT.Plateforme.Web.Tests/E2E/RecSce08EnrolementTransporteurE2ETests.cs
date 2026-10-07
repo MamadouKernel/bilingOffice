@@ -98,6 +98,7 @@ public sealed class RecSce08EnrolementTransporteurE2ETests : IClassFixture<Plate
             // Champs chauffeur obligatoires désormais amorcés (NOM, Prénoms, date d'expiration du permis).
             cutSoumission.Find("[id='champ-chauffeur.nom']").Input("TANOH");
             cutSoumission.Find("[id='champ-chauffeur.prenoms']").Input("Yavoh");
+            cutSoumission.Find("[id='champ-chauffeur.telephone']").Input("0700000000");
             cutSoumission.Find("[id='champ-chauffeur.permis_expiration']").Input("2030-12-31");
             cutSoumission.Find("button.btn-primary").Click();
             cutSoumission.WaitForState(() => cutSoumission.Markup.Contains("Enrôlement soumis avec succès"), TimeSpan.FromSeconds(25));
