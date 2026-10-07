@@ -212,6 +212,8 @@ public sealed class SoumettreDemandeImportCommand(
                 requete.AuteurId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(requete.AuteurId, "TicketImportCree", nameof(Ticket), ticket.Id, null, numeroBl, ct).ConfigureAwait(false);
             await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
+            // Alerte les agents de la file d'arrivée (Pilote Manifeste) : demande à traiter.
+            await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
             await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
         }
 

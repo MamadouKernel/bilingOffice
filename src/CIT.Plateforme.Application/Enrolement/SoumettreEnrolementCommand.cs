@@ -121,6 +121,8 @@ public sealed class SoumettreEnrolementCommand(
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", "Enrôlement soumis", appelantId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(appelantId, "TicketCree", nameof(Ticket), ticket.Id, null, ticket.Numero, ct).ConfigureAwait(false);
         await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
+        // Alerte les agents de la file Agent Gate : nouvel enrôlement à instruire.
+        await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

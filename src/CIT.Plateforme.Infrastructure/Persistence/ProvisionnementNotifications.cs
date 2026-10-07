@@ -26,6 +26,12 @@ public sealed class ProvisionnementNotifications(
         // SOC-01 / IMP-03 : numéro de ticket communiqué « portail + e-mail » (canaux nommés par le CDC).
         ("TicketCree", CanalNotification.InApp, true, "Votre demande a été enregistrée"),
         ("TicketCree", CanalNotification.Email, true, "Votre demande a été enregistrée"),
+        // Alerte AGENTS de la file à l'arrivée d'une demande : in-app par défaut, e-mail opt-in.
+        ("TicketArriveeEnFile", CanalNotification.InApp, true, "Nouvelle demande dans votre file"),
+        ("TicketArriveeEnFile", CanalNotification.Email, false, "Nouvelle demande dans votre file"),
+        // Alerte VALIDEURS de compte à la soumission d'une demande de compte : in-app + e-mail opt-in.
+        ("DemandeCompteSoumise", CanalNotification.InApp, true, "Nouvelle demande de compte à valider"),
+        ("DemandeCompteSoumise", CanalNotification.Email, false, "Nouvelle demande de compte à valider"),
 
         // CPT-01 : décision sur une demande de compte. Le demandeur ne peut pas encore se connecter
         // avant validation : l'e-mail est le seul canal qui l'atteint réellement.
@@ -87,6 +93,8 @@ public sealed class ProvisionnementNotifications(
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
     {
         ["Votre demande a été enregistrée"] = "Your request has been registered",
+        ["Nouvelle demande dans votre file"] = "A new request has arrived in your queue",
+        ["Nouvelle demande de compte à valider"] = "A new account request to review",
         ["Votre compte entreprise est activé"] = "Your company account is activated",
         ["Votre demande de compte n'a pas été retenue"] = "Your account request was not accepted",
         ["Un complément est attendu sur votre dossier"] = "Additional information is expected on your file",
@@ -161,6 +169,8 @@ public sealed class ProvisionnementNotifications(
         "DemandeAnnulationSoumise" => $"{objet}. Le ticket {{numeroTicket}} a dépassé l'étape d'annulation libre : acceptez ou refusez la demande depuis sa fiche.",
         "DemandeAnnulationAcceptee" => $"{objet}. Le ticket {{numeroTicket}} est annulé.",
         "DemandeAnnulationRejetee" => $"{objet}. Le traitement du ticket {{numeroTicket}} se poursuit ; le motif figure sur le ticket.",
+        "TicketArriveeEnFile" => $"{objet}. Le ticket {{numeroTicket}} attend une prise en charge dans votre file.",
+        "DemandeCompteSoumise" => $"{objet}. Instruisez-la depuis l'écran « Demandes de compte ».",
         _ => $"{objet}. Consultez le ticket concerné pour le détail.",
     };
 
@@ -180,6 +190,8 @@ public sealed class ProvisionnementNotifications(
         "DemandeAnnulationSoumise" => $"{objet}. Ticket {{numeroTicket}} is past the free cancellation step: accept or refuse the request from its record.",
         "DemandeAnnulationAcceptee" => $"{objet}. Ticket {{numeroTicket}} is cancelled.",
         "DemandeAnnulationRejetee" => $"{objet}. Processing of ticket {{numeroTicket}} continues; the reason is on the ticket.",
+        "TicketArriveeEnFile" => $"{objet}. Ticket {{numeroTicket}} is waiting to be picked up in your queue.",
+        "DemandeCompteSoumise" => $"{objet}. Review it from the \"Account requests\" screen.",
         _ => $"{objet}. See the related ticket for details.",
     };
 

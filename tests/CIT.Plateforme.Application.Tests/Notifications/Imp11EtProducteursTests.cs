@@ -115,7 +115,12 @@ public class Imp11EtProducteursTests
         // publie ReglementDeclare (client) et PaiementConfirme (facturier).
         // 52e producteur (06/10/2026) — ReglementDeclaratifExportCommand.cs (écart #2 export) :
         // publie ReglementDeclare (client) et PaiementConfirme (facturier).
-        Assert.Equal(52, fichiersProducteurs.Count);
+        // 53e producteur (07/10/2026) — SoumettreDemandeCompteCommand.cs : publie DemandeCompteSoumise
+        // (alerte des agents habilités à valider les comptes). Les alertes « TicketArriveeEnFile »
+        // sont ajoutées dans des fichiers DÉJÀ producteurs (soumissions import/export/réclamation/
+        // enrôlement) : elles ne créent pas de nouveau producteur.
+        Assert.Equal(53, fichiersProducteurs.Count);
+        Assert.Contains("SoumettreDemandeCompteCommand.cs", fichiersProducteurs);
         Assert.Contains("ReglementDeclaratifCommand.cs", fichiersProducteurs);
         Assert.Contains("ReglementDeclaratifExportCommand.cs", fichiersProducteurs);
         Assert.Contains("OptionsTraitementTicketQuery.cs", fichiersProducteurs);
@@ -353,12 +358,16 @@ public class Imp11EtProducteursTests
             .Where(t => t is { IsAbstract: false, IsInterface: false } && t.IsAssignableTo(typeof(IResolveurDestinataires)))
             .ToList();
 
-        // Quatre depuis le 05/10/2026 (cf. RaccordementMentionTests, ou l'inventaire est nominatif).
-        Assert.Equal(4, implementations.Count);
+        // Six depuis le 07/10/2026 (cf. RaccordementMentionTests, où l'inventaire est nominatif) :
+        // + ResolveurAgentsDeLaFile et ResolveurValideursCompte (alertes internes nominatives).
+        Assert.Equal(6, implementations.Count);
 
-        // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale — sauf celui des
-        // superviseurs, qui lit les habilitations « réaffecter » de LA file du ticket (ALE-03).
-        foreach (var implementation in implementations.Where(i => i.Name != "ResolveurSuperviseursDeLaFile"))
+        // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale — SAUF les résolveurs
+        // NOMINATIFS scopés par permission (superviseurs/agents de la file, valideurs de compte) : ils
+        // lisent les habilitations d'une file/permission précise pour cibler des utilisateurs nommés
+        // (ALE-03), jamais une diffusion collective.
+        var exceptionsScopees = new[] { "ResolveurSuperviseursDeLaFile", "ResolveurAgentsDeLaFile", "ResolveurValideursCompte" };
+        foreach (var implementation in implementations.Where(i => !exceptionsScopees.Contains(i.Name)))
         {
             var dependances = implementation.GetConstructors().Single().GetParameters()
                 .Select(p => p.ParameterType.Name).ToList();

@@ -95,6 +95,8 @@ public sealed class SoumettreReclamationCommand(
         await journalisationService.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", $"Réclamation soumise (origine : {origine})", appelantId, ct).ConfigureAwait(false);
         await journalisationService.ConsignerAuditAsync(appelantId, "TicketCree", "Ticket", ticket.Id, null, origine, ct).ConfigureAwait(false);
         await journalisationService.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"CustomerComplaint\",\"origine\":\"{origine}\"}}", ct).ConfigureAwait(false);
+        // Alerte les agents du Support Opérationnel : nouvelle réclamation à instruire.
+        await journalisationService.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

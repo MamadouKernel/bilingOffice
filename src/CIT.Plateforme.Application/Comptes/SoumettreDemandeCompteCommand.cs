@@ -103,6 +103,8 @@ public sealed class SoumettreDemandeCompteCommand(
         }
 
         await journalisation.ConsignerAuditAsync(requete.DemandeurId, "DemandeCompteSoumise", nameof(SocieteCliente), societe.Id, null, requete.ProfilDeclare.ToString(), ct).ConfigureAwait(false);
+        // Alerte les agents habilités à valider les comptes : nouvelle demande à instruire.
+        await journalisation.PublierEvenementAsync("DemandeCompteSoumise", $"{{\"societeId\":\"{societe.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

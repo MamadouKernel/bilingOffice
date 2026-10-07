@@ -185,7 +185,12 @@ public class RaccordementMentionTests
         // 05/10/2026 — ResolveurSuperviseursDeLaFile : demande de réaffectation (« qui a pris en charge,
         // traite »). ALE-03 (Must) exige justement la notification du superviseur ; le résolveur reste
         // NOMINATIF : les seuls habilités à réaffecter sur la file du ticket, plus l'agent en charge.
-        Assert.Equal(["ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurSuperviseursDeLaFile"], implementations);
+        // 07/10/2026 — alertes internes NOMINATIVES (jamais un groupe comme destinataire) :
+        //   ResolveurAgentsDeLaFile  : les agents habilités à traiter la file où une demande arrive ;
+        //   ResolveurValideursCompte : les agents habilités à valider les comptes société.
+        // Comme ResolveurSuperviseursDeLaFile, ils résolvent des UTILISATEURS détenant une permission
+        // précise — pas de broadcast, pas de « file » ni « tous » comme destinataire.
+        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurSuperviseursDeLaFile", "ResolveurValideursCompte"], implementations);
 
         // Toujours aucune diffusion collective.
         Assert.DoesNotContain(implementations, n => n.Contains("Broadcast", StringComparison.OrdinalIgnoreCase));
