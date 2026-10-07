@@ -30,6 +30,7 @@ public static partial class TraductionMessagesMetier
         ["Aucune file du module Support IT n'est configurée."] = "No IT Support queue is configured.",
         ["Aucune version de grille tarifaire active trouvée."] = "No active tariff grid version found.",
         ["Catégorie de marchandise introuvable."] = "Goods category not found.",
+        ["Profil métier inconnu : {0}."] = "Unknown business profile: {0}.",
         ["Au moins un ticket doit être sélectionné pour un document commun."] = "At least one ticket must be selected for a common document.",
         ["La déclaration de règlement n'est disponible qu'en mode « déclaratif » (le mode preuve + caisse est actif)."] = "Declaring payment is only available in \"declarative\" mode (the proof + cashier mode is active).",
         ["Le ticket {0} n'a pas de règlement déclaré à confirmer."] = "Ticket {0} has no declared payment to confirm.",
