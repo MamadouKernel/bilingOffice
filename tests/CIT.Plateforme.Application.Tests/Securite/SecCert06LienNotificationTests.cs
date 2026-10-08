@@ -65,7 +65,8 @@ public sealed class SecCert06LienNotificationTests
         await dbContext.SaveChangesAsync();
 
         var query = new TelechargerDocumentQuery(
-            new DocumentRepository(dbContext), stockage, autorisation, ticketRepo, cloisonnement, journalisation, uniteDeTravail);
+            new DocumentRepository(dbContext), stockage, autorisation, ticketRepo, cloisonnement,
+            CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext), journalisation, uniteDeTravail);
 
         // Un identifiant Guid.Empty simule un appelant non authentifié. Le service applicatif
         // doit refuser l'accès — jamais servir le contenu, quels que soient les paramètres de
@@ -107,7 +108,8 @@ public sealed class SecCert06LienNotificationTests
         await dbContext.SaveChangesAsync();
 
         var query = new TelechargerDocumentQuery(
-            new DocumentRepository(dbContext), stockage, autorisation, ticketRepo, cloisonnement, journalisation, uniteDeTravail);
+            new DocumentRepository(dbContext), stockage, autorisation, ticketRepo, cloisonnement,
+            CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext), journalisation, uniteDeTravail);
 
         // Un agent sans habilitation de téléchargement doit être refusé — même si le document
         // est sain. Aucune information sur l'existence du document n'est divulguée.

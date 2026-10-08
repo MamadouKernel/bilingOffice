@@ -48,7 +48,8 @@ public sealed class AccesDocumentAutoriseTests
         await dbContext.SaveChangesAsync();
 
         var query = new TelechargerDocumentQuery(
-            new DocumentRepository(dbContext), stockage, autorisation, ticketRepo, cloisonnement, journalisation, uniteDeTravail);
+            new DocumentRepository(dbContext), stockage, autorisation, ticketRepo, cloisonnement,
+            CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext), journalisation, uniteDeTravail);
 
         return (dbContext, query, document, clientProprietaire, agentHabilite);
     }
@@ -121,6 +122,7 @@ public sealed class AccesDocumentAutoriseTests
 
         var query = new TelechargerDocumentQuery(new DocumentRepository(dbContext), stockage, new AutorisationService(dbContext),
             ticketRepo, new CloisonnementService(ticketRepo, CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext)),
+            CIT.Plateforme.Application.Tests.Support.FabriqueRequetes.ControleAcces(dbContext),
             new JournalisationService(dbContext, horloge), new UniteDeTravail(dbContext));
         return (query, document, agent);
     }

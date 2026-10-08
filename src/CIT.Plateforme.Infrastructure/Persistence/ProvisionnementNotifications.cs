@@ -26,9 +26,10 @@ public sealed class ProvisionnementNotifications(
         // SOC-01 / IMP-03 : numéro de ticket communiqué « portail + e-mail » (canaux nommés par le CDC).
         ("TicketCree", CanalNotification.InApp, true, "Votre demande a été enregistrée"),
         ("TicketCree", CanalNotification.Email, true, "Votre demande a été enregistrée"),
-        // Alerte AGENTS de la file à l'arrivée d'une demande : in-app par défaut, e-mail opt-in.
+        // Alerte AGENTS de la file à l'arrivée d'une demande : in-app ET e-mail obligatoires — une
+        // alerte de prise en charge ne doit jamais être silencieusement coupée par une préférence.
         ("TicketArriveeEnFile", CanalNotification.InApp, true, "Nouvelle demande dans votre file"),
-        ("TicketArriveeEnFile", CanalNotification.Email, false, "Nouvelle demande dans votre file"),
+        ("TicketArriveeEnFile", CanalNotification.Email, true, "Nouvelle demande dans votre file"),
         // Alerte VALIDEURS de compte à la soumission d'une demande de compte : in-app + e-mail opt-in.
         ("DemandeCompteSoumise", CanalNotification.InApp, true, "Nouvelle demande de compte à valider"),
         ("DemandeCompteSoumise", CanalNotification.Email, false, "Nouvelle demande de compte à valider"),

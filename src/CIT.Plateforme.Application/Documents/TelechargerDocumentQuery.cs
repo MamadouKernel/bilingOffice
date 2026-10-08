@@ -19,6 +19,7 @@ public sealed class TelechargerDocumentQuery(
     IAutorisationService autorisation,
     ITicketRepository tickets,
     CloisonnementService cloisonnement,
+    ControleAccesRessourceService controleAcces,
     IJournalisationService journalisation,
     IUniteDeTravail uniteDeTravail)
 {
@@ -30,17 +31,16 @@ public sealed class TelechargerDocumentQuery(
         var ticket = await tickets.ObtenirParIdAsync(document.TicketId, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Ticket {document.TicketId} introuvable.");
 
-        // L'accès documentaire suit le droit d'agir sur le ticket (07/10/2026) : un agent qui détient
-        // DocumentTelecharger, OU — pour un enrôlement — le droit d'instruire la file
-        // (EnrolementInstruire), peut lire les pièces qu'il voit déjà dans la fiche. Évite qu'un agent
-        // gate habilité à traiter le dossier soit refusé à l'ouverture de ses propres documents.
+        // L'accès documentaire suit le droit de VOIR le ticket (07/10/2026) : tout agent CIT qui peut
+        // consulter le ticket (il en voit déjà la fiche et la liste des pièces) peut ouvrir ces pièces,
+        // quel que soit le module — sans exiger la permission DocumentTelecharger séparée. Celle-ci
+        // reste un chemin valable. Un agent hors périmètre reste refusé (consultation refusée).
         var autorise = await autorisation.EstAutoriseAsync(agentId, Permission.DocumentTelecharger, ticket.FileCouranteId, ct).ConfigureAwait(false)
-            || (ticket.Module == "Enrolement"
-                && await autorisation.EstAutoriseAsync(agentId, Permission.EnrolementInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false));
+            || await controleAcces.PeutConsulterLeTicketAsync(agentId, ticket, ct).ConfigureAwait(false);
         if (!autorise)
         {
-            // Aucun des droits : on relève le refus standard (message et journalisation habituels).
-            await autorisation.ExigerAsync(agentId, Permission.DocumentTelecharger, ticket.FileCouranteId, ct).ConfigureAwait(false);
+            // Hors périmètre : refus standard de consultation (message et journalisation habituels).
+            await controleAcces.ExigerConsultationTicketAsync(agentId, ticket, ct).ConfigureAwait(false);
         }
 
         return await TelechargerValideAsync(agentId, document, ct).ConfigureAwait(false);
