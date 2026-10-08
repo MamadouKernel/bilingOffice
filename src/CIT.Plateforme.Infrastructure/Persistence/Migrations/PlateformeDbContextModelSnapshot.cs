@@ -596,6 +596,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<bool>("DroitSoumission")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("DroitValidation")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("EstActif")
                         .HasColumnType("bit");
 

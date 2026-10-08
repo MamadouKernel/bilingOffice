@@ -22,6 +22,11 @@ public sealed class UtilisateurSociete
 
     public bool DroitSoumission { get; private set; }
 
+    /// <summary>Rôle VALIDATEUR (07/10/2026) : droit de valider en interne, avant envoi à CIT, les
+    /// demandes préparées par un soumissionnaire (double contrôle « 4-yeux »). Par défaut false :
+    /// une société sans validateur conserve la soumission directe (rétro-compatible).</summary>
+    public bool DroitValidation { get; private set; }
+
     public bool EstActif { get; private set; }
 
     public DateTime DateRattachementUtc { get; private set; }
@@ -29,7 +34,7 @@ public sealed class UtilisateurSociete
     private UtilisateurSociete() { }
 
     public static UtilisateurSociete Rattacher(
-        Guid utilisateurId, Guid societeId, DateTime maintenantUtc, bool estAdministrateur = false, bool droitSoumission = true) => new()
+        Guid utilisateurId, Guid societeId, DateTime maintenantUtc, bool estAdministrateur = false, bool droitSoumission = true, bool droitValidation = false) => new()
     {
         Id = Guid.NewGuid(),
         UtilisateurId = utilisateurId,
@@ -37,14 +42,16 @@ public sealed class UtilisateurSociete
         EstAdministrateur = estAdministrateur,
         DroitConsultation = DroitConsultation.PropresDemandesUniquement,
         DroitSoumission = droitSoumission,
+        DroitValidation = droitValidation,
         EstActif = true,
         DateRattachementUtc = maintenantUtc,
     };
 
-    public void ModifierDroits(DroitConsultation droitConsultation, bool droitSoumission)
+    public void ModifierDroits(DroitConsultation droitConsultation, bool droitSoumission, bool droitValidation = false)
     {
         DroitConsultation = droitConsultation;
         DroitSoumission = droitSoumission;
+        DroitValidation = droitValidation;
     }
 
     public void Activer() => EstActif = true;

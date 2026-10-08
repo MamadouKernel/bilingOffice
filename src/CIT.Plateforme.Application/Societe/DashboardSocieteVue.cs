@@ -13,7 +13,8 @@ public sealed record CollaborateurVue(
     bool DroitSoumission,
     DroitConsultation DroitConsultation,
     bool EstActif,
-    DateTime DateRattachementUtc
+    DateTime DateRattachementUtc,
+    bool DroitValidation = false
 );
 
 public sealed record DashboardSocieteVue(

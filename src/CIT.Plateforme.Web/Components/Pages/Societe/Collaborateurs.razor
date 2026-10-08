@@ -199,6 +199,10 @@ else if (_dashboard is not null)
                                 {
                                     <span class="text-muted">@Loc["Collab.SubmitBlocked"]</span>
                                 }
+                                @if (col.DroitValidation)
+                                {
+                                    <span class="badge bg-info-subtle text-info ms-1">@Loc["Collab.RoleValidator"]</span>
+                                }
                             </td>
                             <td>
                                 <span class="small">
@@ -244,6 +248,11 @@ else if (_dashboard is not null)
                                     <!-- Droit Consultation -->
                                     <button type="button" class="btn btn-outline-secondary" title="@Loc["Collab.TitleToggleConsultation"]" @onclick="() => BasculerConsultationAsync(col)">
                                         @(col.DroitConsultation == DroitConsultation.ToutesDemandesSociete ? Loc["Collab.Restrict"].Value : Loc["Collab.Extend"].Value)
+                                    </button>
+
+                                    <!-- Rôle Validateur -->
+                                    <button type="button" class="btn btn-outline-secondary" title="@Loc["Collab.TitleToggleValidation"]" @onclick="() => BasculerValidationAsync(col)">
+                                        @(col.DroitValidation ? Loc["Collab.RemoveValidator"].Value : Loc["Collab.MakeValidator"].Value)
                                     </button>
 
                                     <!-- Activation / Désactivation -->
@@ -409,7 +418,7 @@ else if (_dashboard is not null)
     {
         try
         {
-            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, col.DroitConsultation, !col.DroitSoumission);
+            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, col.DroitConsultation, !col.DroitSoumission, col.DroitValidation);
             _actionMessage = Loc["Collab.MsgSubmissionUpdated"].Value;
             await RechargerAsync();
         }
@@ -426,8 +435,24 @@ else if (_dashboard is not null)
             var nouvConsultation = col.DroitConsultation == DroitConsultation.ToutesDemandesSociete
                 ? DroitConsultation.PropresDemandesUniquement
                 : DroitConsultation.ToutesDemandesSociete;
-            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, nouvConsultation, col.DroitSoumission);
+            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, nouvConsultation, col.DroitSoumission, col.DroitValidation);
             _actionMessage = Loc["Collab.MsgConsultationUpdated"].Value;
+            await RechargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionMessage = $"{Loc["Collab.ErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
+        }
+    }
+
+    // Rôle Validateur (07/10/2026) : bascule le droit de validation interne 4-yeux ; les autres droits
+    // sont préservés.
+    private async Task BasculerValidationAsync(CollaborateurVue col)
+    {
+        try
+        {
+            await ModifierDroits.ExecuterAsync(_appelantId, col.Id, col.DroitConsultation, col.DroitSoumission, !col.DroitValidation);
+            _actionMessage = Loc["Collab.MsgValidationUpdated"].Value;
             await RechargerAsync();
         }
         catch (Exception ex)

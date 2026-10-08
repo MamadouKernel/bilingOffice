@@ -48,7 +48,8 @@ public sealed class ObtenirDashboardSocieteQuery(
                 DroitSoumission: r.DroitSoumission,
                 DroitConsultation: r.DroitConsultation,
                 EstActif: r.EstActif,
-                DateRattachementUtc: r.DateRattachementUtc
+                DateRattachementUtc: r.DateRattachementUtc,
+                DroitValidation: r.DroitValidation
             ));
         }
 
