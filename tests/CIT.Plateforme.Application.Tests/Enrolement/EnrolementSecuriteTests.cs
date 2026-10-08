@@ -125,7 +125,10 @@ public class EnrolementSecuriteTests
     public void AucuneClasseDeRejetDansLAssemblage()
     {
         var typesEnrolement = typeof(SoumettreEnrolementCommand).Assembly.GetTypes();
-        Assert.DoesNotContain(typesEnrolement, t => t.Namespace == "CIT.Plateforme.Application.Enrolement" && t.Name.Contains("Rejeter", StringComparison.OrdinalIgnoreCase));
+        // On ignore les types générés par le compilateur (state-machines async « <...>d__N »), qui ne
+        // sont pas des classes écrites : une méthode RejeterAsync (validation interne 4-yeux) est
+        // légitime ; la règle vise l'absence d'une CLASSE de rejet dédiée dans ce namespace.
+        Assert.DoesNotContain(typesEnrolement, t => !t.Name.StartsWith('<') && t.Namespace == "CIT.Plateforme.Application.Enrolement" && t.Name.Contains("Rejeter", StringComparison.OrdinalIgnoreCase));
     }
 
     // T074 : absence de dépendance AVE — aucun type du namespace Enrolement ne référence AVE,

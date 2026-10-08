@@ -27,4 +27,19 @@ public sealed partial class Ticket
         ObjetEnrolement = objet;
         SensEnrolement = sens;
     }
+
+    /// <summary>
+    /// Validation interne « 4-yeux » (07/10/2026) : quand la société du demandeur compte au moins un
+    /// validateur, une soumission d'enrôlement est PARQUÉE — ce champ porte l'id du préparateur — et
+    /// reste INVISIBLE de l'Agent Gate (aucune alerte) jusqu'à ce qu'un validateur (≠ préparateur) la
+    /// libère. <c>null</c> = pas de validation interne requise / déjà libérée (comportement direct,
+    /// rétro-compatible).
+    /// </summary>
+    public Guid? EnAttenteValidationInterneParId { get; private set; }
+
+    /// <summary>Parque le ticket en attente de validation interne par le préparateur indiqué.</summary>
+    public void MarquerAValiderEnInterne(Guid preparateurId) => EnAttenteValidationInterneParId = preparateurId;
+
+    /// <summary>Libère le ticket (validation interne approuvée) : il devient visible de l'Agent Gate.</summary>
+    public void LibererValidationInterne() => EnAttenteValidationInterneParId = null;
 }

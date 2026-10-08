@@ -139,6 +139,13 @@ public sealed class SoumettreEnrolementSocieteCommand(
         var dossier = Dossier.Creer(numeroDossier, rattachement.SocieteId, maintenant, appelantId);
         await dossiers.AjouterAsync(dossier, ct).ConfigureAwait(false);
 
+        // Validation interne « 4-yeux » (07/10/2026) : si la société compte un validateur AUTRE que le
+        // préparateur, les demandes sont PARQUÉES (invisibles de l'Agent Gate, aucune alerte) jusqu'à
+        // validation par ce validateur. Strict : jamais d'auto-validation. Une société sans validateur
+        // tiers n'est pas affectée → comportement direct, rétro-compatible.
+        var rattachementsSociete = await utilisateursSociete.ListerParSocieteAsync(rattachement.SocieteId, ct).ConfigureAwait(false);
+        var parquer = rattachementsSociete.Any(r => r.EstActif && r.DroitValidation && r.UtilisateurId != appelantId);
+
         // 5. Un ticket par objet, typé (objet + sens Ajout) et informé, tous dans le même dossier.
         var ticketsCrees = new List<TicketEnrolementCree>(requete.Objets.Count);
         foreach (var objet in requete.Objets)
@@ -161,9 +168,18 @@ public sealed class SoumettreEnrolementSocieteCommand(
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", "Enrôlement société soumis", appelantId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(appelantId, "TicketCree", nameof(Ticket), ticket.Id, null, ticket.Numero, ct).ConfigureAwait(false);
             await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
-            // Alerte les AGENTS de la file Agent Gate (in-app + e-mail) : sans cet événement, les
-            // tickets d'enrôlement flotte arrivaient en file sans notifier personne (07/10/2026).
-            await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+
+            if (parquer)
+            {
+                // Parqué : pas d'alerte Agent Gate tant que la validation interne n'a pas eu lieu.
+                ticket.MarquerAValiderEnInterne(appelantId);
+                await journalisation.ConsignerHistoriqueAsync(ticket.Id, "EnrolementAValiderEnInterne", "En attente de validation interne (4-yeux société)", appelantId, ct).ConfigureAwait(false);
+            }
+            else
+            {
+                // Alerte les AGENTS de la file Agent Gate (in-app + e-mail).
+                await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+            }
 
             ticketsCrees.Add(new TicketEnrolementCree(ticket.Id, ticket.Numero, objet.Type));
         }

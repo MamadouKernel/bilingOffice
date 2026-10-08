@@ -2699,6 +2699,9 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.Property<TimeSpan>("DureeAttenteClienteCumulee")
                         .HasColumnType("time");
 
+                    b.Property<Guid?>("EnAttenteValidationInterneParId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("EstAnonymise")
                         .HasColumnType("bit");
 

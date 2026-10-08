@@ -1,0 +1,160 @@
+@page "/enrolement/a-valider"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Enrolement
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>@Loc["Valid.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>✅</span> @Loc["Valid.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Valid.Subtitle"]</div>
+    </div>
+</div>
+
+<div class="cit-page-etroite">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["Complaint.LoadingForm"]" />
+    }
+    else if (_nonAutorise)
+    {
+        <PermissionDenied Message="@_messageNonAutorise" />
+    }
+    else
+    {
+        @if (_message is not null)
+        {
+            <div class="alert @(_erreur ? "alert-danger" : "alert-success") py-2 small">@_message</div>
+        }
+
+        @if (_dossiers.Count == 0)
+        {
+            <div class="cit-card p-4 text-center text-muted">@Loc["Valid.Empty"]</div>
+        }
+
+        @foreach (var d in _dossiers)
+        {
+            <div class="cit-card mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-bold text-dark">@d.NumeroDossier</div>
+                        <div class="small text-muted">@Loc["Valid.PreparePar"] <strong>@d.PreparateurNom</strong> — @d.DateSoumissionUtc.Horodate()</div>
+                    </div>
+                </div>
+                <ul class="small mb-3 ps-3">
+                    @foreach (var o in d.Objets)
+                    {
+                        <li><span class="font-monospace">@o.NumeroTicket</span> — @(o.Type is not null ? Loc[$"Enrol.Objet.{o.Type}"].Value : "") @(o.Objet is not null ? $"· {o.Objet}" : "")</li>
+                    }
+                </ul>
+
+                @if (_rejetDossier == d.DossierId)
+                {
+                    <div class="input-group input-group-sm mb-2">
+                        <input class="form-control" placeholder="@Loc["Valid.MotifPlaceholder"]" @bind="_motifRejet" @bind:event="oninput" maxlength="300" />
+                        <button type="button" class="btn btn-danger fw-semibold" @onclick="() => RejeterAsync(d.DossierId)" disabled="@(string.IsNullOrWhiteSpace(_motifRejet) || _enCours)">@Loc["Valid.ConfirmReject"]</button>
+                        <button type="button" class="btn btn-outline-secondary" @onclick="() => _rejetDossier = null">@Loc["Common.Cancel"]</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success btn-sm fw-semibold" @onclick="() => ApprouverAsync(d.DossierId)" disabled="@_enCours">@Loc["Valid.Approve"]</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => { _rejetDossier = d.DossierId; _motifRejet = string.Empty; }">@Loc["Valid.Reject"]</button>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _message;
+    private bool _erreur;
+    private bool _enCours;
+    private Guid _validateurId;
+    private Guid? _rejetDossier;
+    private string _motifRejet = string.Empty;
+    private IReadOnlyList<EnrolementAValiderVue> _dossiers = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        if (!contexte.EstAuthentifie || contexte.DroitValidation != true)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = Loc["Valid.NotAuthorized"].Value;
+            _chargement = false;
+            return;
+        }
+        _validateurId = contexte.UtilisateurId;
+        await ChargerAsync();
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var query = scope.ServiceProvider.GetRequiredService<ListerEnrolementsAValiderQuery>();
+            _dossiers = await query.ExecuterAsync(_validateurId);
+        }
+        catch (Exception ex)
+        {
+            _message = MessagesUtilisateur.Pour(ex);
+            _erreur = true;
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ApprouverAsync(Guid dossierId) => await AgirAsync(c => c.ApprouverAsync(_validateurId, dossierId), Loc["Valid.MsgApproved"].Value);
+
+    private async Task RejeterAsync(Guid dossierId)
+    {
+        if (string.IsNullOrWhiteSpace(_motifRejet)) return;
+        await AgirAsync(c => c.RejeterAsync(_validateurId, dossierId, _motifRejet.Trim()), Loc["Valid.MsgRejected"].Value);
+        _rejetDossier = null;
+        _motifRejet = string.Empty;
+    }
+
+    private async Task AgirAsync(Func<ValidationInterneEnrolementCommand, Task> action, string succes)
+    {
+        _enCours = true;
+        _message = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var commande = scope.ServiceProvider.GetRequiredService<ValidationInterneEnrolementCommand>();
+            await action(commande);
+            _message = succes;
+            _erreur = false;
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _message = MessagesUtilisateur.Pour(ex);
+            _erreur = true;
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

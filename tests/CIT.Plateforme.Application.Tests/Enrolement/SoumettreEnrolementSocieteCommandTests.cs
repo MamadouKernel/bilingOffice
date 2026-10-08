@@ -54,6 +54,10 @@ public class SoumettreEnrolementSocieteCommandTests
         _fileRepo.Setup(f => f.ListerAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync([_fileAgentGate]);
 
+        // Par défaut, la société n'a pas de validateur → pas de parcage (comportement direct).
+        _utilisateurSocieteRepo.Setup(r => r.ListerParSocieteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
         // Numérotation séquentielle : un numéro distinct par ticket.
         var compteur = 0;
         _numerotation.Setup(n => n.ProchainNumeroTicketAsync("Enrolement", "Enrolement", It.IsAny<CancellationToken>()))

@@ -30,7 +30,10 @@ public sealed class ConsulterFileAgentGateQuery(
 
         var tickets = await ticketRepository.ListerParFileAsync(fileAgentGate.Id, ct).ConfigureAwait(false);
         return [.. tickets
-            .Where(t => t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours || t.Statut == StatutTicket.EnAttenteClient)
+            // Les tickets en attente de validation interne (4-yeux côté société) sont invisibles de
+            // l'Agent Gate tant qu'un validateur ne les a pas libérés.
+            .Where(t => t.EnAttenteValidationInterneParId is null
+                        && (t.Statut == StatutTicket.EnAttenteDePriseEnCharge || t.Statut == StatutTicket.EnCours || t.Statut == StatutTicket.EnAttenteClient))
             .OrderBy(t => t.DateArriveeEnFileUtc)];
     }
 }

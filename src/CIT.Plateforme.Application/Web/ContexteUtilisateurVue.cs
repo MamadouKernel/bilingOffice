@@ -35,7 +35,8 @@ public sealed record ContexteUtilisateurVue(
     EspaceFonctionnel EspaceActif,
     IReadOnlyList<string> Permissions,
     IReadOnlyList<Guid> FilesHabilitees,
-    bool EstSuperviseur
+    bool EstSuperviseur,
+    bool? DroitValidation = false
 )
 {
     /// <summary>

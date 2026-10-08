@@ -115,6 +115,7 @@ public sealed class ObtenirContexteUtilisateurQuery(
             EstAdministrateurSociete: userSoc?.EstAdministrateur ?? false,
             DroitConsultation: userSoc?.DroitConsultation,
             DroitSoumission: userSoc?.DroitSoumission,
+            DroitValidation: userSoc?.DroitValidation ?? false,
             EspacesDisponibles: espaces,
             EspaceActif: espaceActif,
             Permissions: permissions,

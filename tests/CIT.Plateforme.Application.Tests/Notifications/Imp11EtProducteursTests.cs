@@ -119,7 +119,10 @@ public class Imp11EtProducteursTests
         // (alerte des agents habilités à valider les comptes). Les alertes « TicketArriveeEnFile »
         // sont ajoutées dans des fichiers DÉJÀ producteurs (soumissions import/export/réclamation/
         // enrôlement) : elles ne créent pas de nouveau producteur.
-        Assert.Equal(53, fichiersProducteurs.Count);
+        // 54e producteur (08/10/2026) — ValidationInterneEnrolementCommand.cs : la validation interne
+        // « 4-yeux » publie TicketArriveeEnFile quand un validateur libère un dossier parqué.
+        Assert.Equal(54, fichiersProducteurs.Count);
+        Assert.Contains("ValidationInterneEnrolementCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreDemandeCompteCommand.cs", fichiersProducteurs);
         Assert.Contains("ReglementDeclaratifCommand.cs", fichiersProducteurs);
         Assert.Contains("ReglementDeclaratifExportCommand.cs", fichiersProducteurs);

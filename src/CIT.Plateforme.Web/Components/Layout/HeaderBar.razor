@@ -162,6 +162,12 @@
                         </a>
                     }
 
+                    @if (Contexte.DroitValidation == true)
+                    {
+                        <a href="/enrolement/a-valider" class="cit-user-dropdown-item" role="menuitem">
+                            <span>✅</span> @Loc["Valid.Title"]
+                        </a>
+                    }
                     <a href="/aide/manuel" class="cit-user-dropdown-item" role="menuitem">
                         <span>📖</span> @Loc["Header.UserManual"]
                     </a>
