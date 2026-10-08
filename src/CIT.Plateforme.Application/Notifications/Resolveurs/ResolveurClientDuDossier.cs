@@ -43,6 +43,7 @@ public sealed class ResolveurClientDuDossier(
         "PaiementConfirme",
         "PreuvePaiementRefusee",
         "TicketCloture",
+        "TicketReclamationCloture",  // Support Opérationnel — le client est informé que sa réclamation a été traitée (réponse formalisée).
         "ProformaEmise",
         "DemandeAnnulationAcceptee",
         "DemandeAnnulationRejetee",
