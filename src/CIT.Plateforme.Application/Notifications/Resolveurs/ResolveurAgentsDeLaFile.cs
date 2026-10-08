@@ -56,8 +56,9 @@ public sealed class ResolveurAgentsDeLaFile(
     public Task<Guid?> ResoudreTicketAsync(string chargeUtile, CancellationToken ct = default) =>
         Task.FromResult(ResolveurChargeUtile.LireGuid(chargeUtile, "ticketId"));
 
-    /// <summary>Permission de traitement par file d'arrivée (nom unique) — ciblage « agents de la file ».</summary>
-    private static readonly IReadOnlyDictionary<string, string[]> PermissionsParNomFile = new Dictionary<string, string[]>(StringComparer.Ordinal)
+    /// <summary>Permission de traitement par file d'arrivée (nom unique) — ciblage « agents de la file ».
+    /// Public : réutilisé par l'annuaire des agents par rubrique (supervision), même définition d'« agent d'une file ».</summary>
+    public static readonly IReadOnlyDictionary<string, string[]> PermissionsParNomFile = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
         [SoumettreDemandeImportCommand.FilePiloteManifeste] = [Permission.BillingImportManifesteInstruire],
         [NomsFilesExport.BackOfficeExport] = [Permission.BillingExportBackOfficeInstruire],

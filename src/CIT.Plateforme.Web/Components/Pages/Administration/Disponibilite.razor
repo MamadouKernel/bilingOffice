@@ -91,6 +91,37 @@ else
             </div>
         </div>
 
+        @if (_rubriques is { Count: > 0 })
+        {
+            <div class="cit-card p-3 mb-4" style="max-width: 800px;">
+                <h6 class="fw-bold text-dark mb-3">🗂️ @Loc["AdmDispo.AnnuaireTitle"]</h6>
+                @foreach (var rubrique in _rubriques)
+                {
+                    <div class="mb-3">
+                        <div class="fw-semibold text-dark border-bottom pb-1 mb-2">
+                            @Loc.File(rubrique.NomFile)
+                            <span class="badge bg-secondary-subtle text-secondary ms-1">@rubrique.Agents.Count</span>
+                        </div>
+                        @if (rubrique.Agents.Count == 0)
+                        {
+                            <div class="small text-muted">@Loc["AdmDispo.AnnuaireVide"]</div>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var agent in rubrique.Agents)
+                                {
+                                    <span class="badge rounded-pill @(agent.Disponibilite == StatutDisponibilite.Disponible ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning")">
+                                        @(string.IsNullOrWhiteSpace(agent.Nom) ? Loc["AdmDispo.UnknownOperator"].Value : agent.Nom) — @LibelleStatut(agent.Disponibilite)
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
         <div class="cit-card p-0 overflow-hidden" style="max-width: 800px;">
             <div class="p-3 bg-light border-bottom">
                 <h6 class="fw-bold text-dark mb-0">@Loc["AdmDispo.CurrentTitle", _operateurs.Count]</h6>
@@ -139,6 +170,7 @@ else
 
     private Guid _appelantId;
     private IReadOnlyList<VueOperateur>? _operateurs;
+    private IReadOnlyList<RubriqueAnnuaireVue>? _rubriques;
     private Guid _operateurSelectionne;
     private StatutDisponibilite _statutSelectionne = StatutDisponibilite.Disponible;
 
@@ -178,6 +210,9 @@ else
             using var scope = ScopeFactory.CreateScope();
             var vueCharge = scope.ServiceProvider.GetRequiredService<VueChargeQuery>();
             _operateurs = await vueCharge.ExecuterAsync(_appelantId);
+
+            var annuaire = scope.ServiceProvider.GetRequiredService<AnnuaireAgentsParFileQuery>();
+            _rubriques = await annuaire.ExecuterAsync(_appelantId);
 
             if (_operateurs.Count > 0 && !_operateurs.Any(o => o.OperateurId == _operateurSelectionne))
             {
