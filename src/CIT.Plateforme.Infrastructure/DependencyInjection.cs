@@ -284,6 +284,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Supervision.ExporterIndicateursQuery>();
         services.AddScoped<Application.Supervision.RapportPerformanceAgentsQuery>();
         services.AddScoped<Application.Supervision.RapportActiviteOperateurQuery>();
+        services.AddScoped<Application.Supervision.RapportDetailTicketsOperateurQuery>();
 
         // User Story 11 — audit des actions.
         services.AddScoped<Application.Securite.IJournalAuditLecture, JournalAuditLecture>();

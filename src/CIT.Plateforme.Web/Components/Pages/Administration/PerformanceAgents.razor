@@ -13,6 +13,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject RapportPerformanceAgentsQuery Rapport
 @inject RapportActiviteOperateurQuery RapportActivite
+@inject RapportDetailTicketsOperateurQuery RapportDetail
 
 <PageTitle>@Loc["Perf.PageTitle"]</PageTitle>
 
@@ -139,6 +140,7 @@ else
                                     <th class="text-end">@Loc["Perf.ColDelaiPEC"]</th>
                                     <th class="text-end">@Loc["Perf.ColDelaiTrait"]</th>
                                     <th class="text-end">@Loc["Perf.ColDerniereActivite"]</th>
+                                    <th class="text-end"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,7 +153,60 @@ else
                                         <td class="text-end small text-muted font-monospace">@FormaterDuree(a.DelaiMoyenPriseEnCharge)</td>
                                         <td class="text-end small text-muted font-monospace">@FormaterDuree(a.DelaiMoyenTraitement)</td>
                                         <td class="text-end small text-muted font-monospace">@(a.DerniereActiviteUtc?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => BasculerDetailAsync(a.OperateurId)">
+                                                @(_detailOperateur == a.OperateurId ? Loc["Perf.Masquer"] : Loc["Perf.Voir"])
+                                            </button>
+                                        </td>
                                     </tr>
+                                    @if (_detailOperateur == a.OperateurId)
+                                    {
+                                        <tr>
+                                            <td colspan="7" class="bg-light">
+                                                <div class="fw-semibold small mb-2">@Loc["Perf.DetailTitle"] — @a.Nom</div>
+                                                @if (_detailEnCours)
+                                                {
+                                                    <div class="small text-muted py-2">@Loc["Perf.Loading"]</div>
+                                                }
+                                                else if (_detailLignes is null || _detailLignes.Count == 0)
+                                                {
+                                                    <div class="small text-muted py-2">@Loc["Perf.DetailVide"]</div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm align-middle mb-0 bg-white">
+                                                            <thead><tr>
+                                                                <th>@Loc["Perf.DetTicket"]</th>
+                                                                <th>@Loc["Perf.DetModule"]</th>
+                                                                <th>@Loc["Perf.DetObjet"]</th>
+                                                                <th>@Loc["Perf.DetStatut"]</th>
+                                                                <th class="text-end">@Loc["Perf.DetPriseEnCharge"]</th>
+                                                                <th class="text-end">@Loc["Perf.DetSortie"]</th>
+                                                                <th class="text-end">@Loc["Perf.DetAttente"]</th>
+                                                                <th class="text-end">@Loc["Perf.DetTraitement"]</th>
+                                                            </tr></thead>
+                                                            <tbody>
+                                                                @foreach (var d in _detailLignes)
+                                                                {
+                                                                    <tr>
+                                                                        <td class="font-monospace"><a href="@($"/tickets/{d.TicketId}")">@d.NumeroTicket</a></td>
+                                                                        <td class="small">@d.Module</td>
+                                                                        <td class="small">@(d.Objet ?? "—")</td>
+                                                                        <td class="small">@d.Statut</td>
+                                                                        <td class="text-end small font-monospace">@(d.DatePriseEnChargeUtc?.ToString("dd/MM HH:mm") ?? "—")</td>
+                                                                        <td class="text-end small font-monospace">@(d.DateSortieUtc?.ToString("dd/MM HH:mm") ?? "—")</td>
+                                                                        <td class="text-end small font-monospace">@FormaterDuree(d.TempsAttente)</td>
+                                                                        <td class="text-end small font-monospace fw-semibold">@FormaterDuree(d.TempsTraitement)</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
                                 }
                             </tbody>
                         </table>
@@ -169,6 +224,14 @@ else
     private string? _erreur;
     private IReadOnlyList<LignePerformanceAgent>? _lignes;
     private IReadOnlyList<LigneActiviteOperateurVue>? _activite;
+
+    // Détail « tickets traités » d'un agent (dépliable à la demande).
+    private Guid _superviseurId;
+    private DateTime _debutUtcCourant;
+    private DateTime _finUtcCourant;
+    private Guid? _detailOperateur;
+    private IReadOnlyList<LigneTicketTraiteVue>? _detailLignes;
+    private bool _detailEnCours;
 
     // Période par défaut : les 30 derniers jours.
     private DateTime _debut = DateTime.UtcNow.Date.AddDays(-30);
@@ -196,6 +259,12 @@ else
 
             _lignes = await Rapport.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
             _activite = await RapportActivite.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
+            // Mémorisé pour le chargement à la demande du détail par agent (même périmètre/période).
+            _superviseurId = contexte.UtilisateurId;
+            _debutUtcCourant = debutUtc;
+            _finUtcCourant = finUtc;
+            _detailOperateur = null;
+            _detailLignes = null;
             _nonAutorise = false;
         }
         catch (AccesRefuseException ex)
@@ -210,6 +279,32 @@ else
         finally
         {
             _chargement = false;
+        }
+    }
+
+    private async Task BasculerDetailAsync(Guid operateurId)
+    {
+        if (_detailOperateur == operateurId)
+        {
+            _detailOperateur = null;
+            _detailLignes = null;
+            return;
+        }
+
+        _detailOperateur = operateurId;
+        _detailLignes = null;
+        _detailEnCours = true;
+        try
+        {
+            _detailLignes = await RapportDetail.ExecuterAsync(_superviseurId, operateurId, _debutUtcCourant, _finUtcCourant);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _detailEnCours = false;
         }
     }
 
