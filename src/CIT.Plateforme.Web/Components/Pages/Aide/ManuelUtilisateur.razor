@@ -1,0 +1,231 @@
+@page "/aide/manuel"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using System.Globalization
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+
+<PageTitle>@Loc["Manuel.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>📖</span> @Loc["Manuel.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Manuel.Subtitle"]</div>
+    </div>
+    <a href="/aide" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["Manuel.LienCentreAide"]</a>
+</div>
+
+<div class="cit-page-etroite">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["Complaint.LoadingForm"]" />
+    }
+    else
+    {
+        var sections = Sections.Where(s => s.Visible()).ToList();
+        <div class="alert alert-info border-0 bg-info bg-opacity-10 small">@Loc["Manuel.Intro"]</div>
+
+        <div class="cit-card mb-3">
+            <div class="small text-muted mb-1">@Loc["Manuel.VotreProfil"]</div>
+            <div class="fw-semibold">@_profil</div>
+        </div>
+
+        @foreach (var s in sections)
+        {
+            <div class="cit-card mb-3">
+                <h5 class="fw-bold text-dark mb-2">@s.Icone @(_en ? s.TitreEn : s.TitreFr)</h5>
+                <ol class="mb-0 ps-3">
+                    @foreach (var etape in (_en ? s.EtapesEn : s.EtapesFr))
+                    {
+                        <li class="mb-1">@etape</li>
+                    }
+                </ol>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _chargement = true;
+    private bool _en;
+    private string _profil = string.Empty;
+    private IReadOnlyList<string> _perms = [];
+
+    private sealed record Section(string Icone, string TitreFr, string TitreEn, string[] EtapesFr, string[] EtapesEn, Func<bool> Visible);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var c = await ContexteService.ObtenirContexteAsync();
+            _perms = c.Permissions;
+            _en = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
+            _profil = c.Nature == NatureUtilisateur.Client
+                ? (_en ? "Company area (non-CIT)" : "Espace entreprise (non-CIT)")
+                : (_en ? "CIT operator area" : "Espace opérateur CIT");
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private bool A(string permission) => _perms.Contains(permission);
+    private bool AnyA(params string[] permissions) => permissions.Any(_perms.Contains);
+
+    // Manuel complet, filtré par rôle ET périmètre : chaque section n'apparaît que si l'utilisateur
+    // détient la permission correspondante (les permissions sont elles-mêmes bornées à ses files).
+    private Section[] Sections => _sections ??=
+    [
+        new("🧭", "Se repérer dans YABA", "Finding your way around YABA",
+            [
+                "Le menu de gauche ne montre que les écrans autorisés pour votre rôle et votre périmètre.",
+                "La cloche (en haut à droite) ouvre vos notifications ; les mêmes alertes vous sont envoyées par e-mail, avec un bouton pour aller directement sur le ticket concerné.",
+                "Le bouton « ? » donne l'aide de l'écran affiché ; ce manuel couvre l'ensemble de vos actions.",
+                "La langue (FR/EN) se change dans l'en-tête ; ce manuel suit la langue choisie.",
+            ],
+            [
+                "The left menu shows only the screens allowed for your role and perimeter.",
+                "The bell (top right) opens your notifications; the same alerts are e-mailed to you, with a button linking straight to the relevant ticket.",
+                "The \"?\" button gives help for the current screen; this manual covers all your actions.",
+                "Language (FR/EN) is switched in the header; this manual follows the chosen language.",
+            ],
+            () => true),
+
+        new("🚚", "Transporteur — enrôler et gérer sa flotte", "Carrier — enrol and manage the fleet",
+            [
+                "Ouvrez « Enrôler ma flotte » : le signataire, la qualité et le siège sont pré-remplis depuis votre compte.",
+                "Ajoutez une ligne par chauffeur ou camion, renseignez l'identité/immatriculation et la date d'expiration du permis (obligatoire pour un chauffeur).",
+                "Joignez les pièces : chauffeur → photo du permis recto-verso + photo d'identité ; camion (ajout) → carte grise.",
+                "Pour un retrait, utilisez « Retrait d'accès » et listez les immatriculations.",
+                "Soumettez : un numéro de suivi s'affiche, le formulaire officiel est joint. Suivez l'avancement dans « Mes enrôlements ».",
+            ],
+            [
+                "Open \"Enrol my fleet\": signatory, capacity and head office are pre-filled from your account.",
+                "Add one line per driver or truck; fill the identity/plate and the licence expiry date (mandatory for a driver).",
+                "Attach documents: driver → licence photo front/back + identity photo; truck (addition) → registration card.",
+                "For removal, use \"Remove access\" and list the plates.",
+                "Submit: a tracking number appears, the official form is attached. Track progress in \"My enrolments\".",
+            ],
+            () => A(Permission.EnrolementSoumettre)),
+
+        new("📝", "Client — demandes de facturation (IMPORT / EXPORT)", "Customer — billing requests (IMPORT / EXPORT)",
+            [
+                "Ouvrez IMPORT ou EXPORT, renseignez les références (BL, etc.) et joignez les documents demandés (un document commun peut couvrir plusieurs références).",
+                "Soumettez ; suivez chaque étape (validation, proforma, facture, paiement) via vos notifications.",
+                "Au besoin, répondez à une demande de complément directement sur le ticket.",
+            ],
+            [
+                "Open IMPORT or EXPORT, fill the references (BL, etc.) and attach the required documents (a shared document can cover several references).",
+                "Submit; track each step (validation, proforma, invoice, payment) through your notifications.",
+                "If needed, answer a request for additional information directly on the ticket.",
+            ],
+            () => AnyA(Permission.BillingImportSoumettre, Permission.BillingExportSoumettre)),
+
+        new("📣", "Client — déposer une réclamation", "Customer — submit a complaint",
+            [
+                "Ouvrez « Réclamations → Soumettre » : choisissez une catégorie, saisissez l'objet et la description, joignez des pièces.",
+                "Soumettez ; suivez les réponses du support dans « Mes réclamations » et répondez si besoin.",
+                "À la clôture, vous recevez la réponse formalisée (notification + e-mail).",
+            ],
+            [
+                "Open \"Complaints → Submit\": choose a category, enter the subject and description, attach files.",
+                "Submit; follow the support answers in \"My complaints\" and reply if needed.",
+                "On closing, you receive the formal answer (notification + e-mail).",
+            ],
+            () => A(Permission.ComplaintSoumettre)),
+
+        new("🛂", "Agent Gate — traiter un enrôlement", "Agent Gate — process an enrolment",
+            [
+                "Ouvrez « File Agent Gate » : chaque nouvelle demande vous est notifiée (application + e-mail).",
+                "« Prendre en charge » le ticket, puis contrôlez les pièces (vous pouvez les ouvrir/télécharger directement).",
+                "Si une pièce manque : « Demander un complément » avec le motif (le transporteur est notifié).",
+                "Quand tout est conforme : « Valider » puis « Convoquer » pour la production de la carte / du BAT.",
+                "À la remise : « Constater la remise du badge », saisissez le numéro et la date d'expiration, vérifiez le récapitulatif, puis confirmez → dossier clôturé, transporteur notifié.",
+                "En cas d'erreur de date d'expiration, utilisez « Corriger l'expiration » sur le dossier clôturé.",
+            ],
+            [
+                "Open \"Agent Gate queue\": each new request is notified to you (app + e-mail).",
+                "\"Take charge\" of the ticket, then check the documents (you can open/download them directly).",
+                "If a document is missing: \"Request additional info\" with the reason (the carrier is notified).",
+                "When compliant: \"Validate\" then \"Convene\" for card / BAT production.",
+                "On handover: \"Confirm badge handover\", enter the number and expiry date, review the summary, then confirm → file closed, carrier notified.",
+                "If the expiry date is wrong, use \"Correct expiry\" on the closed file.",
+            ],
+            () => A(Permission.EnrolementInstruire)),
+
+        new("🛟", "Support Opérationnel — réclamations", "Operational Support — complaints",
+            [
+                "Ouvrez « Réclamations → File » : chaque nouvelle réclamation vous est notifiée (application + e-mail).",
+                "« Prendre en charge », échangez avec le client via les messages, demandez un complément si nécessaire.",
+                "Clôturez avec une réponse formalisée → le client est notifié de la résolution.",
+            ],
+            [
+                "Open \"Complaints → Queue\": each new complaint is notified to you (app + e-mail).",
+                "\"Take charge\", exchange with the customer via messages, request additional info if needed.",
+                "Close with a formal answer → the customer is notified of the resolution.",
+            ],
+            () => AnyA(Permission.ComplaintInstruire, Permission.ComplaintRepondre)),
+
+        new("🧾", "Facturation — instruire et facturer", "Billing — process and invoice",
+            [
+                "Ouvrez votre file de facturation et prenez en charge le ticket.",
+                "Éditez la facture (ou le Draft IN à l'export) selon le parcours du dossier.",
+                "Confirmez le règlement lorsqu'il est déclaré ou prouvé ; chaque étape notifie le client.",
+            ],
+            [
+                "Open your billing queue and take charge of the ticket.",
+                "Issue the invoice (or the Draft IN for export) according to the file's path.",
+                "Confirm payment when declared or proven; each step notifies the customer.",
+            ],
+            () => AnyA(Permission.BillingImportFacturationEditer, Permission.BillingExportFacturationEditer,
+                       Permission.BillingImportPaiementValider, Permission.BillingExportPaiementValider)),
+
+        new("📊", "Superviseur — piloter l'activité", "Supervisor — monitor activity",
+            [
+                "« Supervision » montre la charge et l'activité de votre périmètre uniquement.",
+                "« Disponibilité → Agents par rubrique » liste tous vos agents par file avec leur statut Disponible/Absent.",
+                "« Performance agents » donne, par agent, les tickets pris en charge/traités et les délais moyens ; le bouton « Détails » déplie, par ticket, le temps d'attente et de traitement.",
+                "Réaffectez, priorisez ou transférez les tickets ; traitez les escalades qui vous sont notifiées.",
+            ],
+            [
+                "\"Supervision\" shows the load and activity of your perimeter only.",
+                "\"Availability → Agents by area\" lists all your agents per queue with their Available/Absent status.",
+                "\"Agent performance\" gives, per agent, taken/handled tickets and average delays; the \"Details\" button expands, per ticket, the waiting and processing time.",
+                "Reassign, prioritise or transfer tickets; handle the escalations notified to you.",
+            ],
+            () => AnyA(Permission.SupervisionConsulter, Permission.SupervisionAgir)),
+
+        new("🛠️", "Support IT N1 — incidents techniques", "IT Support L1 — technical incidents",
+            [
+                "Ouvrez la file des incidents techniques et prenez en charge.",
+                "Diagnostiquez, répondez, puis résolvez ; le demandeur est notifié de la résolution.",
+            ],
+            [
+                "Open the technical incidents queue and take charge.",
+                "Diagnose, answer, then resolve; the requester is notified of the resolution.",
+            ],
+            () => AnyA(Permission.SupportIncidentInstruire, Permission.SupportIncidentInstruireN2)),
+
+        new("⚙️", "Administration — comptes et paramétrage", "Administration — accounts and settings",
+            [
+                "Validez ou rejetez les demandes de compte ; définissez les habilitations via les profils métier.",
+                "Paramétrez les catégories de réclamation (et leur file cible), les champs d'enrôlement, les règles de notification (in-app / e-mail) et les référentiels.",
+                "Consultez le journal d'audit et les archives des tickets.",
+            ],
+            [
+                "Approve or reject account requests; set permissions via the business role presets.",
+                "Configure complaint categories (and their target queue), enrolment fields, notification rules (in-app / e-mail) and reference data.",
+                "Review the audit log and ticket archives.",
+            ],
+            () => A(Permission.CompteValider)),
+    ];
+
+    private Section[]? _sections;
+}
