@@ -507,6 +507,8 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurSuperviseursDeLaFile>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurAgentsDeLaFile>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurValideursCompte>();
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurValidateursSociete>();
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurPreparateurEnrolement>();
 
         // Canaux de diffusion. Décision produit (2026-09-25) : SMS et WhatsApp ont été RETIRÉS —
         // seuls In-App et Email subsistent. Le canal In-App n'a pas d'implémentation d'envoi : la

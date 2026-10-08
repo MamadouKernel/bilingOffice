@@ -22,6 +22,7 @@ public sealed class ValidationInterneEnrolementCommand(
     public async Task ApprouverAsync(Guid validateurId, Guid dossierId, CancellationToken ct = default)
     {
         var parques = await ChargerParquesAsync(validateurId, dossierId, ct).ConfigureAwait(false);
+        var preparateurId = parques[0].EnAttenteValidationInterneParId!.Value;
 
         foreach (var ticket in parques)
         {
@@ -30,6 +31,9 @@ public sealed class ValidationInterneEnrolementCommand(
             await journalisation.ConsignerAuditAsync(validateurId, "EnrolementValideEnInterne", nameof(Ticket), ticket.Id, null, null, ct).ConfigureAwait(false);
             await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         }
+
+        // Incrément 3 : informe le préparateur que sa demande a été validée en interne.
+        await journalisation.PublierEvenementAsync("EnrolementValideInterne", $"{{\"preparateurId\":\"{preparateurId}\",\"dossierId\":\"{dossierId}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
@@ -42,6 +46,7 @@ public sealed class ValidationInterneEnrolementCommand(
         }
 
         var parques = await ChargerParquesAsync(validateurId, dossierId, ct).ConfigureAwait(false);
+        var preparateurId = parques[0].EnAttenteValidationInterneParId!.Value;
         var maintenant = horloge.MaintenantUtc;
 
         foreach (var ticket in parques)
@@ -51,6 +56,9 @@ public sealed class ValidationInterneEnrolementCommand(
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "EnrolementRejeteEnInterne", detail, validateurId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(validateurId, "EnrolementRejeteEnInterne", nameof(Ticket), ticket.Id, null, detail, ct).ConfigureAwait(false);
         }
+
+        // Incrément 3 : informe le préparateur du rejet (il pourra corriger et resoumettre).
+        await journalisation.PublierEvenementAsync("EnrolementRejeteInterne", $"{{\"preparateurId\":\"{preparateurId}\",\"dossierId\":\"{dossierId}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }

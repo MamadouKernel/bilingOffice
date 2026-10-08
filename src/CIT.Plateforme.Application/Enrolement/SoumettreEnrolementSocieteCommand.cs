@@ -184,6 +184,12 @@ public sealed class SoumettreEnrolementSocieteCommand(
             ticketsCrees.Add(new TicketEnrolementCree(ticket.Id, ticket.Numero, objet.Type));
         }
 
+        // Incrément 3 : si parqué, alerte les validateurs de la société qu'un dossier attend validation.
+        if (parquer)
+        {
+            await journalisation.PublierEvenementAsync("EnrolementAValiderInterne", $"{{\"societeId\":\"{rattachement.SocieteId}\",\"dossierId\":\"{dossier.Id}\"}}", ct).ConfigureAwait(false);
+        }
+
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 
         return new SoumettreEnrolementSocieteResultat(dossier.Id, dossier.Numero, ticketsCrees);

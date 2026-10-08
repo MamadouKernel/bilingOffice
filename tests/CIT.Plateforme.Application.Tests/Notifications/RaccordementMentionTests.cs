@@ -190,7 +190,7 @@ public class RaccordementMentionTests
         //   ResolveurValideursCompte : les agents habilités à valider les comptes société.
         // Comme ResolveurSuperviseursDeLaFile, ils résolvent des UTILISATEURS détenant une permission
         // précise — pas de broadcast, pas de « file » ni « tous » comme destinataire.
-        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurSuperviseursDeLaFile", "ResolveurValideursCompte"], implementations);
+        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurPreparateurEnrolement", "ResolveurSuperviseursDeLaFile", "ResolveurValidateursSociete", "ResolveurValideursCompte"], implementations);
 
         // Toujours aucune diffusion collective.
         Assert.DoesNotContain(implementations, n => n.Contains("Broadcast", StringComparison.OrdinalIgnoreCase));

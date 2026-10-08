@@ -361,9 +361,10 @@ public class Imp11EtProducteursTests
             .Where(t => t is { IsAbstract: false, IsInterface: false } && t.IsAssignableTo(typeof(IResolveurDestinataires)))
             .ToList();
 
-        // Six depuis le 07/10/2026 (cf. RaccordementMentionTests, où l'inventaire est nominatif) :
-        // + ResolveurAgentsDeLaFile et ResolveurValideursCompte (alertes internes nominatives).
-        Assert.Equal(6, implementations.Count);
+        // Huit depuis le 08/10/2026 (cf. RaccordementMentionTests, où l'inventaire est nominatif) :
+        // + ResolveurValidateursSociete (alerte les validateurs d'une société) et
+        // + ResolveurPreparateurEnrolement (informe le préparateur de la décision) — validation interne 4-yeux.
+        Assert.Equal(8, implementations.Count);
 
         // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale — SAUF les résolveurs
         // NOMINATIFS scopés par permission (superviseurs/agents de la file, valideurs de compte) : ils
