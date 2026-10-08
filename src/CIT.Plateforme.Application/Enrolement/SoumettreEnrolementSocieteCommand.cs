@@ -161,6 +161,9 @@ public sealed class SoumettreEnrolementSocieteCommand(
             await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", "Enrôlement société soumis", appelantId, ct).ConfigureAwait(false);
             await journalisation.ConsignerAuditAsync(appelantId, "TicketCree", nameof(Ticket), ticket.Id, null, ticket.Numero, ct).ConfigureAwait(false);
             await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"module\":\"{Module}\"}}", ct).ConfigureAwait(false);
+            // Alerte les AGENTS de la file Agent Gate (in-app + e-mail) : sans cet événement, les
+            // tickets d'enrôlement flotte arrivaient en file sans notifier personne (07/10/2026).
+            await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
             ticketsCrees.Add(new TicketEnrolementCree(ticket.Id, ticket.Numero, objet.Type));
         }
