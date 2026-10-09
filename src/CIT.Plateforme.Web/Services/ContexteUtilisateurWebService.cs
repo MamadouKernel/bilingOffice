@@ -31,6 +31,16 @@ public sealed class ContexteUtilisateurWebService(
     /// </summary>
     public const string CookieEspace = "cit.espace";
 
+    /// <summary>
+    /// Claim porté par le cookie d'authentification PROTÉGÉ (donc inviolable) pendant un emprunt
+    /// d'identité : il contient l'identifiant de l'ADMINISTRATEUR réel qui emprunte. Sa présence
+    /// déclenche le bandeau d'emprunt et autorise le retour ; son absence = session normale.
+    /// </summary>
+    public const string ClaimImpersonateur = "cit.impersonateur";
+
+    /// <summary>Nom d'affichage de l'administrateur emprunteur, pour le bandeau (confort, non sensible).</summary>
+    public const string ClaimImpersonateurNom = "cit.impersonateur_nom";
+
     private ContexteUtilisateurVue? _contexteCache;
     private Task<ContexteUtilisateurVue>? _chargementTask;
     private EspaceFonctionnel? _espaceChoisi;

@@ -1,0 +1,51 @@
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* BANDEAU D'EMPRUNT D'IDENTITÉ — rendu seulement si la session courante porte le claim inviolable
+   « impersonateur ». Il rappelle en permanence que l'on agit en tant qu'un autre compte, et offre le
+   retour en un clic. Le retour ne transmet AUCUN identifiant : l'endpoint lit l'administrateur réel
+   dans le claim protégé du cookie. *@
+
+@if (_emprunteur is not null)
+{
+    <div class="alert alert-warning d-flex align-items-center justify-content-between gap-3 m-0 rounded-0 border-start-0 border-end-0" role="status">
+        <span>
+            <span aria-hidden="true">🎭</span>
+            @Loc["Impersonation.BannerPrefix"] <strong>@_emprunteur</strong>
+        </span>
+        <form method="post" action="/administration/impersonation/revenir" class="m-0">
+            <AntiforgeryToken />
+            <button type="submit" class="btn btn-sm btn-outline-dark">
+                ⟵ @Loc["Impersonation.Return"]
+            </button>
+        </form>
+    </div>
+}
+
+@code {
+    // Source d'authentification en CASCADE (CascadingAuthenticationState, enregistré dans Program).
+    // Null-safe : absente (p. ex. dans un rendu d'assemblage isolé sans auth), le bandeau ne rend
+    // simplement rien — il ne dépend d'aucun service injecté directement.
+    [CascadingParameter] private Task<AuthenticationState>? EtatAuthentification { get; set; }
+
+    private string? _emprunteur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (EtatAuthentification is null)
+        {
+            return;
+        }
+
+        var user = (await EtatAuthentification).User;
+
+        if (user.FindFirst(ContexteUtilisateurWebService.ClaimImpersonateur) is not null)
+        {
+            _emprunteur = user.FindFirst(ContexteUtilisateurWebService.ClaimImpersonateurNom)?.Value
+                          ?? Loc["Impersonation.UnknownAdmin"].Value;
+        }
+    }
+}

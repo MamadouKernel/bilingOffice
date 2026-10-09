@@ -1,0 +1,128 @@
+@page "/administration/impersonation"
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Comptes
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.Securite
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* SE CONNECTER EN TANT QUE — l'administrateur habilité choisit un compte et confirme SON mot de passe.
+   La bascule réelle se fait dans l'endpoint POST (SignInManager écrit le cookie avant la réponse) ;
+   cette page ne fait que présenter le formulaire. Tout est revérifié et tracé côté serveur. *@
+
+<PageTitle>@Loc["Impersonation.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span aria-hidden="true">🎭</span> @Loc["Impersonation.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Impersonation.Subtitle"]</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["Common.Loading"]" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-4" role="alert">⚠️ @_erreur</div>
+    }
+
+    <div class="alert alert-warning" role="note">
+        @Loc["Impersonation.Warning"]
+    </div>
+
+    <div class="cit-card p-4" style="max-width: 640px;">
+        <form method="post" action="/administration/impersonation/demarrer">
+            <AntiforgeryToken />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="cibleId">@Loc["Impersonation.Target"]</label>
+                <select id="cibleId" name="cibleId" class="form-select" required>
+                    <option value="" selected disabled>@Loc["Impersonation.ChooseAccount"]</option>
+                    @foreach (var c in _comptes ?? [])
+                    {
+                        <option value="@c.Id">@c.NomAffiche — @c.Email (@LibelleCategorie(c.Categorie))</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" for="motDePasse">@Loc["Impersonation.ConfirmPassword"]</label>
+                <input id="motDePasse" name="motDePasse" type="password" class="form-control" autocomplete="current-password" required />
+                <div class="form-text">@Loc["Impersonation.ConfirmPasswordHint"]</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">@Loc["Impersonation.Start"]</button>
+        </form>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery] private string? Erreur { get; set; }
+
+    private IReadOnlyList<CompteUtilisateurVue>? _comptes;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = string.Empty;
+    private string? _erreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+
+        // Garde d'affichage : la permission est de toute façon revérifiée dans l'endpoint, mais une
+        // page qu'on n'a pas le droit d'utiliser ne doit pas s'afficher (Principe VII).
+        if (!contexte.Permissions.Contains(Permission.ComptesImpersonation))
+        {
+            _refuse = true;
+            _messageRefus = Loc["Impersonation.Denied"].Value;
+            _chargement = false;
+            return;
+        }
+
+        _erreur = TraduireErreur(Erreur);
+
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            _comptes = await scope.ServiceProvider.GetRequiredService<ListerComptesUtilisateursQuery>()
+                .ExecuterAsync(contexte.UtilisateurId);
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private string LibelleCategorie(CategorieCompte categorie) => Loc[$"AdmUsers.Cat.{categorie}"].Value;
+
+    // Le verdict renvoyé par l'endpoint (?erreur=) est traduit en message lisible ; toute autre valeur
+    // est ignorée (aucune donnée libre affichée).
+    private string? TraduireErreur(string? code) => code switch
+    {
+        nameof(VerdictImpersonation.PermissionManquante) => Loc["Impersonation.Err.Permission"].Value,
+        nameof(VerdictImpersonation.CibleIntrouvable) => Loc["Impersonation.Err.Target"].Value,
+        nameof(VerdictImpersonation.AutoEmprunt) => Loc["Impersonation.Err.Self"].Value,
+        nameof(VerdictImpersonation.DejaEnEmprunt) => Loc["Impersonation.Err.Nested"].Value,
+        nameof(VerdictImpersonation.MotDePasseInvalide) => Loc["Impersonation.Err.Password"].Value,
+        _ => null,
+    };
+}

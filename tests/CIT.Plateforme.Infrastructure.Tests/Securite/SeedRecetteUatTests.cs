@@ -138,9 +138,10 @@ public sealed class PolitiqueRecetteUatTests
 public sealed class CatalogueProfilsUatTests
 {
     [Fact]
-    public void Les_vingt_trois_profils_sont_definis()
+    public void Les_vingt_quatre_profils_sont_definis()
     {
-        Assert.Equal(23, SeedRecetteUat.Profils.Count);
+        // 24 depuis le 08/10/2026 : ajout du rôle VALIDATEUR non-CIT (workflow 4-yeux).
+        Assert.Equal(24, SeedRecetteUat.Profils.Count);
     }
 
     /// <summary>

@@ -603,6 +603,105 @@ app.MapPost("/comptes/deconnexion", async (
     return Results.Redirect("/comptes/connexion");
 });
 
+// IMPERSONATION — « se connecter en tant que ». Un administrateur habilité ré-émet le cookie au nom
+// d'un autre compte pour tester en conditions réelles. L'opération se fait dans un endpoint (et non
+// dans une page) parce que SignInManager doit écrire le cookie AVANT que la réponse ne commence.
+// Garde-fous : permission ComptesImpersonation, confirmation du mot de passe de l'administrateur,
+// refus de l'auto-emprunt et de l'emprunt imbriqué (ImpersonationGuard), audit des deux identités.
+app.MapPost("/administration/impersonation/demarrer", async (
+    [Microsoft.AspNetCore.Mvc.FromForm] string cibleId,
+    [Microsoft.AspNetCore.Mvc.FromForm] string motDePasse,
+    SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,
+    UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
+    CIT.Plateforme.Application.Securite.IAutorisationService autorisation,
+    CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery,
+    HttpContext http) =>
+{
+    try
+    {
+        await antiforgery.ValidateRequestAsync(http);
+    }
+    catch (Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException)
+    {
+        return Results.BadRequest();
+    }
+
+    var adminIdStr = userManager.GetUserId(http.User);
+    if (!Guid.TryParse(adminIdStr, out var adminId)
+        || await userManager.FindByIdAsync(adminIdStr!) is not { } admin)
+    {
+        return Results.Redirect("/comptes/connexion");
+    }
+
+    var aPermission = await autorisation.EstAutoriseAsync(adminId, CIT.Plateforme.Domain.Securite.Permission.ComptesImpersonation);
+    var dejaEnEmprunt = http.User.HasClaim(c => c.Type == CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateur);
+    var motDePasseConfirme = !string.IsNullOrEmpty(motDePasse) && await userManager.CheckPasswordAsync(admin, motDePasse);
+
+    var cible = Guid.TryParse(cibleId, out _) ? await userManager.FindByIdAsync(cibleId) : null;
+    var cibleExiste = cible is { EstActif: true };
+    var estAutoEmprunt = cible is not null && cible.Id == adminId;
+
+    var verdict = CIT.Plateforme.Application.Securite.ImpersonationGuard.Decider(
+        aPermission, cibleExiste, estAutoEmprunt, dejaEnEmprunt, motDePasseConfirme);
+    if (verdict != CIT.Plateforme.Application.Securite.VerdictImpersonation.Autorise)
+    {
+        return Results.Redirect($"/administration/impersonation?erreur={verdict}");
+    }
+
+    await journalConnexion.ImpersonationDebutAsync(adminId, cible!.Id, http.Connection.RemoteIpAddress?.ToString());
+
+    // Le claim emprunteur vit dans le cookie protégé (inviolable) : le retour s'y fiera. On satisfait
+    // aussi la 2FA obligatoire (amr=mfa) — le défi de la cible est volontairement contourné, et tracé.
+    var claims = new[]
+    {
+        new System.Security.Claims.Claim(CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateur, adminId.ToString()),
+        new System.Security.Claims.Claim(CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateurNom, admin.NomAffiche ?? admin.Email ?? string.Empty),
+        new System.Security.Claims.Claim("amr", "mfa"),
+    };
+    await signInManager.SignInWithClaimsAsync(cible, isPersistent: false, claims);
+    return Results.Redirect("/");
+});
+
+// RETOUR d'emprunt : l'identifiant de l'administrateur réel est lu dans le claim inviolable du
+// cookie, jamais dans un champ du formulaire — un cookie forgé ne peut donc pas transformer le retour
+// en escalade vers un compte arbitraire.
+app.MapPost("/administration/impersonation/revenir", async (
+    SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,
+    UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
+    CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery,
+    HttpContext http) =>
+{
+    try
+    {
+        await antiforgery.ValidateRequestAsync(http);
+    }
+    catch (Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException)
+    {
+        return Results.BadRequest();
+    }
+
+    var impersonateur = http.User.FindFirst(CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateur)?.Value;
+    if (!Guid.TryParse(impersonateur, out var adminId))
+    {
+        return Results.Redirect("/");
+    }
+
+    Guid.TryParse(userManager.GetUserId(http.User), out var cibleId);
+
+    if (await userManager.FindByIdAsync(adminId.ToString()) is not { } admin)
+    {
+        await signInManager.SignOutAsync();
+        return Results.Redirect("/comptes/connexion");
+    }
+
+    await journalConnexion.ImpersonationFinAsync(adminId, cibleId, http.Connection.RemoteIpAddress?.ToString());
+    await signInManager.SignInWithClaimsAsync(admin, isPersistent: false,
+        new[] { new System.Security.Claims.Claim("amr", "mfa") });
+    return Results.Redirect("/");
+}).RequireAuthorization();
+
 // Bascule d'espace fonctionnel. La mise en page étant rendue en SSR statique, le choix ne peut
 // pas vivre dans un champ de service scoped (un scope neuf par requête) : il est persisté dans un
 // cookie de session. Ce cookie n'accorde AUCUN droit — il exprime une préférence d'affichage. Le

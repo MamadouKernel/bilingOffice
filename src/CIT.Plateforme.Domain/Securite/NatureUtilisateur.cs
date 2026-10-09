@@ -181,6 +181,15 @@ public static class Permission
     public const string AdministrationComptes = "administration.comptes";
 
     /// <summary>
+    /// IMPERSONATION — « se connecter en tant que » un autre compte pour des tests en conditions
+    /// réelles (reproduire exactement la vue, les droits et le cloisonnement d'un utilisateur). Le
+    /// Super Administrateur détient déjà toutes les permissions : l'emprunt ne lui octroie donc
+    /// aucun droit nouveau, il change seulement de point de vue. Chaque emprunt est tracé (début/fin,
+    /// les deux identités) dans le journal d'audit inviolable.
+    /// </summary>
+    public const string ComptesImpersonation = "administration.comptes_impersonation";
+
+    /// <summary>
     /// SUPPORT IT (incident technique) — instruction d'un incident technique dans la file Support IT :
     /// prise en charge, échanges, résolution, clôture. C'est la capacité d'INTERVENTION du Support N1,
     /// distincte de la lecture/diagnostic : elle porte sur le canal technique, jamais sur les dossiers
@@ -295,6 +304,7 @@ public static class Permission
                 AdministrationFiles, AdministrationSla, AdministrationPerimetresSupervision,
                 AdministrationNotifications, AuditConsulter, AdministrationCategoriesReclamation,
                 AdministrationCategoriesIncident, AdministrationChampsEnrolement, TarificationAdministrer,
+                ComptesImpersonation,
             ],
         };
 

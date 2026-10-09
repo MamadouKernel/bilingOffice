@@ -168,6 +168,12 @@
                             <span>✅</span> @Loc["Valid.Title"]
                         </a>
                     }
+                    @if (Contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.ComptesImpersonation))
+                    {
+                        <a href="/administration/impersonation" class="cit-user-dropdown-item" role="menuitem">
+                            <span>🎭</span> @Loc["Impersonation.MenuItem"]
+                        </a>
+                    }
                     <a href="/aide/manuel" class="cit-user-dropdown-item" role="menuitem">
                         <span>📖</span> @Loc["Header.UserManual"]
                     </a>

@@ -35,6 +35,10 @@
            cloche de notifications masquée) — il n'y avait aucune raison de le masquer entièrement. *@
         <HeaderBar Contexte="@_contexte" />
 
+        @* Bandeau permanent d'emprunt d'identité : visible uniquement pendant une session empruntée
+           (claim inviolable). Toujours affiché, avec le retour en un clic. *@
+        <BandeauImpersonation />
+
         <main id="cit-contenu-principal" tabindex="-1" class="cit-main-content @(_contexte?.EstAuthentifie != true ? "d-flex align-items-center justify-content-center" : "")">
             <div class="container-fluid p-0">
                 @Body

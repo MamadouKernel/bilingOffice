@@ -62,6 +62,7 @@ public sealed class SeedRecetteUat(
     public const string AdminSociete = "uat.admin.societe@local.test";
     public const string CollaborateurLimite = "uat.collab.limite@local.test";
     public const string CollaborateurGlobal = "uat.collab.global@local.test";
+    public const string Validateur = "uat.validateur@local.test";
     public const string PiloteManifeste = "uat.pilote.manifeste@local.test";
     public const string PiloteFacturation = "uat.facturation@local.test";
     public const string PiloteControleDocumentaire = "uat.controle.doc@local.test";
@@ -97,6 +98,10 @@ public sealed class SeedRecetteUat(
             [Permission.BillingImportSoumettre]),
         (CollaborateurGlobal, "UAT_Collaborateur Global", NatureUtilisateur.Client, true,
             [Permission.BillingImportSoumettre]),
+        // Rôle VALIDATEUR non-CIT (4-yeux) : le droit de validation est porté par le RATTACHEMENT
+        // société (DroitValidation), pas par une permission RBAC. Aucune permission de soumission ici,
+        // pour que la séparation des devoirs reste démontrable (il valide, il ne prépare pas).
+        (Validateur, "UAT_Validateur Societe", NatureUtilisateur.Client, true, []),
 
         (PiloteManifeste, "UAT_Pilote Manifeste", NatureUtilisateur.Agent, true,
             [Permission.TicketPrendreEnCharge, Permission.TicketTransferer, Permission.MessageNoteInterne,
@@ -132,7 +137,7 @@ public sealed class SeedRecetteUat(
              Permission.AdministrationCategoriesReclamation, Permission.CompetenceGerer,
              Permission.AdministrationPerimetresSupervision, Permission.AdministrationChampsEnrolement,
              Permission.AdministrationAssistant, Permission.AdministrationReferentiels, Permission.AdministrationAide,
-             Permission.AdministrationCategoriesIncident]),
+             Permission.AdministrationCategoriesIncident, Permission.ComptesImpersonation]),
 
         // Postes métier sans compte jusque-là : caisse, comptabilité client, guichet, avoirs et support IT.
         (Caisse, "UAT_Caisse", NatureUtilisateur.Agent, true,
@@ -353,13 +358,18 @@ public sealed class SeedRecetteUat(
         await RattacherAsync(CollaborateurLimite, societes[TypeClient.Normal], false, DroitConsultation.PropresDemandesUniquement, ct).ConfigureAwait(false);
         await RattacherAsync(CollaborateurGlobal, societes[TypeClient.Normal], false, DroitConsultation.ToutesDemandesSociete, ct).ConfigureAwait(false);
 
+        // VALIDATEUR 4-yeux sur la MÊME société que les soumissionnaires ci-dessus : dès lors, leurs
+        // soumissions sont parquées en attente de sa validation (séparation des devoirs observable).
+        await RattacherAsync(Validateur, societes[TypeClient.Normal], false, DroitConsultation.ToutesDemandesSociete, ct, droitValidation: true).ConfigureAwait(false);
+
         // Le transporteur n'a VOLONTAIREMENT aucun rattachement : c'est ce qui le distingue
         // fonctionnellement d'un client (RG-CPT-08).
         await context.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
     private async Task RattacherAsync(
-        string email, SocieteCliente societe, bool administrateur, DroitConsultation droit, CancellationToken ct)
+        string email, SocieteCliente societe, bool administrateur, DroitConsultation droit, CancellationToken ct,
+        bool droitValidation = false)
     {
         var compte = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
         if (compte is null)
@@ -376,8 +386,8 @@ public sealed class SeedRecetteUat(
             return;
         }
 
-        var rattachement = UtilisateurSociete.Rattacher(compte.Id, societe.Id, DateTime.UtcNow, administrateur, droitSoumission: true);
-        rattachement.ModifierDroits(droit, droitSoumission: true);
+        var rattachement = UtilisateurSociete.Rattacher(compte.Id, societe.Id, DateTime.UtcNow, administrateur, droitSoumission: true, droitValidation: droitValidation);
+        rattachement.ModifierDroits(droit, droitSoumission: true, droitValidation: droitValidation);
         context.UtilisateursSociete.Add(rattachement);
 
         if (administrateur)

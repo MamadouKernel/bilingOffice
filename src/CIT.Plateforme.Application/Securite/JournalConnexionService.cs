@@ -63,6 +63,12 @@ public sealed class JournalConnexionService(
     public const string ActionSecondFacteurRefuse = "SecondFacteurRefuse";
     public const string ActionDeconnexion = "Deconnexion";
 
+    /// <summary>Début d'un emprunt d'identité : un administrateur agit désormais en tant qu'un autre compte.</summary>
+    public const string ActionImpersonationDebut = "ImpersonationDebut";
+
+    /// <summary>Fin d'un emprunt d'identité : l'administrateur est revenu à son propre compte.</summary>
+    public const string ActionImpersonationFin = "ImpersonationFin";
+
     /// <summary>Connexion aboutie — l'utilisateur détient une session.</summary>
     public Task ConnexionReussieAsync(Guid utilisateurId, string? origine = null, CancellationToken ct = default) =>
         ConsignerAsync(utilisateurId, ActionConnexionReussie, null, origine, ct);
@@ -89,6 +95,20 @@ public sealed class JournalConnexionService(
     public Task DeconnexionAsync(Guid utilisateurId, string? origine = null, CancellationToken ct = default) =>
         ConsignerAsync(utilisateurId, ActionDeconnexion, null, origine, ct);
 
+    /// <summary>
+    /// Début d'emprunt d'identité : l'ACTEUR est l'administrateur (<paramref name="administrateurId"/>),
+    /// l'entité concernée est le compte emprunté (<paramref name="cibleId"/>). Les deux identités sont
+    /// donc liées dans une seule entrée d'audit inviolable — on sait QUI a emprunté QUI, et quand.
+    /// </summary>
+    public Task ImpersonationDebutAsync(
+        Guid administrateurId, Guid cibleId, string? origine = null, CancellationToken ct = default) =>
+        ConsignerImpersonationAsync(administrateurId, cibleId, ActionImpersonationDebut, origine, ct);
+
+    /// <summary>Fin d'emprunt : l'administrateur revient à son compte. Même liaison des deux identités.</summary>
+    public Task ImpersonationFinAsync(
+        Guid administrateurId, Guid cibleId, string? origine = null, CancellationToken ct = default) =>
+        ConsignerImpersonationAsync(administrateurId, cibleId, ActionImpersonationFin, origine, ct);
+
     // ---------------------------------------------------------------------
 
     private async Task ConsignerAsync(
@@ -107,6 +127,23 @@ public sealed class JournalConnexionService(
 
         // L'authentification ne s'inscrit dans aucune unité de travail métier : sans enregistrement
         // explicite, la trace resterait en mémoire et se perdrait.
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task ConsignerImpersonationAsync(
+        Guid administrateurId, Guid cibleId, string action, string? origine, CancellationToken ct)
+    {
+        // auteurId = administrateur (l'acteur réel) ; entiteId = cible (le compte emprunté). La trace
+        // porte explicitement les deux identités : aucune action d'emprunt n'est anonyme ni ambiguë.
+        await journalisation.ConsignerAuditAsync(
+            administrateurId,
+            action,
+            TypeEntite,
+            cibleId,
+            avant: origine,
+            apres: $"cible={cibleId}",
+            ct).ConfigureAwait(false);
+
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }
