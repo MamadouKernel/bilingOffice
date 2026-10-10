@@ -1,7 +1,6 @@
 @page "/aide/manuel"
 @rendermode InteractiveServer
 @attribute [Authorize]
-@using System.Globalization
 @using CIT.Plateforme.Domain.Securite
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
@@ -65,7 +64,9 @@
         {
             var c = await ContexteService.ObtenirContexteAsync();
             _perms = c.Permissions;
-            _en = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("en", StringComparison.OrdinalIgnoreCase);
+            // Règle de langue UNIQUE de la plateforme (garde-fou ProformaBilingueTests) : on ne détecte
+            // jamais la langue autrement que par LangueCourante, fiable sur tous les serveurs.
+            _en = CIT.Plateforme.Application.Abstractions.LangueCourante.EnAnglais;
             _profil = c.Nature == NatureUtilisateur.Client
                 ? (_en ? "Company area (non-CIT)" : "Espace entreprise (non-CIT)")
                 : (_en ? "CIT operator area" : "Espace opérateur CIT");
