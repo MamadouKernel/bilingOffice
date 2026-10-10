@@ -259,6 +259,7 @@ public static class CatalogueNavigation
         new("Espace Structure", "🏢",
         [
             new("Vue Supervision", "📈", "/supervision", [Permission.SupervisionConsulter], CorrespondanceExacte: true),
+            new("Performance agents", "📊", "/administration/performance-agents", [Permission.SupervisionConsulter]),
         ]),
         new("Gestion des Dossiers", "📦",
         [
