@@ -106,7 +106,7 @@
                     {
                         <div class="mt-2 ms-4">
                             <label class="form-label small fw-semibold mb-1" for="@($"piece-{piece.Code}")">
-                                @Loc[$"CasPart.Piece.{piece.Code}"] @(piece.Requise ? "*" : $"({Loc["CasPart.Facultatif"]})")
+                                @Loc[$"CasPart.Piece.{piece.Code}"] @(piece.Requise ? "*" : $"({Loc["CasPart.Facultatif"]})") <InfoBulle Texte="@Loc[$"Tip.Piece.{piece.Code}"]" />
                                 @if (_piecesCas.ContainsKey(piece.Code)) { <span class="text-success">✓ @_piecesCas[piece.Code].Name</span> }
                             </label>
                             <InputFile id="@($"piece-{piece.Code}")" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
