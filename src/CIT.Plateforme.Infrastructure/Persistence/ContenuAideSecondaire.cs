@@ -25,6 +25,20 @@ internal static class ContenuAideSecondaire
             ! Can't find it? Ask the assistant.
             """),
 
+        new("/administration/performance-agents", "Performance des agents", "Agent performance",
+            """
+            Le bilan d'activité de vos agents, sur la période que vous choisissez (dates en haut, puis « Appliquer »).
+            - Par agent : tickets pris en charge et traités, et les délais moyens d'attente et de traitement.
+            - Le bouton « Détails » déplie, ticket par ticket, le temps d'attente puis de traitement.
+            ! Vous ne voyez que les agents de votre périmètre de supervision.
+            """,
+            """
+            Your agents' activity report, over the period you choose (dates at the top, then "Apply").
+            - Per agent: tickets taken and handled, and the average waiting and processing times.
+            - The "Details" button expands, ticket by ticket, the waiting then processing time.
+            ! You only see the agents in your supervision perimeter.
+            """),
+
         new("/assistant", "Assistant virtuel", "Virtual assistant",
             """
             Posez une question en langage courant : l'assistant répond à partir de VOS dossiers et de la base de réponses de CIT.
