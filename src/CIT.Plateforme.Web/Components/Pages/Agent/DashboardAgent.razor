@@ -168,6 +168,17 @@ else if (_dashboard is not null)
             </div>
         </div>
     }
+    else if (_dashboard.FilesHabilitees.Count > 0)
+    {
+        @* Aucun ticket tenu : on guide vers l'action utile plutôt que de masquer la section. *@
+        <div class="cit-card border-0 shadow-sm bg-light d-flex align-items-center gap-3 p-4 mb-4">
+            <span class="fs-2" aria-hidden="true">✅</span>
+            <div>
+                <h6 class="fw-bold m-0 text-dark">@Loc["Agent.NoTicketsTitle"]</h6>
+                <p class="small text-muted m-0">@Loc["Agent.NoTicketsText"]</p>
+            </div>
+        </div>
+    }
 }
 
 @code {

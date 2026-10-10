@@ -102,6 +102,9 @@ public sealed class ObtenirDashboardClientQuery(
             }
         }
 
+        // Plus urgent d'abord : l'action qui attend depuis le plus longtemps remonte en tête.
+        actionsRequises = actionsRequises.OrderBy(a => a.DateDeclenchementUtc).ToList();
+
         // 5. Projection des dossiers récents avec état dérivé (et étape métier de chaque BL / booking)
         var nomsFiles = files is null ? new Dictionary<Guid, string>() : (await files.ListerAsync(ct).ConfigureAwait(false)).ToDictionary(f => f.Id, f => f.Nom);
         var etapes = new Dictionary<Guid, string?>();

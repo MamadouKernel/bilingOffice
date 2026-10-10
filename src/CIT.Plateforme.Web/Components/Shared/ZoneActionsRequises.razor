@@ -41,6 +41,17 @@
         </div>
     </div>
 }
+else
+{
+    @* Rien à faire : on le dit clairement plutôt que de laisser un vide qui inquiète. *@
+    <div class="cit-card border-0 shadow-sm bg-success-subtle d-flex align-items-center gap-3 p-3 mb-4">
+        <span class="fs-3" aria-hidden="true">✅</span>
+        <div>
+            <h6 class="fw-bold m-0 text-success-emphasis">@Loc["Zar.EmptyTitle"]</h6>
+            <p class="small text-muted m-0">@Loc["Zar.EmptyText"]</p>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]

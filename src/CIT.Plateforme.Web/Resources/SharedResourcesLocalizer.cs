@@ -174,6 +174,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Agent.InProgress"] = "En cours :",
         ["Agent.AccessQueue"] = "Accéder à la file ➔",
         ["Agent.MyFilesTitle"] = "Mes dossiers en cours d'instruction",
+        ["Agent.NoTicketsTitle"] = "Vous ne traitez aucun ticket pour l'instant",
+        ["Agent.NoTicketsText"] = "Prenez-en un dans vos files ci-dessus (colonne « en attente ») pour commencer à le traiter.",
         ["Agent.ColBlBooking"] = "Numéro BL / Booking",
         ["Agent.ColQueue"] = "File",
         ["Agent.ColTakenCharge"] = "Prise en charge",
@@ -2279,6 +2281,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Chrono.Ev.RappelEcheanceDocument"] = "Rappel d'échéance d'un document",
         ["Zar.TitlePrefix"] = "Mes actions requises",
         ["Zar.Badge"] = "Action client requise",
+        ["Zar.EmptyTitle"] = "Rien ne vous attend pour le moment",
+        ["Zar.EmptyText"] = "Aucune action n'est attendue de votre part. Vous serez prévenu dès qu'une de vos demandes nécessite quelque chose.",
 
         // ===== LOT 3 - Tickets (Fiche ticket) =====
         ["Ticket.PageTitleFallback"] = "Fiche ticket",
@@ -3859,6 +3863,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Agent.InProgress"] = "In progress:",
         ["Agent.AccessQueue"] = "Access the queue ➔",
         ["Agent.MyFilesTitle"] = "My files under instruction",
+        ["Agent.NoTicketsTitle"] = "You're not handling any ticket right now",
+        ["Agent.NoTicketsText"] = "Pick one from your queues above (the \"waiting\" column) to start working on it.",
         ["Agent.ColBlBooking"] = "BL / Booking number",
         ["Agent.ColQueue"] = "Queue",
         ["Agent.ColTakenCharge"] = "Taken charge",
@@ -5964,6 +5970,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Chrono.Ev.RappelEcheanceDocument"] = "Document expiry reminder",
         ["Zar.TitlePrefix"] = "My required actions",
         ["Zar.Badge"] = "Client action required",
+        ["Zar.EmptyTitle"] = "Nothing needs you right now",
+        ["Zar.EmptyText"] = "No action is expected from you. You'll be notified as soon as one of your requests needs something.",
 
         // ===== LOT 3 - Tickets (Ticket sheet) =====
         ["Ticket.PageTitleFallback"] = "Ticket sheet",
