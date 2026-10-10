@@ -114,6 +114,21 @@
             ],
             () => A(Permission.MessageNoteInterne)),
 
+        new("🔁", "Agents — fin de poste (relève / chiffre)", "Agents — end of shift (handover)",
+            [
+                "Si votre poste se termine et qu'un ticket que vous avez pris en charge n'est pas fini, ouvrez-le et cliquez « Rendre à la file ».",
+                "Le ticket repart « en attente de prise en charge » dans sa file : un agent disponible de l'équipe entrante le reprend (prise libre).",
+                "Vous pouvez d'abord laisser une « Note interne » de passation (où vous en êtes) — elle reste visible des agents CIT.",
+                "Une fois rendu, vous n'êtes plus responsable du ticket ; celui qui le reprend le devient, et tout reste tracé.",
+            ],
+            [
+                "If your shift ends and a ticket you took charge of is not finished, open it and click \"Return to queue\".",
+                "The ticket goes back to \"awaiting pick-up\" in its queue: an available agent from the incoming shift takes it over.",
+                "You may first leave an \"Internal note\" with the handover context — it stays visible to CIT agents.",
+                "Once returned, you are no longer responsible for the ticket; whoever takes it becomes responsible, and everything stays traced.",
+            ],
+            () => A(Permission.MessageNoteInterne)),
+
         new("🚚", "Transporteur — enrôler et gérer sa flotte", "Carrier — enrol and manage the fleet",
             [
                 "Ouvrez « Enrôler ma flotte » : le signataire, la qualité et le siège sont pré-remplis depuis votre compte.",

@@ -23,7 +23,10 @@ public sealed record OptionsTraitementTicketVue(
     bool PeutCloturerAbsenceReponse = false,
     /// <summary>Motif de la demande d'annulation du client, si elle attend une décision.</summary>
     string? DemandeAnnulationMotif = null,
-    bool PeutDeciderAnnulation = false);
+    bool PeutDeciderAnnulation = false,
+    /// <summary>Passation de chiffre : l'agent qui détient le ticket (ou un superviseur) peut le
+    /// rendre à sa file pour que l'équipe entrante le reprenne.</summary>
+    bool PeutRendreALaFile = false);
 
 /// <summary>
 /// Options de traitement d'un ticket pour un agent (05/10/2026) :
@@ -134,10 +137,14 @@ public sealed class OptionsTraitementTicketQuery(
             demandeAnnulation = derniere?.Evenement == "DemandeAnnulationSoumise" ? derniere.Detail ?? "—" : null;
         }
 
+        // Passation de chiffre : l'agent qui tient le ticket (ou un superviseur) peut le rendre à la file.
+        var peutRendreALaFile = !libre && (tenuParMoi || superviseur) && ticket.Statut == StatutTicket.EnCours;
+
         return new OptionsTraitementTicketVue(peutTransferer, destinations, peutEscalader, peutAffecter && agents.Count > 0, !libre, agents,
             PeutCloturerAbsenceReponse: peutCloturerAbsence,
             DemandeAnnulationMotif: demandeAnnulation,
-            PeutDeciderAnnulation: demandeAnnulation is not null);
+            PeutDeciderAnnulation: demandeAnnulation is not null,
+            PeutRendreALaFile: peutRendreALaFile);
     }
 }
 

@@ -10,7 +10,7 @@
 @* Actions de traitement de l'agent sur la fiche (05/10/2026) : transférer (files permises par la
    matrice, motif du référentiel), escalader au superviseur (motif obligatoire), (ré)affecter
    (superviseur). Rien n'est proposé qui serait refusé ; les commandes revérifient tout. *@
-@if (_options is { } o && (o.PeutTransferer || o.PeutEscalader || o.PeutAffecter || o.PeutRouvrir || o.PeutCloturerAbsenceReponse || o.PeutDeciderAnnulation))
+@if (_options is { } o && (o.PeutTransferer || o.PeutEscalader || o.PeutAffecter || o.PeutRouvrir || o.PeutCloturerAbsenceReponse || o.PeutDeciderAnnulation || o.PeutRendreALaFile))
 {
     <div class="cit-card mb-4">
         <h6 class="fw-bold text-dark mb-3">🧭 @Loc["Traitement.Titre"]</h6>
@@ -47,6 +47,10 @@
             @if (o.PeutRouvrir)
             {
                 <button type="button" class="btn btn-sm @(_panneau == "reouverture" ? "btn-info" : "btn-outline-info")" @onclick="@(() => Ouvrir("reouverture"))">↩️ @Loc["Traitement.Rouvrir"]</button>
+            }
+            @if (o.PeutRendreALaFile)
+            {
+                <button type="button" class="btn btn-sm @(_panneau == "rendre" ? "btn-dark" : "btn-outline-dark")" @onclick="@(() => Ouvrir("rendre"))">🔁 @Loc["Traitement.RendreALaFile"]</button>
             }
         </div>
 
@@ -115,6 +119,14 @@
                 <textarea id="motif-reouverture" class="form-control form-control-sm mb-2" rows="2" maxlength="500" @bind="_motifReouverture" @bind:event="oninput"></textarea>
                 <div class="text-end">
                     <button type="button" class="btn btn-info btn-sm" disabled="@(_enCours || string.IsNullOrWhiteSpace(_motifReouverture))" @onclick="RouvrirAsync">@Loc["Traitement.Rouvrir"]</button>
+                </div>
+                break;
+
+            case "rendre":
+                @* Passation de chiffre : le ticket repart dans la file, l'équipe entrante le reprend. *@
+                <div class="small mb-2">@Loc["Traitement.RendreALaFileAide"]</div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-dark btn-sm" disabled="@_enCours" @onclick="RendreALaFileAsync">@Loc["Traitement.ConfirmerRendre"]</button>
                 </div>
                 break;
 
@@ -206,6 +218,10 @@
     private Task DeciderAnnulationAsync(bool accepter) => ExecuterAsync(
         s => s.GetRequiredService<AnnulerTicketCommand>().DeciderAnnulationAsync(AgentId, TicketId, accepter, _motifDecision.Trim()),
         accepter ? Loc["Annulation.MsgAcceptee"].Value : Loc["Annulation.MsgRefusee"].Value);
+
+    private Task RendreALaFileAsync() => ExecuterAsync(
+        s => s.GetRequiredService<RendreTicketALaFileCommand>().ExecuterAsync(AgentId, TicketId),
+        Loc["Traitement.MsgRendu"].Value);
 
     private Task AffecterAsync() => ExecuterAsync(
         s => _options!.EstAffecte

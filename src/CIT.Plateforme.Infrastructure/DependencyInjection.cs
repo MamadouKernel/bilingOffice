@@ -122,6 +122,7 @@ public static class DependencyInjection
         // User Story 1 — création, mise en file, prise en charge.
         services.AddScoped<CreerTicketCommand>();
         services.AddScoped<PrendreEnChargeCommand>();
+        services.AddScoped<RendreTicketALaFileCommand>();
         services.AddScoped<ActionsWorkflowStandardCommand>();
         services.AddScoped<ConsulterStatutQuery>();
         services.AddScoped<ConsulterFileQuery>();
