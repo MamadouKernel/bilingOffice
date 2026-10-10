@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototypes Workflows YABA</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --ink:#15223b; --muted:#5b6b86; --line:#dfe5f0;
+    --gate:#1f6feb; --gate-soft:#e8f1ff;
+    --supp:#7a3cc4; --supp-soft:#f1e9fb;
+    --ok:#1a8f5c; --ok-soft:#e4f6ee;
+    --warn:#b9770a; --warn-soft:#fdf2dd;
+    --evt:#334155;
+    --radius:14px; --shadow:0 1px 3px rgba(20,34,59,.08),0 8px 24px rgba(20,34,59,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d1526; --card:#141f36; --ink:#e8edf7; --muted:#9aacc8; --line:#263450;
+      --gate:#5a9bff; --gate-soft:#15294a;
+      --supp:#b98cff; --supp-soft:#2a1d44;
+      --ok:#48d38f; --ok-soft:#123528;
+      --warn:#e5a93a; --warn-soft:#3a2c10;
+      --evt:#c7d2e6;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1526; --card:#141f36; --ink:#e8edf7; --muted:#9aacc8; --line:#263450;
+    --gate:#5a9bff; --gate-soft:#15294a; --supp:#b98cff; --supp-soft:#2a1d44;
+    --ok:#48d38f; --ok-soft:#123528; --warn:#e5a93a; --warn-soft:#3a2c10; --evt:#c7d2e6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 16px 64px;}
+  header h1{font-size:26px;margin:0 0 6px;letter-spacing:-.3px}
+  header p{color:var(--muted);margin:0 0 8px}
+  .tabs{display:flex;gap:8px;margin:22px 0 10px;flex-wrap:wrap}
+  .tab{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:9px 16px;border-radius:999px;font-weight:600;cursor:pointer;font-size:14px}
+  .tab[aria-selected="true"]{background:var(--gate);border-color:var(--gate);color:#fff}
+  .tab.supp[aria-selected="true"]{background:var(--supp);border-color:var(--supp)}
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 22px;color:var(--muted);font-size:13px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .flow{display:grid;gap:14px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px;position:relative;overflow:hidden}
+  .step::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent,var(--gate))}
+  .step .hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .num{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--accent,var(--gate));
+    color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+  .ttl{font-weight:700;font-size:16px;margin:0}
+  .actor{margin-left:auto;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
+    background:var(--accent-soft,var(--gate-soft));color:var(--accent,var(--gate))}
+  .desc{margin:9px 0 10px;color:var(--muted)}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+  .pill{padding:3px 9px;border-radius:7px;border:1px solid var(--line);font-weight:600}
+  .pill.status{background:var(--gate-soft);color:var(--gate);border-color:transparent}
+  .pill.status.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.status.warn{background:var(--warn-soft);color:var(--warn)}
+  .pill.evt{background:transparent;color:var(--evt);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .pill.code{background:transparent;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .arrow{display:grid;place-items:center;color:var(--line);font-size:18px;height:6px;margin:-4px 0}
+  .note{background:var(--warn-soft);border:1px solid transparent;border-radius:10px;
+    padding:10px 14px;color:var(--ink);font-size:13.5px;margin:4px 0 2px}
+  .note b{color:var(--warn)}
+  footer{margin-top:28px;color:var(--muted);font-size:12.5px;text-align:center}
+  .grp{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);margin:18px 0 2px}
+  .supp .step::before,.supp .num{background:var(--supp)}
+  .supp .actor{background:var(--supp-soft);color:var(--supp)}
+  .supp .pill.status{background:var(--supp-soft);color:var(--supp)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Prototypes de workflows — YABA</h1>
+    <p>État actuel du code. Deux parcours : enrôlement flotte (Agent Gate) et support opérationnel (réclamations client).</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-gate" id="t-gate">🛂 Agent Gate — Enrôlement</button>
+    <button class="tab supp" role="tab" aria-selected="false" aria-controls="p-supp" id="t-supp">🎧 Support opérationnel — Réclamations</button>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--gate)"></i>Statut ticket</span>
+    <span><i class="dot" style="background:var(--ok)"></i>Statut final</span>
+    <span><i class="dot" style="background:var(--warn)"></i>En attente</span>
+    <span><i class="dot" style="background:var(--evt)"></i>Événement publié</span>
+  </div>
+
+  <!-- ============ AGENT GATE ============ -->
+  <section class="panel active" id="p-gate" role="tabpanel" aria-labelledby="t-gate">
+    <div class="grp">Amont — la demande arrive</div>
+    <div class="flow">
+
+      <div class="step" style="--accent:var(--muted)">
+        <div class="hd"><span class="num">0</span><h3 class="ttl">Soumission de la flotte</h3>
+          <span class="actor" style="--accent:var(--muted);--accent-soft:var(--line)">Société cliente</span></div>
+        <p class="desc">Un soumissionnaire monte un dossier unique : 1 ticket par chauffeur (permis + photo) ou camion (carte grise). Dates d'expiration obligatoires. Le chauffeur ne se déplace jamais.</p>
+        <div class="meta">
+          <span class="pill status">EnAttenteDePriseEnCharge</span>
+          <span class="pill evt">TicketCree</span>
+          <span class="pill evt">TicketArriveeEnFile</span>
+        </div>
+      </div>
+
+      <div class="note">⚖️ <b>4-yeux (si validateur tiers)</b> : le ticket est <b>parqué</b> et invisible de l'Agent Gate tant qu'un validateur société ne l'a pas approuvé. Sinon, il entre directement dans la file.</div>
+
+      <div class="arrow">▼</div>
+      <div class="grp">File Agent Gate — traitement par l'agent CIT</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">1</span><h3 class="ttl">Le ticket apparaît dans la file</h3>
+          <span class="actor">Agent Gate</span></div>
+        <p class="desc">File filtrée par périmètre, triée par ancienneté. Les tickets parqués en validation interne sont masqués.</p>
+        <div class="meta"><span class="pill code">ConsulterFileAgentGateQuery</span>
+          <span class="pill status">EnAttenteDePriseEnCharge</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">2</span><h3 class="ttl">Prise en charge</h3>
+          <span class="actor">Agent Gate</span></div>
+        <p class="desc">L'agent s'attribue le ticket. Concurrence arbitrée par jeton EF Core (un seul agent gagne). Les actions suivantes exigent l'agent affecté.</p>
+        <div class="meta"><span class="pill code">PrendreEnChargeCommand</span>
+          <span class="pill status">→ EnCours</span>
+          <span class="pill evt">TicketPrisEnCharge</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">3</span><h3 class="ttl">Instruction du dossier</h3>
+          <span class="actor">Agent Gate</span></div>
+        <p class="desc">Consulte la fiche, télécharge/visualise les pièces (permis + photo / carte grise), vérifie les dates d'expiration déclarées.</p>
+        <div class="meta"><span class="pill code">ObtenirFicheEnrolementQuery</span>
+          <span class="pill status">EnCours</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">4</span><h3 class="ttl">Validation du dossier</h3>
+          <span class="actor">Agent Gate</span></div>
+        <p class="desc">Jalon d'historique ENR-02. <b>Le statut reste EnCours</b> — pas de nouvel état, pas de clôture ici.</p>
+        <div class="meta"><span class="pill code">ValiderEnrolementCommand</span>
+          <span class="pill status">EnCours</span>
+          <span class="pill evt">EnrolementValide</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">5</span><h3 class="ttl">Convocation</h3>
+          <span class="actor">Agent Gate</span></div>
+        <p class="desc">On invite le représentant à venir retirer le badge / la carte. L'événement ne porte aucun canal (consommé par le module Notifications).</p>
+        <div class="meta"><span class="pill code">DeclencherConvocationCommand</span>
+          <span class="pill status">EnCours</span>
+          <span class="pill evt">ConvocationDeclenchee</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step" style="--accent:var(--ok)">
+        <div class="hd"><span class="num" style="background:var(--ok)">6</span><h3 class="ttl">Remise du badge = clôture</h3>
+          <span class="actor" style="--accent:var(--ok);--accent-soft:var(--ok-soft)">Agent Gate</span></div>
+        <p class="desc">Seule étape qui clôture. L'agent saisit <b>numéro + date d'expiration</b> ; le badge est validé <i>avant</i> la clôture (jamais de dossier clos sans badge).</p>
+        <div class="meta"><span class="pill code">ConstaterRemiseBadgeCommand</span>
+          <span class="pill status ok">→ Cloture (Normale)</span>
+          <span class="pill evt">BadgeRemisEtDossierCloture</span></div>
+      </div>
+    </div>
+    <div class="note" style="background:var(--gate-soft)">🔑 Un seul état technique traversé (<b>EnCours</b>). Validation et convocation sont des jalons d'historique, pas des statuts. Garde en 2 temps : permission <code>EnrolementInstruire</code> sur la file + agent affecté au ticket.</div>
+  </section>
+
+  <!-- ============ SUPPORT OPÉRATIONNEL ============ -->
+  <section class="panel supp" id="p-supp" role="tabpanel" aria-labelledby="t-supp">
+    <div class="grp">Côté client (non-CIT)</div>
+    <div class="flow">
+
+      <div class="step">
+        <div class="hd"><span class="num">1</span><h3 class="ttl">Déposer une réclamation</h3>
+          <span class="actor">Client</span></div>
+        <p class="desc">Réclamations → Soumettre. Choisit une <b>catégorie</b>, saisit objet + description, joint des pièces. La catégorie <b>route</b> vers la bonne file. Un numéro de suivi s'affiche.</p>
+        <div class="meta"><span class="pill code">/reclamations/soumettre</span>
+          <span class="pill status">EnAttenteDePriseEnCharge</span>
+          <span class="pill evt">réclamation enregistrée</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">2</span><h3 class="ttl">Confirmation</h3>
+          <span class="actor">Client</span></div>
+        <p class="desc">« Votre demande a été enregistrée » avec le numéro de suivi (in-app + e-mail).</p>
+        <div class="meta"><span class="pill evt">notification client</span></div>
+      </div>
+
+      <div class="arrow">▼</div>
+      <div class="grp">Côté support opérationnel (agent CIT)</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">3</span><h3 class="ttl">Alerte nouvelle demande</h3>
+          <span class="actor">Support</span></div>
+        <p class="desc">« Nouvelle demande dans votre file » dès le dépôt (in-app <b>+ e-mail</b>).</p>
+        <div class="meta"><span class="pill evt">TicketArriveeEnFile</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">4</span><h3 class="ttl">File de son périmètre</h3>
+          <span class="actor">Support</span></div>
+        <p class="desc">Voit uniquement les réclamations de sa catégorie/file (cloisonnement), ouvre un ticket.</p>
+        <div class="meta"><span class="pill code">/reclamations/file</span>
+          <span class="pill status">EnAttenteDePriseEnCharge</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step">
+        <div class="hd"><span class="num">5</span><h3 class="ttl">Prise en charge</h3>
+          <span class="actor">Support</span></div>
+        <p class="desc">« Prendre en charge » → le ticket lui est réservé.</p>
+        <div class="meta"><span class="pill code">PrendreEnChargeCommand</span>
+          <span class="pill status">→ EnCours</span>
+          <span class="pill evt">TicketPrisEnCharge</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step" style="--accent:var(--warn)">
+        <div class="hd"><span class="num" style="background:var(--warn)">6</span><h3 class="ttl">Instruire / échanger</h3>
+          <span class="actor" style="--accent:var(--warn);--accent-soft:var(--warn-soft)">Support ⇄ Client</span></div>
+        <p class="desc">Messages tracés avec le client, consultation/dépôt de pièces. « Demander un complément » bascule en attente et notifie le client.</p>
+        <div class="meta">
+          <span class="pill status warn">↔ EnAttenteClient (si complément)</span>
+          <span class="pill evt">message / complément</span></div>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="step" style="--accent:var(--ok)">
+        <div class="hd"><span class="num" style="background:var(--ok)">7</span><h3 class="ttl">Clôture avec réponse formalisée</h3>
+          <span class="actor" style="--accent:var(--ok);--accent-soft:var(--ok-soft)">Support</span></div>
+        <p class="desc">Clôture avec une <b>réponse formalisée obligatoire</b>. Le client est notifié : « Votre réclamation a été traitée » (in-app + e-mail), et peut resoumettre si la réponse ne convient pas.</p>
+        <div class="meta"><span class="pill status ok">→ Cloture</span>
+          <span class="pill evt">TicketReclamationCloture</span></div>
+      </div>
+    </div>
+    <div class="note" style="background:var(--supp-soft)">🔑 Canal unique : la plateforme YABA (pas de téléphone/chat intégré). Cloisonnement par catégorie → file. Boucle de notifications des deux côtés à chaque étape clé (dépôt, complément, clôture).</div>
+  </section>
+
+  <footer>Prototype visuel — reflète le code actuel (branche feat/roles-non-cit). Non contractuel.</footer>
+</div>
+
+<script>
+  const tabs=[...document.querySelectorAll('.tab')];
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.setAttribute('aria-selected','false'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    t.setAttribute('aria-selected','true');
+    document.getElementById(t.getAttribute('aria-controls')).classList.add('active');
+  }));
+</script>
+</body>
+</html>

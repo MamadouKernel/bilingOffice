@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parcours Transporteur & Agent Gate</title>
+<style>
+  :root{
+    --bg:#0e1626; --panel:#152036; --panel2:#1b2a46; --ink:#eaf0fb; --muted:#9db0d0; --line:#27375a;
+    --trans:#e5a93a; --trans-soft:#3a2c10;
+    --gate:#5a9bff; --gate-soft:#15294a;
+    --ok:#48d38f; --ok-soft:#123528;
+    --evt:#c7d2e6;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:radial-gradient(1200px 600px at 50% -10%, #1a2742 0%, var(--bg) 60%);
+    color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .stage{max-width:960px;margin:0 auto;padding:22px 16px 28px}
+  .titrebar{display:flex;align-items:center;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+  .titrebar h1{font-size:20px;margin:0;letter-spacing:-.3px}
+  .badge-live{font-size:11px;font-weight:800;letter-spacing:.8px;color:#ff6b6b;border:1px solid #ff6b6b55;
+    padding:2px 8px;border-radius:999px;text-transform:uppercase}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+
+  .scene{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);padding:18px;overflow:hidden;min-height:330px}
+
+  .lanes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .lane{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--panel2);transition:.4s;opacity:.5}
+  .lane.active{opacity:1;box-shadow:0 0 0 2px var(--accent) inset}
+  .lane.trans{--accent:var(--trans)}
+  .lane.gate{--accent:var(--gate)}
+  .lane h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .lane .who{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:#06101f}
+
+  .ticket{border-radius:12px;border:1px solid var(--line);background:#0f1a30;padding:12px 14px;transition:.45s}
+  .ticket .num{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted)}
+  .ticket .obj{font-weight:700;margin:2px 0 8px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
+  .pill.att{background:var(--trans-soft);color:var(--trans)}
+  .pill.enc{background:var(--gate-soft);color:var(--gate)}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+
+  .narration{margin-top:16px;min-height:52px;display:flex;gap:12px;align-items:flex-start}
+  .step-num{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--accent,#37507f);color:#06101f;
+    font-weight:800;display:grid;place-items:center;transition:.4s}
+  .narration .txt{font-size:15px}
+  .narration .txt b{color:#fff}
+  .evt{margin-top:8px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--evt);opacity:0;transform:translateY(4px);transition:.4s}
+  .evt.show{opacity:1;transform:none}
+  .evt .k{color:var(--ok)}
+
+  .scrub{height:5px;background:var(--line);border-radius:999px;margin:18px 0 12px;overflow:hidden}
+  .scrub > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--trans),var(--gate));transition:width .4s}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  button{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+    font-weight:700;font-size:14px;padding:8px 14px;border-radius:10px;cursor:pointer}
+  button.primary{background:var(--gate);border-color:var(--gate);color:#06101f}
+  button:disabled{opacity:.4;cursor:default}
+  .count{margin-left:auto;color:var(--muted);font-size:13px}
+  .dots{display:flex;gap:6px}
+  .dots i{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer;transition:.3s}
+  .dots i.on{background:var(--gate);transform:scale(1.25)}
+  .dots i.done{background:var(--ok)}
+  @media(max-width:620px){ .lanes{grid-template-columns:1fr} .lane.inactive-mobile{display:none} }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="titrebar">
+    <h1>🚚 Enrôlement flotte — Transporteur & Agent Gate</h1>
+    <span class="badge-live" id="live">● lecture</span>
+  </div>
+  <p class="sub">Déroulé animé du parcours réel, de la soumission par le transporteur à la remise du badge.</p>
+
+  <div class="scene">
+    <div class="lanes">
+      <div class="lane trans" id="laneTrans">
+        <h2>🏢 Côté transporteur <span class="who">Société</span></h2>
+        <div id="holderTrans"></div>
+      </div>
+      <div class="lane gate" id="laneGate">
+        <h2>🛂 File Agent Gate <span class="who">Agent CIT</span></h2>
+        <div id="holderGate"></div>
+      </div>
+    </div>
+
+    <template id="tpl-ticket">
+      <div class="ticket" id="ticket">
+        <div class="num">TCK-ENR-00042 · Chauffeur</div>
+        <div class="obj">KOUAMÉ Yao — Permis + photo</div>
+        <span class="pill att" id="statut">EnAttenteDePriseEnCharge</span>
+      </div>
+    </template>
+
+    <div class="narration">
+      <div class="step-num" id="stepNum">0</div>
+      <div>
+        <div class="txt" id="txt"></div>
+        <div class="evt" id="evt"></div>
+      </div>
+    </div>
+
+    <div class="scrub"><i id="bar"></i></div>
+    <div class="controls">
+      <button id="prev">◀</button>
+      <button class="primary" id="play">⏸ Pause</button>
+      <button id="next">▶</button>
+      <div class="dots" id="dots"></div>
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const steps = [
+  { n:0, status:['att','EnAttenteDePriseEnCharge'], where:'trans',
+    txt:"<b>Soumission de la flotte.</b> Le transporteur monte un dossier unique : un ticket par chauffeur (permis + photo) ou camion (carte grise). Dates d'expiration obligatoires. Le chauffeur ne se déplace jamais.",
+    evt:"TicketCree · TicketArriveeEnFile" },
+  { n:'⚖', status:['att','EnAttenteDePriseEnCharge'], where:'trans',
+    txt:"<b>4-yeux (si validateur tiers).</b> Si la société a un validateur, la demande est <b>parquée</b> et invisible de l'Agent Gate jusqu'à son approbation. Sinon, elle entre directement dans la file.",
+    evt:"EnrolementAValiderInterne (optionnel)" },
+  { n:1, status:['att','EnAttenteDePriseEnCharge'], where:'gate',
+    txt:"<b>Le ticket apparaît dans la file Agent Gate</b>, trié par ancienneté. Les tickets parqués restent masqués.",
+    evt:"ConsulterFileAgentGateQuery" },
+  { n:2, status:['enc','EnCours'], where:'gate',
+    txt:"<b>Prise en charge.</b> L'agent s'attribue le ticket (un seul gagne : concurrence arbitrée par jeton EF Core).",
+    evt:"TicketPrisEnCharge" },
+  { n:3, status:['enc','EnCours'], where:'gate',
+    txt:"<b>Instruction du dossier.</b> L'agent consulte la fiche, télécharge/visualise les pièces, vérifie les dates d'expiration.",
+    evt:"ObtenirFicheEnrolementQuery" },
+  { n:4, status:['enc','EnCours'], where:'gate',
+    txt:"<b>Validation du dossier (ENR-02).</b> Jalon d'historique — le statut <b>reste EnCours</b>, pas de clôture ici.",
+    evt:"EnrolementValide" },
+  { n:5, status:['enc','EnCours'], where:'gate',
+    txt:"<b>Convocation.</b> Le représentant est invité à venir retirer le badge / la carte. L'événement ne porte aucun canal.",
+    evt:"ConvocationDeclenchee" },
+  { n:6, status:['ok','Clôturé (Normale)'], where:'gate',
+    txt:"<b>Remise du badge = clôture.</b> L'agent saisit numéro + date d'expiration ; le badge est validé <i>avant</i> la clôture (jamais de dossier clos sans badge).",
+    evt:"BadgeRemisEtDossierCloture" },
+];
+
+const ticketTpl = document.getElementById('tpl-ticket').content;
+let ticket = ticketTpl.cloneNode(true).firstElementChild;
+document.getElementById('holderTrans').appendChild(ticket);
+
+const el = id => document.getElementById(id);
+let i = 0, playing = true, timer = null;
+
+const dots = el('dots');
+steps.forEach((_,k)=>{ const d=document.createElement('i'); d.onclick=()=>{ pause(); go(k); }; dots.appendChild(d); });
+
+function render(){
+  const s = steps[i];
+  el('laneTrans').classList.toggle('active', s.where==='trans');
+  el('laneGate').classList.toggle('active', s.where==='gate');
+  el('laneTrans').classList.toggle('inactive-mobile', s.where!=='trans');
+  el('laneGate').classList.toggle('inactive-mobile', s.where!=='gate');
+  const holder = s.where==='trans' ? el('holderTrans') : el('holderGate');
+  if(ticket.parentElement!==holder) holder.appendChild(ticket);
+  const st = el('statut'); st.className = 'pill '+s.status[0]; st.textContent = s.status[1];
+  el('stepNum').style.setProperty('--accent', s.where==='trans' ? 'var(--trans)' : 'var(--gate)');
+  el('stepNum').textContent = s.n;
+  el('txt').innerHTML = s.txt;
+  const evt = el('evt'); evt.classList.remove('show');
+  setTimeout(()=>{ evt.innerHTML = '→ <span class="k">événement</span> : '+s.evt; evt.classList.add('show'); }, 180);
+  el('bar').style.width = ((i+1)/steps.length*100)+'%';
+  el('count').textContent = (i+1)+' / '+steps.length;
+  [...dots.children].forEach((d,k)=>{ d.className = k<i?'done':(k===i?'on':''); });
+  el('prev').disabled = i===0;
+}
+function go(k){ i=Math.max(0,Math.min(steps.length-1,k)); render(); }
+function next(){ if(i<steps.length-1){ i++; render(); } else { pause(); } }
+function schedule(){ clearTimeout(timer); if(playing){ timer=setTimeout(()=>{ if(i<steps.length-1){ next(); schedule(); } else pause(); }, 3600); } }
+function play(){ playing=true; el('play').textContent='⏸ Pause'; el('live').style.visibility='visible';
+  if(i===steps.length-1) i=0; render(); schedule(); }
+function pause(){ playing=false; el('play').textContent='▶ Lecture'; el('live').style.visibility='hidden'; clearTimeout(timer); render(); }
+
+el('play').onclick=()=> playing?pause():play();
+el('prev').onclick=()=>{ pause(); go(i-1); };
+el('next').onclick=()=>{ pause(); go(i+1); };
+
+render(); schedule();
+</script>
+</body>
+</html>

@@ -20,6 +20,7 @@ namespace CIT.Plateforme.Application.Tests.BillingImport;
 /// Documentaire (engageant). Les tests d'une même classe s'exécutent séquentiellement (xUnit) :
 /// la manipulation du paramètre global <see cref="ParametresCourants"/> est donc sûre ici.
 /// </summary>
+[Collection(Support.CollectionParametresCourants.Nom)]
 public sealed class PaiementDeclaratifParametrableTests : IDisposable
 {
     public void Dispose() => ParametresCourants.Reinitialiser();

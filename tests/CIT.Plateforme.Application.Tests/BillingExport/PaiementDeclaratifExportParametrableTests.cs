@@ -17,6 +17,7 @@ namespace CIT.Plateforme.Application.Tests.BillingExport;
 /// déclare « Règlement effectué », facturier confirme → Contrôle Documentaire export. Tests d'une
 /// même classe séquentiels (xUnit) : manipulation sûre du paramètre global.
 /// </summary>
+[Collection(Support.CollectionParametresCourants.Nom)]
 public sealed class PaiementDeclaratifExportParametrableTests : IDisposable
 {
     public void Dispose() => ParametresCourants.Reinitialiser();
