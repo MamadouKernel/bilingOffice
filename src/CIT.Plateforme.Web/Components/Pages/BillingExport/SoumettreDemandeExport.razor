@@ -78,7 +78,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold text-dark" for="ref-simulation-export">@Loc["BImp.SimRefLabel"]</label>
+                    <label class="form-label fw-semibold text-dark" for="ref-simulation-export">@Loc["BImp.SimRefLabel"] <InfoBulle Texte="@Loc["Tip.SimRef"]" /></label>
                     <InputText id="ref-simulation-export" class="form-control" placeholder="@Loc["BImp.SimRefPlaceholder"]" @bind-Value="_modele.ReferenceSimulationProforma" />
                     <div class="form-text small text-muted">
                         @((MarkupString)Loc["BImp.SimRefHint"].Value)
