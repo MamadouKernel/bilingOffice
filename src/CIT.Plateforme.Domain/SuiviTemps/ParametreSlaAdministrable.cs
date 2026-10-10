@@ -158,13 +158,16 @@ public sealed class ParametreSlaAdministrable
     public ParametresSla VersParametresSla() => new(DureeCible, SeuilInformation, SeuilAlerte, SeuilEscalade);
 
     /// <summary>Reconstruit le calendrier ouvré pur (Domain.SuiviTemps.CalendrierOuvre) à partir
-    /// des champs administrés — aucun jour férié administré ici (PC-12 non tranché, non inventé) :
-    /// seuls les horaires/jours de la semaine sont couverts par cette remédiation.</summary>
-    public CalendrierOuvre ConstruireCalendrierOuvre()
+    /// des champs administrés et des jours fériés fournis (SLA-04). Les fériés sont administrés à
+    /// part (référentiel <see cref="JourFerie"/>) et passés ici par l'appelant : le domaine reste
+    /// pur et n'invente aucune date.</summary>
+    public CalendrierOuvre ConstruireCalendrierOuvre(IReadOnlySet<DateOnly> joursFeries)
     {
         if (UtiliserCalendrierToujoursOuvert)
         {
-            return CalendrierOuvre.ToujoursOuvert;
+            return joursFeries.Count == 0
+                ? CalendrierOuvre.ToujoursOuvert
+                : CalendrierOuvre.ToujoursOuvert with { JoursFeries = joursFeries };
         }
 
         var jours = new HashSet<DayOfWeek>();
@@ -176,6 +179,6 @@ public sealed class ParametreSlaAdministrable
             }
         }
 
-        return new CalendrierOuvre(HeureDebut, HeureFin, jours, new HashSet<DateOnly>());
+        return new CalendrierOuvre(HeureDebut, HeureFin, jours, joursFeries);
     }
 }

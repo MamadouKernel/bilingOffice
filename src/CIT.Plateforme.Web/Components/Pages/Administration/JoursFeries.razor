@@ -1,0 +1,246 @@
+@page "/administration/jours-feries"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.Administration
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.DependencyInjection
+@inject IContexteUtilisateurWeb ContexteService
+@inject IServiceScopeFactory ScopeFactory
+
+@* SLA-04 — référentiel des jours fériés exclus du calcul des délais SLA (contexte ivoirien). *@
+<PageTitle>Jours fériés (SLA)</PageTitle>
+
+<div class="cit-page-header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-10 text-primary small fw-bold mb-2">
+            <span>📅</span> Calendrier ouvré
+        </div>
+        <h1 class="cit-page-title fw-bold text-dark mb-1">Jours fériés exclus du calcul SLA</h1>
+        <div class="cit-page-subtitle text-muted">
+            Les délais SLA ne décomptent pas les jours chômés déclarés ici (fêtes légales fixes et mobiles).
+            Désactiver plutôt que supprimer : un SLA déjà calculé a pu exclure la date.
+        </div>
+    </div>
+    <div>
+        <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2" @onclick="ChargerAsync" disabled="@_chargement">
+            Rafraîchir
+        </button>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="Chargement des jours fériés…" />
+}
+else if (_refuse)
+{
+    <PermissionDenied Message="@_messageRefus" />
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger border-0 text-danger bg-danger bg-opacity-10 mb-4 rounded-3 p-3 d-flex align-items-center shadow-sm" role="alert">
+            <span class="me-2 fs-5">⚠️</span> @_erreur
+        </div>
+    }
+
+    <!-- 1. Ajout d'un jour férié -->
+    <div class="cit-card p-4 mb-4 border-0 shadow-sm u-r-xl u-bg-surface">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4">➕</span>
+            <h4 class="fw-bold text-dark mb-0 fs-5">Déclarer un jour férié</h4>
+        </div>
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold text-dark" for="date">Date</label>
+                <input id="date" type="date" class="form-control" @bind="_date" />
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold text-dark" for="libelle">Libellé</label>
+                <input id="libelle" class="form-control" @bind="_libelle" placeholder="ex. Fête de l'Indépendance" />
+            </div>
+            <div class="col-12 col-md-2">
+                <button type="button" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" @onclick="AjouterAsync">
+                    Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Liste -->
+    @if (_jours is null || _jours.Count == 0)
+    {
+        <div class="cit-card p-5 text-center my-4 border-0 shadow-sm u-r-lg u-bg-surface">
+            <div class="fs-1 mb-3">📅</div>
+            <h4 class="fw-bold text-dark mb-2">Aucun jour férié déclaré</h4>
+            <p class="text-muted mb-0">Tant que la liste est vide, aucun jour n'est exclu du calcul des délais SLA.</p>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card border-0 shadow-sm overflow-hidden u-r-xl u-bg-surface">
+            <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold text-dark small">@_jours.Count jour(s) férié(s)</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width: 160px;">Date</th>
+                            <th>Libellé</th>
+                            <th>État</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var jour in _jours.OrderBy(j => j.Date))
+                        {
+                            <tr>
+                                @if (_editId == jour.Id)
+                                {
+                                    <td class="ps-4 fw-semibold">@jour.Date.ToString("dd/MM/yyyy")</td>
+                                    <td><input class="form-control form-control-sm" @bind="_editLibelle" /></td>
+                                    <td>
+                                        <span class="badge @(jour.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                            @(jour.EstActif ? "Actif" : "Désactivé")
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 me-1" @onclick="EnregistrerEditionAsync">Enregistrer</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" @onclick="() => _editId = null">Annuler</button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="ps-4 fw-semibold text-dark">@jour.Date.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-dark">@jour.Libelle</td>
+                                    <td>
+                                        <span class="badge @(jour.EstActif ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1 rounded-pill">
+                                            @(jour.EstActif ? "Actif" : "Désactivé")
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 me-1" @onclick="() => CommencerEdition(jour)">Modifier</button>
+                                        @if (jour.EstActif)
+                                        {
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" @onclick="() => BasculerAsync(jour.Id, false)">Désactiver</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" @onclick="() => BasculerAsync(jour.Id, true)">Réactiver</button>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IReadOnlyList<JourFerieVue>? _jours;
+    private Guid _appelantId;
+    private bool _chargement = true;
+    private bool _refuse;
+    private string _messageRefus = "Vous n'avez pas l'habilitation pour administrer les jours fériés.";
+    private string? _erreur;
+
+    private DateOnly _date = DateOnly.FromDateTime(DateTime.Today);
+    private string _libelle = string.Empty;
+
+    private Guid? _editId;
+    private string _editLibelle = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        _appelantId = contexte.UtilisateurId;
+        _refuse = !contexte.Permissions.Contains(CIT.Plateforme.Domain.Securite.Permission.AdministrationSla);
+
+        if (!_refuse)
+        {
+            await ChargerAsync();
+        }
+        else
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            var lister = scope.ServiceProvider.GetRequiredService<ListerJoursFeriesQuery>();
+            _jours = await lister.ExecuterAsync(_appelantId);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task ExecuterAsync(Func<IServiceProvider, Task> action)
+    {
+        _erreur = null;
+        try
+        {
+            using var scope = ScopeFactory.CreateScope();
+            await action(scope.ServiceProvider);
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _refuse = true;
+            _messageRefus = MessagesUtilisateur.Texte(ex);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private Task AjouterAsync() => ExecuterAsync(async sp =>
+    {
+        var gerer = sp.GetRequiredService<GererJoursFeriesCommand>();
+        await gerer.DefinirAsync(_appelantId, _date, _libelle);
+        _libelle = string.Empty;
+    });
+
+    private Task BasculerAsync(Guid jourId, bool actif) => ExecuterAsync(sp =>
+    {
+        var gerer = sp.GetRequiredService<GererJoursFeriesCommand>();
+        return gerer.DefinirActivationAsync(_appelantId, jourId, actif);
+    });
+
+    private void CommencerEdition(JourFerieVue jour)
+    {
+        _editId = jour.Id;
+        _editLibelle = jour.Libelle;
+    }
+
+    private Task EnregistrerEditionAsync()
+    {
+        if (_editId is not { } id) return Task.CompletedTask;
+        return ExecuterAsync(async sp =>
+        {
+            var gerer = sp.GetRequiredService<GererJoursFeriesCommand>();
+            await gerer.ModifierAsync(_appelantId, id, _editLibelle);
+            _editId = null;
+        });
+    }
+}

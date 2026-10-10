@@ -1,4 +1,5 @@
 using CIT.Plateforme.Application.Supervision;
+using CIT.Plateforme.Application.SuiviTemps;
 using CIT.Plateforme.Domain.SuiviTemps;
 using CIT.Plateforme.Domain.Tickets;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,7 @@ public sealed class ParametresSlaProvider(PlateformeDbContext dbContext) : IPara
         // REMÉDIATION AUDIT (post-implementation-audit.md §3.B) : le calendrier ouvré réellement
         // administré (§ParametreSlaAdministrable.ConstruireCalendrierOuvre) est désormais utilisé
         // — avant correction, les deux branches de ce test retournaient la même valeur.
-        var calendrier = parametre.ConstruireCalendrierOuvre();
+        var calendrier = parametre.ConstruireCalendrierOuvre(JoursFeriesCourants.Actuels);
         return (parametre.VersParametresSla(), calendrier);
     }
 
@@ -94,7 +95,7 @@ public sealed class ParametresSlaProvider(PlateformeDbContext dbContext) : IPara
 
             resultat[ticket.Id] = parametre is null
                 ? null
-                : (parametre.VersParametresSla(), parametre.ConstruireCalendrierOuvre());
+                : (parametre.VersParametresSla(), parametre.ConstruireCalendrierOuvre(JoursFeriesCourants.Actuels));
         }
 
         return resultat;

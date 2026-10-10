@@ -246,6 +246,11 @@ public static class DependencyInjection
         services.AddScoped<IAlerteRepository, AlerteRepository>();
         services.AddScoped<Application.Supervision.IParametresSlaProvider, ParametresSlaProvider>();
         services.AddScoped<Application.Administration.GererParametresSlaCommand>();
+        // SLA-04 — référentiel des jours fériés exclus du calcul des délais SLA.
+        services.AddScoped<Application.Abstractions.IJourFerieRepository, Persistence.JourFerieRepository>();
+        services.AddScoped<Application.Administration.GererJoursFeriesCommand>();
+        services.AddScoped<Application.Administration.ListerJoursFeriesQuery>();
+        services.AddScoped<Application.Administration.ChargerJoursFeries>();
         services.AddScoped<Application.Administration.GererReglesEscaladeCommand>();
         services.AddScoped<Application.Administration.GererPiecesExigeesEtapeCommand>();
         services.AddScoped<Application.Guichet.ListerAgendaGuichetQuery>();

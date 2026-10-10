@@ -200,6 +200,20 @@ public interface IMotifTransfertRepository
     Task AjouterAsync(MotifTransfert motif, CancellationToken ct = default);
 }
 
+/// <summary>Port du referentiel des jours feries exclus du calcul SLA (SLA-04).</summary>
+public interface IJourFerieRepository
+{
+    /// <summary><paramref name="activesUniquement"/> : le calcul SLA n'exclut que les feries en
+    /// vigueur, tandis que l'ecran de parametrage doit voir aussi les desactives.</summary>
+    Task<IReadOnlyList<Domain.SuiviTemps.JourFerie>> ListerAsync(bool activesUniquement, CancellationToken ct = default);
+
+    Task<Domain.SuiviTemps.JourFerie?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<bool> DateExisteAsync(DateOnly date, CancellationToken ct = default);
+
+    Task AjouterAsync(Domain.SuiviTemps.JourFerie jour, CancellationToken ct = default);
+}
+
 /// <summary>Port du referentiel des regles d'attribution automatique de priorite (PRI-01).</summary>
 public interface IReglePrioriteAutomatiqueRepository
 {

@@ -268,6 +268,7 @@ public static class CatalogueNavigation
             new("Champs d'enrôlement", "🚚", "/administration/champs-enrolement", [Permission.AdministrationChampsEnrolement]),
             new("Paramètres SLA", "⏱️", "/administration/parametres-sla", [Permission.AdministrationSla]),
             new("Règles d'escalade", "🚨", "/administration/regles-escalade", [Permission.AdministrationSla]),
+            new("Jours fériés (SLA)", "📅", "/administration/jours-feries", [Permission.AdministrationSla]),
             new("Disponibilité de la plateforme", "📶", "/administration/disponibilite-plateforme", [Permission.AdministrationSla]),
             new("Niveaux de priorité", "🎚️", "/administration/priorites", [Permission.AdministrationFiles]),
             new("Libellés de statut", "🏷️", "/administration/libelles-statut", [Permission.AdministrationFiles]),

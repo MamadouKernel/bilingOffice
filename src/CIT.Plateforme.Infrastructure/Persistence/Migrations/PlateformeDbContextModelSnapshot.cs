@@ -1612,6 +1612,33 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                     b.ToTable("Habilitations");
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.SuiviTemps.JourFerie", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("EstActif")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date")
+                        .IsUnique();
+
+                    b.HasIndex("EstActif");
+
+                    b.ToTable("JoursFeries");
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.SuiviTemps.ParametreSlaAdministrable", b =>
                 {
                     b.Property<Guid>("Id")

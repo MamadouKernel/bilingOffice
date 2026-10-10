@@ -102,6 +102,8 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>SS 9.10 / SS 17.3 — referentiel administrable des motifs de transfert.</summary>
     public DbSet<MotifTransfert> MotifsTransfert => Set<MotifTransfert>();
 
+    public DbSet<Domain.SuiviTemps.JourFerie> JoursFeries => Set<Domain.SuiviTemps.JourFerie>();
+
     /// <summary>ENR-01 — referentiel administrable des champs du formulaire d'enrolement.</summary>
     public DbSet<Domain.Enrolement.ChampFormulaireEnrolement> ChampsFormulaireEnrolement => Set<Domain.Enrolement.ChampFormulaireEnrolement>();
 
@@ -771,6 +773,16 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             // l'historique des transferts ambigu.
             b.HasIndex(m => m.Code).IsUnique();
             b.HasIndex(m => m.EstActif);
+        });
+
+        builder.Entity<Domain.SuiviTemps.JourFerie>(b =>
+        {
+            b.HasKey(j => j.Id);
+            b.Property(j => j.Libelle).IsRequired().HasMaxLength(256);
+            // La date identifie le jour férié de façon stable : un seul enregistrement par date,
+            // sinon le calcul SLA l'exclurait ou non selon la ligne choisie.
+            b.HasIndex(j => j.Date).IsUnique();
+            b.HasIndex(j => j.EstActif);
         });
 
         builder.Entity<Domain.Enrolement.ChampFormulaireEnrolement>(b =>

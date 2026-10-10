@@ -428,6 +428,8 @@ using (var scope = app.Services.CreateScope())
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.Exploitation.ChargerParametresPlateforme>().ExecuterAsync();
+    // SLA-04 : jours fériés actifs chargés dans le cache lu par le calcul des délais SLA.
+    await scope.ServiceProvider.GetRequiredService<CIT.Plateforme.Application.Administration.ChargerJoursFeries>().ExecuterAsync();
 }
 
 // NOTIFICATIONS : règles de diffusion et modèles de départ, dans TOUS les environnements (sans
