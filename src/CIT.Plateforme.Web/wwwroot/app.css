@@ -1003,7 +1003,12 @@ details:not([open]) > .cit-accordion-body { display: none; }
     font-size: .875rem;
     color: var(--ink);
     animation: toast-in .2s cubic-bezier(.32, .72, 0, 1);
+    /* Une longue chaîne non sécable (e-mail, référence) doit se couper au lieu de déborder sur mobile. */
+    overflow-wrap: anywhere;
 }
+
+/* Même garde pour les alertes : sans cela, un e-mail long faisait défiler la page entière à 320 px. */
+.alert { overflow-wrap: anywhere; }
 
 @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
