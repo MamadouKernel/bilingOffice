@@ -250,6 +250,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AjouterInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.IContexteUtilisateurWeb, CIT.Plateforme.Web.Services.ContexteUtilisateurWebService>();
+// État d'emprunt d'identité porté par un cookie protégé (Data Protection), survivant à la
+// revalidation du security stamp (ValidationInterval=0) qui efface les claims custom.
+builder.Services.AddSingleton<CIT.Plateforme.Web.Services.ImpersonationCookie>();
 // Libellés des référentiels métier (tables), mis en cache par circuit.
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.LibellesReferentiels>();
 builder.Services.AddScoped<CIT.Plateforme.Web.Services.AnnuaireClients>();
@@ -485,6 +488,10 @@ app.UseRequestLocalization(locOptions);
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Expiration automatique d'un emprunt d'identité : après l'authentification (context.User renseigné),
+// une session empruntée dépassant sa durée de vie est ramenée à l'administrateur, avant tout le reste.
+app.UseImpersonationExpiry();
+
 // 2FA OBLIGATOIRE : tout compte connecté sans double authentification active est renvoyé vers
 // la page d'activation jusqu'à ce qu'il l'ait activée. Voir DoubleAuthentificationObligatoireMiddleware.
 app.UseMiddleware<CIT.Plateforme.Web.Middlewares.DoubleAuthentificationObligatoireMiddleware>();
@@ -615,6 +622,7 @@ app.MapPost("/administration/impersonation/demarrer", async (
     UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
     CIT.Plateforme.Application.Securite.IAutorisationService autorisation,
     CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    CIT.Plateforme.Web.Services.ImpersonationCookie cookieEmprunt,
     Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery,
     HttpContext http) =>
 {
@@ -635,15 +643,18 @@ app.MapPost("/administration/impersonation/demarrer", async (
     }
 
     var aPermission = await autorisation.EstAutoriseAsync(adminId, CIT.Plateforme.Domain.Securite.Permission.ComptesImpersonation);
-    var dejaEnEmprunt = http.User.HasClaim(c => c.Type == CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateur);
+    var dejaEnEmprunt = cookieEmprunt.Lire(http.Request) is not null;
     var motDePasseConfirme = !string.IsNullOrEmpty(motDePasse) && await userManager.CheckPasswordAsync(admin, motDePasse);
 
     var cible = Guid.TryParse(cibleId, out _) ? await userManager.FindByIdAsync(cibleId) : null;
     var cibleExiste = cible is { EstActif: true };
     var estAutoEmprunt = cible is not null && cible.Id == adminId;
+    // Pas d'escalade latérale : on n'emprunte pas un autre compte lui-même habilité à l'impersonation.
+    var cibleEstProtegee = cible is not null
+        && await autorisation.EstAutoriseAsync(cible.Id, CIT.Plateforme.Domain.Securite.Permission.ComptesImpersonation);
 
     var verdict = CIT.Plateforme.Application.Securite.ImpersonationGuard.Decider(
-        aPermission, cibleExiste, estAutoEmprunt, dejaEnEmprunt, motDePasseConfirme);
+        aPermission, cibleExiste, estAutoEmprunt, dejaEnEmprunt, motDePasseConfirme, cibleEstProtegee);
     if (verdict != CIT.Plateforme.Application.Securite.VerdictImpersonation.Autorise)
     {
         return Results.Redirect($"/administration/impersonation?erreur={verdict}");
@@ -651,15 +662,17 @@ app.MapPost("/administration/impersonation/demarrer", async (
 
     await journalConnexion.ImpersonationDebutAsync(adminId, cible!.Id, http.Connection.RemoteIpAddress?.ToString());
 
-    // Le claim emprunteur vit dans le cookie protégé (inviolable) : le retour s'y fiera. On satisfait
-    // aussi la 2FA obligatoire (amr=mfa) — le défi de la cible est volontairement contourné, et tracé.
-    var claims = new[]
-    {
-        new System.Security.Claims.Claim(CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateur, adminId.ToString()),
-        new System.Security.Claims.Claim(CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateurNom, admin.NomAffiche ?? admin.Email ?? string.Empty),
-        new System.Security.Claims.Claim("amr", "mfa"),
-    };
-    await signInManager.SignInWithClaimsAsync(cible, isPersistent: false, claims);
+    // L'état d'emprunt (admin à qui revenir + échéance) vit dans un cookie protégé, PAS dans un claim :
+    // la revalidation du security stamp (ValidationInterval=0) effacerait un claim custom. On pose quand
+    // même amr=mfa sur la session empruntée — RefreshSignInAsync le préserve — pour satisfaire la 2FA
+    // obligatoire (le défi de la cible est volontairement contourné, et tracé).
+    cookieEmprunt.Deposer(http.Response, new CIT.Plateforme.Web.Services.EtatEmprunt(
+        adminId,
+        admin.NomAffiche ?? admin.Email ?? string.Empty,
+        DateTimeOffset.UtcNow.Add(CIT.Plateforme.Application.Securite.ImpersonationGuard.DureeEmprunt)));
+
+    await signInManager.SignInWithClaimsAsync(cible, isPersistent: false,
+        [new System.Security.Claims.Claim("amr", "mfa")]);
     return Results.Redirect("/");
 });
 
@@ -670,6 +683,7 @@ app.MapPost("/administration/impersonation/revenir", async (
     SignInManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> signInManager,
     UserManager<CIT.Plateforme.Infrastructure.Identity.ApplicationUser> userManager,
     CIT.Plateforme.Application.Securite.JournalConnexionService journalConnexion,
+    CIT.Plateforme.Web.Services.ImpersonationCookie cookieEmprunt,
     Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery,
     HttpContext http) =>
 {
@@ -682,23 +696,25 @@ app.MapPost("/administration/impersonation/revenir", async (
         return Results.BadRequest();
     }
 
-    var impersonateur = http.User.FindFirst(CIT.Plateforme.Web.Services.ContexteUtilisateurWebService.ClaimImpersonateur)?.Value;
-    if (!Guid.TryParse(impersonateur, out var adminId))
+    // L'administrateur à qui revenir est lu dans le cookie protégé (inviolable), jamais dans la requête.
+    var etat = cookieEmprunt.Lire(http.Request);
+    if (etat is null)
     {
         return Results.Redirect("/");
     }
 
     Guid.TryParse(userManager.GetUserId(http.User), out var cibleId);
+    cookieEmprunt.Supprimer(http.Response);
 
-    if (await userManager.FindByIdAsync(adminId.ToString()) is not { } admin)
+    if (await userManager.FindByIdAsync(etat.AdministrateurId.ToString()) is not { } admin)
     {
         await signInManager.SignOutAsync();
         return Results.Redirect("/comptes/connexion");
     }
 
-    await journalConnexion.ImpersonationFinAsync(adminId, cibleId, http.Connection.RemoteIpAddress?.ToString());
+    await journalConnexion.ImpersonationFinAsync(etat.AdministrateurId, cibleId, http.Connection.RemoteIpAddress?.ToString());
     await signInManager.SignInWithClaimsAsync(admin, isPersistent: false,
-        new[] { new System.Security.Claims.Claim("amr", "mfa") });
+        [new System.Security.Claims.Claim("amr", "mfa")]);
     return Results.Redirect("/");
 }).RequireAuthorization();
 

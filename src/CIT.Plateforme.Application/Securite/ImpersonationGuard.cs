@@ -23,6 +23,13 @@ public enum VerdictImpersonation
 
     /// <summary>Confirmation d'identité (ré-saisie du mot de passe de l'appelant) invalide.</summary>
     MotDePasseInvalide,
+
+    /// <summary>
+    /// La cible détient elle-même le droit d'emprunt : on n'emprunte pas un autre administrateur
+    /// habilité à l'impersonation. Ferme l'escalade latérale admin↔admin, sans empêcher de tester
+    /// n'importe quel compte ordinaire (client, transporteur, agent métier).
+    /// </summary>
+    CibleProtegee,
 }
 
 /// <summary>
@@ -38,12 +45,19 @@ public enum VerdictImpersonation
 /// </summary>
 public static class ImpersonationGuard
 {
+    /// <summary>
+    /// Durée maximale d'une session empruntée (audit de sécurité) : passé ce délai, la session
+    /// revient automatiquement à l'administrateur. Un emprunt oublié ne reste pas ouvert indéfiniment.
+    /// </summary>
+    public static readonly TimeSpan DureeEmprunt = TimeSpan.FromMinutes(30);
+
     public static VerdictImpersonation Decider(
         bool appelantAPermission,
         bool cibleExiste,
         bool estAutoEmprunt,
         bool dejaEnEmprunt,
-        bool motDePasseConfirme)
+        bool motDePasseConfirme,
+        bool cibleEstProtegee)
     {
         if (!appelantAPermission)
         {
@@ -70,6 +84,19 @@ public static class ImpersonationGuard
             return VerdictImpersonation.AutoEmprunt;
         }
 
+        if (cibleEstProtegee)
+        {
+            return VerdictImpersonation.CibleProtegee;
+        }
+
         return VerdictImpersonation.Autorise;
     }
+
+    /// <summary>
+    /// Vrai si l'emprunt a dépassé sa durée de vie. <paramref name="expirationUtc"/> est l'échéance
+    /// portée par le claim du cookie ; null (claim absent ou illisible) est traité comme expiré — on
+    /// ne laisse jamais courir un emprunt dont on ne peut pas prouver l'échéance.
+    /// </summary>
+    public static bool EmpruntExpire(DateTimeOffset? expirationUtc, DateTimeOffset maintenantUtc) =>
+        expirationUtc is null || expirationUtc.Value <= maintenantUtc;
 }

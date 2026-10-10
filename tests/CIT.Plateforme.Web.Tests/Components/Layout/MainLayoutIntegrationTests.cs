@@ -41,6 +41,12 @@ public sealed class MainLayoutIntegrationTests : BunitContext
         Services.AddSingleton<CompterNonLuesQuery>();
         // L'assistant flottant du layout lit la conversation en cours : aucune pour ce test.
         Services.AddSingleton(new CIT.Plateforme.Application.Assistant.ConsulterConversationAssistantQuery(new DepotConversationsVide()));
+        // Le bandeau d'emprunt d'identité lit son état dans un cookie protégé (Data Protection) via
+        // IHttpContextAccessor. Hors requête HTTP (rendu d'assemblage), il ne rend rien ; le harnais
+        // doit néanmoins fournir ces dépendances.
+        Services.AddDataProtection();
+        Services.AddHttpContextAccessor();
+        Services.AddSingleton<CIT.Plateforme.Web.Services.ImpersonationCookie>();
 
         var cut = Render<MainLayout>(parameters => parameters
             .Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "Contenu de test"))));

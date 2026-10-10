@@ -1,8 +1,10 @@
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
-@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Http
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResources> Loc
+@inject ImpersonationCookie CookieEmprunt
+@inject IHttpContextAccessor AccesHttp
 
 @* BANDEAU D'EMPRUNT D'IDENTITÉ — rendu seulement si la session courante porte le claim inviolable
    « impersonateur ». Il rappelle en permanence que l'on agit en tant qu'un autre compte, et offre le
@@ -26,26 +28,24 @@
 }
 
 @code {
-    // Source d'authentification en CASCADE (CascadingAuthenticationState, enregistré dans Program).
-    // Null-safe : absente (p. ex. dans un rendu d'assemblage isolé sans auth), le bandeau ne rend
-    // simplement rien — il ne dépend d'aucun service injecté directement.
-    [CascadingParameter] private Task<AuthenticationState>? EtatAuthentification { get; set; }
-
     private string? _emprunteur;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        if (EtatAuthentification is null)
+        // L'état d'emprunt vit dans le cookie protégé (il survit à la revalidation du security stamp).
+        // Null-safe : hors contexte HTTP (rendu d'assemblage isolé), le bandeau ne rend rien.
+        var requete = AccesHttp.HttpContext?.Request;
+        if (requete is null)
         {
             return;
         }
 
-        var user = (await EtatAuthentification).User;
-
-        if (user.FindFirst(ContexteUtilisateurWebService.ClaimImpersonateur) is not null)
+        var etat = CookieEmprunt.Lire(requete);
+        if (etat is not null)
         {
-            _emprunteur = user.FindFirst(ContexteUtilisateurWebService.ClaimImpersonateurNom)?.Value
-                          ?? Loc["Impersonation.UnknownAdmin"].Value;
+            _emprunteur = string.IsNullOrWhiteSpace(etat.AdministrateurNom)
+                ? Loc["Impersonation.UnknownAdmin"].Value
+                : etat.AdministrateurNom;
         }
     }
 }

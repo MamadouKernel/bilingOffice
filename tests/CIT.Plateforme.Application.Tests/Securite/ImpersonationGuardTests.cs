@@ -12,8 +12,8 @@ public sealed class ImpersonationGuardTests
 {
     private static VerdictImpersonation Decider(
         bool permission = true, bool cibleExiste = true, bool autoEmprunt = false,
-        bool dejaEnEmprunt = false, bool motDePasse = true) =>
-        ImpersonationGuard.Decider(permission, cibleExiste, autoEmprunt, dejaEnEmprunt, motDePasse);
+        bool dejaEnEmprunt = false, bool motDePasse = true, bool cibleProtegee = false) =>
+        ImpersonationGuard.Decider(permission, cibleExiste, autoEmprunt, dejaEnEmprunt, motDePasse, cibleProtegee);
 
     [Fact]
     public void Toutes_conditions_reunies_autorise() =>
@@ -41,4 +41,30 @@ public sealed class ImpersonationGuardTests
     [Fact]
     public void Auto_emprunt_refuse() =>
         Assert.Equal(VerdictImpersonation.AutoEmprunt, Decider(autoEmprunt: true));
+
+    [Fact]
+    public void Cible_elle_meme_habilitee_a_l_emprunt_est_protegee() =>
+        // Pas d'escalade latérale : on n'emprunte pas un autre administrateur habilité à l'impersonation.
+        Assert.Equal(VerdictImpersonation.CibleProtegee, Decider(cibleProtegee: true));
+
+    // ── Expiration de l'emprunt ──
+
+    [Fact]
+    public void Emprunt_sans_echeance_est_traite_comme_expire() =>
+        // Un claim d'échéance absent ou illisible ne doit jamais laisser courir un emprunt.
+        Assert.True(ImpersonationGuard.EmpruntExpire(null, DateTimeOffset.UtcNow));
+
+    [Fact]
+    public void Emprunt_dont_l_echeance_est_passee_est_expire()
+    {
+        var maintenant = DateTimeOffset.UtcNow;
+        Assert.True(ImpersonationGuard.EmpruntExpire(maintenant.AddSeconds(-1), maintenant));
+    }
+
+    [Fact]
+    public void Emprunt_dans_sa_fenetre_n_est_pas_expire()
+    {
+        var maintenant = DateTimeOffset.UtcNow;
+        Assert.False(ImpersonationGuard.EmpruntExpire(maintenant.Add(ImpersonationGuard.DureeEmprunt), maintenant));
+    }
 }
