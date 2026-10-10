@@ -118,7 +118,7 @@
 
         @if (!string.IsNullOrWhiteSpace(_actionFeedback))
         {
-            <div class="alert alert-info py-2 small mb-3">@_actionFeedback</div>
+            <div class="alert alert-info py-2 small mb-3" role="status" aria-live="polite">@_actionFeedback</div>
         }
 
         @if (_fiche.PrisEnChargeParAutre is { } collegue)

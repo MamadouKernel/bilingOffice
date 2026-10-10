@@ -802,6 +802,12 @@ details:not([open]) > .cit-accordion-body { display: none; }
 .cit-badge-annule  { background: var(--surface-sunken); color: var(--ink-3); border-color: var(--line); }
 .cit-badge-rejet   { background: var(--stop-100); color: var(--stop-600); border-color: var(--stop-border); }
 
+/* Contraste WCAG AA (≥ 4.5:1) sur fond clair : l'ambre « client » (2.97:1) et le gris « annulé »
+   (3.78:1) passaient sous le seuil. On fonce le texte uniquement en thème clair — le thème sombre
+   est déjà conforme. */
+:root:not([data-theme="dark"]) .cit-badge-client { color: #945800; }
+:root:not([data-theme="dark"]) .cit-badge-annule { color: #4d6072; }
+
 /* --------------------------------------------------------------------------
    11. NOTIFICATIONS (en-tête)
    -------------------------------------------------------------------------- */
