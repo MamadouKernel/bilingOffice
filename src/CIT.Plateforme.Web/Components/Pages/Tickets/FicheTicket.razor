@@ -108,6 +108,14 @@
             </div>
         </div>
 
+        @if (ProchaineAction() is { } prochaine)
+        {
+            <div class="alert alert-light border d-flex align-items-start gap-2 py-2 mb-3" role="status">
+                <span class="fs-5" aria-hidden="true">@prochaine.Icone</span>
+                <div><span class="fw-semibold">@Loc["Ticket.NextLabel"]</span> @Loc[prochaine.Cle]</div>
+            </div>
+        }
+
         @if (!string.IsNullOrWhiteSpace(_actionFeedback))
         {
             <div class="alert alert-info py-2 small mb-3">@_actionFeedback</div>
@@ -565,6 +573,27 @@
         .Pour(CIT.Plateforme.Application.Web.EspaceFonctionnel.Agent)
         .SelectMany(g => g.Entrees)
         .FirstOrDefault(e => e.ModuleFile == _fiche.Module && e.NomFile == _fiche.FileNom)?.Route;
+
+    /// <summary>« Que faire ensuite ? » : la prochaine action attendue, en clair, selon le statut et le rôle.
+    /// EnAttenteClient a déjà sa propre alerte « action requise » plus bas ; on ne la double pas ici.</summary>
+    private (string Icone, string Cle)? ProchaineAction()
+    {
+        if (_fiche is null || _fiche.Statut == StatutTicket.EnAttenteClient)
+        {
+            return null;
+        }
+
+        var tenuParMoi = _fiche.OperateurAssigneId == _utilisateurId;
+        return _fiche.Statut switch
+        {
+            StatutTicket.EnAttenteDePriseEnCharge => _estClient ? ("📨", "Ticket.NextClientNew") : ("📥", "Ticket.NextAgentToTake"),
+            StatutTicket.EnCours when _estClient => ("⏳", "Ticket.NextClientInProgress"),
+            StatutTicket.EnCours => tenuParMoi ? ("🛠️", "Ticket.NextAgentMine") : ("👤", "Ticket.NextAgentOther"),
+            StatutTicket.Cloture => ("✅", _estClient ? "Ticket.NextClientClosed" : "Ticket.NextAgentClosed"),
+            StatutTicket.Annule => ("🚫", "Ticket.NextCancelled"),
+            _ => null,
+        };
+    }
 
     /// <summary>Ce que l'agent a demandé : motif de la dernière mise en attente ou demande de complément.</summary>
     private static readonly string[] EvenementsDemandeClient =
