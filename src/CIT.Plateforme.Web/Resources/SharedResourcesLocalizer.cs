@@ -158,9 +158,9 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // ===== LOT 4 - Agent (Tableau de bord opérateur) =====
         ["Agent.PageTitle"] = "Tableau de bord Opérateur — CIT",
-        ["Agent.Title"] = "Tableau de bord Opérateur",
+        ["Agent.Title"] = "Mes tâches du jour",
         ["Agent.WelcomePrefix"] = "Bienvenue,",
-        ["Agent.WelcomeSuffix"] = "— Traitement et instruction des files en temps réel",
+        ["Agent.WelcomeSuffix"] = "— voici vos tickets à traiter et vos files du jour",
         ["Agent.Loading"] = "Chargement de votre espace de travail...",
         ["Agent.KpiMyTickets"] = "Mes tickets en cours",
         ["Agent.KpiMyTicketsHint"] = "Dossiers pris en charge sous votre responsabilité",
@@ -3298,7 +3298,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // ===== LOT 3 - Client (Dashboard client) =====
         ["Dash.PageTitle"] = "Tableau de bord Client — CIT",
         ["Dash.Loading"] = "Chargement de votre tableau de bord...",
-        ["Dash.Title"] = "Tableau de bord Client",
+        ["Dash.Title"] = "Mes demandes & mes actions",
         ["Dash.Company"] = "Société",
         ["Dash.Profile"] = "Profil",
         ["Dash.Status"] = "Statut",
@@ -3847,9 +3847,9 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // ===== LOT 4 - Agent (Operator dashboard) =====
         ["Agent.PageTitle"] = "Operator Dashboard — CIT",
-        ["Agent.Title"] = "Operator Dashboard",
+        ["Agent.Title"] = "My tasks for today",
         ["Agent.WelcomePrefix"] = "Welcome,",
-        ["Agent.WelcomeSuffix"] = "— Real-time queue processing and instruction",
+        ["Agent.WelcomeSuffix"] = "— here are your tickets to handle and your queues for today",
         ["Agent.Loading"] = "Loading your workspace...",
         ["Agent.KpiMyTickets"] = "My tickets in progress",
         ["Agent.KpiMyTicketsHint"] = "Files under your responsibility",
@@ -6987,7 +6987,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         // ===== LOT 3 - Client (Dashboard client) =====
         ["Dash.PageTitle"] = "Client Dashboard — CIT",
         ["Dash.Loading"] = "Loading your dashboard...",
-        ["Dash.Title"] = "Client Dashboard",
+        ["Dash.Title"] = "My requests & actions",
         ["Dash.Company"] = "Company",
         ["Dash.Profile"] = "Profile",
         ["Dash.Status"] = "Status",
