@@ -15,9 +15,10 @@
 <div class="cit-app-container d-flex min-vh-100">
     @if (_contexte?.EstAuthentifie == true)
     {
-        <!-- Desktop Sidebar -->
+        <!-- Desktop Sidebar — libellés toujours visibles (accordéon), plus explicite pour les
+             utilisateurs non informaticiens que l'ancien rail d'icônes révélé au survol. -->
         <div class="cit-desktop-sidebar d-none d-lg-block">
-            <NavMenu Rail="true" />
+            <NavMenu Rail="false" />
         </div>
 
         @* CORRECTIF — le panneau mobile vivait ici, piloté par _mobileMenuOuvert via des

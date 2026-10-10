@@ -2093,11 +2093,13 @@ html { scroll-padding-top: var(--header-h); }
 }
 
 .cit-desktop-sidebar {
-    width: var(--rail-compact-w);
-    flex: 0 0 var(--rail-compact-w);
-    background: transparent;
-    padding: .75rem 0 .75rem .75rem;
-    overflow: visible; /* les panneaux débordent à droite du rail */
+    /* Sidebar à libellés toujours visibles (accordéon) : plus explicite pour les utilisateurs non
+       informaticiens que l'ancien rail d'icônes de 84px révélé au survol. */
+    width: var(--rail-w);
+    flex: 0 0 var(--rail-w);
+    background: var(--rail-bg);
+    padding: 0;
+    overflow-y: auto;
 }
 
 .cit-rail {

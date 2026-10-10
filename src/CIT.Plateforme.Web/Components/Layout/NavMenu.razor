@@ -78,7 +78,9 @@
     }
     else
     {
-        <div class="px-2 pt-2 pb-1 border-bottom border-white border-opacity-10 mb-2">
+        @* Sélecteur d'espace : affiché ici uniquement sur mobile. Sur bureau il vit dans l'en-tête
+           (PersonaSwitcher EnBarre), l'afficher aussi dans le sidebar le ferait en double. *@
+        <div class="px-2 pt-2 pb-1 border-bottom border-white border-opacity-10 mb-2 d-lg-none">
             <PersonaSwitcher Contexte="@_contexte" />
         </div>
 
@@ -113,6 +115,17 @@
                 </details>
             }
         }
+
+        @* Accès permanent au manuel de SON rôle et au centre d'aide, toujours visible en bas du
+           menu — pour qu'un utilisateur non informaticien retrouve toujours « comment faire ». *@
+        <div class="cit-nav-footer mt-auto pt-2 px-1 border-top border-white border-opacity-10">
+            <NavLink class="cit-nav-subitem" href="/aide/manuel">
+                <span>📖</span> Manuel d'utilisation
+            </NavLink>
+            <NavLink class="cit-nav-subitem" href="/aide">
+                <span>❔</span> Centre d'aide
+            </NavLink>
+        </div>
     }
 </div>
 
