@@ -61,7 +61,10 @@
 
             @* RECHERCHE D'ÉCRAN (Ctrl+K) — propose uniquement les écrans du menu de ce compte : elle
                ne peut donc mener nulle part où le menu ne mène pas. Navigation par js/navigation-rapide.js. *@
-            <div class="cit-recherche-ecran d-none d-md-flex" role="search">
+            @* La recherche d'écran ne s'affiche qu'en XL : en-dessous, elle entrait en collision
+               avec le cluster droit (langue, thème, aide, cloche, compte). C'est un raccourci
+               Ctrl+K pour power-users, pas une fonction vitale de la barre. *@
+            <div class="cit-recherche-ecran d-none d-xl-flex" role="search">
                 <span aria-hidden="true">🔍</span>
                 <input type="search" list="cit-ecrans" data-recherche-ecran autocomplete="off"
                        placeholder="@Loc["Header.SearchScreen"]" aria-label="@Loc["Header.SearchScreen"]" />
