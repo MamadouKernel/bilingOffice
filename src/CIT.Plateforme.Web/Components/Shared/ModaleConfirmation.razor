@@ -25,6 +25,7 @@
          @onkeydown="SurToucheAsync"
          tabindex="-1">
         <div class="cit-modal-dialog"
+             @ref="_dialogue"
              role="dialog"
              aria-modal="true"
              aria-labelledby="@_idTitre"
@@ -69,6 +70,7 @@
     private readonly string _idMessage = $"modale-message-{Guid.NewGuid():N}";
 
     private ElementReference _boutonAnnuler;
+    private ElementReference _dialogue;
     private bool _focusAPlacer;
     private bool _restaurerFocus;
     private bool _etaitOuvert;
@@ -172,6 +174,8 @@
 
             try
             {
+                // Libérer le piège de focus AVANT de rendre le focus au déclencheur.
+                await JS.InvokeVoidAsync("citFocus.libererPiege");
                 await JS.InvokeVoidAsync("citFocus.restaurer");
             }
             catch (Exception)
@@ -202,6 +206,8 @@
         try
         {
             await _boutonAnnuler.FocusAsync();
+            // Piéger le focus dans le dialogue tant qu'il est ouvert (WCAG 2.4.3).
+            await JS.InvokeVoidAsync("citFocus.piegeDans", _dialogue);
         }
         catch (Exception)
         {
