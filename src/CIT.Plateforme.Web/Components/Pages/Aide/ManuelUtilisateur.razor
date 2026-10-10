@@ -99,6 +99,21 @@
             ],
             () => true),
 
+        new("💬", "Agents — échanger en interne sur un ticket", "Agents — exchange internally on a ticket",
+            [
+                "Sur un ticket, la zone de message a une case « Note interne » : cochée, votre message n'est visible QUE des agents CIT (jamais du client).",
+                "Pour demander l'avis d'un collègue (ex. l'agent qui a traité l'étape précédente), cochez « Note interne » puis saisissez son adresse e-mail dans « Poser une question à un collègue ».",
+                "Le collègue reçoit une notification (application + e-mail) avec un lien direct vers le ticket, et peut répondre dans le même fil interne.",
+                "Important : mentionner un collègue ne change PAS le responsable du ticket — il reste à vous. Pour qu'une autre personne le traite, c'est une réaffectation (par un superviseur).",
+            ],
+            [
+                "On a ticket, the message box has an \"Internal note\" checkbox: when ticked, your message is visible to CIT agents ONLY (never to the customer).",
+                "To ask a colleague (e.g. the agent who handled the previous step), tick \"Internal note\" then enter their email in \"Ask a colleague a question\".",
+                "The colleague gets a notification (app + email) with a direct link to the ticket, and can reply in the same internal thread.",
+                "Important: mentioning a colleague does NOT change the ticket owner — it stays with you. For someone else to process it, that is a reassignment (by a supervisor).",
+            ],
+            () => A(Permission.MessageNoteInterne)),
+
         new("🚚", "Transporteur — enrôler et gérer sa flotte", "Carrier — enrol and manage the fleet",
             [
                 "Ouvrez « Enrôler ma flotte » : le signataire, la qualité et le siège sont pré-remplis depuis votre compte.",
