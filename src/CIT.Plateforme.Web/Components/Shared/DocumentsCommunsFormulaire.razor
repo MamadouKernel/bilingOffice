@@ -16,7 +16,7 @@
     }
     else
     {
-        <InputFile class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.xlsx" OnChange="Ajouter" />
+        <ZoneDepot Compact="true" Multiple="false" Accept=".pdf,.jpg,.jpeg,.png,.xlsx" OnChange="Ajouter" />
         @foreach (var doc in Documents)
         {
             <div class="border rounded p-2 mt-2">

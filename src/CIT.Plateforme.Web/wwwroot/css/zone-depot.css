@@ -1,0 +1,150 @@
+/* Zone de dépôt de pièces jointes (Shared/ZoneDepot.razor) : panier de basket, le fichier « tire »
+   dans le panier à la sélection / au dépôt. Couleurs = jetons de app.css (suivent le thème sombre).
+
+   Toute la géométrie est exprimée en --u (unité de la zone) : un seul réglage met à l'échelle le panier,
+   le fichier et la trajectoire. --u grandit sur grand écran (bureau 27"+, TV) et rétrécit en version
+   compacte (--compact). La distance du tir suit la largeur réelle de la zone (cqw). */
+.zone-depot {
+    --u: 1rem;
+    --txt: 2.2rem;
+    --lx: min(14cqw, 9rem);
+    position: relative;
+    container-type: inline-size;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: calc(var(--txt) + var(--u) * 6.4);
+    padding: 0 1rem .7rem;
+    border: 2px dashed var(--field-border);
+    border-radius: var(--r-lg);
+    background: var(--surface-sunken);
+    color: var(--ink);
+    overflow: hidden;
+    transition: border-color .15s, background-color .15s, box-shadow .15s;
+}
+@media (min-width: 1600px) { .zone-depot { --u: 1.15rem; --txt: 2.6rem; } .zone-depot__txt { font-size: 1rem; } }
+@media (min-width: 2200px) { .zone-depot { --u: 1.5rem; --txt: 3.2rem; border-width: 3px; } .zone-depot__txt { font-size: 1.25rem; } }
+/* Compact : après les paliers grand écran pour garder l'écart de taille avec la version complète. */
+.zone-depot--compact { --u: .75rem; }
+@media (min-width: 1600px) { .zone-depot--compact { --u: .9rem; } }
+@media (min-width: 2200px) { .zone-depot--compact { --u: 1.15rem; } }
+
+.zone-depot:hover { border-color: var(--field-border-hover); }
+.zone-depot:focus-within { border-color: var(--field-border-focus); box-shadow: var(--ring); }
+.zone-depot--over {
+    border-color: var(--action);
+    border-style: solid;
+    background: rgba(var(--action-rgb), .08);
+}
+.zone-depot--off { opacity: .55; }
+.zone-depot--off .zone-depot__input { cursor: not-allowed; }
+
+.zone-depot__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+.zone-depot__txt { position: relative; text-align: center; font-size: .85rem; font-weight: 600; line-height: 1.3; }
+
+/* Écrans tactiles : pas de glisser-déposer, le texte devient « Touchez… ». */
+.zd-tactile { display: none; }
+@media (hover: none) and (pointer: coarse) {
+    .zd-bureau { display: none; }
+    .zd-tactile { display: inline; }
+}
+
+.zd-panier {
+    position: absolute;
+    top: calc(var(--u) * .4);
+    left: 50%;
+    width: calc(var(--u) * 4.4);
+    translate: -50% 0;
+    transition: scale .2s;
+}
+.zone-depot--over .zd-panier { scale: 1.08; }
+.zd-planche, .zd-cercle, .zd-filet path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.zd-planche { stroke: var(--steel-500, var(--field-border)); stroke-width: 3; }
+.zd-cercle { stroke: var(--accent); stroke-width: 4; }
+.zd-filet path { stroke: var(--field-border); stroke-width: 1.6; }
+.zd-filet { transform-box: fill-box; transform-origin: top center; }
+
+.zd-fichier {
+    position: absolute;
+    left: var(--lx);
+    bottom: var(--txt);
+    width: calc(var(--u) * 1.6);
+    height: calc(var(--u) * 2);
+    fill: var(--surface);
+    stroke: var(--action);
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+}
+.zone-depot--over .zd-fichier { animation: zd-rebond .5s ease-in-out infinite alternate; }
+
+/* Le tir : x linéaire + y en arc (translate et transform sont animés séparément ; la rotation est dans
+   transform, après translateY, pour ne pas faire pivoter l'arc). Le fichier disparaît dans le filet puis
+   revient à sa place ; le filet « swishe » et le cercle réagit à l'arrivée. */
+.zone-depot--tir .zd-fichier { animation: zd-x .95s linear, zd-y .95s, zd-vue .95s; }
+.zone-depot--tir .zd-filet { animation: zd-swish .95s; }
+.zone-depot--tir .zd-cercle { animation: zd-flash .95s; }
+@keyframes zd-x {
+    0% { translate: 0 0; }
+    /* cqw = boîte de contenu : on ajoute le padding gauche (1rem) pour viser le centre du panier */
+    60%, 99% { translate: calc(50cqw + 1rem - var(--lx) - var(--u) * .8) 0; }
+    100% { translate: 0 0; }
+}
+@keyframes zd-y {
+    0% { transform: translateY(0) rotate(0deg); animation-timing-function: ease-out; }
+    35% { transform: translateY(calc(var(--u) * -4.1)) rotate(200deg); animation-timing-function: ease-in; }
+    60%, 99% { transform: translateY(calc(var(--u) * -3.3)) rotate(360deg); }
+    100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes zd-vue {
+    0%, 59% { opacity: 1; }
+    62%, 94% { opacity: 0; }
+    100% { opacity: 1; }
+}
+@keyframes zd-swish {
+    0%, 58% { transform: scale(1, 1); }
+    66% { transform: scale(.88, 1.22); }
+    80% { transform: scale(1.05, .94); }
+    100% { transform: scale(1, 1); }
+}
+@keyframes zd-flash { 0%, 58% { stroke-width: 4; } 66% { stroke-width: 8; } 85%, 100% { stroke-width: 4; } }
+@keyframes zd-rebond { to { transform: translateY(calc(var(--u) * -.35)); } }
+
+@media (prefers-reduced-motion: reduce) {
+    /* Le tir est l'animation voulue (déclenchée par l'utilisateur, < 1 s, non répétée) : on ne coupe
+       que le rebond continu du survol. */
+    .zone-depot--over .zd-fichier { animation: none; }
+    .zone-depot, .zd-panier { transition: none; }
+}
+
+/* Liste des fichiers choisis (Shared/PiecesJointesFormulaire.razor) */
+.pj-liste { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .4rem; }
+.pj-item {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .45rem .65rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+}
+.pj-badge {
+    flex: none;
+    padding: .1rem .4rem;
+    border-radius: var(--r-sm);
+    background: rgba(var(--action-rgb), .12);
+    color: var(--action);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .03em;
+}
+.pj-nom { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; font-weight: 600; }
+.pj-taille { flex: none; font-size: .75rem; color: var(--steel-500, inherit); }
+@media (min-width: 1600px) { .pj-nom { font-size: 1rem; } .pj-taille, .pj-badge { font-size: .85rem; } }

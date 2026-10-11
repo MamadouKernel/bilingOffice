@@ -1,0 +1,36 @@
+@using CIT.Plateforme.Web.Resources
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+
+@* Zone de dépôt « panier de basket » : le vrai <InputFile> recouvre la zone (opacité 0), donc le
+   glisser-déposer natif, le clic, le toucher et le clavier fonctionnent tels quels. L'animation
+   (css/zone-depot.css, js/zone-depot.js) est purement décorative. Compact = écrans d'agents / champs
+   répétés ; sinon version complète des écrans de création. *@
+<div class="zone-depot @(Compact ? "zone-depot--compact" : null) @(Disabled ? "zone-depot--off" : null)">
+    <InputFile id="@Id" class="zone-depot__input" multiple="@Multiple" accept="@Accept" disabled="@Disabled"
+               aria-describedby="@DescribedBy" OnChange="OnChange" />
+    <svg class="zd-panier" viewBox="0 0 120 100" aria-hidden="true" focusable="false">
+        <rect class="zd-planche" x="34" y="3" width="52" height="36" rx="4" />
+        <rect class="zd-planche" x="50" y="18" width="20" height="14" rx="2" />
+        <g class="zd-filet">
+            <path d="M38 48 L50 88 M49 50 L55 90 M60 51 L60 91 M71 50 L65 90 M82 48 L70 88 M42 62 H78 M46 75 H74" />
+        </g>
+        <ellipse class="zd-cercle" cx="60" cy="47" rx="23" ry="5.5" />
+    </svg>
+    <svg class="zd-fichier" viewBox="0 0 24 30" aria-hidden="true" focusable="false">
+        <path d="M3 1h12l7 7v19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2z" />
+        <path d="M15 1v7h7" />
+    </svg>
+    <span class="zone-depot__txt"><span class="zd-bureau">@Loc["PJ.Drop"]</span><span class="zd-tactile">@Loc["PJ.Tap"]</span></span>
+</div>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string? Accept { get; set; }
+    [Parameter] public string? DescribedBy { get; set; }
+    [Parameter] public bool Multiple { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Compact { get; set; }
+    [Parameter, EditorRequired] public EventCallback<InputFileChangeEventArgs> OnChange { get; set; }
+}

@@ -250,7 +250,7 @@ else if (_fiche is not null)
     {
         <div class="cit-card mb-4">
             <h6 class="fw-bold text-dark mb-2">@Loc["FicheEnrol.UploadTitle"]</h6>
-            <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" multiple />
+            <ZoneDepot Compact="true" OnChange="DeposerPieceAsync" />
             <div class="form-text">@Loc["Docs.MultipleHint"]</div>
         </div>
     }

@@ -60,7 +60,7 @@
                     <li>@Loc["Enrol.PhotoIdentite"]</li>
                 </ul>
             </div>
-            <InputFile class="form-control form-control-sm" OnChange="DeposerPieceAsync" multiple />
+            <ZoneDepot OnChange="DeposerPieceAsync" />
             <div class="form-text">@Loc["Docs.MultipleHint"]</div>
             @if (_messagePiece is not null)
             {

@@ -8,19 +8,19 @@
    (contrôle de format, de taille et antivirus au dépôt). Plusieurs sélections s'ajoutent. *@
 <div class="mb-3">
     <label class="form-label fw-semibold text-dark" for="@_id">@Loc["PJ.Label"]</label>
-    <InputFile id="@_id" class="form-control" multiple accept="@Formats" OnChange="Ajouter" />
-    <div class="form-text small text-muted">@Loc["PJ.HintFormats", FormatsLisibles, DepotFichiers.MaxParDepot]</div>
+    <ZoneDepot Id="@_id" Accept="@Formats" OnChange="Ajouter" />
+    <div class="form-text small text-muted">@Loc["PJ.HintFormats", FormatsLisibles, DepotFichiers.MaxParDepot] @Loc["PJ.Differe"]</div>
     @if (_erreur is not null)
     {
         <div class="small text-danger mt-1" role="alert">@_erreur</div>
     }
     @if (Fichiers.Count > 0)
     {
-        <ul class="list-group list-group-flush mt-2">
+        <ul class="pj-liste">
             @foreach (var f in Fichiers)
             {
-                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 small">
-                    <span>📎 @f.Name <span class="text-muted">(@((f.Size / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"])</span></span>
+                <li class="pj-item">
+                    <span class="pj-badge">@Path.GetExtension(f.Name).TrimStart('.').ToUpperInvariant()</span><span class="pj-nom" title="@f.Name">@f.Name</span><span class="pj-taille">@((f.Size / 1024.0).ToString("0.0")) @Loc["Common.KoUnit"]</span>
                     <button type="button" class="btn btn-sm btn-link text-danger" @onclick="() => Fichiers.Remove(f)">@Loc["PJ.Remove"]</button>
                 </li>
             }

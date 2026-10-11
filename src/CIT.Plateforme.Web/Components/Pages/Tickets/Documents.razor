@@ -79,7 +79,7 @@ else
                 </select>
             </div>
         }
-        <InputFile OnChange="DeposerAsync" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.xlsx" multiple />
+        <ZoneDepot Compact="true" OnChange="DeposerAsync" Accept=".pdf,.jpg,.jpeg,.png,.xlsx" />
         <div class="form-text">@Loc["Docs.MultipleHint"]</div>
         <div class="form-text small">
             @string.Format(Loc["Docs.UploadHint"].Value, _nomAffiche)

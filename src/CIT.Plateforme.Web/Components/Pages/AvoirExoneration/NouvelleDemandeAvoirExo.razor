@@ -106,8 +106,8 @@
 
             <div class="mb-4">
                 <label class="form-label fw-semibold text-dark" for="fichiers">@Loc["AvoirExo.FilesLabel"]</label>
-                <InputFile id="fichiers" class="form-control" OnChange="OnFilesSelected" multiple />
-                <div class="form-text small">@Loc["AvoirExo.FilesHint"]</div>
+                <ZoneDepot Id="fichiers" OnChange="OnFilesSelected" />
+                <div class="form-text small">@Loc["AvoirExo.FilesHint"] @Loc["PJ.Differe"]</div>
 
                 @if (_fichiersSelectionnes.Count > 0)
                 {
