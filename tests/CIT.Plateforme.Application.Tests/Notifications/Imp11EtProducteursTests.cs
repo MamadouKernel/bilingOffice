@@ -121,7 +121,10 @@ public class Imp11EtProducteursTests
         // enrôlement) : elles ne créent pas de nouveau producteur.
         // 54e producteur (08/10/2026) — ValidationInterneEnrolementCommand.cs : la validation interne
         // « 4-yeux » publie TicketArriveeEnFile quand un validateur libère un dossier parqué.
-        Assert.Equal(54, fichiersProducteurs.Count);
+        // 55e producteur (10/10/2026) — RendreTicketALaFileCommand.cs : passation de chiffre, l'agent
+        // rend son ticket à la file (relève) et publie TicketRenduALaFile. Producteur délibéré.
+        Assert.Equal(55, fichiersProducteurs.Count);
+        Assert.Contains("RendreTicketALaFileCommand.cs", fichiersProducteurs);
         Assert.Contains("ValidationInterneEnrolementCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreDemandeCompteCommand.cs", fichiersProducteurs);
         Assert.Contains("ReglementDeclaratifCommand.cs", fichiersProducteurs);
