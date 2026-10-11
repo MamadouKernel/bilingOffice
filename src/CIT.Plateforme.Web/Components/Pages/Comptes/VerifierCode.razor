@@ -90,7 +90,7 @@
                             </button>
 
                             <div class="mt-4 d-flex flex-column align-items-center gap-2">
-                                <a href="@(ModeSecours ? "/comptes/verifier-code" : "/comptes/verifier-code?secours=1")"
+                                <a href="@(ModeSecours ? "/comptes/verifier-code" : "/comptes/verifier-code?secours=true")"
                                    class="small text-decoration-none fw-semibold">
                                     @(ModeSecours ? Loc["Auth.UseAuthenticator"] : Loc["Auth.UseRecoveryCode"])
                                 </a>
@@ -124,7 +124,7 @@
 
     private string? erreur;
 
-    /// <summary>Saisie d'un code de secours au lieu du code de l'application (?secours=1).</summary>
+    /// <summary>Saisie d'un code de secours au lieu du code de l'application (?secours=true — un bool : « 1 » ferait échouer le binding).</summary>
     [SupplyParameterFromQuery(Name = "secours")]
     private bool ModeSecours { get; set; }
 
