@@ -2,7 +2,8 @@
 
 > Branche `feat/roles-non-cit` : rôles non-CIT, 4-yeux enrôlement, relève de poste, jours fériés SLA,
 > emprunt de compte audité, manuel utilisateur complété, correctif lien « code de secours » 2FA.
-> `main` doit être fast-forwardé sur `e0a3721` (main n'a aucun commit de retard sur la branche).
+> Code de la release = `e0a3721`. `main` sera fast-forwardé sur la tête de la branche, qui n'ajoute après
+> `e0a3721` que de la documentation (cette note) : aucun changement de code. `main` n'a aucun commit de retard.
 > Prod avant livraison = `5cd7650` (06/10/2026, d'après les notes de déploiement — à confirmer au §2).
 > 62 commits depuis `5cd7650`.
 
@@ -14,7 +15,8 @@
 - [x] Script SQL idempotent généré : `deploy/migrations-idempotent-e0a3721.sql` (69 migrations,
       dont **5 nouvelles** vs la prod — voir le résumé en bas). Le script n'est PAS versionné
       (`.gitignore` : `deploy/*.sql`) : il reste sur le poste où il a été généré.
-- [ ] `main` fast-forwardé sur `e0a3721` et poussé (`git merge --ff-only feat/roles-non-cit`).
+- [ ] `main` fast-forwardé sur la tête de la branche et poussé (`git merge --ff-only feat/roles-non-cit`).
+- [ ] Contrôle : `git diff e0a3721 origin/main --stat -- src tests` ne montre **aucune** différence de code.
 
 ## 1. Décisions à prendre AVANT de publier
 - [ ] **Emprunt de compte (« Se connecter en tant que »).** Livré dans cette release. Tout compte
@@ -68,11 +70,12 @@ SELECT name FROM sys.columns
 ```bash
 cd C:/Users/KERNELMK/Documents/cit/yaba-publication
 git fetch origin
-git checkout --detach origin/main      # -> e0a3721
-git log --oneline -1                    # vérifier e0a3721
+git checkout --detach origin/main      # tête de main (code identique à e0a3721)
+git log --oneline -3                    # e0a3721 doit apparaître, sous des commits de documentation seulement
+git diff e0a3721 HEAD --stat -- src tests   # doit être vide
 git status --short                      # doit être vide
 ```
-- [ ] Worktree `yaba-publication` sur `e0a3721`.
+- [ ] Worktree `yaba-publication` sur la tête de `main` ; aucune différence de code avec `e0a3721`.
 - [ ] `src/CIT.Plateforme.Web/appsettings.json` : `"PlateformeDb"` **reste vide** (le secret prod
       n'est jamais committé).
 
