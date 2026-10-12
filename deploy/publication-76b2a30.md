@@ -17,6 +17,18 @@ SELECT TOP 1 MigrationId FROM __EFMigrationsHistory ORDER BY MigrationId DESC;
 -- attendu : 20261010122027_AjoutJoursFeriesSla
 ```
 
+### Exécuter le script (encodage — piège rencontré le 12/10)
+Le script contient des accents, des « » et un emoji (`👁`) dans les articles d'aide : il est fourni en
+**UTF-16 avec BOM**, que SSMS, Azure Data Studio et `sqlcmd` reconnaissent seuls. Un UTF-8 avec BOM donne
+`Msg 102 … Incorrect syntax near '﻿'` (le BOM lu comme du texte) ; un UTF-8 sans BOM abîme les accents
+sous `sqlcmd` sans `-f 65001`.
+- SSMS : **Fichier > Ouvrir > Fichier**, base `yaba` sélectionnée, Exécuter. Ne pas copier-coller le contenu.
+- `sqlcmd` : `sqlcmd -S 10.88.179.104 -d yaba -b -i deploy\migrations-idempotent-76b2a30.sql -o deploy\migration-sortie.log`
+- **Ne jamais enregistrer les résultats ni rediriger `-o` vers le fichier du script** : le 12/10, le script a
+  été écrasé par sa propre sortie d'erreur (140 octets). Régénération :
+  `dotnet ef migrations script --idempotent --project src/CIT.Plateforme.Infrastructure --startup-project src/CIT.Plateforme.Web -o deploy/migrations-idempotent-76b2a30.sql`
+  puis reconversion en UTF-16 avec BOM (le générateur écrit de l'UTF-8 avec BOM).
+
 ## 2. Publication IIS (pool et application `yaba`)
 - [ ] `main` contient `76b2a30` (merge/ff depuis `feat/roles-non-cit`, poussé).
 - [ ] Publier **depuis le worktree propre** `C:\Users\KERNELMK\Documents\cit\yaba-publication`
