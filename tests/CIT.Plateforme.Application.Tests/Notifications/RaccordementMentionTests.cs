@@ -190,7 +190,10 @@ public class RaccordementMentionTests
         //   ResolveurValideursCompte : les agents habilités à valider les comptes société.
         // Comme ResolveurSuperviseursDeLaFile, ils résolvent des UTILISATEURS détenant une permission
         // précise — pas de broadcast, pas de « file » ni « tous » comme destinataire.
-        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurPreparateurEnrolement", "ResolveurSuperviseursDeLaFile", "ResolveurValidateursSociete", "ResolveurValideursCompte"], implementations);
+        // 14/10/2026 — ResolveurClientDuRendezVous (Feature 010 / Guichet) : notifie le client de la
+        // confirmation et de l'annulation de son rendez-vous Billing Office. NOMINATIF (le client du
+        // dossier), par délégation à ResolveurClientDuDossier — aucune diffusion collective.
+        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurClientDuRendezVous", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurPreparateurEnrolement", "ResolveurSuperviseursDeLaFile", "ResolveurValidateursSociete", "ResolveurValideursCompte"], implementations);
 
         // Toujours aucune diffusion collective.
         Assert.DoesNotContain(implementations, n => n.Contains("Broadcast", StringComparison.OrdinalIgnoreCase));

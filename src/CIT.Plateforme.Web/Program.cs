@@ -439,6 +439,12 @@ using (var scope = app.Services.CreateScope())
     var notifications = scope.ServiceProvider
         .GetRequiredService<CIT.Plateforme.Infrastructure.Persistence.ProvisionnementNotifications>();
     await notifications.ExecuterAsync();
+
+    // Rendez-vous au Billing Office (Feature 010) : règles + modèles FR/EN de confirmation et
+    // d'annulation. Provisionnés côté Guichet pour ne pas faire connaître le RDV au moteur (I4).
+    await scope.ServiceProvider
+        .GetRequiredService<CIT.Plateforme.Infrastructure.Guichet.ProvisionnementRendezVous>()
+        .ExecuterAsync();
 }
 
 // TRANSFERTS : matrice des transitions et motifs de départ (chemins de retour du parcours Billing).

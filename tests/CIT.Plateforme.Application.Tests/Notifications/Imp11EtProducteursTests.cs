@@ -367,7 +367,9 @@ public class Imp11EtProducteursTests
         // Huit depuis le 08/10/2026 (cf. RaccordementMentionTests, où l'inventaire est nominatif) :
         // + ResolveurValidateursSociete (alerte les validateurs d'une société) et
         // + ResolveurPreparateurEnrolement (informe le préparateur de la décision) — validation interne 4-yeux.
-        Assert.Equal(8, implementations.Count);
+        // Neuf depuis le 14/10/2026 : + ResolveurClientDuRendezVous (Feature 010 / Guichet), qui
+        // notifie le client de la confirmation et de l'annulation de son rendez-vous Billing Office.
+        Assert.Equal(9, implementations.Count);
 
         // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale — SAUF les résolveurs
         // NOMINATIFS scopés par permission (superviseurs/agents de la file, valideurs de compte) : ils

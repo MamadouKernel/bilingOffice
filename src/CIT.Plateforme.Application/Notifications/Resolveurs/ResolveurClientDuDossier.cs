@@ -69,6 +69,17 @@ public sealed class ResolveurClientDuDossier(
             return [];
         }
 
+        return await ResoudreDestinatairesPourTicketAsync(chargeUtile, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Résolution du client d'un dossier à partir de la charge utile d'un événement de ticket,
+    /// SANS filtre sur le type. Une autre feature peut réutiliser cette logique pour ses propres
+    /// événements de ticket sans que la couche Notifications ait à connaître son vocabulaire
+    /// (invariant I4) : elle délègue ici depuis son propre résolveur.
+    /// </summary>
+    public async Task<IReadOnlyList<Guid>> ResoudreDestinatairesPourTicketAsync(string chargeUtile, CancellationToken ct = default)
+    {
         var ticketId = ResolveurChargeUtile.LireGuid(chargeUtile, "ticketId");
         if (ticketId is null)
         {

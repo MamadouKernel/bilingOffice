@@ -214,6 +214,7 @@ public static class DependencyInjection
         services.AddScoped<Persistence.ProvisionnementSupportIt>();
         services.AddScoped<Persistence.ProvisionnementParametrageMetier>();
         services.AddScoped<Persistence.ProvisionnementNotifications>();
+        services.AddScoped<Guichet.ProvisionnementRendezVous>();
         services.AddScoped<Persistence.ProvisionnementTransitions>();
         services.AddScoped<AttenteClientCommand>();
         services.AddScoped<RelancesAbsenceReponseUseCase>();
@@ -507,7 +508,12 @@ public static class DependencyInjection
         // Résolveurs de destinataires — EXACTEMENT DEUX (research.md D11, vérifié par le test de
         // réflexion T052). Aucun résolveur « file », « tous les agents », « tous les habilités »
         // ni « superviseur » : ALE-03 n'est pas raccordée dans cette feature (research.md D6).
-        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurClientDuDossier>();
+        // Enregistré aussi en type concret : le résolveur rendez-vous du Guichet (Feature 010) y
+        // délègue la résolution client/société, sans que la couche Notifications connaisse le RDV (I4).
+        services.AddScoped<Application.Notifications.Resolveurs.ResolveurClientDuDossier>();
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires>(sp =>
+            sp.GetRequiredService<Application.Notifications.Resolveurs.ResolveurClientDuDossier>());
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Guichet.ResolveurClientDuRendezVous>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurCollaborateurMentionne>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurDemandeurCompte>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurSuperviseursDeLaFile>();
