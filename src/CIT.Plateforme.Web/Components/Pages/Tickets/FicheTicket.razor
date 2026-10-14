@@ -23,6 +23,7 @@
 @using Microsoft.Extensions.DependencyInjection
 @inject Microsoft.Extensions.DependencyInjection.IServiceScopeFactory ScopeFactory
 @inject NavigationManager Navigation
+@inject ILogger<FicheTicket> Logger
 
 <PageTitle>@(_fiche is null ? Loc["Ticket.PageTitleFallback"].Value : string.Format(Loc["Ticket.PageTitleTicket"].Value, _fiche.NumeroTicket)) — CIT</PageTitle>
 
@@ -475,7 +476,7 @@
                             {
                                 <div class="border-top pt-3">
                                     <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="@Loc["Ticket.MessagePlaceholder"]" @bind="_nouveauMessageContenu" />
+                                        <input type="text" class="form-control" placeholder="@Loc["Ticket.MessagePlaceholder"]" @bind="_nouveauMessageContenu" @bind:event="oninput" />
                                         @if (!_estClient)
                                         {
                                             <div class="input-group-text bg-light">
@@ -498,7 +499,7 @@
                                             <input type="email" class="form-control form-control-sm"
                                                    placeholder="@Loc["Ticket.MentionPlaceholder"]"
                                                    aria-label="@Loc["Ticket.MentionAria"]"
-                                                   @bind="_emailCollaborateur" />
+                                                   @bind="_emailCollaborateur" @bind:event="oninput" />
                                             <div class="form-text small text-muted mt-1">ℹ️ @Loc["Ticket.MentionHint"]</div>
                                         </div>
                                     }
@@ -843,6 +844,11 @@
         }
         catch (Exception ex)
         {
+            // Diagnostic : trace complète côté serveur pour les envois qui « ne font rien » côté
+            // IHM (notamment la mention d'un collaborateur par e-mail), en plus du message affiché.
+            Logger.LogError(ex,
+                "Échec d'envoi sur le ticket {TicketId} (noteInterne={NoteInterne}, mentionEmailRenseigné={AvecEmail}).",
+                Id, _estNoteInterne, !string.IsNullOrWhiteSpace(_emailCollaborateur));
             _actionFeedback = $"{Loc["Ticket.SendErrorPrefix"].Value}{MessagesUtilisateur.Pour(ex)}";
         }
     }
