@@ -29,7 +29,24 @@ internal static class ResolveurChargeUtile
                 return null;
             }
 
-            if (!document.RootElement.TryGetProperty(propriete, out var valeur))
+            // Recherche INSENSIBLE À LA CASSE : les producteurs écrivent la clé tantôt en camelCase
+            // (« ticketId », JSON écrit à la main) tantôt en PascalCase (« TicketId », produit par
+            // JsonSerializer sans politique de nommage). Sans cette tolérance, les événements
+            // sérialisés en PascalCase (rendez-vous, avoir/exonération) ne résolvaient aucun
+            // destinataire — l'événement était publié mais personne n'était notifié.
+            JsonElement valeur = default;
+            var trouve = false;
+            foreach (var p in document.RootElement.EnumerateObject())
+            {
+                if (string.Equals(p.Name, propriete, StringComparison.OrdinalIgnoreCase))
+                {
+                    valeur = p.Value;
+                    trouve = true;
+                    break;
+                }
+            }
+
+            if (!trouve)
             {
                 return null;
             }

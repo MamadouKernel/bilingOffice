@@ -126,9 +126,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Abstractions/ILienPortail.cs": {
-    "mtime": 1788594925.09374,
-    "seen": 1791300950.6811004,
-    "ast_hash": "edd3d44b9b4d00b3b395a3fdc37fe806",
+    "mtime": 1791388212.385432,
+    "seen": 1791388323.0543587,
+    "ast_hash": "89b7e61478409bc97d93330f21f9608b",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Abstractions/INotificateurTempsReel.cs": {
@@ -174,9 +174,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Abstractions/Repositories.cs": {
-    "mtime": 1791298075.2448783,
-    "seen": 1791300950.6811209,
-    "ast_hash": "f4b129a2ec6c4ca09025aa2511e08c0f",
+    "mtime": 1791634509.1791742,
+    "seen": 1791635159.3398654,
+    "ast_hash": "24715a1ad206ff11970fb222cbf4a6d7",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Abstractions/TarificationRepositories.cs": {
@@ -186,9 +186,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Administration/ChampsFormulaireEnrolementCommands.cs": {
-    "mtime": 1790306003.6761127,
-    "seen": 1791300950.6811254,
-    "ast_hash": "fdaf72404d6a0ac4874298f5319c804b",
+    "mtime": 1791380473.0395806,
+    "seen": 1791385706.5900853,
+    "ast_hash": "77f3593bbc5378850125c46f0aa858de",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Administration/ConsulterArchivesQuery.cs": {
@@ -456,9 +456,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingExport/SoumettreDemandeExportCommand.cs": {
-    "mtime": 1791214454.1012652,
-    "seen": 1791300950.6812298,
-    "ast_hash": "b6c85fe43c395f8c27c20dd4d4ae4090",
+    "mtime": 1791352129.3976128,
+    "seen": 1791385706.5986555,
+    "ast_hash": "54d6e29e14e8240df798487412a66afd",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingExport/ValiderPreuvePaiementExportCommand.cs": {
@@ -558,14 +558,14 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingImport/LibellePaiementCdcHelper.cs": {
-    "mtime": 1791308826.438774,
-    "seen": 1791309486.2645195,
-    "ast_hash": "1b1485c36b849af852a34820ab972baf",
+    "mtime": 1791309513.8959703,
+    "seen": 1791385706.601735,
+    "ast_hash": "f51a2c93c9d200fb45f57a44f02c381f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingImport/ReglementDeclaratifCommand.cs": {
-    "mtime": 1791308462.2422757,
-    "seen": 1791309486.2645273,
+    "mtime": 1791309513.8988247,
+    "seen": 1791385706.6017382,
     "ast_hash": "81b6ab161511de1e92bbb73b7d01b55a",
     "semantic_hash": ""
   },
@@ -576,9 +576,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingImport/SoumettreDemandeImportCommand.cs": {
-    "mtime": 1791214454.1351829,
-    "seen": 1791300950.681298,
-    "ast_hash": "892023db5e8f1f5b130cbb129f57a63b",
+    "mtime": 1791352129.400623,
+    "seen": 1791385706.601925,
+    "ast_hash": "05089a7f75058292fa1330f99663ba2e",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingImport/ValiderPreuvePaiementCommand.cs": {
@@ -606,9 +606,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Client/ObtenirDashboardClientQuery.cs": {
-    "mtime": 1791214454.1449327,
-    "seen": 1791300950.6813087,
-    "ast_hash": "255a2fe206b6f870263dc97c27078889",
+    "mtime": 1791652937.2061536,
+    "seen": 1791700053.8809454,
+    "ast_hash": "6e5c9f31a7a26818032b43d66ba3dd1e",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/ActiverDesactiverUtilisateurCommand.cs": {
@@ -618,9 +618,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/AdministrationComptesAgentsCommands.cs": {
-    "mtime": 1790759443.544588,
-    "seen": 1791300950.6813133,
-    "ast_hash": "86a82c0c5d80f9281c1e6ba24712bfd9",
+    "mtime": 1791348339.9076974,
+    "seen": 1791385706.6030679,
+    "ast_hash": "6f0b75496bd2008ce80e3b44bbfb2db9",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/CloturerMonCompteCommand.cs": {
@@ -678,9 +678,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/ModifierDroitsUtilisateurCommand.cs": {
-    "mtime": 1788035277.7705233,
-    "seen": 1791300950.6813352,
-    "ast_hash": "0672c6f3ea0ef46f86134c1c4c94b909",
+    "mtime": 1791473883.901894,
+    "seen": 1791473996.2146184,
+    "ast_hash": "309b5fab9335b0ced75127eabcbee0fe",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/ModifierMonProfilCommand.cs": {
@@ -726,9 +726,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/SoumettreDemandeCompteCommand.cs": {
-    "mtime": 1791010046.354326,
-    "seen": 1791300950.6813533,
-    "ast_hash": "1b803abaaeb68f5b92feb4f77224ae2a",
+    "mtime": 1791352129.405143,
+    "seen": 1791385706.6062238,
+    "ast_hash": "0e1f4921372e13c39575440e9cdbb07c",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Comptes/TypesClientCommands.cs": {
@@ -786,9 +786,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/CustomerComplaint/SoumettreReclamationCommand.cs": {
-    "mtime": 1790887907.9720724,
-    "seen": 1791300950.681375,
-    "ast_hash": "c90272502fe89f5a2fd44f2a43977ff0",
+    "mtime": 1791352129.4076717,
+    "seen": 1791385706.6078417,
+    "ast_hash": "52588a0dc9ad0a11ca805c5f3bd33f6e",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Documents/DeposerDocumentCommand.cs": {
@@ -804,9 +804,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Documents/TelechargerDocumentQuery.cs": {
-    "mtime": 1788000954.8778117,
-    "seen": 1791300950.6813817,
-    "ast_hash": "7d80bf12d9119d9426912424beb4143f",
+    "mtime": 1791433488.3731134,
+    "seen": 1791434210.6255872,
+    "ast_hash": "2c0362b312afb26bce4fb1f227c09c1e",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Documents/ValidateurFichierDocument.cs": {
@@ -834,9 +834,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/ConsulterFileAgentGateQuery.cs": {
-    "mtime": 1788154912.2178042,
-    "seen": 1791300950.6813927,
-    "ast_hash": "d878fad89529c00759baa019d472df7e",
+    "mtime": 1791473883.9128127,
+    "seen": 1791473996.2190008,
+    "ast_hash": "013b9ca820f0713f682c4dbc5cd4bd4a",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/DeclencherConvocationCommand.cs": {
@@ -876,9 +876,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/ObtenirFicheEnrolementQuery.cs": {
-    "mtime": 1791214454.1606226,
-    "seen": 1791300950.681408,
-    "ast_hash": "26ccfadf7a1ccc7fa26a0cc96c48edc9",
+    "mtime": 1791388212.3904335,
+    "seen": 1791388323.0821788,
+    "ast_hash": "330096629237b152585e7efd358523a5",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/RappelerEcheancesDocumentsCommand.cs": {
@@ -894,21 +894,21 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/SoumettreEnrolementCommand.cs": {
-    "mtime": 1790306025.6479917,
-    "seen": 1791300950.6814144,
-    "ast_hash": "793bc0c4d5b50cd3e4026a97665b173e",
+    "mtime": 1791352129.410201,
+    "seen": 1791385706.6107073,
+    "ast_hash": "9328cd4bb0e3803753f43f2cc573fca4",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/SoumettreEnrolementSocieteCommand.cs": {
-    "mtime": 1791214454.1631968,
-    "seen": 1791300950.6814165,
-    "ast_hash": "4a43d2bd7dc5ab6701103ee8534726bf",
+    "mtime": 1791473883.9188125,
+    "seen": 1791473996.2207289,
+    "ast_hash": "c29052a84f7240dbfdf4dcf0af542758",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/SoumettreRetraitEnrolementSocieteCommand.cs": {
-    "mtime": 1791214454.1663778,
-    "seen": 1791300950.6814187,
-    "ast_hash": "e3b1fbebb1f979794b6419c5b1f0dd27",
+    "mtime": 1791436714.1378384,
+    "seen": 1791473996.2207308,
+    "ast_hash": "1b8432769567acb7f4b6e8c786db9ecf",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Enrolement/ValiderEnrolementCommand.cs": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Exploitation/DisponibilitePlateforme.cs": {
-    "mtime": 1791214454.1716826,
-    "seen": 1791300950.6814232,
-    "ast_hash": "1b559a9c16c102bd1f7d78c7b3bd555b",
+    "mtime": 1791634538.7973533,
+    "seen": 1791635159.3717346,
+    "ast_hash": "4b0458bc1a7e49dcd5b5832c4ae269a0",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Exploitation/ParametresPlateforme.cs": {
@@ -984,9 +984,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Guichet/RendezVousUseCases.cs": {
-    "mtime": 1791214469.5982616,
-    "seen": 1791300950.6814466,
-    "ast_hash": "f68ade407d546e70be81c8a974b60ecd",
+    "mtime": 1791954028.625959,
+    "seen": 1791975557.7564013,
+    "ast_hash": "172a24a0e815c879a9251277ce79b226",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Messagerie/MentionnerCollaborateurCommand.cs": {
@@ -1014,9 +1014,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Notifications/DistribuerNotificationsUseCase.cs": {
-    "mtime": 1791214454.1783955,
-    "seen": 1791300950.6814575,
-    "ast_hash": "03685016917962828019d3ebc49de15b",
+    "mtime": 1791388212.393433,
+    "seen": 1791388323.0871222,
+    "ast_hash": "80619f6453af369e39fb40a0b967d4d6",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Notifications/GererPreferencesCanauxCommand.cs": {
@@ -1032,15 +1032,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurChargeUtile.cs": {
-    "mtime": 1788240811.636166,
-    "seen": 1791300950.6814675,
-    "ast_hash": "16c1cfeda9b895eea705558e0f741c14",
+    "mtime": 1791974850.0044746,
+    "seen": 1791975557.7577002,
+    "ast_hash": "a2b6f45c8070a566febdd2403e2d7fca",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurClientDuDossier.cs": {
-    "mtime": 1791214454.1843936,
-    "seen": 1791300950.68147,
-    "ast_hash": "20a7dbe9b0389fb793ae9f7adaaacadb",
+    "mtime": 1791975326.611606,
+    "seen": 1791975557.7577028,
+    "ast_hash": "7faf0f502cac135f4ab9c4069a7a0ac7",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurCollaborateurMentionne.cs": {
@@ -1122,9 +1122,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Securite/JournalConnexionService.cs": {
-    "mtime": 1788619479.528605,
-    "seen": 1791300950.6815019,
-    "ast_hash": "22a6ea8c0ab174a4b13843764f1f90d7",
+    "mtime": 1791562349.9871373,
+    "seen": 1791620069.6944408,
+    "ast_hash": "a82f730673cab17cace12ddbb400d372",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Securite/MoteurRetentionService.cs": {
@@ -1140,15 +1140,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Societe/DashboardSocieteVue.cs": {
-    "mtime": 1788080873.9642684,
-    "seen": 1791300950.6815085,
-    "ast_hash": "53106956934b08301bcb9868d608c43d",
+    "mtime": 1791473883.9248128,
+    "seen": 1791473996.2274034,
+    "ast_hash": "39ec532df68d65620b68987d1c996763",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Societe/ObtenirDashboardSocieteQuery.cs": {
-    "mtime": 1790491902.5283537,
-    "seen": 1791300950.6815107,
-    "ast_hash": "c30ae93d2d732804c5357506f3c81f49",
+    "mtime": 1791473883.9268143,
+    "seen": 1791473996.2274065,
+    "ast_hash": "de3989e446e26bda5ca72bf7e91244f7",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Supervision/ActionDeMasseCommand.cs": {
@@ -1212,9 +1212,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Supervision/VueChargeQuery.cs": {
-    "mtime": 1791214454.196762,
-    "seen": 1791300950.681534,
-    "ast_hash": "a58364788430d08ee4a281d0d05a93df",
+    "mtime": 1791371358.911449,
+    "seen": 1791385706.6200132,
+    "ast_hash": "3e782a1e5aa8ae7cafe35df9a48f0479",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Supervision/VueFilesQuery.cs": {
@@ -1452,15 +1452,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Tickets/ObtenirFicheTicketQuery.cs": {
-    "mtime": 1791308883.7930453,
-    "seen": 1791309486.3038278,
+    "mtime": 1791309513.904847,
+    "seen": 1791385706.6268215,
     "ast_hash": "f65037368773e385a2b6b528932934dd",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Tickets/OptionsTraitementTicketQuery.cs": {
-    "mtime": 1791214454.2420309,
-    "seen": 1791300950.6816206,
-    "ast_hash": "5c2461d95cda8c5146fbb4c7571a20ee",
+    "mtime": 1791643863.3480117,
+    "seen": 1791644212.1589448,
+    "ast_hash": "662a062f687031a9ee04c096719829db",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Tickets/PrendreEnChargeCommand.cs": {
@@ -1500,9 +1500,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Web/CatalogueNavigation.cs": {
-    "mtime": 1791214454.2551053,
-    "seen": 1791300950.6816354,
-    "ast_hash": "718f914375bc8a4d04750d9e6a60855e",
+    "mtime": 1791655949.4011366,
+    "seen": 1791700053.9116905,
+    "ast_hash": "9230cd18e9b1d307c466e871da76b71b",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Web/ConstruireNavigationQuery.cs": {
@@ -1512,15 +1512,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Web/ContexteUtilisateurVue.cs": {
-    "mtime": 1790488053.9010568,
-    "seen": 1791300950.68164,
-    "ast_hash": "a1b39e66bfccb054be141726fb1b796f",
+    "mtime": 1791473883.928819,
+    "seen": 1791473996.2369285,
+    "ast_hash": "9063adf593e8b52efdb4d40959f63df2",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Web/ObtenirContexteUtilisateurQuery.cs": {
-    "mtime": 1790491902.5303621,
-    "seen": 1791300950.6816425,
-    "ast_hash": "c89123cd0056d5876c9d44520947234e",
+    "mtime": 1791473883.9308126,
+    "seen": 1791473996.236931,
+    "ast_hash": "4574d9ea4cc91d75736313918c081cd5",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Affectation/CompetenceOperateur.cs": {
@@ -1668,9 +1668,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Comptes/UtilisateurSociete.cs": {
-    "mtime": 1788033832.1489353,
-    "seen": 1791300950.6816988,
-    "ast_hash": "6afbaf53cc71986094dae81b3c8d73a2",
+    "mtime": 1791473883.9328125,
+    "seen": 1791473996.2407312,
+    "ast_hash": "7a78b56a7c0362721d4be89249398a49",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/ConflitDeConcurrenceException.cs": {
@@ -1704,15 +1704,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Enrolement/BadgeEnrolement.cs": {
-    "mtime": 1791008973.3653183,
-    "seen": 1791300950.6817112,
-    "ast_hash": "e8fa45256705ea9bb6dbfe9080b6aafd",
+    "mtime": 1791388212.3958695,
+    "seen": 1791388323.1172152,
+    "ast_hash": "d413a88e18fe0516859faa9ef030d129",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Enrolement/ChampFormulaireEnrolement.cs": {
-    "mtime": 1790305886.852682,
-    "seen": 1791300950.6817133,
-    "ast_hash": "15e56a737ad076b192570a5ca38da7ee",
+    "mtime": 1791380473.0426812,
+    "seen": 1791385706.6331258,
+    "ast_hash": "6fb03de59c552bd1f5914482e8229cc8",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Enrolement/EcheanceDocumentEnrolement.cs": {
@@ -1722,9 +1722,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Enrolement/PiecesEnrolement.cs": {
-    "mtime": 1791214454.2641015,
-    "seen": 1791300950.6817179,
-    "ast_hash": "01b9918856cde2f0a2f1d84ea0fa92f9",
+    "mtime": 1791391669.6370964,
+    "seen": 1791391748.7309315,
+    "ast_hash": "79af8e6a499a8c3cf01c976d7ea93351",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Enrolement/SensEnrolement.cs": {
@@ -1824,9 +1824,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Notifications/GabaritNotification.cs": {
-    "mtime": 1791214454.2711027,
-    "seen": 1791300950.6817546,
-    "ast_hash": "a76b642f223235a6d25e3fd22387252d",
+    "mtime": 1791388212.3998702,
+    "seen": 1791388323.1219678,
+    "ast_hash": "c908202b48079413cc3ac9557797c34f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Notifications/ModeleNotification.cs": {
@@ -1902,9 +1902,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Securite/NatureUtilisateur.cs": {
-    "mtime": 1790538485.5379405,
-    "seen": 1791300950.6817832,
-    "ast_hash": "917801110b36609472e971995c9ba328",
+    "mtime": 1791562349.9910855,
+    "seen": 1791620069.729716,
+    "ast_hash": "8f2daa099297ae05476898caeb49f373",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Securite/RegleHabilitation.cs": {
@@ -1938,9 +1938,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/SuiviTemps/ParametreSlaAdministrable.cs": {
-    "mtime": 1789501369.8027527,
-    "seen": 1791300950.6817966,
-    "ast_hash": "ded24a53490ed8cc0e5692e5d34311ab",
+    "mtime": 1791634417.1869853,
+    "seen": 1791635159.4041436,
+    "ast_hash": "ab973aae9ccc1f817f1fc9a449475d80",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Supervision/Alerte.cs": {
@@ -2184,9 +2184,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Tickets/Ticket.Enrolement.cs": {
-    "mtime": 1790287810.3540792,
-    "seen": 1791300950.6818938,
-    "ast_hash": "8061d82543e2cb1c3f88125372e5542d",
+    "mtime": 1791473883.934813,
+    "seen": 1791473996.2553287,
+    "ast_hash": "89adca242ec892609946ff8283e95a6f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Tickets/Ticket.cs": {
@@ -2220,9 +2220,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/DependencyInjection.cs": {
-    "mtime": 1791303863.5955608,
-    "seen": 1791309486.3330867,
-    "ast_hash": "fed3ed987d921f42630e5c15896472e3",
+    "mtime": 1791643818.4143958,
+    "seen": 1791644212.1847959,
+    "ast_hash": "26ffa4ffb113fa5fb8be4f1460d4d92f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Documents/GenerateurDocumentProformaPdf.cs": {
@@ -2364,9 +2364,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Notifications/LienPortailConfigure.cs": {
-    "mtime": 1788594925.1448064,
-    "seen": 1791300950.6819608,
-    "ast_hash": "388fdca5605f63f1a5abdc240a64e366",
+    "mtime": 1791388212.4038713,
+    "seen": 1791388323.143832,
+    "ast_hash": "e564e93d1df2d2bf7a78f823b5715891",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/AidePersistance.cs": {
@@ -2418,9 +2418,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/ContenuAideSecondaire.cs": {
-    "mtime": 1791214454.3171136,
-    "seen": 1791300950.681981,
-    "ast_hash": "a0242eaed03f19d43bbe94dea376be9c",
+    "mtime": 1791656631.6212459,
+    "seen": 1791700053.939919,
+    "ast_hash": "fd20050205533cff83e159c0270225c3",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/DevelopmentSeeder.cs": {
@@ -3252,9 +3252,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/PlateformeDbContextModelSnapshot.cs": {
-    "mtime": 1791301155.4660132,
-    "seen": 1791303816.7757068,
-    "ast_hash": "06c22f71ed32fa1965cd1f4a23845d82",
+    "mtime": 1791634827.139819,
+    "seen": 1791635159.4453492,
+    "ast_hash": "e413de67e1082bda59ed344b73cb887b",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/MotifsTransfertRepository.cs": {
@@ -3276,15 +3276,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/ParametresSlaProvider.cs": {
-    "mtime": 1790763386.7210927,
-    "seen": 1791300950.682327,
-    "ast_hash": "68eafd421d6ee7d93eda8fb3b74ba0b0",
+    "mtime": 1791634565.5536704,
+    "seen": 1791635159.4459474,
+    "ast_hash": "2281679406e89982b0c21054a43fb9a4",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/PlateformeDbContext.cs": {
-    "mtime": 1791214469.6100557,
-    "seen": 1791300950.6823294,
-    "ast_hash": "a5e6d8c54a9e5f135a3716c678bf0c26",
+    "mtime": 1791634607.5086944,
+    "seen": 1791635159.4459496,
+    "ast_hash": "c8e5e80cfc77adccdec84d6e6bf503bc",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/PolitiqueAmorcageDemo.cs": {
@@ -3318,9 +3318,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs": {
-    "mtime": 1791214454.3509424,
-    "seen": 1791300950.6823432,
-    "ast_hash": "b39e31553626e28a1cedc2cb0a250f09",
+    "mtime": 1791975387.7385738,
+    "seen": 1791975557.822868,
+    "ast_hash": "471b72225e71a8b1fc4938e55a066a95",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementParametrageMetier.cs": {
@@ -3378,9 +3378,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs": {
-    "mtime": 1791214454.3628016,
-    "seen": 1791300950.6823661,
-    "ast_hash": "17798cefdc08e98ef54183fe649856dd",
+    "mtime": 1791562349.9941537,
+    "seen": 1791620069.787639,
+    "ast_hash": "3026f8f679a38735edacbeca1395b6c9",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/ServiceNumerotation.cs": {
@@ -3474,9 +3474,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/App.razor": {
-    "mtime": 1791214454.3673177,
-    "seen": 1791300950.6824014,
-    "ast_hash": "94eac372ab1083fa8d71f2caf6457f28",
+    "mtime": 1791739043.8825073,
+    "seen": 1791975557.8270054,
+    "ast_hash": "5e906ec4c5e0cfc51ed799eba6cbfcd2",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Layout/AideContextuelle.razor": {
@@ -3492,9 +3492,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Layout/HeaderBar.razor": {
-    "mtime": 1791214454.3698328,
-    "seen": 1791300950.6824079,
-    "ast_hash": "4f4c7d9fec032c3e933d94bd1daa2f3c",
+    "mtime": 1791653789.6803775,
+    "seen": 1791700053.9771125,
+    "ast_hash": "f874315236267a379806f53add8e8883",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Layout/LanguageSwitcher.razor": {
@@ -3504,15 +3504,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Layout/MainLayout.razor": {
-    "mtime": 1790865807.4727051,
-    "seen": 1791300950.6824121,
-    "ast_hash": "988ed0350b59cfc43bffff9eb103b3ba",
+    "mtime": 1791640589.1570387,
+    "seen": 1791640906.5530226,
+    "ast_hash": "3f760a639544df2c688e3e9fb9e0fefb",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Layout/NavMenu.razor": {
-    "mtime": 1791214454.3738308,
-    "seen": 1791300950.6824143,
-    "ast_hash": "6e7651b09254d6b2b0104c7f01bda995",
+    "mtime": 1791640660.2671494,
+    "seen": 1791640906.553027,
+    "ast_hash": "afa7e6d1dff0e3e41554dae21be38e5f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Layout/PersonaSwitcher.razor": {
@@ -3570,9 +3570,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor": {
-    "mtime": 1791214454.391374,
-    "seen": 1791300950.6824367,
-    "ast_hash": "3dc0167fa116965ab9277f18064c9dca",
+    "mtime": 1791348339.911932,
+    "seen": 1791385706.6857839,
+    "ast_hash": "bebccd9359be290438c8cd9f097e764f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesUtilisateurs.razor": {
@@ -3582,9 +3582,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/Disponibilite.razor": {
-    "mtime": 1791214454.3953714,
-    "seen": 1791300950.682441,
-    "ast_hash": "26625b9a53651ac59b518d5fff26daae",
+    "mtime": 1791451353.6254244,
+    "seen": 1791473996.2992058,
+    "ast_hash": "fb199c7423726ba161887e6e787c98a4",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/DisponibilitePlateforme.razor": {
@@ -3636,9 +3636,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/PerformanceAgents.razor": {
-    "mtime": 1791298075.253704,
-    "seen": 1791300950.682462,
-    "ast_hash": "1aef9e7e516dcd3700466e160af5c08c",
+    "mtime": 1791445115.826096,
+    "seen": 1791473996.3005664,
+    "ast_hash": "ffc4eb083e5ab2dc9cdd1fc9a89452d5",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/PerimetresSupervision.razor": {
@@ -3696,9 +3696,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Agent/DashboardAgent.razor": {
-    "mtime": 1791214454.4498255,
-    "seen": 1791300950.68249,
-    "ast_hash": "2bcfcb0ae17c3515be5fa9b29ff7955d",
+    "mtime": 1791652977.918716,
+    "seen": 1791700053.9839575,
+    "ast_hash": "885c13c278a68d1618e2d61a2b643dcb",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Aide/CentreAide.razor": {
@@ -3732,9 +3732,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/AvoirExoneration/NouvelleDemandeAvoirExo.razor": {
-    "mtime": 1791214454.4602795,
-    "seen": 1791300950.6825051,
-    "ast_hash": "266e9fbdd495bc2137f7920116b0a302",
+    "mtime": 1791740561.202821,
+    "seen": 1791975557.8345406,
+    "ast_hash": "bfa678ee4c3805b8d6becc9bbe67b29f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/BillingExport/FileBackOfficeExport.razor": {
@@ -3774,9 +3774,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/BillingExport/SoumettreDemandeExport.razor": {
-    "mtime": 1791303863.6005616,
-    "seen": 1791309486.3916647,
-    "ast_hash": "9596f4de51527bbb6a8d97965c2173d7",
+    "mtime": 1791654002.882394,
+    "seen": 1791700053.9867518,
+    "ast_hash": "b7ba320fa6a0598ad3f9fee87ea82be6",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/BillingImport/ConsulterTicketCloture.razor": {
@@ -3816,9 +3816,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/BillingImport/SoumettreDemande.razor": {
-    "mtime": 1791303863.6025617,
-    "seen": 1791309486.3932095,
-    "ast_hash": "fab44e3a0d1da423a70746daa38d6788",
+    "mtime": 1791655125.4813523,
+    "seen": 1791700053.9877985,
+    "ast_hash": "5b026caf42d80bbdc1d8253681bd4bbf",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/BillingImport/ValidationPaiement.razor": {
@@ -3918,9 +3918,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Comptes/VerifierCode.razor": {
-    "mtime": 1790954229.4505377,
-    "seen": 1791300950.6825867,
-    "ast_hash": "e747bf6276a27a173e50f160049b9ef1",
+    "mtime": 1791700561.9277415,
+    "seen": 1791975557.8397212,
+    "ast_hash": "40b63c213349c9a60eed43a42122d86c",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/CustomerComplaint/AdministrationCategories.razor": {
@@ -3960,15 +3960,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Enrolement/EnrolementSociete.razor": {
-    "mtime": 1791214454.5609214,
-    "seen": 1791300950.6826046,
-    "ast_hash": "860d514a0e52b501e8d789f1d0a25051",
+    "mtime": 1791391669.6400688,
+    "seen": 1791391748.7990074,
+    "ast_hash": "76c246857289997ca2348d460fd6a1b0",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Enrolement/FicheEnrolement.razor": {
-    "mtime": 1791214454.5629218,
-    "seen": 1791300950.682607,
-    "ast_hash": "54771de39d8300bd3d2c29be8d1745b6",
+    "mtime": 1791740553.7371209,
+    "seen": 1791975557.8411334,
+    "ast_hash": "5f91ef1089c96f55363e011593efd50f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Enrolement/FileAgentGate.razor": {
@@ -3984,9 +3984,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Enrolement/NouvelEnrolement.razor": {
-    "mtime": 1791214454.5719223,
-    "seen": 1791300950.682614,
-    "ast_hash": "2479289ad8c4ccd91a1a84c0f2559611",
+    "mtime": 1791739060.1591463,
+    "seen": 1791975557.8414617,
+    "ast_hash": "67e53613cbf9ffc8a36edc94a4a6589b",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Enrolement/RetraitEnrolementSociete.razor": {
@@ -4038,9 +4038,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Notifications/AdministrationNotifications.razor": {
-    "mtime": 1791221110.596768,
-    "seen": 1791300950.6826355,
-    "ast_hash": "f20abff2c16532afa160cf81f31ff35a",
+    "mtime": 1791968422.1746297,
+    "seen": 1791975557.8428562,
+    "ast_hash": "7ee9e53edab500f83a10ab5fd665f7f0",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Notifications/CentreNotifications.razor": {
@@ -4056,9 +4056,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Societe/Collaborateurs.razor": {
-    "mtime": 1791214454.596944,
-    "seen": 1791300950.6826432,
-    "ast_hash": "20cbc89876042612c21d29bb8e004f3e",
+    "mtime": 1791473883.962828,
+    "seen": 1791473996.3134937,
+    "ast_hash": "30f2a59e7fe9b41332a344353f0b8837",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Societe/DashboardSociete.razor": {
@@ -4128,15 +4128,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Tickets/Documents.razor": {
-    "mtime": 1791214454.625325,
-    "seen": 1791300950.6826866,
-    "ast_hash": "f5b43f08d7f1e2fa7f628606c43d37b1",
+    "mtime": 1791740551.1906004,
+    "seen": 1791975557.8452518,
+    "ast_hash": "54c3f0b36e335c8ca0ae69012bab890c",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Tickets/FicheTicket.razor": {
-    "mtime": 1791225551.4736414,
-    "seen": 1791300950.682689,
-    "ast_hash": "f989b49fe86671ec1133aa9bcd791131",
+    "mtime": 1791956887.424079,
+    "seen": 1791975557.845254,
+    "ast_hash": "c0cf4c4b08d85f58367de8a415733c3c",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Tickets/IndicateursTemps.razor": {
@@ -4152,9 +4152,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/ActionsAgentTicket.razor": {
-    "mtime": 1791214454.6326213,
-    "seen": 1791300950.682696,
-    "ast_hash": "48d7a2945f2138b2814c599d4bdbdc84",
+    "mtime": 1791643901.6001236,
+    "seen": 1791644212.2489452,
+    "ast_hash": "f4079d7f65b3dc69a411bcd8fff7f950",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/ActionsClientBilling.razor": {
@@ -4284,9 +4284,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/ModaleConfirmation.razor": {
-    "mtime": 1789501369.9387376,
-    "seen": 1791300950.682748,
-    "ast_hash": "3716364174079985e97089816cd22b3d",
+    "mtime": 1791670736.0571094,
+    "seen": 1791700054.002906,
+    "ast_hash": "2eb8b0623ec9ec64e66813c613057ce8",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/Pagination.razor": {
@@ -4302,9 +4302,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/PiecesJointesFormulaire.razor": {
-    "mtime": 1791214454.6594472,
-    "seen": 1791300950.682755,
-    "ast_hash": "6903903fd26c8318bb847fc2d598a492",
+    "mtime": 1791740558.4142768,
+    "seen": 1791975557.84955,
+    "ast_hash": "2b422e5aeb7b878054fcbea29c642e38",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/PreuvePaiementTicket.razor": {
@@ -4344,9 +4344,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/ZoneActionsRequises.razor": {
-    "mtime": 1789501369.9429243,
-    "seen": 1791300950.6827714,
-    "ast_hash": "7672a56c95cc5a925d7908265a9effec",
+    "mtime": 1791652956.4810069,
+    "seen": 1791700054.0043843,
+    "ast_hash": "116ce9565a123a9c5881663172208f26",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/_Imports.razor": {
@@ -4380,14 +4380,14 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Program.cs": {
-    "mtime": 1791260241.6748443,
-    "seen": 1791300950.6827855,
-    "ast_hash": "9862336b5d0ddcf94bb3aeafc078bdc3",
+    "mtime": 1791634646.030665,
+    "seen": 1791635159.4804459,
+    "ast_hash": "f4e5ddde26e1e515f2495b59eadc51c5",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Properties/launchSettings.json": {
-    "mtime": 1789501369.9456027,
-    "seen": 1791300950.682788,
+    "mtime": 1791641284.2258897,
+    "seen": 1791643184.4347057,
     "ast_hash": "d5131bbc555feb2d69c67e98b110fc18",
     "semantic_hash": ""
   },
@@ -4410,15 +4410,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs": {
-    "mtime": 1791303863.6145985,
-    "seen": 1791309486.415716,
-    "ast_hash": "cebfc35fb63501d8a27906b6e1f8d036",
+    "mtime": 1791740548.266688,
+    "seen": 1791975557.852579,
+    "ast_hash": "6a5091c511444519f85b86086e2e3f7f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/TraductionMessagesMetier.Donnees.cs": {
-    "mtime": 1791303863.6176012,
-    "seen": 1791309486.4157207,
-    "ast_hash": "46a77d22af5e9d7c0edf23cd4d90156f",
+    "mtime": 1791654121.2774487,
+    "seen": 1791700054.0063102,
+    "ast_hash": "6c5d9dd109ec02d6756ecd01b1c297bc",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/TraductionMessagesMetier.cs": {
@@ -4434,9 +4434,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Services/ContexteUtilisateurWebService.cs": {
-    "mtime": 1788211642.929816,
-    "seen": 1791300950.682806,
-    "ast_hash": "90a1e2332b19e45d611a9f1d007e922f",
+    "mtime": 1791620106.4701302,
+    "seen": 1791621817.858946,
+    "ast_hash": "ba363700bfafd9410f3ead6b994bfd62",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Services/DepotFichiers.cs": {
@@ -4524,8 +4524,8 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/appsettings.Development.json": {
-    "mtime": 1790596756.020426,
-    "seen": 1791300950.6828392,
+    "mtime": 1791694545.7947266,
+    "seen": 1791700054.013512,
     "ast_hash": "5a23e910ab1f98ad267a84edb2c4bfb5",
     "semantic_hash": ""
   },
@@ -4560,9 +4560,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/wwwroot/js/focus-management.js": {
-    "mtime": 1791214454.7204595,
-    "seen": 1791300950.6828525,
-    "ast_hash": "5c021496989d3d2fc3ef22d9018eb23f",
+    "mtime": 1791670693.8068562,
+    "seen": 1791700054.0148416,
+    "ast_hash": "5847d76443a0b1bce8524aea53f0b31d",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/wwwroot/js/motion.js": {
@@ -4920,15 +4920,15 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/BillingImport/LibellePaiementCdcHelperTests.cs": {
-    "mtime": 1791308946.2140353,
-    "seen": 1791309486.4388216,
-    "ast_hash": "01d496277646e8ca0355fafa5435430c",
+    "mtime": 1791309513.9120884,
+    "seen": 1791385706.7270646,
+    "ast_hash": "b993399d7e2576cff5d18f6f2decdda6",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/BillingImport/PaiementDeclaratifParametrableTests.cs": {
-    "mtime": 1791308575.63355,
-    "seen": 1791309486.4388275,
-    "ast_hash": "2c5fe79465286ec7d39216225806ed89",
+    "mtime": 1791624145.232829,
+    "seen": 1791635159.496928,
+    "ast_hash": "7d50d1e3b1089add1f50a712ce879d6c",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/BillingImport/ProformaEtReglementTests.cs": {
@@ -5022,9 +5022,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Comptes/ModifierDroitsUtilisateurTests.cs": {
-    "mtime": 1788034544.1566348,
-    "seen": 1791300950.6830235,
-    "ast_hash": "4e0ad5f1696e797f2e77a3e980abe80a",
+    "mtime": 1791473883.9793522,
+    "seen": 1791473996.3420439,
+    "ast_hash": "99a28f3fee44dc7619b4a847922b1b15",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Comptes/ModifierMonProfilCommandTests.cs": {
@@ -5208,9 +5208,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Documents/AccesDocumentAutoriseTests.cs": {
-    "mtime": 1788632230.0917432,
-    "seen": 1791300950.6830926,
-    "ast_hash": "34c31b154ac72dee69238703bd2491b1",
+    "mtime": 1791433488.376407,
+    "seen": 1791434210.8548417,
+    "ast_hash": "acbe29e5930fddfb99e71f59402bdb9d",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Documents/ControleDepotTests.cs": {
@@ -5268,9 +5268,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/ChampsFormulaireEnrolementTests.cs": {
-    "mtime": 1790306173.988705,
-    "seen": 1791300950.6831145,
-    "ast_hash": "4d1ac6aec0ceab07411246e16f2072f3",
+    "mtime": 1791388212.425189,
+    "seen": 1791388323.2625892,
+    "ast_hash": "7149e2aa08d6ed699440a6c912813ac0",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/ConstaterRemiseBadgeCommandTests.cs": {
@@ -5322,9 +5322,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/EnrolementSecuriteTests.cs": {
-    "mtime": 1791214454.7789505,
-    "seen": 1791300950.683135,
-    "ast_hash": "0305ea425602cb0c075be143c125811f",
+    "mtime": 1791473883.9813817,
+    "seen": 1791473996.3518808,
+    "ast_hash": "e6183469768ccf476bc372a2f54050d2",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/FileAgentGateTests.cs": {
@@ -5346,9 +5346,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/ObtenirFicheEnrolementQueryTests.cs": {
-    "mtime": 1791214454.7849495,
-    "seen": 1791300950.6831436,
-    "ast_hash": "acf4da8334dde2fdcdf649ffac6ab755",
+    "mtime": 1791388212.4370794,
+    "seen": 1791388323.265974,
+    "ast_hash": "71d4b7b0a0cae6062458ac52f5308812",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/PublierMessageEnrolementTests.cs": {
@@ -5364,9 +5364,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/SoumettreEnrolementSocieteCommandTests.cs": {
-    "mtime": 1791214454.7894692,
-    "seen": 1791300950.6831498,
-    "ast_hash": "3622d4855eedce5cf42b4b23962cbf25",
+    "mtime": 1791473883.9823825,
+    "seen": 1791473996.353119,
+    "ast_hash": "ace7fa7d5e766ec62072a9bc58d2b770",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Enrolement/SoumettreRetraitEnrolementSocieteCommandTests.cs": {
@@ -5382,9 +5382,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Exploitation/ExploitationTests.cs": {
-    "mtime": 1791214454.7944708,
-    "seen": 1791300950.6831565,
-    "ast_hash": "bf132c2fb3140fafc5350306a7570a2a",
+    "mtime": 1791624145.2811363,
+    "seen": 1791635159.5110393,
+    "ast_hash": "cc804087efee1570d96093710c8b487b",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Exports/FormatCsvTests.cs": {
@@ -5418,9 +5418,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Guichet/GestionRendezVousTests.cs": {
-    "mtime": 1791214469.6284597,
-    "seen": 1791300950.6831694,
-    "ast_hash": "838a8f6eac03acd4d817216221551a11",
+    "mtime": 1791954228.9424002,
+    "seen": 1791975557.8809562,
+    "ast_hash": "46e3384f21960f04c6caa312a876fa2a",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Guichet/ModeDegradeTests.cs": {
@@ -5478,9 +5478,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Notifications/DistribuerNotificationsUseCaseTests.cs": {
-    "mtime": 1790332324.4395046,
-    "seen": 1791300950.6831908,
-    "ast_hash": "ab48fc4c1980ccd0e3d0e22ac8a9d084",
+    "mtime": 1791388212.4400804,
+    "seen": 1791388323.2713864,
+    "ast_hash": "a1060159b6dd2441c14747b9e3112eac",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Notifications/GardeIdentiteSurfacesPersonnellesTests.cs": {
@@ -5490,15 +5490,15 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Notifications/Imp11EtProducteursTests.cs": {
-    "mtime": 1791303863.624604,
-    "seen": 1791309486.464488,
-    "ast_hash": "3e6cabda43edb702571dababdb651600",
+    "mtime": 1791702370.2286294,
+    "seen": 1791975557.8827899,
+    "ast_hash": "8846d0676899e357cff08dc9693f75c0",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Notifications/RaccordementMentionTests.cs": {
-    "mtime": 1791214454.8076193,
-    "seen": 1791300950.6831975,
-    "ast_hash": "29dcfb23fec58c2a509938dd01badd9a",
+    "mtime": 1791473884.0204976,
+    "seen": 1791473996.3572426,
+    "ast_hash": "2e04e9fb2320cc11f1639bb46425e3e1",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Notifications/ReessayerEnvoisNotificationUseCaseTests.cs": {
@@ -5586,9 +5586,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Securite/SecCert06LienNotificationTests.cs": {
-    "mtime": 1788632230.1245298,
-    "seen": 1791300950.6832325,
-    "ast_hash": "3eeb803161b02eaed304f737809b548a",
+    "mtime": 1791433488.3779185,
+    "seen": 1791434210.8729692,
+    "ast_hash": "08b84d381d2dd4e1c29475f294a5c4f3",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Societe/ObtenirDashboardSocieteQueryTests.cs": {
@@ -5652,9 +5652,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Supervision/VueChargeTests.cs": {
-    "mtime": 1791214454.810619,
-    "seen": 1791300950.683269,
-    "ast_hash": "3eb9a045a7c0510ec9150d3bbf137a76",
+    "mtime": 1791371358.9144473,
+    "seen": 1791385706.7611268,
+    "ast_hash": "95afcaeef6b3a48e8a5f2e49c45545bc",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/SupportTechnique/IncidentTraitementCommandTests.cs": {
@@ -5700,9 +5700,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Support/LienPortailDeTest.cs": {
-    "mtime": 1788594968.0786726,
-    "seen": 1791300950.6832876,
-    "ast_hash": "f0d3f38ee7834007532f1e502979c4c4",
+    "mtime": 1791388212.4791431,
+    "seen": 1791388323.2799468,
+    "ast_hash": "877cfc441c4a14cd584a95e582e4df32",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/Support/NumerotationEnMemoirePourTests.cs": {
@@ -6018,9 +6018,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Domain.Tests/Enrolement/PiecesEnrolementTests.cs": {
-    "mtime": 1791214454.849169,
-    "seen": 1791300950.6834078,
-    "ast_hash": "242692f455b387cab0a317e329696d72",
+    "mtime": 1791391669.6470788,
+    "seen": 1791391748.8638568,
+    "ast_hash": "1cef5e3319713160ac23aee7b8d347fd",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Domain.Tests/Exploitation/ChronologieDisponibiliteTests.cs": {
@@ -6402,9 +6402,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Infrastructure.Tests/Securite/SeedRecetteUatTests.cs": {
-    "mtime": 1791214454.8684058,
-    "seen": 1791300950.6835558,
-    "ast_hash": "2434e34f04ff49751a1b56f580d1dbd0",
+    "mtime": 1791562350.023215,
+    "seen": 1791620069.892821,
+    "ast_hash": "04d15ae6632154483e99d29b7de555f6",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Infrastructure.Tests/Securite/SeedSecuriteAmorcageTests.cs": {
@@ -6654,9 +6654,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Components/Layout/MainLayoutIntegrationTests.cs": {
-    "mtime": 1790951706.0843902,
-    "seen": 1791300950.6836524,
-    "ast_hash": "8ad1f044a0548b40617655363351c194",
+    "mtime": 1791620106.4797199,
+    "seen": 1791621817.929668,
+    "ast_hash": "bd7172d85b9687fbf3ef5047ba591048",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Components/Layout/NavMenuEnrolementTests.cs": {
@@ -6804,9 +6804,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/E2E/RecSce08EnrolementTransporteurE2ETests.cs": {
-    "mtime": 1791214454.896947,
-    "seen": 1791300950.683708,
-    "ast_hash": "d12a947e7f90f4845db35c770e4edf19",
+    "mtime": 1791388212.4821439,
+    "seen": 1791388323.3220916,
+    "ast_hash": "34af534b6ea0f9213008b22ec07ad3b2",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/E2E/RecSce14ContinuiteGuichetRendezVousE2ETests.cs": {
@@ -6942,9 +6942,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Pages/Administration/DisponibiliteTests.cs": {
-    "mtime": 1789583105.0741649,
-    "seen": 1791300950.683758,
-    "ast_hash": "dae103eab84e4d66ff4c01c220947a3f",
+    "mtime": 1791371358.917948,
+    "seen": 1791385706.8310485,
+    "ast_hash": "b1b639640151b008cc9e10885dcb3730",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Pages/Administration/EtapesBloquantesAnnulationTests.cs": {
@@ -7026,9 +7026,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Pages/Agent/DashboardAgentTests.cs": {
-    "mtime": 1789558704.659494,
-    "seen": 1791300950.6837904,
-    "ast_hash": "48ed8f126a4be490ba070a4f6e030301",
+    "mtime": 1791653731.407917,
+    "seen": 1791700054.1009188,
+    "ast_hash": "96a459a22cb3a13b36d3371d82261514",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Pages/AuthRedirectionTests.cs": {
@@ -7110,9 +7110,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Pages/Enrolement/FicheEnrolementTests.cs": {
-    "mtime": 1791009150.4396152,
-    "seen": 1791300950.6838207,
-    "ast_hash": "6c915f0b2c69e02ab881b25d1487a60e",
+    "mtime": 1791388212.484143,
+    "seen": 1791388323.332734,
+    "ast_hash": "5f3ad0a732e69329040f98ef12c73b3f",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Pages/Enrolement/FileAgentGateTests.cs": {
@@ -9918,21 +9918,21 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/BillingExport/ReglementDeclaratifExportCommand.cs": {
-    "mtime": 1791308534.0515594,
-    "seen": 1791309486.2572768,
+    "mtime": 1791309513.8919735,
+    "seen": 1791385706.5984542,
     "ast_hash": "bdbc68a6f77c523f5c7d62d9d1410b8a",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Shared/DocumentsCommunsFormulaire.razor": {
-    "mtime": 1791303863.6065705,
-    "seen": 1791309486.4090302,
-    "ast_hash": "a28c753fdf51d30f2df46a02787cf83d",
+    "mtime": 1791740556.3357942,
+    "seen": 1791975557.8482533,
+    "ast_hash": "abe6f054f35e290a835b8ba68f3d12fd",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Application.Tests/BillingExport/PaiementDeclaratifExportParametrableTests.cs": {
-    "mtime": 1791308598.8530023,
-    "seen": 1791309486.4343712,
-    "ast_hash": "dc704b3ef6b1777c6d7a1f144840d576",
+    "mtime": 1791624145.232829,
+    "seen": 1791635159.4941957,
+    "ast_hash": "9d9f5979e8f1171360447f3f44c9dfa4",
     "semantic_hash": ""
   },
   "deploy/publication-6f106dd.md": {
@@ -9942,9 +9942,363 @@
     "semantic_hash": ""
   },
   "docs/119-comparaison-parcours-06-10.md": {
-    "mtime": 1791309344.4220958,
-    "seen": 1791309486.5584118,
+    "mtime": 1791309512.0654082,
+    "seen": 1791385706.872131,
     "ast_hash": "4a315c0ab93011cd06742c3fe127323e",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Enrolement/CorrigerExpirationBadgeCommand.cs": {
+    "mtime": 1791388212.3874319,
+    "seen": 1791388323.0810463,
+    "ast_hash": "99ef03479e2c0fb19f447e8918e69edd",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs": {
+    "mtime": 1791451353.6194282,
+    "seen": 1791473996.2237835,
+    "ast_hash": "a68540ddf49a42040517c3b91090103b",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurValideursCompte.cs": {
+    "mtime": 1791352129.414389,
+    "seen": 1791385706.6154664,
+    "ast_hash": "fe7e5453e7eb69fa36c7630ab611ead5",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261007123836_TypeChampEnrolement.Designer.cs": {
+    "mtime": 1791380473.0481272,
+    "seen": 1791385706.6778548,
+    "ast_hash": "10073ac2ae7d220214ef75c2f4b1afe9",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261007123836_TypeChampEnrolement.cs": {
+    "mtime": 1791380473.049258,
+    "seen": 1791385706.6778579,
+    "ast_hash": "1e13f960de6f17c13bf237e9219744ed",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementChampsEnrolement.cs": {
+    "mtime": 1791381050.6981497,
+    "seen": 1791385706.6788251,
+    "ast_hash": "17f40a1047154810c564b98a5ad85b26",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Agent/DashboardAgentCloisonnementRoleTests.cs": {
+    "mtime": 1791349493.8955574,
+    "seen": 1791385706.718616,
+    "ast_hash": "7864847721855ba3c7651d6bdac5f9fe",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Comptes/ProfilsMetierTests.cs": {
+    "mtime": 1791348339.9228718,
+    "seen": 1791385706.7331834,
+    "ast_hash": "83277eb725e8f9cdfe1cb977444f26c4",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Enrolement/CorrigerExpirationBadgeCommandTests.cs": {
+    "mtime": 1791388212.4265566,
+    "seen": 1791388323.2631395,
+    "ast_hash": "96e396c851598366f242e4ec9cca08bc",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Notifications/ResolveursAlertesAgentsTests.cs": {
+    "mtime": 1791352129.4289498,
+    "seen": 1791385706.7542036,
+    "ast_hash": "37b729e6b7e7ad02ba205f457a3ae11d",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Domain.Tests/Enrolement/ChampFormulaireEnrolementTests.cs": {
+    "mtime": 1791380473.0647452,
+    "seen": 1791385706.7799773,
+    "ast_hash": "ba59351ff0dc4c354a9cd80e204fd726",
+    "semantic_hash": ""
+  },
+  "deploy/publication-5fa9838.md": {
+    "mtime": 1791382216.7321439,
+    "seen": 1791385706.862762,
+    "ast_hash": "fc00847502e722ee288823d3ba20bd43",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/wwwroot/favicon.svg": {
+    "mtime": 1791363780.0741794,
+    "seen": 1791385706.9571767,
+    "ast_hash": "843bf25f3ea2afacb863ec4cbafba79c",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Enrolement/ListerEnrolementsAValiderQuery.cs": {
+    "mtime": 1791473883.9148128,
+    "seen": 1791473996.2199702,
+    "ast_hash": "27e4b925be91a9ed7f0b453ff3172760",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Enrolement/ValidationInterneEnrolementCommand.cs": {
+    "mtime": 1791473883.9208124,
+    "seen": 1791473996.2207327,
+    "ast_hash": "0c3d9f8d038294d39cb01d13a9f44890",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveursValidationInterne.cs": {
+    "mtime": 1791473883.92282,
+    "seen": 1791473996.2246826,
+    "ast_hash": "89546d74b608c06b2b8fc3fb3899debe",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Supervision/AnnuaireAgentsParFileQuery.cs": {
+    "mtime": 1791451353.6217046,
+    "seen": 1791473996.2277248,
+    "ast_hash": "8826d1e8ddae1a6c3882930468da0383",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Supervision/RapportDetailTicketsOperateurQuery.cs": {
+    "mtime": 1791445115.8226385,
+    "seen": 1791473996.228693,
+    "ast_hash": "9efb53a8b601080b449f1e10da809986",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261008100448_AjoutDroitValidationCollaborateur.Designer.cs": {
+    "mtime": 1791473883.9419208,
+    "seen": 1791473996.2900248,
+    "ast_hash": "8564149521d09492d45d8b5b7017e891",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261008100448_AjoutDroitValidationCollaborateur.cs": {
+    "mtime": 1791473883.9428122,
+    "seen": 1791473996.2900283,
+    "ast_hash": "bfbfabc0824cfe6a572059147d2ef14c",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261008141558_AjoutValidationInterneEnrolement.Designer.cs": {
+    "mtime": 1791473883.9448125,
+    "seen": 1791473996.2900305,
+    "ast_hash": "dc9496ffca864a539385001102971475",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261008141558_AjoutValidationInterneEnrolement.cs": {
+    "mtime": 1791473883.9468133,
+    "seen": 1791473996.2900329,
+    "ast_hash": "98755496c89f0ec09ab88c3e073a3821",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Components/Pages/Aide/ManuelUtilisateur.razor": {
+    "mtime": 1791701564.4109135,
+    "seen": 1791975557.8338184,
+    "ast_hash": "4620a8f712d888edf3314ca18f14418c",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Components/Pages/Enrolement/EnrolementsAValider.razor": {
+    "mtime": 1791473883.960827,
+    "seen": 1791473996.3099465,
+    "ast_hash": "611faded22be1e81039cda75023127e1",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Enrolement/ValidationInterneEnrolementCommandTests.cs": {
+    "mtime": 1791473883.983383,
+    "seen": 1791473996.35332,
+    "ast_hash": "9102543477310f0cd3290dddb1c1afae",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Supervision/AnnuaireAgentsParFileQueryTests.cs": {
+    "mtime": 1791451353.6340787,
+    "seen": 1791473996.360972,
+    "ast_hash": "3884cf2fd04da7df7c202a4ba905ace8",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Supervision/RapportDetailTicketsOperateurQueryTests.cs": {
+    "mtime": 1791445115.835238,
+    "seen": 1791473996.3616128,
+    "ast_hash": "1466204f34c9aa33b164a86a3ae94b96",
+    "semantic_hash": ""
+  },
+  "docs/republication-roles-non-cit.md": {
+    "mtime": 1791473883.899897,
+    "seen": 1791473996.4447718,
+    "ast_hash": "2a81caaf0d02a03d3ebbc9dad7044ab2",
+    "semantic_hash": ""
+  },
+  "docs/workflow-support-operationnel-reclamations.md": {
+    "mtime": 1791438251.4640176,
+    "seen": 1791473996.44579,
+    "ast_hash": "c963d5e81ba8aa69953cfe34c2aa0174",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Securite/ImpersonationGuard.cs": {
+    "mtime": 1791620106.438315,
+    "seen": 1791621817.7540228,
+    "ast_hash": "2bd993d24e071576b9646ab82eff3d6f",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Components/Layout/BandeauImpersonation.razor": {
+    "mtime": 1791620106.441434,
+    "seen": 1791621817.8311145,
+    "ast_hash": "f99c8f41fb2882b38ac0727a4620be13",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Components/Pages/Administration/Impersonation.razor": {
+    "mtime": 1791620106.449435,
+    "seen": 1791621817.8340333,
+    "ast_hash": "c7916ddd8e7496bfe89f14e810063de8",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Securite/ImpersonationGuardTests.cs": {
+    "mtime": 1791620106.476662,
+    "seen": 1791621817.8933911,
+    "ast_hash": "d484379691e8b697ea71adfa9807c62e",
+    "semantic_hash": ""
+  },
+  "docs/prototype-workflows.html": {
+    "mtime": 1791624145.2302704,
+    "seen": 1791635159.603758,
+    "ast_hash": "9c0a8f6e12f9a95571f0dae0bf46187e",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Middlewares/ImpersonationExpiryMiddleware.cs": {
+    "mtime": 1791620106.4514349,
+    "seen": 1791621817.8572328,
+    "ast_hash": "d5b61f2ee3af2e9e2914297e99c067d1",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Services/ImpersonationCookie.cs": {
+    "mtime": 1791620106.4731288,
+    "seen": 1791621817.8599267,
+    "ast_hash": "9e89ec734937e524a5fbe53992127088",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Web.Tests/Comptes/ParcoursImpersonationTests.cs": {
+    "mtime": 1791620106.4817216,
+    "seen": 1791621817.9322183,
+    "ast_hash": "6894322e09098173a49c512d23a0ab1f",
+    "semantic_hash": ""
+  },
+  "docs/video-workflow-transporteur-agentgate.html": {
+    "mtime": 1791624145.232829,
+    "seen": 1791635159.6099908,
+    "ast_hash": "a7a828be331f345248303a8bcf08e3f6",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Support/CollectionParametresCourants.cs": {
+    "mtime": 1791624145.2811363,
+    "seen": 1791635159.5210674,
+    "ast_hash": "32641a08b874bbd04bbb2ae1a8d0ea1f",
+    "semantic_hash": ""
+  },
+  "docs/protocole-mesure-a11y-performance.md": {
+    "mtime": 1791624145.2223418,
+    "seen": 1791635159.603755,
+    "ast_hash": "b068b7e1fc92d419f59fcd45ae16ec4f",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Administration/JoursFeriesCommands.cs": {
+    "mtime": 1791634488.9240048,
+    "seen": 1791635159.342837,
+    "ast_hash": "45acd8039af59a2b35b190ce808e5991",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/SuiviTemps/JoursFeriesCourants.cs": {
+    "mtime": 1791634437.332993,
+    "seen": 1791635159.3797586,
+    "ast_hash": "1d7a848f2c255e4c65ff111a454eb249",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Domain/SuiviTemps/JourFerie.cs": {
+    "mtime": 1791634386.3595507,
+    "seen": 1791635159.4039776,
+    "ast_hash": "1d41a32f436fa773b1facbd5ef16558b",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/JourFerieRepository.cs": {
+    "mtime": 1791634585.4820673,
+    "seen": 1791635159.4188147,
+    "ast_hash": "4ce156fe3e6bc5135676d7796585b1d6",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261010122027_AjoutJoursFeriesSla.Designer.cs": {
+    "mtime": 1791634827.1368732,
+    "seen": 1791635159.4453437,
+    "ast_hash": "546dae3b4c1d9801766a21668c62cc22",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261010122027_AjoutJoursFeriesSla.cs": {
+    "mtime": 1791634827.1368732,
+    "seen": 1791635159.4453464,
+    "ast_hash": "84dfc4a19ea093d0af1d9339744a53de",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Components/Pages/Administration/JoursFeries.razor": {
+    "mtime": 1791634758.2914348,
+    "seen": 1791635159.456018,
+    "ast_hash": "b87f24d956b5b87793d835475861b20a",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Domain.Tests/SuiviTemps/JourFerieCalendrierSlaTests.cs": {
+    "mtime": 1791634975.1019015,
+    "seen": 1791635159.5327475,
+    "ast_hash": "74401b02a649d8fe973523be48cb188e",
+    "semantic_hash": ""
+  },
+  "docs/120-atelier-valeurs-metier-J2-J3.md": {
+    "mtime": 1791635042.873336,
+    "seen": 1791635159.5819814,
+    "ast_hash": "7012523e21627dd1a28201f1cfa21bda",
+    "semantic_hash": ""
+  },
+  "docs/121-recette-automatisee-mapping.md": {
+    "mtime": 1791636378.6873074,
+    "seen": 1791640906.6900558,
+    "ast_hash": "d887eb65a5d8ab6b5c1dfd8937c8a852",
+    "semantic_hash": ""
+  },
+  "docs/122-atelier-valeurs-metier-notion.md": {
+    "mtime": 1791637491.8803468,
+    "seen": 1791640906.6900594,
+    "ast_hash": "25ea1216d6d39b85376e4f31f0a5d2b2",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Application/Tickets/RendreTicketALaFileCommand.cs": {
+    "mtime": 1791643804.6799781,
+    "seen": 1791644212.1595485,
+    "ast_hash": "cab66b49e60fdcf74876a2cf1475846a",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Tickets/RendreTicketALaFileTests.cs": {
+    "mtime": 1791644062.4113548,
+    "seen": 1791644212.3071063,
+    "ast_hash": "bdc9634e4c0985ecb843a717d4b0501a",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/Components/Shared/ZoneDepot.razor": {
+    "mtime": 1791740543.0549736,
+    "seen": 1791975557.8506508,
+    "ast_hash": "2aedeac0ab5683c97d17695d5f599c43",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Web/wwwroot/js/zone-depot.js": {
+    "mtime": 1791739826.902931,
+    "seen": 1791975557.8578625,
+    "ast_hash": "3b519398e70e94c495b62cfa658dbfea",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/Notifications/ResolveurClientEnrolementTests.cs": {
+    "mtime": 1791975441.9068747,
+    "seen": 1791975557.8831522,
+    "ast_hash": "846909cdadbf2d3a64b28024353156e3",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Web.Tests/Architecture/LienCodeSecoursTests.cs": {
+    "mtime": 1791701577.5226066,
+    "seen": 1791975557.9139948,
+    "ast_hash": "0b4f7fd212c448fd004ac4d407e2e552",
+    "semantic_hash": ""
+  },
+  "deploy/publication-76b2a30.md": {
+    "mtime": 1791790761.2185278,
+    "seen": 1791975557.9402888,
+    "ast_hash": "bb3828a9a15ed0d890f475b38e76ac7f",
+    "semantic_hash": ""
+  },
+  "deploy/publication-e0a3721.md": {
+    "mtime": 1791703446.8203895,
+    "seen": 1791975557.9402914,
+    "ast_hash": "8dbf17d161535dc0c056a0df183abfb1",
     "semantic_hash": ""
   }
 }

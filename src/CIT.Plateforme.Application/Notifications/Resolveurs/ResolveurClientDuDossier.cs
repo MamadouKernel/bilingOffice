@@ -56,6 +56,8 @@ public sealed class ResolveurClientDuDossier(
         // en cours), puis qu'il est convoqué au Gate pour la remise de son badge.
         "EnrolementValide",
         "ConvocationDeclenchee",
+        // Complément attendu sur un dossier d'avoir : même logique que le complément Billing.
+        "AvoirComplementDemande",
     };
 
     public bool PeutResoudre(string typeEvenement) => TypesClient.Contains(typeEvenement);

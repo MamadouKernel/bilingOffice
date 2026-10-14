@@ -76,6 +76,12 @@ public sealed class ProvisionnementNotifications(
         // OBLIGATOIRE (non débrayable), sur les deux canaux, sinon la convocation resterait ignorée.
         ("ConvocationDeclenchee", CanalNotification.InApp, true, "Vous êtes convoqué au Gate de CIT"),
         ("ConvocationDeclenchee", CanalNotification.Email, true, "Vous êtes convoqué au Gate de CIT"),
+        // Dossier d'avoir : complément attendu (même logique que ComplementDemande côté Billing).
+        ("AvoirComplementDemande", CanalNotification.InApp, false, "Un complément est attendu sur votre dossier"),
+        ("AvoirComplementDemande", CanalNotification.Email, false, "Un complément est attendu sur votre dossier"),
+        // MSG-04 : la mention était notifiée In-App seulement ; l'e-mail « selon paramétrage » est
+        // désormais câblé (le collègue mentionné est prévenu par e-mail en plus du portail).
+        ("CollaborateurMentionne", CanalNotification.Email, false, "Vous avez été mentionné sur un ticket"),
         ("TicketIncidentResolu", CanalNotification.InApp, false, "Votre incident technique a été résolu"),
         ("TicketIncidentResolu", CanalNotification.Email, false, "Votre incident technique a été résolu"),
 
@@ -202,6 +208,7 @@ public sealed class ProvisionnementNotifications(
         "EnrolementValideInterne" => "Votre demande d'enrôlement a été validée en interne et transmise à l'Agent Gate de CIT.\n\nVous serez informé de la suite de son traitement.",
         "EnrolementValide" => "Bonne nouvelle : votre dossier d'enrôlement a été validé par l'Agent Gate de CIT.\n\nIl poursuit désormais son traitement (dossier {numeroTicket}) ; aucune action n'est requise de votre part pour le moment. Vous serez averti dès votre convocation pour la remise du badge.",
         "ConvocationDeclenchee" => "Vous êtes convoqué au Gate de CIT pour la remise de votre badge (dossier {numeroTicket}).\n\nPrésentez-vous au Gate muni de vos pièces justificatives. Le badge vous sera remis après vérification.",
+        "AvoirComplementDemande" => "Un complément d'information est nécessaire pour poursuivre le traitement de votre dossier d'avoir.\n\nLe détail de ce qui est attendu figure sur le ticket {numeroTicket}. Déposez les éléments demandés directement depuis le ticket : le traitement reprendra dès leur réception.",
         "EnrolementRejeteInterne" => "Votre demande d'enrôlement a été rejetée en interne par un validateur de votre société.\n\nConsultez le motif sur le dossier, corrigez si nécessaire, puis soumettez une nouvelle demande.",
         "ProformaEmise" => "Votre proforma est prête à être validée.\n\nConsultez-la sur le ticket {numeroTicket}, puis validez-la pour lancer l'édition de la facture définitive — ou demandez une correction si un élément doit être revu.",
         "ReaffectationDemandee" => "Un agent demande à reprendre le ticket {numeroTicket}, actuellement pris en charge par un collègue.\n\nExaminez la demande depuis la fiche du ticket et procédez à la réaffectation si elle est justifiée.",
@@ -239,6 +246,7 @@ public sealed class ProvisionnementNotifications(
         "EnrolementValideInterne" => "Your enrolment request has been validated internally and sent to the CIT Agent Gate.\n\nYou will be informed of the next steps in its processing.",
         "EnrolementValide" => "Good news: your enrolment file has been validated by the CIT Agent Gate.\n\nIt is now being processed (file {numeroTicket}); no action is required from you for the moment. You will be notified as soon as you are summoned to collect your badge.",
         "ConvocationDeclenchee" => "You are summoned to the CIT Gate to collect your badge (file {numeroTicket}).\n\nPlease come to the Gate with your supporting documents. The badge will be handed over after verification.",
+        "AvoirComplementDemande" => "Additional information is needed to continue processing your credit file.\n\nWhat is expected is detailed on ticket {numeroTicket}. Upload the requested items directly from the ticket: processing will resume as soon as they are received.",
         "EnrolementRejeteInterne" => "Your enrolment request has been rejected internally by a validator in your company.\n\nCheck the reason on the file, correct if needed, then submit a new request.",
         "ProformaEmise" => "Your proforma is ready for approval.\n\nReview it on ticket {numeroTicket}, then approve it to trigger the final invoice — or request a correction if something needs revising.",
         "ReaffectationDemandee" => "An agent asks to take over ticket {numeroTicket}, currently handled by a colleague.\n\nReview the request from the ticket record and reassign it if it is justified.",
