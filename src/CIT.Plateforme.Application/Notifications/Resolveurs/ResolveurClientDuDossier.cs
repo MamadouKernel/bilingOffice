@@ -52,6 +52,10 @@ public sealed class ResolveurClientDuDossier(
         "BadgeRemisEtDossierCloture",
         "RappelExpirationBadge",
         "RappelEcheanceDocument",
+        // Agent Gate (ENR-02) : le transporteur est informé que son dossier est validé (et toujours
+        // en cours), puis qu'il est convoqué au Gate pour la remise de son badge.
+        "EnrolementValide",
+        "ConvocationDeclenchee",
     };
 
     public bool PeutResoudre(string typeEvenement) => TypesClient.Contains(typeEvenement);

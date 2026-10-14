@@ -68,6 +68,14 @@ public sealed class ProvisionnementNotifications(
         ("EnrolementValideInterne", CanalNotification.Email, false, "Votre demande d'enrôlement a été validée"),
         ("EnrolementRejeteInterne", CanalNotification.InApp, false, "Votre demande d'enrôlement a été rejetée"),
         ("EnrolementRejeteInterne", CanalNotification.Email, false, "Votre demande d'enrôlement a été rejetée"),
+        // ENR-02 — Agent Gate : le dossier est validé (jalon), le ticket reste « En cours ». Le
+        // transporteur est informé que son dossier est validé et poursuit son traitement.
+        ("EnrolementValide", CanalNotification.InApp, false, "Votre enrôlement est validé, en cours de traitement"),
+        ("EnrolementValide", CanalNotification.Email, false, "Votre enrôlement est validé, en cours de traitement"),
+        // Convocation au Gate pour la remise du badge : action attendue du transporteur — notification
+        // OBLIGATOIRE (non débrayable), sur les deux canaux, sinon la convocation resterait ignorée.
+        ("ConvocationDeclenchee", CanalNotification.InApp, true, "Vous êtes convoqué au Gate de CIT"),
+        ("ConvocationDeclenchee", CanalNotification.Email, true, "Vous êtes convoqué au Gate de CIT"),
         ("TicketIncidentResolu", CanalNotification.InApp, false, "Votre incident technique a été résolu"),
         ("TicketIncidentResolu", CanalNotification.Email, false, "Votre incident technique a été résolu"),
 
@@ -119,6 +127,8 @@ public sealed class ProvisionnementNotifications(
         ["Une demande d'enrôlement attend votre validation"] = "An enrolment request awaits your validation",
         ["Votre demande d'enrôlement a été validée"] = "Your enrolment request has been validated",
         ["Votre demande d'enrôlement a été rejetée"] = "Your enrolment request has been rejected",
+        ["Votre enrôlement est validé, en cours de traitement"] = "Your enrolment is validated and being processed",
+        ["Vous êtes convoqué au Gate de CIT"] = "You are summoned to the CIT Gate",
         ["Votre incident technique a été résolu"] = "Your technical incident has been resolved",
         ["Votre demande a été validée"] = "Your request has been approved",
         ["Votre demande a été rejetée"] = "Your request has been rejected",
@@ -190,6 +200,8 @@ public sealed class ProvisionnementNotifications(
         "BadgeRemisEtDossierCloture" => "Vos cartes / BAT sont prêts et votre dossier d'enrôlement est désormais clôturé.\n\nLe récapitulatif complet figure sur le ticket {numeroTicket}. Conservez ce numéro : les dates d'expiration vous seront rappelées automatiquement avant l'échéance.",
         "EnrolementAValiderInterne" => "Une demande d'enrôlement préparée par un collègue de votre société attend votre validation.\n\nOuvrez « Enrôlements à valider » pour l'examiner, puis approuvez-la (elle sera transmise à CIT) ou rejetez-la en précisant le motif.",
         "EnrolementValideInterne" => "Votre demande d'enrôlement a été validée en interne et transmise à l'Agent Gate de CIT.\n\nVous serez informé de la suite de son traitement.",
+        "EnrolementValide" => "Bonne nouvelle : votre dossier d'enrôlement a été validé par l'Agent Gate de CIT.\n\nIl poursuit désormais son traitement (dossier {numeroTicket}) ; aucune action n'est requise de votre part pour le moment. Vous serez averti dès votre convocation pour la remise du badge.",
+        "ConvocationDeclenchee" => "Vous êtes convoqué au Gate de CIT pour la remise de votre badge (dossier {numeroTicket}).\n\nPrésentez-vous au Gate muni de vos pièces justificatives. Le badge vous sera remis après vérification.",
         "EnrolementRejeteInterne" => "Votre demande d'enrôlement a été rejetée en interne par un validateur de votre société.\n\nConsultez le motif sur le dossier, corrigez si nécessaire, puis soumettez une nouvelle demande.",
         "ProformaEmise" => "Votre proforma est prête à être validée.\n\nConsultez-la sur le ticket {numeroTicket}, puis validez-la pour lancer l'édition de la facture définitive — ou demandez une correction si un élément doit être revu.",
         "ReaffectationDemandee" => "Un agent demande à reprendre le ticket {numeroTicket}, actuellement pris en charge par un collègue.\n\nExaminez la demande depuis la fiche du ticket et procédez à la réaffectation si elle est justifiée.",
@@ -225,6 +237,8 @@ public sealed class ProvisionnementNotifications(
         "BadgeRemisEtDossierCloture" => "Your cards / BAT are ready and your enrolment file is now closed.\n\nThe full summary is on ticket {numeroTicket}. Keep this number: expiry dates will be reminded to you automatically before they fall due.",
         "EnrolementAValiderInterne" => "An enrolment request prepared by a colleague in your company awaits your validation.\n\nOpen \"Enrolments to validate\" to review it, then approve it (it will be sent to CIT) or reject it with a reason.",
         "EnrolementValideInterne" => "Your enrolment request has been validated internally and sent to the CIT Agent Gate.\n\nYou will be informed of the next steps in its processing.",
+        "EnrolementValide" => "Good news: your enrolment file has been validated by the CIT Agent Gate.\n\nIt is now being processed (file {numeroTicket}); no action is required from you for the moment. You will be notified as soon as you are summoned to collect your badge.",
+        "ConvocationDeclenchee" => "You are summoned to the CIT Gate to collect your badge (file {numeroTicket}).\n\nPlease come to the Gate with your supporting documents. The badge will be handed over after verification.",
         "EnrolementRejeteInterne" => "Your enrolment request has been rejected internally by a validator in your company.\n\nCheck the reason on the file, correct if needed, then submit a new request.",
         "ProformaEmise" => "Your proforma is ready for approval.\n\nReview it on ticket {numeroTicket}, then approve it to trigger the final invoice — or request a correction if something needs revising.",
         "ReaffectationDemandee" => "An agent asks to take over ticket {numeroTicket}, currently handled by a colleague.\n\nReview the request from the ticket record and reassign it if it is justified.",
