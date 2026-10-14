@@ -290,6 +290,18 @@ else if (_fiche is not null)
                 <div class="small">@m.Contenu</div>
             </div>
         }
+
+        @* Échange libre Agent Gate ↔ client sur le dossier d'enrôlement (tant qu'il n'est ni
+           clôturé ni annulé). L'autorisation réelle est portée par les commandes serveur. *@
+        @if (f.PeutAjouterMessage)
+        {
+            <div class="border-top pt-3 mt-2">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="@Loc["Ticket.MessagePlaceholder"]" @bind="_nouveauMessage" @bind:event="oninput" />
+                    <button type="button" class="btn btn-primary" @onclick="EnvoyerMessageAsync" disabled="@string.IsNullOrWhiteSpace(_nouveauMessage)">@Loc["Ticket.Send"]</button>
+                </div>
+            </div>
+        }
     </div>
 
     <div class="cit-card mb-4">
@@ -360,6 +372,28 @@ else if (_fiche is not null)
     private async Task ValiderAsync() => await ExecuterActionAsync(() => ValiderEnrolement.ExecuterAsync(_appelantId, TicketId), Loc["FicheEnrol.MsgValidated"].Value);
 
     private async Task ConvoquerAsync() => await ExecuterActionAsync(() => DeclencherConvocation.ExecuterAsync(_appelantId, TicketId), Loc["FicheEnrol.MsgConvened"].Value);
+
+    private string _nouveauMessage = string.Empty;
+
+    // Échange libre sur le dossier : l'agent écrit au client (PublierMessageAgentAsync), le client
+    // répond (PublierMessageClientAsync). L'identité transmise est celle de l'utilisateur résolue
+    // côté serveur ; les commandes appliquent le cloisonnement (jamais une valeur de la fiche).
+    private async Task EnvoyerMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveauMessage)) return;
+        await ExecuterActionAsync(async () =>
+        {
+            if (_estClient)
+            {
+                await PublierMessage.PublierMessageClientAsync(_appelantId, TicketId, _nouveauMessage);
+            }
+            else
+            {
+                await PublierMessage.PublierMessageAgentAsync(_appelantId, TicketId, _nouveauMessage);
+            }
+            _nouveauMessage = string.Empty;
+        }, Loc["Ticket.MsgSent"].Value);
+    }
 
     private bool _afficherFormulaireBadge;
     private bool _afficherRecapCloture;
