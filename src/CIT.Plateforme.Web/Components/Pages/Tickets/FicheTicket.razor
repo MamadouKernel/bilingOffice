@@ -93,7 +93,7 @@
                 }
                 @if (_fiche.Statut is not StatutTicket.Cloture and not StatutTicket.Annule)
                 {
-                    @if (_estClient)
+                    @if (_estClient && CIT.Plateforme.Application.Guichet.ReserverRendezVousCommand.ModulesEligiblesRendezVous.Contains(_fiche.Module))
                     {
                         <a href="/rendez-vous/prendre/@_fiche.TicketId" class="btn btn-outline-primary btn-sm" title="@Loc["Ticket.BookApptTitle"]">
                             @Loc["Ticket.BookAppt"]

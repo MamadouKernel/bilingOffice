@@ -160,4 +160,19 @@ public class GestionRendezVousTests
         Assert.Single(journalisation.Evenements);
         Assert.Equal("RendezVousHonore", journalisation.Evenements[0].Type);
     }
+
+    [Theory]
+    [InlineData("BillingImport", true)]
+    [InlineData("BillingExport", true)]
+    [InlineData("AvoirExoneration", true)]
+    [InlineData("Enrolement", false)]
+    [InlineData("CustomerComplaint", false)]
+    [InlineData("SupportTechnique", false)]
+    public void Seuls_Billing_et_AvoirExoneration_donnent_droit_a_un_RDV_guichet(string module, bool eligible)
+    {
+        // Source unique consommée par la garde serveur de ReserverRendezVousCommand ET par
+        // l'affichage du bouton « Prendre RDV Guichet » : un transporteur (tickets d'enrôlement)
+        // n'y a jamais droit.
+        Assert.Equal(eligible, ReserverRendezVousCommand.ModulesEligiblesRendezVous.Contains(module));
+    }
 }

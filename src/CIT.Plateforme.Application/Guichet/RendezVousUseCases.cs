@@ -93,6 +93,15 @@ public sealed class ReserverRendezVousCommand(
     ParametresRendezVous parametres,
     IHorloge horloge)
 {
+    /// <summary>
+    /// Modules dont un dossier peut donner lieu à un rendez-vous au Billing Office : Billing
+    /// Import/Export et Avoir/Exonération. L'enrôlement (présentation au Gate, pas au guichet) et
+    /// les autres modules en sont exclus. Source unique, réutilisée par l'IHM pour n'afficher le
+    /// bouton « Prendre RDV Guichet » que là où le serveur l'accepte.
+    /// </summary>
+    public static readonly IReadOnlySet<string> ModulesEligiblesRendezVous =
+        new HashSet<string>(StringComparer.Ordinal) { "BillingImport", "BillingExport", "AvoirExoneration" };
+
     public async Task<Guid> ExecuterAsync(ReserverRendezVousRequest request, CancellationToken ct = default)
     {
         if (request.DemandeurId == Guid.Empty)
@@ -103,6 +112,13 @@ public sealed class ReserverRendezVousCommand(
 
         if (ticket.Statut is StatutTicket.Cloture or StatutTicket.Annule)
             throw new InvalidOperationException($"Impossible de prendre un rendez-vous sur un ticket au statut {ticket.Statut}.");
+
+        // Le RDV guichet n'a de sens que pour les dossiers reçus au Billing Office. Un transporteur
+        // (tickets d'enrôlement uniquement) n'y a donc jamais droit — garde serveur, indépendante
+        // de l'affichage du bouton.
+        if (!ModulesEligiblesRendezVous.Contains(ticket.Module))
+            throw new InvalidOperationException(
+                $"Le module « {ticket.Module} » ne permet pas de prendre un rendez-vous au Billing Office.");
 
         var dossier = await dossierRepo.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false);
 
