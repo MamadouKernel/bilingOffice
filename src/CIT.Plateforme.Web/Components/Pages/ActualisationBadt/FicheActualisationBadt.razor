@@ -1,0 +1,270 @@
+@page "/actualisation-badt/fiche/{TicketId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.ActualisationBadt
+@using CIT.Plateforme.Domain.ActualisationBadt
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject ObtenirFicheBadtQuery ObtenirFiche
+@inject QualifierLigneBadtCommand Qualifier
+@inject DeciderLigneBadtCommand Decider
+@inject NavigationManager Navigation
+
+<PageTitle>@Loc["BadtFiche.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>🗓️</span> @Loc["BadtFiche.Title"] @(_fiche?.NumeroTicket)</h1>
+        <div class="cit-page-subtitle">@_fiche?.ClientNom</div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="/actualisation-badt/file" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["BadtFiche.BackToFile"]</a>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["BadtFiche.Loading"]" />
+}
+else if (_fiche is null)
+{
+    <div class="alert alert-danger" role="alert">@(_erreur ?? Loc["BadtFiche.NotFound"].Value)</div>
+}
+else
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger" role="alert">@_erreur</div>
+    }
+
+    <div class="cit-card mb-4 p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+            <div>
+                <div class="small text-muted">@Loc["BadtFiche.File"] <span class="font-monospace">@_fiche.NumeroDossier</span></div>
+                <StatutBadge Statut="@_fiche.Statut" />
+            </div>
+        </div>
+        <h6 class="fw-semibold mt-2">@Loc["BadtFiche.ClientStory"]</h6>
+        <p class="mb-0" style="white-space: pre-wrap;">@_fiche.Description</p>
+    </div>
+
+    <h5 class="fw-bold mb-3">@Loc["BadtFiche.LinesTitle"] (@_fiche.Lignes.Count)</h5>
+
+    @foreach (var ligne in _fiche.Lignes)
+    {
+        var e = Edition(ligne.Id);
+        <div class="cit-card mb-3 p-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <span class="font-monospace fw-bold">@ligne.NumeroConteneur</span>
+                    <span class="text-muted small ms-2">@Loc["BadtFiche.Bl"] @ligne.NumeroBl</span>
+                </div>
+                <span class="badge @BadgeDecision(ligne.Decision)">@LibelleDecision(ligne.Decision)</span>
+            </div>
+
+            @if (ligne.Cause is not null)
+            {
+                <div class="small text-muted mt-2">
+                    @Loc["BadtFiche.Cause"] <strong>@LibelleCause(ligne.Cause.Value)</strong> — @ligne.MotifCause
+                </div>
+            }
+
+            @if (ligne.Decision == DecisionLigneBadt.Accordee)
+            {
+                <div class="small text-success mt-1">
+                    @Loc["BadtFiche.Granted", ligne.NombreJoursAccordes ?? 0] — @Loc["BadtFiche.NewValidity"] <strong>@(ligne.NouvelleDateValidite?.ToString("yyyy-MM-dd"))</strong>
+                </div>
+            }
+            else if (ligne.Decision == DecisionLigneBadt.Refusee)
+            {
+                <div class="small text-danger mt-1">@Loc["BadtFiche.Refused"] @ligne.MotifRefus</div>
+            }
+
+            @* QUALIFICATION — Support Client, tant que la ligne n'est ni qualifiée ni décidée. *@
+            @if (_fiche.PeutQualifier && ligne.Decision == DecisionLigneBadt.EnAttente && ligne.Cause is null)
+            {
+                <div class="border-top mt-3 pt-3">
+                    <div class="fw-semibold small mb-2">@Loc["BadtFiche.QualifyTitle"]</div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted mb-1">@Loc["BadtFiche.CauseLabel"]</label>
+                            <select class="form-select form-select-sm" @bind="e.Cause">
+                                <option value="Terminale">@Loc["BadtFiche.CauseTerminal"]</option>
+                                <option value="NonTerminale">@Loc["BadtFiche.CauseNonTerminal"]</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">@Loc["BadtFiche.MotifLabel"]</label>
+                            <input class="form-control form-control-sm" @bind="e.Motif" @bind:event="oninput" maxlength="2000" />
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button type="button" class="btn btn-sm btn-primary w-100" disabled="@(_busy || string.IsNullOrWhiteSpace(e.Motif))"
+                                    @onclick="() => QualifierAsync(ligne.Id, e)">@Loc["BadtFiche.QualifyBtn"]</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* DÉCISION — Décideur, une fois la ligne qualifiée et tant qu'elle n'est pas décidée. *@
+            @if (_fiche.PeutDecider && ligne.Decision == DecisionLigneBadt.EnAttente && ligne.Cause is not null)
+            {
+                <div class="border-top mt-3 pt-3">
+                    <div class="fw-semibold small mb-2">@Loc["BadtFiche.DecideTitle"]</div>
+                    @if (ligne.Cause == CauseExpirationBadt.Terminale)
+                    {
+                        <div class="row g-2 align-items-end mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">@Loc["BadtFiche.DaysLabel"]</label>
+                                <input type="number" min="1" class="form-control form-control-sm" @bind="e.Jours" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">@Loc["BadtFiche.OldDateLabel"]</label>
+                                <input type="date" class="form-control form-control-sm" @bind="e.AncienneDate" />
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button type="button" class="btn btn-sm btn-success" disabled="@(_busy || !(e.Jours > 0))"
+                                        @onclick="() => AccorderAsync(ligne.Id, e)">@Loc["BadtFiche.GrantBtn"]</button>
+                            </div>
+                        </div>
+                    }
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-9">
+                            <label class="form-label small text-muted mb-1">@Loc["BadtFiche.RefuseMotifLabel"]</label>
+                            <input class="form-control form-control-sm" @bind="e.MotifRefus" @bind:event="oninput" maxlength="2000" />
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger w-100" disabled="@(_busy || string.IsNullOrWhiteSpace(e.MotifRefus))"
+                                    @onclick="() => RefuserAsync(ligne.Id, e)">@Loc["BadtFiche.RefuseBtn"]</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid TicketId { get; set; }
+
+    private sealed class EditionLigne
+    {
+        public string Cause { get; set; } = "Terminale";
+        public string Motif { get; set; } = string.Empty;
+        public int? Jours { get; set; }
+        public DateOnly? AncienneDate { get; set; }
+        public string MotifRefus { get; set; } = string.Empty;
+    }
+
+    private bool _chargement = true;
+    private bool _busy;
+    private string? _erreur;
+    private FicheBadtDto? _fiche;
+    private readonly Dictionary<Guid, EditionLigne> _editions = new();
+
+    private EditionLigne Edition(Guid ligneId) =>
+        _editions.TryGetValue(ligneId, out var e) ? e : _editions[ligneId] = new();
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                Navigation.NavigateTo("/comptes/connexion", forceLoad: true);
+                return;
+            }
+
+            _fiche = await ObtenirFiche.ExecuterAsync(contexte.UtilisateurId, TicketId);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private async Task QualifierAsync(Guid ligneId, EditionLigne e)
+    {
+        await ExecuterAsync(async contexte =>
+        {
+            var cause = Enum.Parse<CauseExpirationBadt>(e.Cause);
+            await Qualifier.ExecuterAsync(contexte.UtilisateurId, ligneId, cause, e.Motif.Trim());
+        });
+    }
+
+    private async Task AccorderAsync(Guid ligneId, EditionLigne e)
+    {
+        await ExecuterAsync(async contexte =>
+        {
+            await Decider.ExecuterAsync(contexte.UtilisateurId,
+                new DeciderLigneBadtRequete(ligneId, DecisionLigneBadt.Accordee, e.Jours, e.AncienneDate));
+        });
+    }
+
+    private async Task RefuserAsync(Guid ligneId, EditionLigne e)
+    {
+        await ExecuterAsync(async contexte =>
+        {
+            await Decider.ExecuterAsync(contexte.UtilisateurId,
+                new DeciderLigneBadtRequete(ligneId, DecisionLigneBadt.Refusee, MotifRefus: e.MotifRefus.Trim()));
+        });
+    }
+
+    private async Task ExecuterAsync(Func<CIT.Plateforme.Application.Web.ContexteUtilisateurVue, Task> action)
+    {
+        if (_busy) return;
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _erreur = Loc["Badt.SessionExpired"].Value;
+                return;
+            }
+
+            await action(contexte);
+            _editions.Clear();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private string BadgeDecision(DecisionLigneBadt d) => d switch
+    {
+        DecisionLigneBadt.Accordee => "bg-success",
+        DecisionLigneBadt.Refusee => "bg-danger",
+        _ => "bg-secondary",
+    };
+
+    private string LibelleDecision(DecisionLigneBadt d) => d switch
+    {
+        DecisionLigneBadt.Accordee => Loc["BadtFiche.DecAccordee"].Value,
+        DecisionLigneBadt.Refusee => Loc["BadtFiche.DecRefusee"].Value,
+        _ => Loc["BadtFiche.DecEnAttente"].Value,
+    };
+
+    private string LibelleCause(CauseExpirationBadt c) =>
+        c == CauseExpirationBadt.Terminale ? Loc["BadtFiche.CauseTerminal"].Value : Loc["BadtFiche.CauseNonTerminal"].Value;
+}

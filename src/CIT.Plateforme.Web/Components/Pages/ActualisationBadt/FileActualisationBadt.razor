@@ -1,0 +1,135 @@
+@page "/actualisation-badt/file"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.ActualisationBadt
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject ConsulterFileBadtQuery ConsulterFile
+@inject NavigationManager Navigation
+
+<PageTitle>@Loc["BadtFile.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>🗓️</span> @Loc["BadtFile.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["BadtFile.Subtitle"]</div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["BadtFile.Loading"]" />
+}
+else if (_erreur is not null)
+{
+    <div class="alert alert-danger" role="alert">@_erreur</div>
+}
+else
+{
+    <div class="cit-card mb-4 p-3 shadow-sm">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="statut" class="form-label small fw-semibold text-muted mb-1">@Loc["BadtFile.FilterStatut"]</label>
+                <select id="statut" class="form-select form-select-sm" @bind="_statutFiltre" @bind:after="ChargerAsync">
+                    <option value="">@Loc["BadtFile.AllStatuts"]</option>
+                    <option value="EnAttenteDePriseEnCharge">@Loc["BadtFile.StAttentePEC"]</option>
+                    <option value="EnCours">@Loc["BadtFile.StEnCours"]</option>
+                    <option value="EnAttenteClient">@Loc["BadtFile.StAttenteClient"]</option>
+                    <option value="Cloture">@Loc["BadtFile.StCloture"]</option>
+                </select>
+            </div>
+            <div class="col-md-7 text-md-end">
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="ChargerAsync">@Loc["Common.Refresh"]</button>
+            </div>
+        </div>
+    </div>
+
+    @if (_tickets.Count == 0)
+    {
+        <div class="cit-card p-5 text-center">
+            <div class="display-4 text-muted mb-3">✅</div>
+            <h5 class="fw-bold text-dark mb-1">@Loc["BadtFile.EmptyTitle"]</h5>
+            <p class="text-muted small mb-0">@Loc["BadtFile.EmptyDesc"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">@Loc["BadtFile.ColNumero"]</th>
+                            <th>@Loc["BadtFile.ColClient"]</th>
+                            <th>@Loc["BadtFile.ColObjet"]</th>
+                            <th>@Loc["BadtFile.ColStatut"]</th>
+                            <th>@Loc["BadtFile.ColDateArrivee"]</th>
+                            <th class="text-end pe-3">@Loc["BadtFile.ColActions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in _tickets)
+                        {
+                            <tr>
+                                <td class="ps-3 font-monospace fw-bold text-primary">@t.NumeroTicket</td>
+                                <td class="fw-semibold">@t.ClientNom</td>
+                                <td class="text-truncate" style="max-width: 260px;" title="@t.Objet">@t.Objet</td>
+                                <td><StatutBadge Statut="@t.Statut" /></td>
+                                <td class="small text-muted">@t.DateCreationUtc.Horodate()</td>
+                                <td class="text-end pe-3">
+                                    <a href="/actualisation-badt/fiche/@t.TicketId" class="btn btn-sm btn-outline-primary">@Loc["BadtFile.BtnOuvrir"]</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargement = true;
+    private string? _erreur;
+    private string? _statutFiltre;
+    private IReadOnlyList<TicketFileBadtDto> _tickets = Array.Empty<TicketFileBadtDto>();
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                Navigation.NavigateTo("/comptes/connexion", forceLoad: true);
+                return;
+            }
+
+            StatutTicket? statut = null;
+            if (!string.IsNullOrEmpty(_statutFiltre) && Enum.TryParse<StatutTicket>(_statutFiltre, out var s))
+            {
+                statut = s;
+            }
+
+            _tickets = await ConsulterFile.ExecuterAsync(contexte.UtilisateurId, statut);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+}
