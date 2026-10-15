@@ -120,6 +120,19 @@ public sealed class SuiviBrancheIesRepository(PlateformeDbContext dbContext) : I
         await dbContext.SuivisBranchesIes.Where(s => s.TicketId == ticketId).ToListAsync(ct).ConfigureAwait(false);
 }
 
+/// <summary>FEATURE 010 (Actualisation BADT).</summary>
+public sealed class LigneActualisationBadtRepository(PlateformeDbContext dbContext) : ILigneActualisationBadtRepository
+{
+    public async Task AjouterAsync(Domain.ActualisationBadt.LigneActualisationBadt ligne, CancellationToken ct = default) =>
+        await dbContext.LignesActualisationBadt.AddAsync(ligne, ct).ConfigureAwait(false);
+
+    public Task<Domain.ActualisationBadt.LigneActualisationBadt?> ObtenirParIdAsync(Guid id, CancellationToken ct = default) =>
+        dbContext.LignesActualisationBadt.SingleOrDefaultAsync(l => l.Id == id, ct);
+
+    public async Task<IReadOnlyList<Domain.ActualisationBadt.LigneActualisationBadt>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
+        await dbContext.LignesActualisationBadt.Where(l => l.TicketId == ticketId).ToListAsync(ct).ConfigureAwait(false);
+}
+
 public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierRepository
 {
     public async Task AjouterAsync(Dossier dossier, CancellationToken ct = default) =>

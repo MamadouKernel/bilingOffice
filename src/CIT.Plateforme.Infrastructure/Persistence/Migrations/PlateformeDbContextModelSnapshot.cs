@@ -26,6 +26,63 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
 
             modelBuilder.HasSequence("seq_ticket_numero");
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.ActualisationBadt.LigneActualisationBadt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly?>("AncienneDateExpiration")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Cause")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("MotifCause")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("MotifRefus")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("NombreJoursAccordes")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("NouvelleDateValidite")
+                        .HasColumnType("date");
+
+                    b.Property<string>("NumeroBl")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("NumeroConteneur")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("LignesActualisationBadt", t =>
+                        {
+                            t.HasCheckConstraint("CK_LignesActualisationBadt_Cause", "[Cause] IN (N'Terminale', N'NonTerminale')");
+
+                            t.HasCheckConstraint("CK_LignesActualisationBadt_Decision", "[Decision] IN (N'EnAttente', N'Accordee', N'Refusee')");
+                        });
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Affectation.CompetenceOperateur", b =>
                 {
                     b.Property<Guid>("Id")

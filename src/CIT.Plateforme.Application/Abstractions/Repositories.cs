@@ -1,3 +1,4 @@
+using CIT.Plateforme.Domain.ActualisationBadt;
 using CIT.Plateforme.Domain.Affectation;
 using CIT.Plateforme.Domain.Assistant;
 using CIT.Plateforme.Domain.Documents;
@@ -771,6 +772,18 @@ public interface IPreferenceCanalRepository
     Task<CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur?> ObtenirAsync(Guid utilisateurId, CIT.Plateforme.Domain.Notifications.CanalNotification canal, CancellationToken ct = default);
 
     Task<IReadOnlyList<CIT.Plateforme.Domain.Notifications.PreferenceCanalUtilisateur>> ListerParUtilisateurAsync(Guid utilisateurId, CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 010 (Actualisation BADT) : port des lignes conteneur d'une demande
+/// d'actualisation de BADT, rattachées au ticket. Entité satellite autonome (même style que
+/// <see cref="ISuiviBrancheIesRepository"/>).</summary>
+public interface ILigneActualisationBadtRepository
+{
+    Task AjouterAsync(LigneActualisationBadt ligne, CancellationToken ct = default);
+
+    Task<LigneActualisationBadt?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<LigneActualisationBadt>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
 }
 
 /// <summary>FEATURE 009 : port de lecture/marquage du journal d'événements par le moteur de

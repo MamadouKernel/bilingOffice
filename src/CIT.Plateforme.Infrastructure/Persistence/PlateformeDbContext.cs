@@ -65,6 +65,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>TPS-01 / TPS-05 : un enregistrement par passage du ticket dans une file.</summary>
     public DbSet<PassageEnFile> PassagesEnFile => Set<PassageEnFile>();
 
+    /// <summary>FEATURE 010 (Actualisation BADT) : une ligne par conteneur d'une demande d'actualisation.</summary>
+    public DbSet<Domain.ActualisationBadt.LigneActualisationBadt> LignesActualisationBadt => Set<Domain.ActualisationBadt.LigneActualisationBadt>();
+
     /// <summary>§11.4 / §9.10 : libellés de statut paramétrables, sans développement.</summary>
     public DbSet<LibelleStatutTicket> LibellesStatutTicket => Set<LibelleStatutTicket>();
 
@@ -384,6 +387,20 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.HasKey(s => s.Id);
             b.HasIndex(s => s.TicketId);
             b.Property(s => s.Branche).HasConversion<string>().HasMaxLength(32);
+        });
+
+        // FEATURE 010 (Actualisation BADT) : entité satellite autonome, même style que SuiviBrancheIes —
+        // aucune relation EF configurée vers Ticket ; décision/dates portées en colonnes propres.
+        builder.Entity<Domain.ActualisationBadt.LigneActualisationBadt>(b =>
+        {
+            b.HasKey(l => l.Id);
+            b.HasIndex(l => l.TicketId);
+            b.Property(l => l.NumeroBl).IsRequired().HasMaxLength(64);
+            b.Property(l => l.NumeroConteneur).IsRequired().HasMaxLength(32);
+            b.Property(l => l.Cause).HasConversion<string>().HasMaxLength(32);
+            b.Property(l => l.Decision).HasConversion<string>().HasMaxLength(32).IsRequired();
+            b.Property(l => l.MotifCause).HasMaxLength(2000);
+            b.Property(l => l.MotifRefus).HasMaxLength(2000);
         });
 
         builder.Entity<Dossier>(b =>
