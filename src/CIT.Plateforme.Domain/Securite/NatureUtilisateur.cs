@@ -169,6 +169,15 @@ public static class Permission
     /// <summary>AVE-02 (remédiation) — décision finale (accord / rejet motivé) sur une demande d'Exonération.</summary>
     public const string ExonerationDecider = "avoirexoneration.exoneration.decider";
 
+    /// <summary>FEATURE 010 (Actualisation BADT) — qualification des lignes conteneur (cause terminale /
+    /// non terminale + motif) par le Support Client. C'est l'instruction de la demande, distincte de la
+    /// décision : un agent peut qualifier sans pouvoir statuer.</summary>
+    public const string ActualisationBadtInstruire = "actualisationbadt.instruire";
+
+    /// <summary>FEATURE 010 (Actualisation BADT) — décision par ligne (accord d'un nombre de jours ou
+    /// refus motivé), réservée au « Décideur Actualisateur BADT ».</summary>
+    public const string ActualisationBadtDecider = "actualisationbadt.decider";
+
     /// <summary>
     /// CDC § 17.3 — « Administration : gestion des comptes clients (validation, typage) et des
     /// comptes agents (RÔLES) ». Porte le cycle de vie d'un compte agent : création, attribution
@@ -284,8 +293,14 @@ public static class Permission
             ],
             ["SupportOperationnel"] =
             [
-                ComplaintInstruire, ComplaintRepondre,
+                ComplaintInstruire, ComplaintRepondre, ActualisationBadtInstruire,
                 TicketPrendreEnCharge, MessageNoteInterne, DocumentTelecharger,
+            ],
+            // Le « Décideur Actualisateur BADT » : il statue (accord d'un nombre de jours ou refus
+            // motivé) sur les lignes qualifiées par le Support Client. Il n'instruit pas lui-même.
+            ["DecideurActualisationBadt"] =
+            [
+                ActualisationBadtDecider, DocumentTelecharger, MessageNoteInterne,
             ],
             ["AgentGate"] =
             [
