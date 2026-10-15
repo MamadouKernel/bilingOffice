@@ -40,6 +40,7 @@ public sealed class ProvisionnementParametrageMetier(
         ("BillingExport", "File IES"),
         ("CustomerComplaint", "Support Opérationnel"),
         ("AvoirExoneration", "Avoir & Exonération"),
+        ("ActualisationBadt", "Actualisation BADT"),
         ("Enrolement", "Agent Gate"),
     ];
 

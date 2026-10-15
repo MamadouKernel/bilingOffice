@@ -120,6 +120,7 @@ public static class CatalogueNavigation
         new("Gestion des Dossiers", "📦",
         [
             new("Mes demandes", "📁", "/client/demandes", Aucune, ExigeRattachementSociete: true),
+            new("Actualisation BADT", "🗓️", "/actualisation-badt/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
             new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
             // Enrôlement : dossiers du transporteur. « Mes enrôlements » est ainsi sa page
             // d'accueil (première entrée accessible), sans règle particulière.
@@ -160,6 +161,7 @@ public static class CatalogueNavigation
         new("Gestion des Dossiers", "📦",
         [
             new("Demandes de la société", "📂", "/client/demandes?vue=societe", Aucune, ExigeRattachementSociete: true),
+            new("Actualisation BADT", "🗓️", "/actualisation-badt/soumettre", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
             new("Mes rendez-vous", "📅", "/rendez-vous/mes-rendez-vous", Aucune, ExigeRattachementSociete: true, MasqueePourTransporteur: true),
             // Revue UX du 04/10/2026 : l'administrateur d'une entreprise de transport arrive ici ;
             // sa tâche principale (enrôler sa flotte) ne doit pas exiger de changer d'espace.

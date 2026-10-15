@@ -3702,6 +3702,33 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Archives.ColDateArchivage"] = "Archivé le",
         ["Archives.ColAnonymise"] = "Anonymisé",
 
+        // Actualisation BADT (FEATURE 010)
+        ["Badt.PageTitle"] = "Actualisation BADT — CIT",
+        ["Badt.Title"] = "Demande d'actualisation BADT",
+        ["Badt.Subtitle"] = "Signalez les conteneurs dont le BADT a expiré ; le support complétera avec vous.",
+        ["Badt.MyRequests"] = "Mes demandes",
+        ["Badt.Intro"] = "Indiquez le(s) numéro(s) de BL et leurs conteneurs, puis décrivez la situation. Le support vous recontactera dans le ticket pour les compléments.",
+        ["Badt.LinesLabel"] = "Conteneurs concernés",
+        ["Badt.BlLabel"] = "Numéro de BL",
+        ["Badt.BlPlaceholder"] = "Ex. SITA123456",
+        ["Badt.ContainerLabel"] = "Conteneur (TC)",
+        ["Badt.ContainerPlaceholder"] = "Ex. TCLU1234567",
+        ["Badt.AddLine"] = "Ajouter un conteneur",
+        ["Badt.DescriptionLabel"] = "Description de la situation",
+        ["Badt.DescriptionPlaceholder"] = "Décrivez le problème (BADT expiré, dates, contexte...)",
+        ["Badt.Submit"] = "Envoyer la demande",
+        ["Badt.Submitting"] = "Envoi en cours...",
+        ["Badt.InitForm"] = "Préparation du formulaire...",
+        ["Badt.SuccessTitle"] = "Demande enregistrée",
+        ["Badt.TicketGenerated"] = "Ticket généré :",
+        ["Badt.AssociatedFile"] = "Dossier associé :",
+        ["Badt.ViewMyRequests"] = "Voir mes demandes",
+        ["Badt.SessionExpired"] = "Votre session a expiré, reconnectez-vous.",
+        ["Badt.MissingPrefix"] = "Éléments manquants :",
+        ["Badt.MissingBl"] = "au moins un numéro de BL",
+        ["Badt.MissingContainer"] = "au moins un conteneur",
+        ["Badt.MissingDescription"] = "une description",
+
     };
 
     private static readonly Dictionary<string, string> EnglishDictionary = new(StringComparer.OrdinalIgnoreCase)
@@ -7397,6 +7424,33 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Archives.ColStatut"] = "Status",
         ["Archives.ColDateArchivage"] = "Archived on",
         ["Archives.ColAnonymise"] = "Anonymized",
+
+        // Actualisation BADT (FEATURE 010)
+        ["Badt.PageTitle"] = "BADT renewal — CIT",
+        ["Badt.Title"] = "BADT renewal request",
+        ["Badt.Subtitle"] = "Report the containers whose BADT has expired; support will follow up with you.",
+        ["Badt.MyRequests"] = "My requests",
+        ["Badt.Intro"] = "Enter the BL number(s) and their containers, then describe the situation. Support will reach out in the ticket for any additional details.",
+        ["Badt.LinesLabel"] = "Containers concerned",
+        ["Badt.BlLabel"] = "BL number",
+        ["Badt.BlPlaceholder"] = "e.g. SITA123456",
+        ["Badt.ContainerLabel"] = "Container (TC)",
+        ["Badt.ContainerPlaceholder"] = "e.g. TCLU1234567",
+        ["Badt.AddLine"] = "Add a container",
+        ["Badt.DescriptionLabel"] = "Description of the situation",
+        ["Badt.DescriptionPlaceholder"] = "Describe the issue (expired BADT, dates, context...)",
+        ["Badt.Submit"] = "Send request",
+        ["Badt.Submitting"] = "Sending...",
+        ["Badt.InitForm"] = "Preparing the form...",
+        ["Badt.SuccessTitle"] = "Request recorded",
+        ["Badt.TicketGenerated"] = "Ticket generated:",
+        ["Badt.AssociatedFile"] = "Associated file:",
+        ["Badt.ViewMyRequests"] = "View my requests",
+        ["Badt.SessionExpired"] = "Your session has expired, please sign in again.",
+        ["Badt.MissingPrefix"] = "Missing items:",
+        ["Badt.MissingBl"] = "at least one BL number",
+        ["Badt.MissingContainer"] = "at least one container",
+        ["Badt.MissingDescription"] = "a description",
 
     };
 

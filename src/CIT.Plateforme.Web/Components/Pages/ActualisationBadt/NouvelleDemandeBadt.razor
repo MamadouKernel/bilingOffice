@@ -1,0 +1,185 @@
+@page "/actualisation-badt/soumettre"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.ActualisationBadt
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject CreerDemandeActualisationBadtCommand CreerDemande
+@inject NavigationManager Navigation
+
+<PageTitle>@Loc["Badt.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>🗓️</span> @Loc["Badt.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["Badt.Subtitle"]</div>
+    </div>
+    <div class="mt-3 mt-md-0">
+        <a href="/client/demandes" class="btn btn-outline-secondary btn-sm shadow-sm">@Loc["Badt.MyRequests"]</a>
+    </div>
+</div>
+
+<div class="cit-page-etroite">
+    @if (_chargement)
+    {
+        <IndicateurChargement Message="@Loc["Badt.InitForm"]" />
+    }
+    else if (_ticketCreeNumero is not null)
+    {
+        <div class="cit-card border-success p-4 mb-4">
+            <div class="d-flex align-items-center gap-3 text-success mb-3">
+                <span class="fs-2">✅</span>
+                <div>
+                    <h5 class="fw-bold mb-0">@Loc["Badt.SuccessTitle"]</h5>
+                    <div class="text-muted small">@Loc["Badt.TicketGenerated"] <strong class="font-monospace text-primary">@_ticketCreeNumero</strong></div>
+                </div>
+            </div>
+            <a href="/client/demandes" class="btn btn-primary fw-bold px-4">@Loc["Badt.ViewMyRequests"]</a>
+        </div>
+    }
+    else
+    {
+        @if (_erreur is not null)
+        {
+            <div class="alert alert-danger mb-4" role="alert">@_erreur</div>
+        }
+
+        <div class="cit-card mb-4 p-4 shadow-sm">
+            <p class="text-muted small mb-4">@Loc["Badt.Intro"]</p>
+
+            <label class="form-label fw-semibold text-dark">@Loc["Badt.LinesLabel"]</label>
+            @foreach (var ligne in _lignes)
+            {
+                <div class="row g-2 mb-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label small text-muted mb-1">@Loc["Badt.BlLabel"]</label>
+                        <input class="form-control" placeholder="@Loc["Badt.BlPlaceholder"]" maxlength="64"
+                               @bind="ligne.NumeroBl" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small text-muted mb-1">@Loc["Badt.ContainerLabel"]</label>
+                        <input class="form-control" placeholder="@Loc["Badt.ContainerPlaceholder"]" maxlength="32"
+                               @bind="ligne.NumeroConteneur" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-2">
+                        @if (_lignes.Count > 1)
+                        {
+                            <BoutonSupprimer Discret="true" OnSupprimer="() => _lignes.Remove(ligne)" />
+                        }
+                    </div>
+                </div>
+            }
+            <button type="button" class="btn btn-outline-secondary btn-sm mt-1 mb-4" @onclick="AjouterLigne">
+                ➕ @Loc["Badt.AddLine"]
+            </button>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold text-dark" for="description">@Loc["Badt.DescriptionLabel"]</label>
+                <textarea id="description" class="form-control" rows="5" placeholder="@Loc["Badt.DescriptionPlaceholder"]"
+                          @bind="_description" @bind:event="oninput"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                <a href="/client/demandes" class="btn btn-outline-secondary">@Loc["Common.Cancel"]</a>
+                <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" @onclick="SoumettreAsync" disabled="@(!PeutSoumettre || _envoiEnCours)">
+                    @if (_envoiEnCours)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span>@Loc["Badt.Submitting"]</span>
+                    }
+                    else
+                    {
+                        <span>@Loc["Badt.Submit"]</span>
+                    }
+                </button>
+            </div>
+            @if (!PeutSoumettre && !_envoiEnCours)
+            {
+                <div class="small text-muted text-end mt-2">@Loc["Badt.MissingPrefix"] @string.Join(", ", ElementsManquants)</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private sealed class LigneSaisie
+    {
+        public string NumeroBl { get; set; } = string.Empty;
+        public string NumeroConteneur { get; set; } = string.Empty;
+    }
+
+    private bool _chargement = true;
+    private bool _envoiEnCours;
+    private string? _erreur;
+    private string? _ticketCreeNumero;
+    private string _description = string.Empty;
+    private readonly List<LigneSaisie> _lignes = [new()];
+
+    private IEnumerable<LigneSaisie> LignesValides =>
+        _lignes.Where(l => !string.IsNullOrWhiteSpace(l.NumeroBl) && !string.IsNullOrWhiteSpace(l.NumeroConteneur));
+
+    private bool PeutSoumettre =>
+        !string.IsNullOrWhiteSpace(_description) && LignesValides.Any();
+
+    private IEnumerable<string> ElementsManquants
+    {
+        get
+        {
+            if (!_lignes.Any(l => !string.IsNullOrWhiteSpace(l.NumeroBl))) yield return Loc["Badt.MissingBl"].Value;
+            if (!_lignes.Any(l => !string.IsNullOrWhiteSpace(l.NumeroConteneur))) yield return Loc["Badt.MissingContainer"].Value;
+            if (string.IsNullOrWhiteSpace(_description)) yield return Loc["Badt.MissingDescription"].Value;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var contexte = await ContexteService.ObtenirContexteAsync();
+        if (contexte is null || !contexte.EstAuthentifie)
+        {
+            Navigation.NavigateTo("/comptes/connexion", forceLoad: true);
+            return;
+        }
+
+        _chargement = false;
+    }
+
+    private void AjouterLigne() => _lignes.Add(new());
+
+    private async Task SoumettreAsync()
+    {
+        if (!PeutSoumettre || _envoiEnCours) return;
+
+        _erreur = null;
+        _envoiEnCours = true;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _erreur = Loc["Badt.SessionExpired"].Value;
+                return;
+            }
+
+            var lignes = LignesValides
+                .Select(l => new LigneDemandeBadt(l.NumeroBl.Trim(), l.NumeroConteneur.Trim()))
+                .ToList();
+
+            var requete = new CreerDemandeActualisationBadtRequete(contexte.UtilisateurId, _description.Trim(), lignes);
+            var ticket = await CreerDemande.ExecuterAsync(requete);
+            _ticketCreeNumero = ticket.Numero;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _envoiEnCours = false;
+        }
+    }
+}
