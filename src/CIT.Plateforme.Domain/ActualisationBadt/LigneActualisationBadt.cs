@@ -46,16 +46,16 @@ public sealed class LigneActualisationBadt
 
     private LigneActualisationBadt() { }
 
-    public static LigneActualisationBadt Creer(Guid ticketId, string numeroBl, string numeroConteneur)
+    /// <summary>
+    /// Crée une ligne. Le BL est obligatoire ; le conteneur est OPTIONNEL : le client ne saisit que
+    /// le(s) BL, et l'agent déplie ensuite les conteneurs sur la fiche (N4 n'est pas interrogeable en
+    /// direct). Une ligne sans conteneur matérialise un BL en attente de dépliage.
+    /// </summary>
+    public static LigneActualisationBadt Creer(Guid ticketId, string numeroBl, string? numeroConteneur = null)
     {
         if (string.IsNullOrWhiteSpace(numeroBl))
         {
             throw new ArgumentException("Le numéro de BL est obligatoire.", nameof(numeroBl));
-        }
-
-        if (string.IsNullOrWhiteSpace(numeroConteneur))
-        {
-            throw new ArgumentException("Le numéro de conteneur est obligatoire.", nameof(numeroConteneur));
         }
 
         return new LigneActualisationBadt
@@ -63,8 +63,27 @@ public sealed class LigneActualisationBadt
             Id = Guid.NewGuid(),
             TicketId = ticketId,
             NumeroBl = numeroBl.Trim(),
-            NumeroConteneur = numeroConteneur.Trim(),
+            NumeroConteneur = numeroConteneur?.Trim() ?? string.Empty,
         };
+    }
+
+    /// <summary>
+    /// Renseigne le conteneur d'une ligne BL-seul, lors du dépliage par l'agent. N'est permis que
+    /// sur une ligne encore sans conteneur et non décidée (sinon on en créerait une nouvelle).
+    /// </summary>
+    public void RenseignerConteneur(string numeroConteneur)
+    {
+        if (!string.IsNullOrEmpty(NumeroConteneur))
+        {
+            throw new InvalidOperationException("Cette ligne porte déjà un conteneur.");
+        }
+
+        if (string.IsNullOrWhiteSpace(numeroConteneur))
+        {
+            throw new ArgumentException("Le numéro de conteneur est obligatoire.", nameof(numeroConteneur));
+        }
+
+        NumeroConteneur = numeroConteneur.Trim();
     }
 
     /// <summary>Qualifie la cause de l'expiration (agent). Le commentaire/motif est obligatoire.</summary>

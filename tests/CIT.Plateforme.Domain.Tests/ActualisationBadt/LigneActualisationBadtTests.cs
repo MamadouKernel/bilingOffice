@@ -33,10 +33,23 @@ public sealed class LigneActualisationBadtTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Creer_ConteneurInvalide_LeveArgumentException(string? conteneur)
+    public void Creer_SansConteneur_LigneBlEnAttenteDeDepliage(string? conteneur)
+    {
+        // Le conteneur est optionnel : une ligne BL-seul attend d'être dépliée par l'agent.
+        var ligne = LigneActualisationBadt.Creer(_ticketId, "269102688", conteneur!);
+
+        Assert.Equal("269102688", ligne.NumeroBl);
+        Assert.Equal(string.Empty, ligne.NumeroConteneur);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Creer_BlInvalide_LeveArgumentException(string? bl)
     {
         Assert.Throws<ArgumentException>(() =>
-            LigneActualisationBadt.Creer(_ticketId, "269102688", conteneur!));
+            LigneActualisationBadt.Creer(_ticketId, bl!, "TRHU7943941"));
     }
 
     [Fact]

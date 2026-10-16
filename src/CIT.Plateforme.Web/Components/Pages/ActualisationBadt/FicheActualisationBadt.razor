@@ -13,6 +13,7 @@
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirFicheBadtQuery ObtenirFiche
 @inject CIT.Plateforme.Application.Messagerie.PublierMessageCommand PublierMessage
+@inject AjouterConteneursBadtCommand AjouterConteneurs
 @inject QualifierLigneBadtCommand Qualifier
 @inject DeciderLigneBadtCommand Decider
 @inject GenererFichierNavisBadtCommand GenererNavis
@@ -60,7 +61,30 @@ else
 
     <h5 class="fw-bold mb-3">@Loc["BadtFiche.LinesTitle"] (@_fiche.Lignes.Count)</h5>
 
-    @foreach (var ligne in _fiche.Lignes)
+    @foreach (var groupeBl in _fiche.Lignes.GroupBy(l => l.NumeroBl))
+    {
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <div class="fw-semibold"><span class="text-muted small">@Loc["BadtFiche.Bl"]</span> <span class="font-monospace">@groupeBl.Key</span></div>
+            </div>
+
+            @if (_fiche.PeutQualifier && _fiche.Statut != StatutTicket.Cloture)
+            {
+                var saisie = SaisieConteneur(groupeBl.Key);
+                <div class="input-group input-group-sm mb-2" style="max-width: 420px;">
+                    <input class="form-control" placeholder="@Loc["BadtFiche.AddContainerPlaceholder"]" maxlength="32"
+                           @bind="saisie.Valeur" @bind:event="oninput" />
+                    <button type="button" class="btn btn-outline-primary" disabled="@(_busy || string.IsNullOrWhiteSpace(saisie.Valeur))"
+                            @onclick="() => AjouterConteneurAsync(groupeBl.Key)">➕ @Loc["BadtFiche.AddContainerBtn"]</button>
+                </div>
+            }
+
+            @if (!groupeBl.Any(l => !string.IsNullOrEmpty(l.NumeroConteneur)))
+            {
+                <div class="text-muted small fst-italic mb-2">@Loc["BadtFiche.NoContainerYet"]</div>
+            }
+
+    @foreach (var ligne in groupeBl.Where(l => !string.IsNullOrEmpty(l.NumeroConteneur)))
     {
         var e = Edition(ligne.Id);
         <div class="cit-card mb-3 p-3 shadow-sm">
@@ -149,6 +173,8 @@ else
                     </div>
                 </div>
             }
+        </div>
+    }
         </div>
     }
 
@@ -262,6 +288,23 @@ else
 
     private EditionLigne Edition(Guid ligneId) =>
         _editions.TryGetValue(ligneId, out var e) ? e : _editions[ligneId] = new();
+
+    private sealed class SaisieConteneurBl { public string Valeur { get; set; } = string.Empty; }
+    private readonly Dictionary<string, SaisieConteneurBl> _ajoutConteneurs = new();
+    private SaisieConteneurBl SaisieConteneur(string bl) =>
+        _ajoutConteneurs.TryGetValue(bl, out var s) ? s : _ajoutConteneurs[bl] = new();
+
+    private async Task AjouterConteneurAsync(string bl)
+    {
+        var saisie = SaisieConteneur(bl);
+        if (string.IsNullOrWhiteSpace(saisie.Valeur)) return;
+        var conteneur = saisie.Valeur.Trim();
+        await ExecuterAsync(async contexte =>
+        {
+            await AjouterConteneurs.ExecuterAsync(contexte.UtilisateurId, TicketId, bl, new[] { conteneur });
+            _ajoutConteneurs.Clear();
+        });
+    }
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 

@@ -120,8 +120,10 @@
     private string _description = string.Empty;
     private readonly List<LigneSaisie> _lignes = [new()];
 
+    // Le conteneur est optionnel : le client ne connaît pas forcément ses conteneurs ; l'agent les
+    // déplie ensuite sur la fiche. Seul le BL est requis pour qu'une ligne soit valide.
     private IEnumerable<LigneSaisie> LignesValides =>
-        _lignes.Where(l => !string.IsNullOrWhiteSpace(l.NumeroBl) && !string.IsNullOrWhiteSpace(l.NumeroConteneur));
+        _lignes.Where(l => !string.IsNullOrWhiteSpace(l.NumeroBl));
 
     private bool PeutSoumettre =>
         !string.IsNullOrWhiteSpace(_description) && LignesValides.Any();
@@ -131,7 +133,6 @@
         get
         {
             if (!_lignes.Any(l => !string.IsNullOrWhiteSpace(l.NumeroBl))) yield return Loc["Badt.MissingBl"].Value;
-            if (!_lignes.Any(l => !string.IsNullOrWhiteSpace(l.NumeroConteneur))) yield return Loc["Badt.MissingContainer"].Value;
             if (string.IsNullOrWhiteSpace(_description)) yield return Loc["Badt.MissingDescription"].Value;
         }
     }

@@ -186,6 +186,7 @@ public static class DependencyInjection
         // FEATURE 010 (Actualisation BADT) : lignes conteneur + handler de création de la demande.
         services.AddScoped<Application.Abstractions.ILigneActualisationBadtRepository, Persistence.LigneActualisationBadtRepository>();
         services.AddScoped<Application.ActualisationBadt.CreerDemandeActualisationBadtCommand>();
+        services.AddScoped<Application.ActualisationBadt.AjouterConteneursBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.QualifierLigneBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.DeciderLigneBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.ConsulterFileBadtQuery>();
