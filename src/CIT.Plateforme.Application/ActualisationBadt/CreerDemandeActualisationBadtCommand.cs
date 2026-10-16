@@ -72,7 +72,11 @@ public sealed class CreerDemandeActualisationBadtCommand(
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCree", $"numero={ticket.Numero}", requete.DemandeurId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(requete.DemandeurId, "TicketCree", nameof(Ticket), ticket.Id, null, ticket.Numero, ct).ConfigureAwait(false);
+        // TicketCree notifie le CLIENT (accusé de réception) ; TicketArriveeEnFile notifie les AGENTS
+        // de la file BADT (Support Client). Sans ce second événement, le support ne reçoit rien — in-app
+        // comme e-mail — car la couche Notifications se déclenche sur l'événement, pas sur la commande.
         await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"numero\":\"{ticket.Numero}\"}}", ct).ConfigureAwait(false);
+        await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

@@ -107582,19 +107582,19 @@
             "callee": "ThrowsAsync",
             "receiver_type": "Assert",
             "lang": "csharp",
-            "line": "L102"
+            "line": "L106"
           },
           {
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L103"
+            "line": "L107"
           }
         ]
       },
       "norm_label": ".aucun_conteneur_leve_une_validation_metier()",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L99"
+      "source_location": "L103"
     },
     {
       "id": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_file_non_approvisionnee_leve_une_erreur_avant_toute_ecriture",
@@ -107614,37 +107614,37 @@
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L87"
+            "line": "L91"
           },
           {
             "callee": "Setup",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L88"
+            "line": "L92"
           },
           {
             "callee": "IsAny",
             "receiver_type": "It",
             "lang": "csharp",
-            "line": "L88"
+            "line": "L92"
           },
           {
             "callee": "ThrowsAsync",
             "receiver_type": "Assert",
             "lang": "csharp",
-            "line": "L92"
+            "line": "L96"
           },
           {
             "callee": "Verify",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L95"
+            "line": "L99"
           }
         ]
       },
       "norm_label": ".file_non_approvisionnee_leve_une_erreur_avant_toute_ecriture()",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L84"
+      "source_location": "L88"
     },
     {
       "id": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_sans_rattachement_le_demandeur_fait_office_de_societe",
@@ -107664,37 +107664,37 @@
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L72"
+            "line": "L76"
           },
           {
             "callee": "Setup",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L75"
+            "line": "L79"
           },
           {
             "callee": "IsAny",
             "receiver_type": "It",
             "lang": "csharp",
-            "line": "L75"
+            "line": "L79"
           },
           {
             "callee": "Verify",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L81"
+            "line": "L85"
           },
           {
             "callee": "Is",
             "receiver_type": "It",
             "lang": "csharp",
-            "line": "L81"
+            "line": "L85"
           }
         ]
       },
       "norm_label": ".sans_rattachement_le_demandeur_fait_office_de_societe()",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L69"
+      "source_location": "L73"
     },
     {
       "id": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_uneligne",
@@ -133186,7 +133186,7 @@
       },
       "norm_label": ".creerticketasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L529"
+      "source_location": "L531"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_dossierasync",
@@ -133204,7 +133204,7 @@
       },
       "norm_label": ".dossierasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514"
+      "source_location": "L516"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_executerasync",
@@ -133224,13 +133224,13 @@
             "callee": "LogInformation",
             "receiver_type": "ILogger",
             "lang": "csharp",
-            "line": "L201"
+            "line": "L203"
           }
         ]
       },
       "norm_label": ".executerasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L188"
+      "source_location": "L190"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_fileasync",
@@ -133248,7 +133248,7 @@
       },
       "norm_label": ".fileasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L510"
+      "source_location": "L512"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_rattacherasync",
@@ -133268,13 +133268,13 @@
             "callee": "FindByEmailAsync",
             "receiver_type": "UserManager",
             "lang": "csharp",
-            "line": "L374"
+            "line": "L376"
           }
         ]
       },
       "norm_label": ".rattacherasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L370"
+      "source_location": "L372"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_seedcomptesasync",
@@ -133294,31 +133294,31 @@
             "callee": "FindByEmailAsync",
             "receiver_type": "UserManager",
             "lang": "csharp",
-            "line": "L274"
+            "line": "L276"
           },
           {
             "callee": "CreateAsync",
             "receiver_type": "UserManager",
             "lang": "csharp",
-            "line": "L287"
+            "line": "L289"
           },
           {
             "callee": "LogWarning",
             "receiver_type": "ILogger",
             "lang": "csharp",
-            "line": "L291"
+            "line": "L293"
           },
           {
             "callee": "UpdateAsync",
             "receiver_type": "UserManager",
             "lang": "csharp",
-            "line": "L308"
+            "line": "L310"
           }
         ]
       },
       "norm_label": ".seedcomptesasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L267"
+      "source_location": "L269"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_seeddonneesmetierasync",
@@ -133338,13 +133338,13 @@
             "callee": "FindByEmailAsync",
             "receiver_type": "UserManager",
             "lang": "csharp",
-            "line": "L402"
+            "line": "L404"
           }
         ]
       },
       "norm_label": ".seeddonneesmetierasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399"
+      "source_location": "L401"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_seedfilesasync",
@@ -133362,7 +133362,7 @@
       },
       "norm_label": ".seedfilesasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L228"
+      "source_location": "L230"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_seedperimetresuperviseurasync",
@@ -133382,13 +133382,13 @@
             "callee": "FindByEmailAsync",
             "receiver_type": "UserManager",
             "lang": "csharp",
-            "line": "L335"
+            "line": "L337"
           }
         ]
       },
       "norm_label": ".seedperimetresuperviseurasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L333"
+      "source_location": "L335"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_seedrattachementsasync",
@@ -133406,7 +133406,7 @@
       },
       "norm_label": ".seedrattachementsasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346"
+      "source_location": "L348"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_seedrecetteuat_cit_plateforme_infrastructure_persistence_seedrecetteuat_seedsocietesasync",
@@ -133426,13 +133426,13 @@
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L255"
+            "line": "L257"
           }
         ]
       },
       "norm_label": ".seedsocietesasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242"
+      "source_location": "L244"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_politiquerecetteuat_cit_plateforme_infrastructure_persistence_politiquerecetteuat_decider",
@@ -355921,7 +355921,7 @@
         "ref_token": "Fact"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L99",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -355951,7 +355951,7 @@
         "ref_token": "Fact"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L84",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -355966,7 +355966,7 @@
         "ref_token": "Fact"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L69",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -396043,7 +396043,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L538",
+      "source_location": "L540",
       "weight": 1.0
     },
     {
@@ -396055,7 +396055,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L523",
+      "source_location": "L525",
       "weight": 1.0
     },
     {
@@ -396067,7 +396067,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L193",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -396079,7 +396079,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L205",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -396091,7 +396091,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L210",
+      "source_location": "L212",
       "weight": 1.0
     },
     {
@@ -396103,7 +396103,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L211",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -396115,7 +396115,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L212",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -396127,7 +396127,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L213",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -396139,7 +396139,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L214",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -396151,7 +396151,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L215",
+      "source_location": "L217",
       "weight": 1.0
     },
     {
@@ -396163,7 +396163,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L389",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -396175,7 +396175,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L320",
+      "source_location": "L322",
       "weight": 1.0
     },
     {
@@ -396187,7 +396187,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L413",
+      "source_location": "L415",
       "weight": 1.0
     },
     {
@@ -396199,7 +396199,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L414",
+      "source_location": "L416",
       "weight": 1.0
     },
     {
@@ -396211,7 +396211,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L419",
+      "source_location": "L421",
       "weight": 1.0
     },
     {
@@ -396223,7 +396223,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L459",
+      "source_location": "L461",
       "weight": 1.0
     },
     {
@@ -396235,7 +396235,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L475",
+      "source_location": "L477",
       "weight": 1.0
     },
     {
@@ -396247,7 +396247,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L482",
+      "source_location": "L484",
       "weight": 1.0
     },
     {
@@ -396259,7 +396259,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L235",
+      "source_location": "L237",
       "weight": 1.0
     },
     {
@@ -396271,7 +396271,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L350",
+      "source_location": "L352",
       "weight": 1.0
     },
     {
@@ -396283,7 +396283,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L255",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -397351,7 +397351,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L93",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -397363,7 +397363,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L73",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -397375,7 +397375,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L79",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -522018,7 +522018,7 @@
         "ref_token": "ArgumentException"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L102",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -524478,7 +524478,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L66",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -524493,7 +524493,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L96",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
@@ -524508,7 +524508,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L81",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -535593,7 +535593,7 @@
         "ref_token": "Dictionary"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -536463,7 +536463,7 @@
         "ref_token": "Dossier"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L81",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -542148,7 +542148,7 @@
         "ref_token": "Guid"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L510",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -558198,7 +558198,7 @@
         "ref_token": "InvalidOperationException"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L92",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -568383,7 +568383,7 @@
         "ref_token": "SocieteCliente"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -568398,7 +568398,7 @@
         "ref_token": "SocieteCliente"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -568413,7 +568413,7 @@
         "ref_token": "SocieteCliente"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -571173,7 +571173,7 @@
         "ref_token": "Ticket"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L95",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -574968,7 +574968,7 @@
         "ref_token": "TypeClient"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -574983,7 +574983,7 @@
         "ref_token": "TypeClient"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -574998,7 +574998,7 @@
         "ref_token": "TypeClient"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -714749,7 +714749,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L529",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -714764,7 +714764,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -714779,7 +714779,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L188",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -714794,7 +714794,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L510",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -714809,7 +714809,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L370",
+      "source_location": "L372",
       "weight": 1.0
     },
     {
@@ -714824,7 +714824,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L267",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -714839,7 +714839,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -714854,7 +714854,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -714869,7 +714869,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -714884,7 +714884,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -714899,7 +714899,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -723539,7 +723539,7 @@
         "ref_token": "DateTime"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L529",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -723554,7 +723554,7 @@
         "ref_token": "DateTime"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -723569,7 +723569,7 @@
         "ref_token": "DateTime"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -723584,7 +723584,7 @@
         "ref_token": "DateTime"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -723599,7 +723599,7 @@
         "ref_token": "DateTime"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -724229,7 +724229,7 @@
         "ref_token": "Dictionary"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -724244,7 +724244,7 @@
         "ref_token": "Dictionary"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -724694,7 +724694,7 @@
         "ref_token": "DroitConsultation"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L370",
+      "source_location": "L372",
       "weight": 1.0
     },
     {
@@ -735644,7 +735644,7 @@
         "ref_token": "Guid"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L529",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -735659,7 +735659,7 @@
         "ref_token": "Guid"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -750404,7 +750404,7 @@
         "ref_token": "SocieteCliente"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L370",
+      "source_location": "L372",
       "weight": 1.0
     },
     {
@@ -752774,7 +752774,7 @@
         "ref_token": "TypeClient"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -775034,7 +775034,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L529",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -775049,7 +775049,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -775064,7 +775064,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L188",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -775079,7 +775079,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L510",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -775094,7 +775094,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L370",
+      "source_location": "L372",
       "weight": 1.0
     },
     {
@@ -775109,7 +775109,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L267",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -775124,7 +775124,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -775139,7 +775139,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -775154,7 +775154,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -775169,7 +775169,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -775184,7 +775184,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -776339,7 +776339,7 @@
         "ref_token": "Task"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L99",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -776369,7 +776369,7 @@
         "ref_token": "Task"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L84",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -776384,7 +776384,7 @@
         "ref_token": "Task"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L69",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -947856,7 +947856,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L188",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -947867,7 +947867,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L228",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -947878,7 +947878,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L242",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -947889,7 +947889,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L267",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -947900,7 +947900,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L333",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -947911,7 +947911,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L346",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -947922,7 +947922,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L370",
+      "source_location": "L372",
       "weight": 1.0
     },
     {
@@ -947933,7 +947933,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L399",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -947944,7 +947944,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L510",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -947955,7 +947955,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L514",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -947966,7 +947966,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L529",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -949555,6 +949555,17 @@
     },
     {
       "source": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests",
+      "target": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_aucun_conteneur_leve_une_validation_metier",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests",
       "target": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_uneligne",
       "relation": "method",
       "_origin": "ast",
@@ -949583,7 +949594,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L69",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -949594,18 +949605,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L84",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests",
-      "target": "tests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_cit_plateforme_application_tests_actualisationbadt_creerdemandeactualisationbadtcommandtests_aucun_conteneur_leve_une_validation_metier",
-      "relation": "method",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L99",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -982500,7 +982500,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/ActualisationBadt/CreerDemandeActualisationBadtCommand.cs",
-      "source_location": "L75",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -982512,7 +982512,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/ActualisationBadt/CreerDemandeActualisationBadtCommand.cs",
-      "source_location": "L77",
+      "source_location": "L81",
       "weight": 1.0
     },
     {
@@ -1001988,7 +1001988,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/SeedRecetteUat.cs",
-      "source_location": "L395",
+      "source_location": "L397",
       "weight": 1.0
     },
     {
@@ -1002180,7 +1002180,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L103",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -1002204,7 +1002204,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L93",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -1002216,7 +1002216,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L79",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -1010952,7 +1010952,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L103",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -1010976,7 +1010976,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L93",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -1010988,7 +1010988,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/CreerDemandeActualisationBadtCommandTests.cs",
-      "source_location": "L79",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -1102565,5 +1102565,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "de429288b1c350a260797ce18b5a45f2c870a686"
+  "built_at_commit": "bc87f0dd250f026d2f7cf3bde4fee181d01b29e4"
 }

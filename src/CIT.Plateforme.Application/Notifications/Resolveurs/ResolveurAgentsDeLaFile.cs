@@ -64,5 +64,6 @@ public sealed class ResolveurAgentsDeLaFile(
         [NomsFilesExport.BackOfficeExport] = [Permission.BillingExportBackOfficeInstruire],
         ["Agent Gate"] = [Permission.EnrolementInstruire],
         ["Support Opérationnel"] = [Permission.ComplaintInstruire],
+        [ActualisationBadt.CreerDemandeActualisationBadtCommand.NomFile] = [Permission.ActualisationBadtInstruire],
     };
 }

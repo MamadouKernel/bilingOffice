@@ -64,6 +64,10 @@ public class CreerDemandeActualisationBadtCommandTests
         _tickets.Verify(r => r.AjouterAsync(It.Is<Ticket>(t => t.FileCouranteId == fileBadt.Id), It.IsAny<CancellationToken>()), Times.Once);
         _lignes.Verify(r => r.AjouterAsync(It.IsAny<LigneActualisationBadt>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+        // Le CLIENT est notifié (TicketCree) ET les AGENTS de la file BADT (TicketArriveeEnFile) :
+        // sans ce second événement, le Support Client ne reçoit rien (régression du 16/10/2026).
+        _journalisation.Verify(j => j.PublierEvenementAsync("TicketCree", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _journalisation.Verify(j => j.PublierEvenementAsync("TicketArriveeEnFile", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
