@@ -260,6 +260,14 @@ else
         <div class="cit-card mt-4 p-4 shadow-sm border-primary-subtle">
             <h5 class="fw-bold mb-1">@Loc["BadtNavis.Title"]</h5>
             <p class="text-muted small mb-3">@Loc["BadtNavis.Hint"]</p>
+            @if (_erreurNavis is not null)
+            {
+                <div class="alert alert-danger py-2 small mb-3" role="alert">@_erreurNavis</div>
+            }
+            @if (_infoNavis is not null)
+            {
+                <div class="alert alert-success py-2 small mb-3" role="alert">✅ @_infoNavis</div>
+            }
             <div class="row g-2 align-items-end">
                 <div class="col-md-8">
                     <label class="form-label small text-muted mb-1">@Loc["BadtNavis.UploadLabel"]</label>
@@ -358,6 +366,8 @@ else
     private FicheBadtDto? _fiche;
     private readonly Dictionary<Guid, EditionLigne> _editions = new();
     private byte[]? _extraction;
+    private string? _erreurNavis;
+    private string? _infoNavis;
     private string? _nomExtraction;
     private string _nouveauMessage = string.Empty;
     private bool _noteInterne;
@@ -501,12 +511,14 @@ else
     private async Task OnExtractionSelected(InputFileChangeEventArgs e)
     {
         _erreur = null;
+        _erreurNavis = null;
+        _infoNavis = null;
         try
         {
             var file = e.File;
             if (file.Size > 10 * 1024 * 1024)
             {
-                _erreur = Loc["BadtNavis.FileTooBig"].Value;
+                _erreurNavis = Loc["BadtNavis.FileTooBig"].Value;
                 return;
             }
 
@@ -517,7 +529,7 @@ else
         }
         catch (Exception ex)
         {
-            _erreur = MessagesUtilisateur.Pour(ex);
+            _erreurNavis = MessagesUtilisateur.Pour(ex);
         }
     }
 
@@ -526,24 +538,27 @@ else
         if (_busy || _extraction is null) return;
         _busy = true;
         _erreur = null;
+        _erreurNavis = null;
+        _infoNavis = null;
         try
         {
             var contexte = await ContexteService.ObtenirContexteAsync();
             if (contexte is null || !contexte.EstAuthentifie)
             {
-                _erreur = Loc["Badt.SessionExpired"].Value;
+                _erreurNavis = Loc["Badt.SessionExpired"].Value;
                 return;
             }
 
             var resultat = await GenererNavis.ExecuterAsync(contexte.UtilisateurId, TicketId, _extraction);
             await Js.InvokeVoidAsync("telechargerFichier", resultat.NomFichier, "text/csv", Convert.ToBase64String(resultat.Contenu));
+            _infoNavis = string.Format(Loc["BadtNavis.Success"].Value, resultat.LignesModifiees);
             _extraction = null;
             _nomExtraction = null;
             await ChargerAsync();
         }
         catch (Exception ex)
         {
-            _erreur = MessagesUtilisateur.Pour(ex);
+            _erreurNavis = MessagesUtilisateur.Pour(ex);
         }
         finally
         {

@@ -6,8 +6,9 @@ using CIT.Plateforme.Domain.Securite;
 
 namespace CIT.Plateforme.Application.ActualisationBadt;
 
-/// <summary>Fichier Navis prêt à intégrer : nom proposé et octets (encodage Latin1 préservé).</summary>
-public sealed record ResultatFichierNavisBadt(string NomFichier, byte[] Contenu);
+/// <summary>Fichier Navis prêt à intégrer : nom proposé, octets (encodage Latin1 préservé) et
+/// nombre de lignes dont la colonne T a été réécrite.</summary>
+public sealed record ResultatFichierNavisBadt(string NomFichier, byte[] Contenu, int LignesModifiees);
 
 /// <summary>
 /// FEATURE 010 (Actualisation BADT) — génère le fichier d'actualisation Navis à partir de l'extraction
@@ -49,28 +50,30 @@ public sealed class GenererFichierNavisBadtCommand(
         // Latin1 : chaque octet 0-255 correspond à un code point identique, donc le round-trip préserve
         // à l'octet près tout le contenu d'origine ; seules les dates (ASCII) de la colonne T changent.
         var contenu = Encoding.Latin1.GetString(extractionNavis);
-        var genere = GenerateurFichierNavisBadt.Injecter(contenu, datesParConteneur);
+        var resultat = GenerateurFichierNavisBadt.Injecter(contenu, datesParConteneur);
 
-        // Si rien n'a changé, aucune ligne du fichier ne portait un conteneur accordé (colonne 8) :
-        // au lieu de renvoyer silencieusement un fichier identique (« rien ne se passe »), on le dit.
-        if (string.Equals(genere, contenu, StringComparison.Ordinal))
+        // Aucune ligne modifiée = aucun conteneur accordé n'a été retrouvé dans la colonne 8 du
+        // fichier déposé : au lieu de renvoyer silencieusement un fichier identique (« rien ne se
+        // passe »), on explique précisément ce qui n'a pas été rapproché.
+        if (resultat.LignesModifiees == 0)
         {
             throw new InvalidOperationException(
-                "Aucune ligne modifiée : la colonne conteneur (8ᵉ) du fichier ne correspond à aucun conteneur accordé (" +
+                "Aucune ligne modifiée : aucun des conteneurs accordés (" +
                 string.Join(", ", datesParConteneur.Keys) +
-                "), ou la colonne T est déjà à jour. Vérifiez le fichier d'extraction N4 déposé.");
+                ") n'a été retrouvé dans la colonne conteneur (8ᵉ) du fichier déposé. " +
+                "Vérifiez qu'il s'agit bien de l'extraction N4 de cette demande (le séparateur « ; », « , » ou tabulation est détecté automatiquement).");
         }
 
-        var octets = Encoding.Latin1.GetBytes(genere);
+        var octets = Encoding.Latin1.GetBytes(resultat.Contenu);
 
         var nomFichier = $"actualisation-badt-{ticket.Numero}-{horloge.MaintenantUtc:yyyyMMdd-HHmm}.csv";
 
         await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.GenerationFichierNavis", "Ticket",
-            ticket.Id, null, $"conteneurs={datesParConteneur.Count}", ct).ConfigureAwait(false);
+            ticket.Id, null, $"conteneurs={datesParConteneur.Count};lignes={resultat.LignesModifiees}", ct).ConfigureAwait(false);
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "FichierNavisGenere",
-            $"conteneurs={datesParConteneur.Count}", agentId, ct).ConfigureAwait(false);
+            $"conteneurs={datesParConteneur.Count};lignes={resultat.LignesModifiees}", agentId, ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 
-        return new ResultatFichierNavisBadt(nomFichier, octets);
+        return new ResultatFichierNavisBadt(nomFichier, octets, resultat.LignesModifiees);
     }
 }

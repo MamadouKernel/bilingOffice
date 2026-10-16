@@ -14,9 +14,12 @@ namespace CIT.Plateforme.Application.ActualisationBadt;
 /// décodage/encodage des octets (Latin1, qui préserve les octets 0-255 tels quels) est du ressort de
 /// l'appelant, de sorte que seuls les caractères ASCII de la date touchée changent.
 /// </summary>
+public sealed record ResultatInjectionNavis(string Contenu, int LignesModifiees, char Separateur);
+
 public static class GenerateurFichierNavisBadt
 {
-    private const char Separateur = ';';
+    /// <summary>Séparateurs supportés : l'extraction N4 n'utilise pas forcément le point-virgule.</summary>
+    private static readonly char[] SeparateursCandidats = [';', ',', '\t', '|'];
 
     /// <summary>Colonne 8 (index 7) : numéro de conteneur, clé de rapprochement avec la décision.</summary>
     private const int IndexConteneur = 7;
@@ -26,10 +29,11 @@ public static class GenerateurFichierNavisBadt
 
     /// <summary>
     /// Réécrit la colonne T des lignes dont le conteneur figure dans <paramref name="datesParConteneur"/>.
-    /// Les autres lignes (conteneurs non accordés, lignes vides, en-têtes éventuels) sont renvoyées à
-    /// l'identique.
+    /// Le séparateur de colonnes est DÉTECTÉ automatiquement (le point-virgule n'est pas garanti : une
+    /// extraction peut être séparée par virgule ou tabulation). Les autres lignes (conteneurs non
+    /// accordés, lignes vides, en-têtes éventuels) sont renvoyées à l'identique.
     /// </summary>
-    public static string Injecter(string contenuCsv, IReadOnlyDictionary<string, DateOnly> datesParConteneur)
+    public static ResultatInjectionNavis Injecter(string contenuCsv, IReadOnlyDictionary<string, DateOnly> datesParConteneur)
     {
         ArgumentNullException.ThrowIfNull(contenuCsv);
         ArgumentNullException.ThrowIfNull(datesParConteneur);
@@ -40,18 +44,21 @@ public static class GenerateurFichierNavisBadt
             kv => Normaliser(kv.Key), kv => kv.Value, StringComparer.Ordinal);
 
         var lignes = contenuCsv.Replace("\r\n", "\n").Split('\n');
+        var separateur = DetecterSeparateur(lignes);
         var sortie = new StringBuilder(contenuCsv.Length + 16);
+        var modifiees = 0;
 
         for (var i = 0; i < lignes.Length; i++)
         {
             var ligne = lignes[i];
-            var colonnes = ligne.Split(Separateur);
+            var colonnes = ligne.Split(separateur);
 
             if (colonnes.Length > IndexDateValidite && !string.IsNullOrWhiteSpace(colonnes[IndexConteneur])
                 && dates.TryGetValue(Normaliser(colonnes[IndexConteneur]), out var date))
             {
                 colonnes[IndexDateValidite] = date.ToString("yyyy-MM-dd");
-                ligne = string.Join(Separateur, colonnes);
+                ligne = string.Join(separateur, colonnes);
+                modifiees++;
             }
 
             sortie.Append(ligne);
@@ -61,7 +68,29 @@ public static class GenerateurFichierNavisBadt
             }
         }
 
-        return sortie.ToString();
+        return new ResultatInjectionNavis(sortie.ToString(), modifiees, separateur);
+    }
+
+    /// <summary>
+    /// Séparateur = le candidat le plus présent sur la première ligne non vide. À défaut (une seule
+    /// colonne détectée), on retombe sur le point-virgule, séparateur usuel de l'extraction N4.
+    /// </summary>
+    private static char DetecterSeparateur(string[] lignes)
+    {
+        var premiere = Array.Find(lignes, l => !string.IsNullOrWhiteSpace(l)) ?? string.Empty;
+        var meilleur = ';';
+        var maxOccurrences = 0;
+        foreach (var candidat in SeparateursCandidats)
+        {
+            var n = premiere.Count(c => c == candidat);
+            if (n > maxOccurrences)
+            {
+                maxOccurrences = n;
+                meilleur = candidat;
+            }
+        }
+
+        return meilleur;
     }
 
     private static string Normaliser(string conteneur) => conteneur.Trim().ToUpperInvariant();

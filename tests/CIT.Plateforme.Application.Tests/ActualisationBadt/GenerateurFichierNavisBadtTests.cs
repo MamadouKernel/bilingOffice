@@ -31,13 +31,29 @@ public class GenerateurFichierNavisBadtTests
         var dates = new Dictionary<string, DateOnly> { ["MRKU9939436"] = new DateOnly(2026, 10, 30) };
 
         var resultat = GenerateurFichierNavisBadt.Injecter(csv, dates);
-        var lignes = resultat.Split("\r\n");
+        var lignes = resultat.Contenu.Split("\r\n");
 
         Assert.Equal("2026-10-30", lignes[0].Split(';')[19]); // injecté
         Assert.Equal("2026-10-16", lignes[1].Split(';')[19]); // intact
         Assert.Equal(34, lignes[0].Split(';').Length);        // structure préservée
         Assert.Equal("ADD", lignes[0].Split(';')[23]);        // colonne 24 intacte
         Assert.Equal("MRKU9939436", lignes[0].Split(';')[7]); // conteneur intact
+        Assert.Equal(1, resultat.LignesModifiees);
+        Assert.Equal(';', resultat.Separateur);
+    }
+
+    [Fact]
+    public void Detecte_un_separateur_virgule_et_injecte_quand_meme()
+    {
+        // Même ligne mais séparée par des virgules : le séparateur n'est pas forcément « ; ».
+        var csv = Ligne("MRKU9939436", "2026-10-16").Replace(';', ',');
+        var dates = new Dictionary<string, DateOnly> { ["MRKU9939436"] = new DateOnly(2026, 10, 30) };
+
+        var resultat = GenerateurFichierNavisBadt.Injecter(csv, dates);
+
+        Assert.Equal(',', resultat.Separateur);
+        Assert.Equal(1, resultat.LignesModifiees);
+        Assert.Equal("2026-10-30", resultat.Contenu.Split(',')[19]);
     }
 
     [Fact]
@@ -48,7 +64,7 @@ public class GenerateurFichierNavisBadtTests
 
         var resultat = GenerateurFichierNavisBadt.Injecter(csv, dates);
 
-        Assert.Equal("2026-10-30", resultat.Split(';')[19]);
+        Assert.Equal("2026-10-30", resultat.Contenu.Split(';')[19]);
     }
 
     [Fact]
@@ -56,6 +72,7 @@ public class GenerateurFichierNavisBadtTests
     {
         var csv = ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;";
         var resultat = GenerateurFichierNavisBadt.Injecter(csv, new Dictionary<string, DateOnly>());
-        Assert.Equal(csv, resultat);
+        Assert.Equal(csv, resultat.Contenu);
+        Assert.Equal(0, resultat.LignesModifiees);
     }
 }
