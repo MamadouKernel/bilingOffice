@@ -15,6 +15,7 @@
 @inject CIT.Plateforme.Application.Messagerie.PublierMessageCommand PublierMessage
 @inject AjouterConteneursBadtCommand AjouterConteneurs
 @inject QualifierLigneBadtCommand Qualifier
+@inject RejeterLigneBadtCommand Rejeter
 @inject DeciderLigneBadtCommand Decider
 @inject GenererFichierNavisBadtCommand GenererNavis
 @inject CloturerTicketBadtCommand CloturerTicket
@@ -157,6 +158,24 @@ else
                         <div class="col-md-2 text-end">
                             <button type="button" class="btn btn-sm btn-primary w-100" disabled="@(_busy || string.IsNullOrWhiteSpace(e.Motif))"
                                     @onclick="() => QualifierAsync(ligne.Id, e)">@Loc["BadtFiche.QualifyBtn"]</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* écart 4 — REJET AGENT SEUL : cause non terminale → le Support Client rejette sans décideur. *@
+            @if (_fiche.PeutQualifier && ligne.Decision == DecisionLigneBadt.EnAttente && ligne.Cause == CauseExpirationBadt.NonTerminale)
+            {
+                <div class="border-top mt-3 pt-3">
+                    <div class="fw-semibold small mb-2">@Loc["BadtFiche.RejectAgentTitle"]</div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-9">
+                            <label class="form-label small text-muted mb-1">@Loc["BadtFiche.RefuseMotifLabel"]</label>
+                            <input class="form-control form-control-sm" @bind="e.MotifRefus" @bind:event="oninput" maxlength="2000" />
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-danger w-100" disabled="@(_busy || string.IsNullOrWhiteSpace(e.MotifRefus))"
+                                    @onclick="() => RejeterAgentAsync(ligne.Id, e)">@Loc["BadtFiche.RejectAgentBtn"]</button>
                         </div>
                     </div>
                 </div>
@@ -389,6 +408,14 @@ else
         {
             await Decider.ExecuterAsync(contexte.UtilisateurId,
                 new DeciderLigneBadtRequete(ligneId, DecisionLigneBadt.Accordee, e.Jours, e.AncienneDate));
+        });
+    }
+
+    private async Task RejeterAgentAsync(Guid ligneId, EditionLigne e)
+    {
+        await ExecuterAsync(async contexte =>
+        {
+            await Rejeter.ExecuterAsync(contexte.UtilisateurId, ligneId, e.MotifRefus.Trim());
         });
     }
 

@@ -92,6 +92,45 @@ public sealed class QualifierLigneBadtCommand(
     }
 }
 
+/// <summary>
+/// FEATURE 010 — écart 4 : REJET « agent seul ». Quand la cause est NonTerminale, le Support Client
+/// (permission <c>actualisationbadt.instruire</c>) rejette lui-même la ligne, sans passer par le
+/// Décideur. S'appuie sur <see cref="LigneActualisationBadt.Refuser"/>.
+/// </summary>
+public sealed class RejeterLigneBadtCommand(
+    ILigneActualisationBadtRepository lignes,
+    ITicketRepository tickets,
+    IAutorisationService autorisation,
+    IJournalisationService journalisation,
+    IUniteDeTravail uniteDeTravail)
+{
+    public async Task ExecuterAsync(Guid agentId, Guid ligneId, string motif, CancellationToken ct = default)
+    {
+        var ligne = await lignes.ObtenirParIdAsync(ligneId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Ligne d'actualisation introuvable.");
+
+        var ticket = await QualifierLigneBadtCommand.ChargerTicketBadtAsync(tickets, ligne.TicketId, ct).ConfigureAwait(false);
+
+        if (!await autorisation.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false))
+        {
+            throw new AccesRefuseException("Permission de qualification des demandes d'actualisation BADT requise.");
+        }
+
+        if (ligne.Cause != CauseExpirationBadt.NonTerminale)
+        {
+            throw new InvalidOperationException("Seule une ligne à cause non terminale peut être rejetée par l'agent ; une cause terminale relève du Décideur.");
+        }
+
+        ligne.Refuser(motif);
+
+        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "LigneRejeteeAgent",
+            $"conteneur={ligne.NumeroConteneur}", agentId, ct).ConfigureAwait(false);
+        await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.RejetAgent", nameof(LigneActualisationBadt),
+            ligne.Id, null, "refusée", ct).ConfigureAwait(false);
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+}
+
 /// <summary>Accord (nombre de jours) ou refus (motif) d'une ligne, par le Décideur Actualisateur BADT.</summary>
 public sealed record DeciderLigneBadtRequete(
     Guid LigneId,

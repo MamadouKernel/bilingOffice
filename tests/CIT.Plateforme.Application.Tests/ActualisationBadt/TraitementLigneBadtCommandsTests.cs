@@ -25,11 +25,13 @@ public class TraitementLigneBadtCommandsTests
         "TCK-BADT-001", Guid.NewGuid(), Guid.NewGuid(), "BADT expiré.", new DateTime(2026, 10, 15, 10, 0, 0, DateTimeKind.Utc));
 
     private readonly QualifierLigneBadtCommand _qualifier;
+    private readonly RejeterLigneBadtCommand _rejeter;
     private readonly DeciderLigneBadtCommand _decider;
 
     public TraitementLigneBadtCommandsTests()
     {
         _qualifier = new QualifierLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
+        _rejeter = new RejeterLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
         _decider = new DeciderLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _uniteDeTravail.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 10, 15, 10, 0, 0, DateTimeKind.Utc));
@@ -87,6 +89,34 @@ public class TraitementLigneBadtCommandsTests
         Assert.Equal(CauseExpirationBadt.Terminale, c2.Cause);
         Assert.Null(autreBl.Cause);
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RejeterAgent_cause_non_terminale_refuse_la_ligne_sans_decideur()
+    {
+        var ligne = UneLigne();
+        ligne.Qualifier(CauseExpirationBadt.NonTerminale, "Chauffeur absent.");
+        var agentId = Guid.NewGuid();
+        _autorisation.Setup(a => a.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, _ticket.FileCouranteId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await _rejeter.ExecuterAsync(agentId, ligne.Id, "Non imputable au terminal.", CancellationToken.None);
+
+        Assert.Equal(DecisionLigneBadt.Refusee, ligne.Decision);
+        Assert.Equal("Non imputable au terminal.", ligne.MotifRefus);
+        _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RejeterAgent_cause_terminale_est_interdit()
+    {
+        var ligne = UneLigne();
+        ligne.Qualifier(CauseExpirationBadt.Terminale, "Panne terminal.");
+        var agentId = Guid.NewGuid();
+        _autorisation.Setup(a => a.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, _ticket.FileCouranteId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _rejeter.ExecuterAsync(agentId, ligne.Id, "Tentative.", CancellationToken.None));
+        _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
