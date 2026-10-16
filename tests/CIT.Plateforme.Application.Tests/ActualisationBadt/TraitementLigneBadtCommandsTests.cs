@@ -190,6 +190,7 @@ public class TraitementLigneBadtCommandsTests
         Assert.Equal(7, ligne.NombreJoursAccordes);
         Assert.Equal(new DateOnly(2026, 10, 22), ligne.NouvelleDateValidite);
         _mesures.Verify(m => m.AjouterAsync(It.Is<MesureActualisationBadt>(x => x.Type == TypeMesureBadt.Accord && x.NombreJoursAccordes == 7), It.IsAny<CancellationToken>()), Times.Once);
+        _journalisation.Verify(j => j.PublierEvenementAsync("BadtLigneDecidee", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

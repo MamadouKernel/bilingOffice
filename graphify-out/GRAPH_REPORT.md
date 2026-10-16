@@ -1,17 +1,17 @@
 # Graph Report - cit-digital-platform  (2026-10-16)
 
 ## Corpus Check
-- 1751 files · ~1,587,719 words
+- 1751 files · ~1,587,902 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 22 file(s) not represented in the graph (top: (none) 7, .css 7, .woff2 2)
 
 ## Summary
-- 22705 nodes · 57074 edges · 973 communities (938 shown, 35 thin omitted)
-- Extraction: 82% EXTRACTED · 18% INFERRED · 0% AMBIGUOUS · INFERRED: 10102 edges (avg confidence: 0.89)
+- 22705 nodes · 57075 edges · 973 communities (938 shown, 35 thin omitted)
+- Extraction: 82% EXTRACTED · 18% INFERRED · 0% AMBIGUOUS · INFERRED: 10103 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f01054ff`
+- Built from commit: `fe2317f3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

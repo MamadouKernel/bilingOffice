@@ -269,6 +269,8 @@ public sealed class DeciderLigneBadtCommand(
             ticket.Id, ligne.Id, ligne.NumeroBl, ligne.NumeroConteneur,
             requete.Decision == DecisionLigneBadt.Accordee ? TypeMesureBadt.Accord : TypeMesureBadt.Refus,
             decideurId, maintenant, nombreJoursAccordes: ligne.NombreJoursAccordes), ct).ConfigureAwait(false);
+        // La décision (accord/refus) rend la main à l'agent de la file : l'en informer (in-app + e-mail).
+        await journalisation.PublierEvenementAsync("BadtLigneDecidee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }

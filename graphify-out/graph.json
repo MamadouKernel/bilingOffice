@@ -70335,31 +70335,31 @@
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L201"
+            "line": "L202"
           },
           {
             "callee": "Setup",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L202"
+            "line": "L203"
           },
           {
             "callee": "IsAny",
             "receiver_type": "It",
             "lang": "csharp",
-            "line": "L202"
+            "line": "L203"
           },
           {
             "callee": "ThrowsAsync",
             "receiver_type": "Assert",
             "lang": "csharp",
-            "line": "L204"
+            "line": "L205"
           }
         ]
       },
       "norm_label": ".decider_accord_sans_jours_leve_une_erreur()",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L196"
+      "source_location": "L197"
     },
     {
       "id": "tests_cit_plateforme_application_tests_actualisationbadt_traitementlignebadtcommandstests_cit_plateforme_application_tests_actualisationbadt_traitementlignebadtcommandstests_decider_refus_pose_le_motif",
@@ -70379,31 +70379,31 @@
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L212"
+            "line": "L213"
           },
           {
             "callee": "Setup",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L213"
+            "line": "L214"
           },
           {
             "callee": "IsAny",
             "receiver_type": "It",
             "lang": "csharp",
-            "line": "L213"
+            "line": "L214"
           },
           {
             "callee": "Equal",
             "receiver_type": "Assert",
             "lang": "csharp",
-            "line": "L217"
+            "line": "L218"
           }
         ]
       },
       "norm_label": ".decider_refus_pose_le_motif()",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L208"
+      "source_location": "L209"
     },
     {
       "id": "tests_cit_plateforme_application_tests_actualisationbadt_traitementlignebadtcommandstests_cit_plateforme_application_tests_actualisationbadt_traitementlignebadtcommandstests_decider_sans_permission_refuse",
@@ -70423,31 +70423,31 @@
             "callee": "NewGuid",
             "receiver_type": "Guid",
             "lang": "csharp",
-            "line": "L225"
+            "line": "L226"
           },
           {
             "callee": "Setup",
             "receiver_type": "Mock",
             "lang": "csharp",
-            "line": "L226"
+            "line": "L227"
           },
           {
             "callee": "IsAny",
             "receiver_type": "It",
             "lang": "csharp",
-            "line": "L226"
+            "line": "L227"
           },
           {
             "callee": "ThrowsAsync",
             "receiver_type": "Assert",
             "lang": "csharp",
-            "line": "L228"
+            "line": "L229"
           }
         ]
       },
       "norm_label": ".decider_sans_permission_refuse()",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L221"
+      "source_location": "L222"
     },
     {
       "id": "tests_cit_plateforme_application_tests_actualisationbadt_traitementlignebadtcommandstests_cit_plateforme_application_tests_actualisationbadt_traitementlignebadtcommandstests_qualifier_non_terminale_ne_publie_pas_d_escalade",
@@ -93723,19 +93723,19 @@
             "callee": "TryGetValue",
             "receiver_type": "Dictionary",
             "lang": "csharp",
-            "line": "L288"
+            "line": "L294"
           },
           {
             "callee": "LogInformation",
             "receiver_type": "ILogger",
             "lang": "csharp",
-            "line": "L297"
+            "line": "L303"
           }
         ]
       },
       "norm_label": ".completeranglaisasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L282"
+      "source_location": "L288"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_provisionnementnotifications_cit_plateforme_infrastructure_persistence_provisionnementnotifications_corps",
@@ -93753,7 +93753,7 @@
       },
       "norm_label": ".corps()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L198"
+      "source_location": "L202"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_provisionnementnotifications_cit_plateforme_infrastructure_persistence_provisionnementnotifications_corpsanglais",
@@ -93771,7 +93771,7 @@
       },
       "norm_label": ".corpsanglais()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L238"
+      "source_location": "L243"
     },
     {
       "id": "src_cit_plateforme_infrastructure_persistence_provisionnementnotifications_cit_plateforme_infrastructure_persistence_provisionnementnotifications_executerasync",
@@ -93791,19 +93791,19 @@
             "callee": "Where",
             "receiver_type": "Regles",
             "lang": "csharp",
-            "line": "L173"
+            "line": "L177"
           },
           {
             "callee": "LogInformation",
             "receiver_type": "ILogger",
             "lang": "csharp",
-            "line": "L192"
+            "line": "L196"
           }
         ]
       },
       "norm_label": ".executerasync()",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L163"
+      "source_location": "L167"
     },
     {
       "id": "tests_cit_plateforme_web_tests_provisionnement_provisionnementnotificationstests_cit_plateforme_web_tests_provisionnement_provisionnementnotificationstests_baseneuve",
@@ -159815,7 +159815,7 @@
       },
       "norm_label": ".peutresoudre()",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L27"
+      "source_location": "L31"
     },
     {
       "id": "src_cit_plateforme_application_notifications_resolveurs_resolveuragentsdelafile_cit_plateforme_application_notifications_resolveurs_resolveuragentsdelafile_resoudreasync",
@@ -159835,19 +159835,19 @@
             "callee": "TryGetValue",
             "receiver_type": "IReadOnlyDictionary",
             "lang": "csharp",
-            "line": "L43"
+            "line": "L47"
           },
           {
             "callee": "Add",
             "receiver_type": "HashSet",
             "lang": "csharp",
-            "line": "L53"
+            "line": "L57"
           }
         ]
       },
       "norm_label": ".resoudreasync()",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L29"
+      "source_location": "L33"
     },
     {
       "id": "src_cit_plateforme_application_notifications_resolveurs_resolveuragentsdelafile_cit_plateforme_application_notifications_resolveurs_resolveuragentsdelafile_resoudreticketasync",
@@ -159867,13 +159867,13 @@
             "callee": "FromResult",
             "receiver_type": "Task",
             "lang": "csharp",
-            "line": "L61"
+            "line": "L65"
           }
         ]
       },
       "norm_label": ".resoudreticketasync()",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L60"
+      "source_location": "L64"
     },
     {
       "id": "src_cit_plateforme_application_notifications_resolveurs_resolveurchargeutile_cit_plateforme_application_notifications_resolveurs_resolveurchargeutile_lireguid",
@@ -360896,7 +360896,7 @@
         "ref_token": "Fact"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -360911,7 +360911,7 @@
         "ref_token": "Fact"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -360926,7 +360926,7 @@
         "ref_token": "Fact"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L221",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -396077,7 +396077,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -396089,7 +396089,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -396101,7 +396101,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L61",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -401201,7 +401201,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L288",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -401213,7 +401213,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L290",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -401225,7 +401225,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L165",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -401237,7 +401237,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L181",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -401249,7 +401249,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L185",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -401261,7 +401261,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L185",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -401273,7 +401273,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L186",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -403205,7 +403205,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L199",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -403217,7 +403217,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L211",
+      "source_location": "L212",
       "weight": 1.0
     },
     {
@@ -403229,7 +403229,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L224",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -463643,7 +463643,7 @@
         "ref_token": "Dictionary"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L125",
+      "source_location": "L128",
       "weight": 1.0
     },
     {
@@ -483413,7 +483413,7 @@
         "ref_token": "IReadOnlyDictionary"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L65",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -525624,7 +525624,7 @@
         "ref_token": "AccesRefuseException"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L228",
+      "source_location": "L229",
       "weight": 1.0
     },
     {
@@ -529569,7 +529569,7 @@
         "ref_token": "ArgumentException"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L204",
+      "source_location": "L205",
       "weight": 1.0
     },
     {
@@ -532209,7 +532209,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L193",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -532224,7 +532224,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -532239,7 +532239,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L213",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -532254,7 +532254,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L226",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -547734,7 +547734,7 @@
         "ref_token": "Guid"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L29",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -547749,7 +547749,7 @@
         "ref_token": "Guid"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L60",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -550344,7 +550344,7 @@
         "ref_token": "Guid"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L226",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -560754,7 +560754,7 @@
         "ref_token": "IReadOnlyList"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L29",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -719258,7 +719258,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L29",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -719273,7 +719273,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L60",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -723488,7 +723488,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L282",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -723503,7 +723503,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L163",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -780578,7 +780578,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L29",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -780593,7 +780593,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L60",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -784883,7 +784883,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L282",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -784898,7 +784898,7 @@
         "ref_token": "Task"
       },
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L163",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -788498,7 +788498,7 @@
         "ref_token": "Task"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -788513,7 +788513,7 @@
         "ref_token": "Task"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -788528,7 +788528,7 @@
         "ref_token": "Task"
       },
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L221",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -949797,7 +949797,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L27",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -949808,7 +949808,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L29",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -949819,7 +949819,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L60",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -959840,7 +959840,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L163",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -959851,7 +959851,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L198",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -959862,7 +959862,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L238",
+      "source_location": "L243",
       "weight": 1.0
     },
     {
@@ -959873,7 +959873,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Infrastructure/Persistence/ProvisionnementNotifications.cs",
-      "source_location": "L282",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -963503,7 +963503,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -963514,7 +963514,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -963525,7 +963525,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L221",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -996952,6 +996952,18 @@
     },
     {
       "source": "src_cit_plateforme_application_actualisationbadt_traitementlignebadtcommands_cit_plateforme_application_actualisationbadt_deciderlignebadtcommand_executerasync",
+      "target": "src_cit_plateforme_application_abstractions_ijournalisationservice_cit_plateforme_application_abstractions_ijournalisationservice_publierevenementasync",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "context": "call",
+      "source_file": "src/CIT.Plateforme.Application/ActualisationBadt/TraitementLigneBadtCommands.cs",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "src_cit_plateforme_application_actualisationbadt_traitementlignebadtcommands_cit_plateforme_application_actualisationbadt_deciderlignebadtcommand_executerasync",
       "target": "src_cit_plateforme_application_abstractions_repositories_cit_plateforme_application_abstractions_iunitedetravail_enregistrerasync",
       "relation": "calls",
       "_origin": "ast",
@@ -996959,7 +996971,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/ActualisationBadt/TraitementLigneBadtCommands.cs",
-      "source_location": "L272",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -1010867,7 +1010879,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L36",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -1010879,7 +1010891,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L42",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -1010891,7 +1010903,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Application/Notifications/Resolveurs/ResolveurAgentsDeLaFile.cs",
-      "source_location": "L51",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -1016867,7 +1016879,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L205",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -1016879,7 +1016891,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L215",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -1016891,7 +1016903,7 @@
       "confidence_score": 0.8,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L229",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -1025807,7 +1025819,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L205",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -1025819,7 +1025831,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L215",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -1025831,7 +1025843,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/TraitementLigneBadtCommandsTests.cs",
-      "source_location": "L229",
+      "source_location": "L230",
       "weight": 1.0
     },
     {
@@ -1117468,5 +1117480,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f01054fff69f548fe22e58bb175f9c725c52cc72"
+  "built_at_commit": "fe2317f372aa503542a115a19b90665a43705992"
 }

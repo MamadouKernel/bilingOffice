@@ -24,7 +24,11 @@ public sealed class ResolveurAgentsDeLaFile(
     /// requalification. Même ciblage « agents de la file » que l'arrivée d'une demande.</summary>
     public const string TypeRenvoiBadt = "BadtLigneRenvoyee";
 
-    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeArrivee or TypeRenvoiBadt;
+    /// <summary>FEATURE 010 — décision BADT (accord/refus) : le Décideur statue, l'agent de la file
+    /// reprend la main (génération Navis puis clôture). Même ciblage « agents de la file ».</summary>
+    public const string TypeDecisionBadt = "BadtLigneDecidee";
+
+    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeArrivee or TypeRenvoiBadt or TypeDecisionBadt;
 
     public async Task<IReadOnlyList<Guid>> ResoudreAsync(string typeEvenement, string chargeUtile, CancellationToken ct = default)
     {
