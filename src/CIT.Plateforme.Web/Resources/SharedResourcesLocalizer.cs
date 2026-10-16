@@ -3757,6 +3757,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["BadtFile.ColStatut"] = "Statut",
         ["BadtFile.ColDateArrivee"] = "Créé le",
         ["BadtFile.ColActions"] = "Actions",
+        ["BadtFile.BtnPrendreEnCharge"] = "Prendre en charge",
         ["BadtFile.BtnOuvrir"] = "Ouvrir",
 
         // Actualisation BADT — fiche agent
@@ -7553,6 +7554,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["BadtFile.ColStatut"] = "Status",
         ["BadtFile.ColDateArrivee"] = "Created on",
         ["BadtFile.ColActions"] = "Actions",
+        ["BadtFile.BtnPrendreEnCharge"] = "Take charge",
         ["BadtFile.BtnOuvrir"] = "Open",
 
         // BADT renewal — agent sheet

@@ -3570,9 +3570,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor": {
-    "mtime": 1791348339.911932,
-    "seen": 1791385706.6857839,
-    "ast_hash": "bebccd9359be290438c8cd9f097e764f",
+    "mtime": 1792144012.7538376,
+    "seen": 1792144181.3690865,
+    "ast_hash": "92578a058767b85db1725622fe28caff",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesUtilisateurs.razor": {
@@ -4410,9 +4410,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs": {
-    "mtime": 1792123498.7322748,
-    "seen": 1792123637.4991279,
-    "ast_hash": "2d58053c8f2de2173bfb78bcffa06428",
+    "mtime": 1792144057.157598,
+    "seen": 1792144181.3923044,
+    "ast_hash": "fbecaf1a82404f3a2118dfbdb777e9b5",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/TraductionMessagesMetier.Donnees.cs": {

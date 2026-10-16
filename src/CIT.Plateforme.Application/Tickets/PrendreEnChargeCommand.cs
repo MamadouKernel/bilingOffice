@@ -36,6 +36,12 @@ public sealed class PrendreEnChargeCommand(
             // Incident : habilitation d'instruction N1 ou N2 selon la file, comme pour le résoudre.
             await SupportItConstantes.ExigerInstructionSurFileAsync(autorisation, operateurId, ticket.FileCouranteId, ct).ConfigureAwait(false);
         }
+        else if (ticket.Module == Ticket.ModuleActualisationBadt)
+        {
+            // FEATURE 010 — prise en charge par un agent du Support Client (instruction BADT),
+            // comme Customer Complaint s'appuie sur ComplaintInstruire : le rôle reste autonome.
+            await autorisation.ExigerAsync(operateurId, Permission.ActualisationBadtInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        }
         else
         {
             await autorisation.ExigerAsync(operateurId, Permission.TicketPrendreEnCharge, ticket.FileCouranteId, ct).ConfigureAwait(false);

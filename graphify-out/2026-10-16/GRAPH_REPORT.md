@@ -1,7 +1,7 @@
 # Graph Report - cit-digital-platform  (2026-10-16)
 
 ## Corpus Check
-- 1731 files · ~1,570,412 words
+- 1731 files · ~1,570,599 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 22 file(s) not represented in the graph (top: (none) 7, .css 7, .woff2 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bc87f0dd`
+- Built from commit: `fc8d8820`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

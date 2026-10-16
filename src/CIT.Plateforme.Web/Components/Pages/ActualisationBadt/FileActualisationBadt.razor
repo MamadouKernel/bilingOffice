@@ -11,6 +11,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ConsulterFileBadtQuery ConsulterFile
+@inject CIT.Plateforme.Application.Tickets.PrendreEnChargeCommand PrendreEnCharge
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["BadtFile.PageTitle"]</PageTitle>
@@ -83,7 +84,14 @@ else
                                 <td><StatutBadge Statut="@t.Statut" /></td>
                                 <td class="small text-muted">@t.DateCreationUtc.Horodate()</td>
                                 <td class="text-end pe-3">
-                                    <a href="/actualisation-badt/fiche/@t.TicketId" class="btn btn-sm btn-outline-primary">@Loc["BadtFile.BtnOuvrir"]</a>
+                                    <div class="d-flex justify-content-end gap-1">
+                                        @if (t.Statut == StatutTicket.EnAttenteDePriseEnCharge)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success" disabled="@_busy"
+                                                    @onclick="() => PrendreEnChargeAsync(t.TicketId)">@Loc["BadtFile.BtnPrendreEnCharge"]</button>
+                                        }
+                                        <a href="/actualisation-badt/fiche/@t.TicketId" class="btn btn-sm btn-outline-primary">@Loc["BadtFile.BtnOuvrir"]</a>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -96,11 +104,34 @@ else
 
 @code {
     private bool _chargement = true;
+    private bool _busy;
     private string? _erreur;
     private string? _statutFiltre;
     private IReadOnlyList<TicketFileBadtDto> _tickets = Array.Empty<TicketFileBadtDto>();
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task PrendreEnChargeAsync(Guid ticketId)
+    {
+        if (_busy) return;
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie) return;
+            await PrendreEnCharge.ExecuterAsync(contexte.UtilisateurId, ticketId);
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
 
     private async Task ChargerAsync()
     {
