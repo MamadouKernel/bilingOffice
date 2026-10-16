@@ -64,6 +64,10 @@ public class CalculateurReportingBadtTests
         Assert.Equal(1, ligneAgent.RejetsAgent);
 
         Assert.Single(r.Depliages);
+
+        var volume = Assert.Single(r.VolumeParJour);
+        Assert.Equal(DateOnly.FromDateTime(Base), volume.Jour);
+        Assert.Equal(1, volume.Nombre);
     }
 
     [Fact]

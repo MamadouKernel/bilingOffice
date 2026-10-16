@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using CIT.Plateforme.Application.ActualisationBadt
 @using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Domain.ActualisationBadt
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
@@ -11,6 +12,8 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject RapportActualisationBadtQuery Rapport
+@inject ReconstruireMesuresBadtCommand Backfill
+@inject Microsoft.JSInterop.IJSRuntime Js
 
 <PageTitle>@Loc["RepBadt.PageTitle"]</PageTitle>
 
@@ -36,6 +39,14 @@
                 @Loc["RepBadt.Appliquer"]
             </button>
         </div>
+        <div class="col-12 col-md-3 d-flex gap-2 justify-content-md-end">
+            <button type="button" class="btn btn-sm btn-outline-success" @onclick="() => ExporterAsync(false)" disabled="@(_rapport is null || _exportEnCours)">
+                @Loc["RepBadt.ExportXlsx"]
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => ExporterAsync(true)" disabled="@(_rapport is null || _exportEnCours)">
+                @Loc["RepBadt.ExportPdf"]
+            </button>
+        </div>
     </div>
 </div>
 
@@ -52,6 +63,10 @@ else if (_rapport is not null)
     @if (_erreur is not null)
     {
         <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
+    }
+    @if (_infoBackfill is not null)
+    {
+        <div class="alert alert-info mb-3" role="alert">@_infoBackfill</div>
     }
 
     <div class="row g-3 mb-4">
@@ -127,6 +142,7 @@ else if (_rapport is not null)
                             <th class="text-end">@Loc["RepBadt.ColTauxAccord"]</th>
                             <th class="text-end">@Loc["RepBadt.ColTauxRefus"]</th>
                             <th class="text-end">@Loc["RepBadt.ColTauxRenvoi"]</th>
+                            <th class="text-end"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -143,6 +159,84 @@ else if (_rapport is not null)
                                 <td class="text-end font-monospace">@a.TauxAccord.ToString("0.0")%</td>
                                 <td class="text-end font-monospace">@a.TauxRefus.ToString("0.0")%</td>
                                 <td class="text-end font-monospace">@a.TauxRenvoi.ToString("0.0")%</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => BasculerDetailAsync(a.ActeurId)">
+                                        @(_detailActeurId == a.ActeurId ? Loc["RepBadt.Masquer"] : Loc["RepBadt.Voir"])
+                                    </button>
+                                </td>
+                            </tr>
+                            @if (_detailActeurId == a.ActeurId)
+                            {
+                                <tr>
+                                    <td colspan="11" class="bg-light">
+                                        @if (_detailEnCours)
+                                        {
+                                            <div class="small text-muted py-2">@Loc["RepBadt.Loading"]</div>
+                                        }
+                                        else if (_detailLignes is null || _detailLignes.Count == 0)
+                                        {
+                                            <div class="small text-muted py-2">@Loc["RepBadt.DetailVide"]</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="table-responsive">
+                                                <table class="table table-sm align-middle mb-0 bg-white">
+                                                    <thead><tr>
+                                                        <th>@Loc["RepBadt.ColType"]</th>
+                                                        <th>@Loc["RepBadt.ColBl"]</th>
+                                                        <th>@Loc["RepBadt.ColConteneur"]</th>
+                                                        <th>@Loc["RepBadt.ColCause"]</th>
+                                                        <th class="text-end">@Loc["RepBadt.ColJours"]</th>
+                                                        <th class="text-end">@Loc["RepBadt.ColQuand"]</th>
+                                                    </tr></thead>
+                                                    <tbody>
+                                                        @foreach (var d in _detailLignes)
+                                                        {
+                                                            <tr>
+                                                                <td class="small">@d.Type</td>
+                                                                <td class="font-monospace small">@d.NumeroBl</td>
+                                                                <td class="font-monospace small">@d.NumeroConteneur</td>
+                                                                <td class="small">@(d.Cause?.ToString() ?? "—")</td>
+                                                                <td class="text-end font-monospace small">@(d.NombreJoursAccordes?.ToString() ?? "—")</td>
+                                                                <td class="text-end font-monospace small">@d.HorodatageUtc.ToString("dd/MM HH:mm")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <h2 class="h5 mt-4 mb-3"><span>📈</span> @Loc["RepBadt.VolumeTitle"]</h2>
+    @if (_rapport.VolumeParJour.Count == 0)
+    {
+        <div class="cit-card p-4 text-center text-muted small">@Loc["RepBadt.Vide"]</div>
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Loc["RepBadt.ColJour"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColDemandes"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in _rapport.VolumeParJour)
+                        {
+                            <tr>
+                                <td class="font-monospace small">@v.Jour.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end font-monospace">@v.Nombre</td>
                             </tr>
                         }
                     </tbody>
@@ -185,6 +279,13 @@ else if (_rapport is not null)
             </div>
         </div>
     }
+
+    <div class="mt-4 pt-3 border-top">
+        <div class="cit-page-subtitle small mb-2">@Loc["RepBadt.BackfillAide"]</div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="RelancerBackfillAsync" disabled="@_backfillEnCours">
+            @(_backfillEnCours ? Loc["RepBadt.BackfillEnCours"].Value : Loc["RepBadt.Backfill"].Value)
+        </button>
+    </div>
 }
 
 @code {
@@ -192,7 +293,18 @@ else if (_rapport is not null)
     private bool _nonAutorise;
     private string _messageNonAutorise = string.Empty;
     private string? _erreur;
+    private string? _infoBackfill;
     private RapportActualisationBadtDto? _rapport;
+
+    private Guid _utilisateurId;
+    private DateTime _debutUtcCourant;
+    private DateTime _finUtcCourant;
+
+    private Guid? _detailActeurId;
+    private IReadOnlyList<DetailMesureBadtDto>? _detailLignes;
+    private bool _detailEnCours;
+    private bool _exportEnCours;
+    private bool _backfillEnCours;
 
     // Période par défaut : les 30 derniers jours.
     private DateTime _debut = DateTime.UtcNow.Date.AddDays(-30);
@@ -218,6 +330,11 @@ else if (_rapport is not null)
             var finUtc = DateTime.SpecifyKind(_fin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
 
             _rapport = await Rapport.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
+            _utilisateurId = contexte.UtilisateurId;
+            _debutUtcCourant = debutUtc;
+            _finUtcCourant = finUtc;
+            _detailActeurId = null;
+            _detailLignes = null;
             _nonAutorise = false;
         }
         catch (AccesRefuseException ex)
@@ -232,6 +349,87 @@ else if (_rapport is not null)
         finally
         {
             _chargement = false;
+        }
+    }
+
+    private async Task BasculerDetailAsync(Guid acteurId)
+    {
+        if (_detailActeurId == acteurId)
+        {
+            _detailActeurId = null;
+            _detailLignes = null;
+            return;
+        }
+
+        _detailActeurId = acteurId;
+        _detailLignes = null;
+        _detailEnCours = true;
+        try
+        {
+            _detailLignes = await Rapport.DetailActeurAsync(_utilisateurId, acteurId, _debutUtcCourant, _finUtcCourant);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _detailEnCours = false;
+        }
+    }
+
+    private async Task ExporterAsync(bool pdf)
+    {
+        _erreur = null;
+        _exportEnCours = true;
+        try
+        {
+            var horodatage = DateTime.UtcNow.ToString("yyyyMMdd-HHmm");
+            if (pdf)
+            {
+                var octets = await Rapport.ExporterPdfAsync(_utilisateurId, _debutUtcCourant, _finUtcCourant);
+                await Js.InvokeVoidAsync("telechargerFichier", $"reporting-badt-{horodatage}.pdf",
+                    "application/pdf", Convert.ToBase64String(octets));
+            }
+            else
+            {
+                var octets = await Rapport.ExporterXlsxAsync(_utilisateurId, _debutUtcCourant, _finUtcCourant);
+                await Js.InvokeVoidAsync("telechargerFichier", $"reporting-badt-{horodatage}.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Convert.ToBase64String(octets));
+            }
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _exportEnCours = false;
+        }
+    }
+
+    private async Task RelancerBackfillAsync()
+    {
+        _erreur = null;
+        _infoBackfill = null;
+        _backfillEnCours = true;
+        try
+        {
+            var inseres = await Backfill.ExecuterAsync(_utilisateurId);
+            _infoBackfill = string.Format(Loc["RepBadt.BackfillFait"].Value, inseres);
+            await ChargerAsync();
+        }
+        catch (AccesRefuseException ex)
+        {
+            _erreur = MessagesUtilisateur.Texte(ex);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _backfillEnCours = false;
         }
     }
 

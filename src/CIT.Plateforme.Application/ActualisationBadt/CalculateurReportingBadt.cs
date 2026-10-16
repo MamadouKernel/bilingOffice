@@ -18,6 +18,9 @@ public sealed record CompteurActeurBadt(
 /// <summary>Trace d'un dépliage (qui a ajouté quel conteneur, quand).</summary>
 public sealed record TraceDepliageBadt(Guid ActeurId, string NumeroBl, string NumeroConteneur, DateTime HorodatageUtc);
 
+/// <summary>Volume de demandes déposées sur un jour (pour la courbe « par période »).</summary>
+public sealed record VolumePeriodeBadt(DateOnly Jour, int Nombre);
+
 /// <summary>Résultat agrégé du reporting BADT (indicateurs cibles, hors « BL non dépliés » qui est un état vivant).</summary>
 public sealed record ResultatReportingBadt(
     int TotalDemandes,
@@ -28,7 +31,8 @@ public sealed record ResultatReportingBadt(
     int NombreRejetsAgent,
     TimeSpan? DelaiMoyenQualificationDecision,
     IReadOnlyList<CompteurActeurBadt> ParActeur,
-    IReadOnlyList<TraceDepliageBadt> Depliages);
+    IReadOnlyList<TraceDepliageBadt> Depliages,
+    IReadOnlyList<VolumePeriodeBadt> VolumeParJour);
 
 /// <summary>
 /// FEATURE 010 (Actualisation BADT) — agrégation pure des mesures de reporting en indicateurs.
@@ -63,6 +67,12 @@ public static class CalculateurReportingBadt
                 .OrderByDescending(m => m.HorodatageUtc)
                 .Take(MaxDepliages)
                 .Select(m => new TraceDepliageBadt(m.ActeurId, m.NumeroBl, m.NumeroConteneur, m.HorodatageUtc))
+                .ToList(),
+            mesures
+                .Where(m => m.Type == TypeMesureBadt.Creation)
+                .GroupBy(m => DateOnly.FromDateTime(m.HorodatageUtc))
+                .Select(g => new VolumePeriodeBadt(g.Key, g.Count()))
+                .OrderBy(v => v.Jour)
                 .ToList());
     }
 

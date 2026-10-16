@@ -1500,9 +1500,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Web/CatalogueNavigation.cs": {
-    "mtime": 1792106745.8137486,
-    "seen": 1792107029.219543,
-    "ast_hash": "dbe0df3e740af42251caf1c39345a4e9",
+    "mtime": 1792153529.1817434,
+    "seen": 1792153648.8439434,
+    "ast_hash": "321f7ef97fcaffdd0004f8d7637057b8",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/Web/ConstruireNavigationQuery.cs": {

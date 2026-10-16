@@ -149,6 +149,13 @@ public sealed class MesureActualisationBadtRepository(PlateformeDbContext dbCont
             .OrderBy(m => m.HorodatageUtc)
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+    public async Task<IReadOnlyCollection<Guid>> TicketsAvecMesuresAsync(CancellationToken ct = default) =>
+        await dbContext.MesuresActualisationBadt
+            .Select(m => m.TicketId)
+            .Distinct()
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 }
 
 public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierRepository

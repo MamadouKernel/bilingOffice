@@ -797,6 +797,9 @@ public interface IMesureActualisationBadtRepository
 
     /// <summary>Toutes les mesures dont l'horodatage est dans [debutUtc, finUtc], ordonnées.</summary>
     Task<IReadOnlyList<MesureActualisationBadt>> ListerEntreAsync(DateTime debutUtc, DateTime finUtc, CancellationToken ct = default);
+
+    /// <summary>Tickets ayant déjà au moins une mesure (pour un backfill idempotent).</summary>
+    Task<IReadOnlyCollection<Guid>> TicketsAvecMesuresAsync(CancellationToken ct = default);
 }
 
 /// <summary>FEATURE 009 : port de lecture/marquage du journal d'événements par le moteur de
