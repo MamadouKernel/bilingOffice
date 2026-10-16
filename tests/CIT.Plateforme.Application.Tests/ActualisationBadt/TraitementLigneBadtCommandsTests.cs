@@ -71,6 +71,25 @@ public class TraitementLigneBadtCommandsTests
     }
 
     [Fact]
+    public async Task QualifierParBl_applique_la_cause_a_tous_les_conteneurs_en_attente_du_bl()
+    {
+        var c1 = LigneActualisationBadt.Creer(_ticket.Id, "BL123", "TCLU1111111");
+        var c2 = LigneActualisationBadt.Creer(_ticket.Id, "BL123", "TCLU2222222");
+        var autreBl = LigneActualisationBadt.Creer(_ticket.Id, "BL999", "TCLU3333333");
+        _lignes.Setup(r => r.ListerParTicketAsync(_ticket.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new System.Collections.Generic.List<LigneActualisationBadt> { c1, c2, autreBl });
+        var agentId = Guid.NewGuid();
+        _autorisation.Setup(a => a.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, _ticket.FileCouranteId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await _qualifier.ExecuterParBlAsync(agentId, _ticket.Id, "BL123", CauseExpirationBadt.Terminale, "Panne système terminal.", CancellationToken.None);
+
+        Assert.Equal(CauseExpirationBadt.Terminale, c1.Cause);
+        Assert.Equal(CauseExpirationBadt.Terminale, c2.Cause);
+        Assert.Null(autreBl.Cause);
+        _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Decider_accord_calcule_la_nouvelle_date_a_decision_plus_N()
     {
         var ligne = UneLigne();

@@ -1,3 +1,4 @@
+using System.Linq;
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
 using CIT.Plateforme.Domain.ActualisationBadt;
@@ -36,6 +37,44 @@ public sealed class QualifierLigneBadtCommand(
             $"conteneur={ligne.NumeroConteneur};cause={cause}", agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.Qualification", nameof(LigneActualisationBadt),
             ligne.Id, null, $"{cause}", ct).ConfigureAwait(false);
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// écart 3 — QUALIFICATION par BL : applique la même cause et le même motif à TOUS les conteneurs
+    /// encore en attente de ce BL (un BL partage généralement la même cause d'expiration). L'override
+    /// par conteneur reste possible via <see cref="ExecuterAsync"/>. Les lignes déjà qualifiées ou
+    /// décidées ne sont pas touchées.
+    /// </summary>
+    public async Task ExecuterParBlAsync(Guid agentId, Guid ticketId, string numeroBl, CauseExpirationBadt cause, string motif, CancellationToken ct = default)
+    {
+        var ticket = await ChargerTicketBadtAsync(tickets, ticketId, ct).ConfigureAwait(false);
+
+        if (!await autorisation.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false))
+        {
+            throw new AccesRefuseException("Permission de qualification des demandes d'actualisation BADT requise.");
+        }
+
+        var cibles = (await lignes.ListerParTicketAsync(ticketId, ct).ConfigureAwait(false))
+            .Where(l => string.Equals(l.NumeroBl, numeroBl?.Trim(), StringComparison.OrdinalIgnoreCase)
+                        && l.NumeroConteneur.Length > 0
+                        && l.Decision == DecisionLigneBadt.EnAttente
+                        && l.Cause is null)
+            .ToList();
+        if (cibles.Count == 0)
+        {
+            throw new InvalidOperationException("Aucun conteneur à qualifier pour ce BL.");
+        }
+
+        foreach (var ligne in cibles)
+        {
+            ligne.Qualifier(cause, motif);
+        }
+
+        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "BlQualifie",
+            $"bl={numeroBl};cause={cause};conteneurs={cibles.Count}", agentId, ct).ConfigureAwait(false);
+        await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.QualificationBl", nameof(LigneActualisationBadt),
+            ticket.Id, null, $"{cause};{cibles.Count}", ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 

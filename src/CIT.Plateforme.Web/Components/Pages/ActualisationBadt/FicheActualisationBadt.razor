@@ -84,6 +84,29 @@ else
                 <div class="text-muted small fst-italic mb-2">@Loc["BadtFiche.NoContainerYet"]</div>
             }
 
+            @* écart 3 — QUALIFIER TOUT LE BL : même cause/motif sur tous ses conteneurs en attente. *@
+            @if (_fiche.PeutQualifier && groupeBl.Any(l => !string.IsNullOrEmpty(l.NumeroConteneur) && l.Decision == DecisionLigneBadt.EnAttente && l.Cause is null))
+            {
+                var q = SaisieQualifBl(groupeBl.Key);
+                <div class="row g-2 align-items-end mb-2">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted mb-1">@Loc["BadtFiche.QualifyBlTitle"]</label>
+                        <select class="form-select form-select-sm" @bind="q.Cause">
+                            <option value="Terminale">@Loc["BadtFiche.CauseTerminal"]</option>
+                            <option value="NonTerminale">@Loc["BadtFiche.CauseNonTerminal"]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted mb-1">@Loc["BadtFiche.MotifLabel"]</label>
+                        <input class="form-control form-control-sm" @bind="q.Motif" @bind:event="oninput" maxlength="2000" />
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-primary w-100" disabled="@(_busy || string.IsNullOrWhiteSpace(q.Motif))"
+                                @onclick="() => QualifierBlAsync(groupeBl.Key)">@Loc["BadtFiche.QualifyBlBtn"]</button>
+                    </div>
+                </div>
+            }
+
     @foreach (var ligne in groupeBl.Where(l => !string.IsNullOrEmpty(l.NumeroConteneur)))
     {
         var e = Edition(ligne.Id);
@@ -293,6 +316,24 @@ else
     private readonly Dictionary<string, SaisieConteneurBl> _ajoutConteneurs = new();
     private SaisieConteneurBl SaisieConteneur(string bl) =>
         _ajoutConteneurs.TryGetValue(bl, out var s) ? s : _ajoutConteneurs[bl] = new();
+
+    private sealed class SaisieQualifBlModel { public string Cause { get; set; } = "Terminale"; public string Motif { get; set; } = string.Empty; }
+    private readonly Dictionary<string, SaisieQualifBlModel> _qualifsBl = new();
+    private SaisieQualifBlModel SaisieQualifBl(string bl) =>
+        _qualifsBl.TryGetValue(bl, out var s) ? s : _qualifsBl[bl] = new();
+
+    private async Task QualifierBlAsync(string bl)
+    {
+        var q = SaisieQualifBl(bl);
+        if (string.IsNullOrWhiteSpace(q.Motif)) return;
+        var cause = Enum.Parse<CauseExpirationBadt>(q.Cause);
+        var motif = q.Motif.Trim();
+        await ExecuterAsync(async contexte =>
+        {
+            await Qualifier.ExecuterParBlAsync(contexte.UtilisateurId, TicketId, bl, cause, motif);
+            _qualifsBl.Clear();
+        });
+    }
 
     private async Task AjouterConteneurAsync(string bl)
     {
