@@ -3860,7 +3860,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // Actualisation BADT — génération du fichier Navis
         ["BadtNavis.Title"] = "Générer le fichier Navis",
-        ["BadtNavis.Hint"] = "Déposez l'extraction N4 (une ligne par conteneur, numéro de conteneur en 8ᵉ colonne). La colonne T (date de validité, 20ᵉ colonne) est réinjectée automatiquement pour les conteneurs accordés. Séparateur « ; », « , » ou tabulation détecté automatiquement.",
+        ["BadtNavis.Hint"] = "Déposez l'extraction N4 (une ligne par conteneur). La colonne T (date de validité, 20ᵉ colonne) est réinjectée automatiquement pour les conteneurs accordés, repérés dans n'importe quelle colonne. Tout CSV est accepté : séparateur « ; », « , » ou tabulation détecté automatiquement.",
         ["BadtNavis.Success"] = "{0} ligne(s) actualisée(s) : le fichier a été téléchargé.",
         ["BadtNavis.UploadLabel"] = "Extraction Navis (.csv)",
         ["BadtNavis.GenerateBtn"] = "Générer et télécharger",
@@ -7724,7 +7724,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
 
         // BADT renewal — Navis file generation
         ["BadtNavis.Title"] = "Generate the Navis file",
-        ["BadtNavis.Hint"] = "Upload the N4 extraction (one line per container, container number in column 8). Column T (validity date, column 20) is re-injected automatically for granted containers. Separator « ; », « , » or tab detected automatically.",
+        ["BadtNavis.Hint"] = "Upload the N4 extraction (one line per container). Column T (validity date, column 20) is re-injected automatically for granted containers, matched in any column. Any CSV is accepted: separator « ; », « , » or tab detected automatically.",
         ["BadtNavis.Success"] = "{0} line(s) updated: the file has been downloaded.",
         ["BadtNavis.UploadLabel"] = "Navis extraction (.csv)",
         ["BadtNavis.GenerateBtn"] = "Generate and download",

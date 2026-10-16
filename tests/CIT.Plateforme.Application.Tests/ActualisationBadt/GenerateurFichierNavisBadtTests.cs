@@ -68,6 +68,23 @@ public class GenerateurFichierNavisBadtTests
     }
 
     [Fact]
+    public void Retrouve_le_conteneur_meme_decale_dans_une_autre_colonne()
+    {
+        // Conteneur placé en colonne 3 (index 2) au lieu de 8 : il doit quand même être rapproché,
+        // et la date écrite en colonne T (index 19).
+        var cols = Enumerable.Repeat(string.Empty, 34).ToArray();
+        cols[2] = "MRKU9939436";
+        cols[19] = "2026-10-16";
+        var csv = string.Join(';', cols);
+        var dates = new Dictionary<string, DateOnly> { ["MRKU9939436"] = new DateOnly(2026, 10, 30) };
+
+        var resultat = GenerateurFichierNavisBadt.Injecter(csv, dates);
+
+        Assert.Equal(1, resultat.LignesModifiees);
+        Assert.Equal("2026-10-30", resultat.Contenu.Split(';')[19]);
+    }
+
+    [Fact]
     public void Laisse_les_lignes_vides_inchangees()
     {
         var csv = ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;";

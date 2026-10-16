@@ -60,8 +60,8 @@ public sealed class GenererFichierNavisBadtCommand(
             throw new InvalidOperationException(
                 "Aucune ligne modifiée : aucun des conteneurs accordés (" +
                 string.Join(", ", datesParConteneur.Keys) +
-                ") n'a été retrouvé dans la colonne conteneur (8ᵉ) du fichier déposé. " +
-                "Vérifiez qu'il s'agit bien de l'extraction N4 de cette demande (le séparateur « ; », « , » ou tabulation est détecté automatiquement).");
+                ") n'a été retrouvé dans le fichier déposé. " +
+                "Vérifiez qu'il s'agit bien de l'extraction N4 de cette demande (tout CSV est accepté ; le séparateur « ; », « , » ou tabulation est détecté automatiquement).");
         }
 
         var octets = Encoding.Latin1.GetBytes(resultat.Contenu);

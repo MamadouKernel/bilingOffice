@@ -21,16 +21,15 @@ public static class GenerateurFichierNavisBadt
     /// <summary>Séparateurs supportés : l'extraction N4 n'utilise pas forcément le point-virgule.</summary>
     private static readonly char[] SeparateursCandidats = [';', ',', '\t', '|'];
 
-    /// <summary>Colonne 8 (index 7) : numéro de conteneur, clé de rapprochement avec la décision.</summary>
-    private const int IndexConteneur = 7;
-
     /// <summary>Colonne 20 (index 19) : colonne T, nouvelle date de validité à injecter.</summary>
     private const int IndexDateValidite = 19;
 
     /// <summary>
     /// Réécrit la colonne T des lignes dont le conteneur figure dans <paramref name="datesParConteneur"/>.
     /// Le séparateur de colonnes est DÉTECTÉ automatiquement (le point-virgule n'est pas garanti : une
-    /// extraction peut être séparée par virgule ou tabulation). Les autres lignes (conteneurs non
+    /// extraction peut être séparée par virgule ou tabulation). Le numéro de conteneur est recherché
+    /// dans N'IMPORTE QUELLE colonne (rapprochement exact du numéro complet : pas de faux positif), de
+    /// sorte qu'un décalage de colonnes n'empêche pas l'injection. Les autres lignes (conteneurs non
     /// accordés, lignes vides, en-têtes éventuels) sont renvoyées à l'identique.
     /// </summary>
     public static ResultatInjectionNavis Injecter(string contenuCsv, IReadOnlyDictionary<string, DateOnly> datesParConteneur)
@@ -53,8 +52,8 @@ public static class GenerateurFichierNavisBadt
             var ligne = lignes[i];
             var colonnes = ligne.Split(separateur);
 
-            if (colonnes.Length > IndexDateValidite && !string.IsNullOrWhiteSpace(colonnes[IndexConteneur])
-                && dates.TryGetValue(Normaliser(colonnes[IndexConteneur]), out var date))
+            if (colonnes.Length > IndexDateValidite
+                && TrouverConteneurAccorde(colonnes, dates) is { } date)
             {
                 colonnes[IndexDateValidite] = date.ToString("yyyy-MM-dd");
                 ligne = string.Join(separateur, colonnes);
@@ -75,6 +74,20 @@ public static class GenerateurFichierNavisBadt
     /// Séparateur = le candidat le plus présent sur la première ligne non vide. À défaut (une seule
     /// colonne détectée), on retombe sur le point-virgule, séparateur usuel de l'extraction N4.
     /// </summary>
+    /// <summary>Première colonne dont la valeur normalisée est un conteneur accordé, sinon null.</summary>
+    private static DateOnly? TrouverConteneurAccorde(string[] colonnes, IReadOnlyDictionary<string, DateOnly> dates)
+    {
+        foreach (var colonne in colonnes)
+        {
+            if (!string.IsNullOrWhiteSpace(colonne) && dates.TryGetValue(Normaliser(colonne), out var date))
+            {
+                return date;
+            }
+        }
+
+        return null;
+    }
+
     private static char DetecterSeparateur(string[] lignes)
     {
         var premiere = Array.Find(lignes, l => !string.IsNullOrWhiteSpace(l)) ?? string.Empty;
