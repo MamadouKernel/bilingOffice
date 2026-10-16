@@ -3779,6 +3779,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["BadtFiche.DecAccordee"] = "Accordée",
         ["BadtFiche.DecRefusee"] = "Refusée",
         ["BadtFiche.DecEnAttente"] = "En attente",
+        ["BadtFiche.CloseBtn"] = "Clôturer la demande",
+        ["BadtFiche.Closed"] = "Demande clôturée : fichier Navis intégré, tous les conteneurs statués.",
 
         // Actualisation BADT — génération du fichier Navis
         ["BadtNavis.Title"] = "Générer le fichier Navis",
@@ -7564,6 +7566,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["BadtFiche.DecAccordee"] = "Granted",
         ["BadtFiche.DecRefusee"] = "Refused",
         ["BadtFiche.DecEnAttente"] = "Pending",
+        ["BadtFiche.CloseBtn"] = "Close the request",
+        ["BadtFiche.Closed"] = "Request closed: Navis file integrated, all containers decided.",
 
         // BADT renewal — Navis file generation
         ["BadtNavis.Title"] = "Generate the Navis file",

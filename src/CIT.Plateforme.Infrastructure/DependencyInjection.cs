@@ -191,6 +191,7 @@ public static class DependencyInjection
         services.AddScoped<Application.ActualisationBadt.ConsulterFileBadtQuery>();
         services.AddScoped<Application.ActualisationBadt.ObtenirFicheBadtQuery>();
         services.AddScoped<Application.ActualisationBadt.GenererFichierNavisBadtCommand>();
+        services.AddScoped<Application.ActualisationBadt.CloturerTicketBadtCommand>();
         services.AddScoped<Application.Abstractions.IEtapeBloquanteAnnulationRepository, Persistence.EtapeBloquanteAnnulationRepository>();
 
         // §11.4 / §9.10 : approvisionnement additif des libellés de statut paramétrables.

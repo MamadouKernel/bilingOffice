@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using CIT.Plateforme.Application.ActualisationBadt
 @using CIT.Plateforme.Domain.ActualisationBadt
+@using CIT.Plateforme.Domain.Tickets
 @using CIT.Plateforme.Web.Components.Shared
 @using CIT.Plateforme.Web.Resources
 @using CIT.Plateforme.Web.Services
@@ -14,6 +15,7 @@
 @inject QualifierLigneBadtCommand Qualifier
 @inject DeciderLigneBadtCommand Decider
 @inject GenererFichierNavisBadtCommand GenererNavis
+@inject CloturerTicketBadtCommand CloturerTicket
 @inject IJSRuntime Js
 @inject NavigationManager Navigation
 
@@ -171,6 +173,21 @@ else
                 </div>
             </div>
         </div>
+    }
+
+    @* CLÔTURE — une fois le fichier intégré dans Navis et tous les conteneurs statués. *@
+    @if (_fiche.PeutQualifier && _fiche.Statut != StatutTicket.Cloture
+         && _fiche.Lignes.Count > 0 && _fiche.Lignes.All(l => l.Decision != DecisionLigneBadt.EnAttente))
+    {
+        <div class="d-flex justify-content-end mt-4">
+            <button type="button" class="btn btn-success" disabled="@_busy" @onclick="CloturerAsync">
+                @Loc["BadtFiche.CloseBtn"]
+            </button>
+        </div>
+    }
+    else if (_fiche.Statut == StatutTicket.Cloture)
+    {
+        <div class="alert alert-success mt-4 mb-0" role="alert">@Loc["BadtFiche.Closed"]</div>
     }
 }
 
@@ -330,6 +347,11 @@ else
         {
             _busy = false;
         }
+    }
+
+    private async Task CloturerAsync()
+    {
+        await ExecuterAsync(async contexte => await CloturerTicket.ExecuterAsync(contexte.UtilisateurId, TicketId));
     }
 
     private string BadgeDecision(DecisionLigneBadt d) => d switch
