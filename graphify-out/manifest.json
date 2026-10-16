@@ -3252,9 +3252,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/PlateformeDbContextModelSnapshot.cs": {
-    "mtime": 1792082524.5720773,
-    "seen": 1792083928.6107466,
-    "ast_hash": "7206d0358583104bdf57af47e325d688",
+    "mtime": 1792146912.7152643,
+    "seen": 1792147038.9727147,
+    "ast_hash": "89b7b39ce0ed7c298e1ca268f251df96",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/MotifsTransfertRepository.cs": {
@@ -3282,9 +3282,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/PlateformeDbContext.cs": {
-    "mtime": 1792082417.4651783,
-    "seen": 1792083928.6116123,
-    "ast_hash": "994f1e58a975e1fb22d43a220b80b974",
+    "mtime": 1792146846.502936,
+    "seen": 1792147038.9733603,
+    "ast_hash": "ce228687381f406b287ed18a6ff623e6",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/Persistence/PolitiqueAmorcageDemo.cs": {
@@ -4410,9 +4410,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs": {
-    "mtime": 1792146663.3641794,
-    "seen": 1792146784.7153196,
-    "ast_hash": "0a3664e660d376b0eafbf33bfb9304b5",
+    "mtime": 1792146877.284923,
+    "seen": 1792147039.0064418,
+    "ast_hash": "10f975c5f0d71f342569988f0f0ce5ba",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Resources/TraductionMessagesMetier.Donnees.cs": {
@@ -10338,9 +10338,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/ActualisationBadt/LigneActualisationBadt.cs": {
-    "mtime": 1792146052.2074926,
-    "seen": 1792146350.9130583,
-    "ast_hash": "c5dd5d4df3a2529adeadad3dd48fde65",
+    "mtime": 1792146831.2510626,
+    "seen": 1792147038.9138029,
+    "ast_hash": "e8d88cd9b68cde809b73966acec71113",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Domain/Tickets/Ticket.ActualisationBadt.cs": {
@@ -10374,9 +10374,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Domain.Tests/ActualisationBadt/LigneActualisationBadtTests.cs": {
-    "mtime": 1792145995.157267,
-    "seen": 1792146351.0625153,
-    "ast_hash": "48ee26eefa9fbbe55ef30c1075aed8f5",
+    "mtime": 1792146927.9605472,
+    "seen": 1792147039.0511434,
+    "ast_hash": "c7258db9bcc6026c3b868f71666dd461",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/ActualisationBadt/TraitementLigneBadtCommands.cs": {
@@ -10392,15 +10392,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/ActualisationBadt/TraitementBadtQueries.cs": {
-    "mtime": 1792145694.5646358,
-    "seen": 1792145923.617952,
-    "ast_hash": "871e0f633e44cfd203ea5685880f2af2",
+    "mtime": 1792146858.9803002,
+    "seen": 1792147038.8717208,
+    "ast_hash": "07daa816d8d79e6ef3be9f2e4f30002e",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FicheActualisationBadt.razor": {
-    "mtime": 1792146652.0358932,
-    "seen": 1792146784.6894355,
-    "ast_hash": "d662601b0d9f9a9872499dc8d330dacd",
+    "mtime": 1792146866.018727,
+    "seen": 1792147038.9803798,
+    "ast_hash": "e05bd3cd3753ab8060be60ef178d5e3c",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FileActualisationBadt.razor": {
@@ -10455,6 +10455,18 @@
     "mtime": 1792146214.9032323,
     "seen": 1792146351.0134733,
     "ast_hash": "48b22f525f362ed170bd511336f93328",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261016103512_AjoutEscaladeLigneBadt.Designer.cs": {
+    "mtime": 1792146912.7152643,
+    "seen": 1792147038.9727104,
+    "ast_hash": "30eb2aa3af8c7cace529ac05f666e62f",
+    "semantic_hash": ""
+  },
+  "src/CIT.Plateforme.Infrastructure/Persistence/Migrations/20261016103512_AjoutEscaladeLigneBadt.cs": {
+    "mtime": 1792146912.713868,
+    "seen": 1792147038.9727123,
+    "ast_hash": "45744c82705b4b8766d2a49913a556f8",
     "semantic_hash": ""
   }
 }

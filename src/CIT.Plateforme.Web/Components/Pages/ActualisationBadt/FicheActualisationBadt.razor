@@ -117,7 +117,13 @@ else
                     <span class="font-monospace fw-bold">@ligne.NumeroConteneur</span>
                     <span class="text-muted small ms-2">@Loc["BadtFiche.Bl"] @ligne.NumeroBl</span>
                 </div>
-                <span class="badge @BadgeDecision(ligne.Decision)">@LibelleDecision(ligne.Decision)</span>
+                <div class="d-flex align-items-center gap-2">
+                    @if (ligne.Escalade)
+                    {
+                        <span class="badge bg-warning text-dark">⬆️ @Loc["BadtFiche.EscalatedBadge"]</span>
+                    }
+                    <span class="badge @BadgeDecision(ligne.Decision)">@LibelleDecision(ligne.Decision)</span>
+                </div>
             </div>
 
             @if (ligne.Cause is not null)

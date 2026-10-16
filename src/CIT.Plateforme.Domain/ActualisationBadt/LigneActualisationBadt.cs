@@ -44,6 +44,13 @@ public sealed class LigneActualisationBadt
     /// <summary>Motif obligatoire en cas de rejet (agent) ou de refus (Décideur).</summary>
     public string? MotifRefus { get; private set; }
 
+    /// <summary>
+    /// Sous-état « escaladé » : la ligne a été qualifiée terminale et attend la décision du Décideur.
+    /// RÈGLE PROJET — un sous-état est un champ de la ligne, pas une valeur de <c>StatutTicket</c>.
+    /// Posé automatiquement à la qualification terminale ; levé au refus/renvoi/accord.
+    /// </summary>
+    public bool Escalade { get; private set; }
+
     private LigneActualisationBadt() { }
 
     /// <summary>
@@ -101,6 +108,8 @@ public sealed class LigneActualisationBadt
 
         Cause = cause;
         MotifCause = motif.Trim();
+        // Une cause terminale impose l'escalade vers le Décideur ; une cause non terminale reste à l'agent.
+        Escalade = cause == CauseExpirationBadt.Terminale;
     }
 
     /// <summary>
@@ -132,6 +141,7 @@ public sealed class LigneActualisationBadt
         AncienneDateExpiration = ancienneDateExpiration;
         NouvelleDateValidite = nouvelleDateValidite;
         MotifRefus = null;
+        Escalade = false;
     }
 
     /// <summary>Rejet (agent, cause non terminale) ou refus (Décideur). Le motif est obligatoire.</summary>
@@ -151,5 +161,6 @@ public sealed class LigneActualisationBadt
         MotifRefus = motif.Trim();
         NombreJoursAccordes = null;
         NouvelleDateValidite = null;
+        Escalade = false;
     }
 }

@@ -53,6 +53,24 @@ public sealed class LigneActualisationBadtTests
     }
 
     [Fact]
+    public void Qualifier_Terminale_MarqueEscaladeEtRefusLaLeve()
+    {
+        var ligne = LigneActualisationBadt.Creer(_ticketId, "269102688", "TRHU7943941");
+
+        ligne.Qualifier(CauseExpirationBadt.Terminale, "Panne système terminal.");
+        Assert.True(ligne.Escalade);
+    }
+
+    [Fact]
+    public void Qualifier_NonTerminale_NeMarquePasEscalade()
+    {
+        var ligne = LigneActualisationBadt.Creer(_ticketId, "269102688", "TRHU7943941");
+
+        ligne.Qualifier(CauseExpirationBadt.NonTerminale, "Chauffeur absent.");
+        Assert.False(ligne.Escalade);
+    }
+
+    [Fact]
     public void Accorder_CauseTerminale_RenseigneColonneT()
     {
         var ligne = LigneQualifieeTerminale();

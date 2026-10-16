@@ -80,7 +80,8 @@ public sealed record LigneBadtDto(
     int? NombreJoursAccordes,
     DateOnly? AncienneDateExpiration,
     DateOnly? NouvelleDateValidite,
-    string? MotifRefus);
+    string? MotifRefus,
+    bool Escalade);
 
 public sealed record FicheBadtDto(
     Guid TicketId,
@@ -129,7 +130,7 @@ public sealed class ObtenirFicheBadtQuery(
         var lignesDto = (await lignes.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
             .Select(l => new LigneBadtDto(
                 l.Id, l.NumeroBl, l.NumeroConteneur, l.Cause, l.MotifCause,
-                l.Decision, l.NombreJoursAccordes, l.AncienneDateExpiration, l.NouvelleDateValidite, l.MotifRefus))
+                l.Decision, l.NombreJoursAccordes, l.AncienneDateExpiration, l.NouvelleDateValidite, l.MotifRefus, l.Escalade))
             .ToList();
 
         // Fiche agent (Support Client / Décideur) : le fil complet, notes internes comprises. Le

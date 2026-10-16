@@ -401,6 +401,8 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(l => l.Decision).HasConversion<string>().HasMaxLength(32).IsRequired();
             b.Property(l => l.MotifCause).HasMaxLength(2000);
             b.Property(l => l.MotifRefus).HasMaxLength(2000);
+            // écart 5 — sous-état « escaladé » (champ, pas une valeur d'enum StatutTicket).
+            b.Property(l => l.Escalade).HasDefaultValue(false);
         });
 
         builder.Entity<Dossier>(b =>

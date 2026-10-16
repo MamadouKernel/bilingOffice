@@ -44,6 +44,11 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<bool>("Escalade")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("MotifCause")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
