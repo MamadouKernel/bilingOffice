@@ -19,6 +19,7 @@
 @inject DeciderLigneBadtCommand Decider
 @inject RenvoyerLigneBadtCommand Renvoyer
 @inject GenererFichierNavisBadtCommand GenererNavis
+@inject RemettreEnFileBadtCommand RemettreEnFile
 @inject CloturerTicketBadtCommand CloturerTicket
 @inject IJSRuntime Js
 @inject NavigationManager Navigation
@@ -253,6 +254,21 @@ else
         </div>
     }
 
+    @* REMISE EN FILE — l'agent rend le ticket à la file avec un commentaire de passation ; un
+       collègue le reprend et poursuit, en voyant l'historique et l'état des lignes. *@
+    @if (_fiche.PeutQualifier)
+    {
+        <div class="cit-card mt-4 p-4 shadow-sm">
+            <h5 class="fw-bold mb-1">@Loc["BadtRemise.Title"]</h5>
+            <p class="text-muted small mb-3">@Loc["BadtRemise.Hint"]</p>
+            <textarea class="form-control form-control-sm mb-2" rows="2" maxlength="2000"
+                      placeholder="@Loc["BadtRemise.Placeholder"]" @bind="_commentairePassation"></textarea>
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                    disabled="@(_busy || string.IsNullOrWhiteSpace(_commentairePassation))"
+                    @onclick="RemettreEnFileAsync">@Loc["BadtRemise.Btn"]</button>
+        </div>
+    }
+
     @* GÉNÉRATION NAVIS — dès qu'au moins un conteneur est accordé : l'agent dépose l'extraction N4
        et la plateforme réinjecte automatiquement la colonne T des conteneurs accordés. *@
     @if (_fiche.PeutQualifier && _fiche.Lignes.Any(l => l.Decision == DecisionLigneBadt.Accordee))
@@ -368,6 +384,7 @@ else
     private byte[]? _extraction;
     private string? _erreurNavis;
     private string? _infoNavis;
+    private string _commentairePassation = string.Empty;
     private string? _nomExtraction;
     private string _nouveauMessage = string.Empty;
     private bool _noteInterne;
@@ -533,6 +550,35 @@ else
         }
     }
 
+    private async Task RemettreEnFileAsync()
+    {
+        if (_busy || string.IsNullOrWhiteSpace(_commentairePassation)) return;
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _erreur = Loc["Badt.SessionExpired"].Value;
+                return;
+            }
+
+            await RemettreEnFile.ExecuterAsync(contexte.UtilisateurId, TicketId, _commentairePassation);
+            _commentairePassation = string.Empty;
+            // Le ticket n'est plus à l'agent : retour à la file, un collègue peut le reprendre.
+            Navigation.NavigateTo("/actualisation-badt/file");
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
     private async Task GenererAsync()
     {
         if (_busy || _extraction is null) return;
@@ -609,6 +655,7 @@ else
     {
         "LigneRenvoyee" => Loc["BadtFiche.LogRenvoi"].Value,
         "LigneRejeteeAgent" => Loc["BadtFiche.LogRejetAgent"].Value,
+        "TicketRemisEnFile" => Loc["BadtFiche.LogRemiseEnFile"].Value,
         _ => evenement,
     };
 

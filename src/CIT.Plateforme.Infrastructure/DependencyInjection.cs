@@ -195,6 +195,7 @@ public static class DependencyInjection
         services.AddScoped<Application.ActualisationBadt.QualifierLigneBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.RejeterLigneBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.RenvoyerLigneBadtCommand>();
+        services.AddScoped<Application.ActualisationBadt.RemettreEnFileBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.DeciderLigneBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.ConsulterFileBadtQuery>();
         services.AddScoped<Application.ActualisationBadt.ObtenirFicheBadtQuery>();

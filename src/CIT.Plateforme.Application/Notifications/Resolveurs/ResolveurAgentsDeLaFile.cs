@@ -28,7 +28,11 @@ public sealed class ResolveurAgentsDeLaFile(
     /// reprend la main (génération Navis puis clôture). Même ciblage « agents de la file ».</summary>
     public const string TypeDecisionBadt = "BadtLigneDecidee";
 
-    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeArrivee or TypeRenvoiBadt or TypeDecisionBadt;
+    /// <summary>FEATURE 010 — remise en file BADT : l'agent rend le ticket à la file avec un
+    /// commentaire de passation ; un collègue de la file le reprend. Même ciblage « agents de la file ».</summary>
+    public const string TypeRemiseEnFileBadt = "BadtTicketRemisEnFile";
+
+    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeArrivee or TypeRenvoiBadt or TypeDecisionBadt or TypeRemiseEnFileBadt;
 
     public async Task<IReadOnlyList<Guid>> ResoudreAsync(string typeEvenement, string chargeUtile, CancellationToken ct = default)
     {

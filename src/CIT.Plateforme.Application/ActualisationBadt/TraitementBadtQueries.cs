@@ -153,7 +153,7 @@ public sealed class ObtenirFicheBadtQuery(
         // Journal des décisions de workflow (renvois du Décideur, rejets agent) : la trace est dans
         // l'historique du ticket ; on l'expose à l'agent pour qu'il voie le motif d'un renvoi avant
         // de requalifier, plutôt que de refaire la même erreur.
-        var evenementsSuivis = new HashSet<string>(StringComparer.Ordinal) { "LigneRenvoyee", "LigneRejeteeAgent" };
+        var evenementsSuivis = new HashSet<string>(StringComparer.Ordinal) { "LigneRenvoyee", "LigneRejeteeAgent", "TicketRemisEnFile" };
         var journalDto = (await historique.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
             .Where(h => evenementsSuivis.Contains(h.Evenement))
             .OrderByDescending(h => h.HorodatageUtc)

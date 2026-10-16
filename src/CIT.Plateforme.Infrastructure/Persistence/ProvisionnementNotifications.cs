@@ -123,6 +123,9 @@ public sealed class ProvisionnementNotifications(
         // Décision du Décideur (accord/refus) : l'agent de la file est informé pour poursuivre le traitement.
         ("BadtLigneDecidee", CanalNotification.InApp, false, "Décision rendue sur une demande d'actualisation BADT"),
         ("BadtLigneDecidee", CanalNotification.Email, false, "Décision rendue sur une demande d'actualisation BADT"),
+        // Remise en file par l'agent (passation) : un ticket d'actualisation BADT est à reprendre.
+        ("BadtTicketRemisEnFile", CanalNotification.InApp, false, "Un ticket d'actualisation BADT est à reprendre"),
+        ("BadtTicketRemisEnFile", CanalNotification.Email, false, "Un ticket d'actualisation BADT est à reprendre"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -162,6 +165,7 @@ public sealed class ProvisionnementNotifications(
         ["Une demande d'actualisation BADT attend votre décision"] = "A BADT update request awaits your decision",
         ["Une ligne d'actualisation BADT vous est renvoyée"] = "A BADT update line has been sent back to you",
         ["Décision rendue sur une demande d'actualisation BADT"] = "Decision made on a BADT update request",
+        ["Un ticket d'actualisation BADT est à reprendre"] = "A BADT update ticket is available to pick up",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -237,6 +241,7 @@ public sealed class ProvisionnementNotifications(
         "BadtLigneEscaladee" => "Une demande d'actualisation BADT a été qualifiée « terminale » et attend votre décision.\n\nOuvrez le ticket {numeroTicket} pour accorder un nombre de jours, refuser, ou renvoyer la ligne à l'agent.",
         "BadtLigneRenvoyee" => "Le Décideur vous renvoie une ligne d'actualisation BADT pour requalification.\n\nOuvrez le ticket {numeroTicket} : le motif du renvoi figure dans l'historique ; requalifiez la ligne puis, si besoin, escaladez-la à nouveau.",
         "BadtLigneDecidee" => "Le Décideur a statué sur une ligne d'actualisation BADT (accord ou refus).\n\nOuvrez le ticket {numeroTicket} pour voir la décision et poursuivre : génération du fichier Navis pour les conteneurs accordés, puis clôture.",
+        "BadtTicketRemisEnFile" => "Un collègue a remis un ticket d'actualisation BADT dans la file et peut être repris.\n\nOuvrez le ticket {numeroTicket} : le commentaire de passation figure dans l'historique, avec les actions déjà faites et l'état des lignes. Prenez-le en charge pour poursuivre le traitement.",
         _ => $"{objet}.\n\nConsultez le ticket concerné pour le détail et la suite à donner.",
     };
 
@@ -278,6 +283,7 @@ public sealed class ProvisionnementNotifications(
         "BadtLigneEscaladee" => "A BADT update request has been qualified as \"terminal\" and awaits your decision.\n\nOpen ticket {numeroTicket} to grant a number of days, refuse, or send the line back to the agent.",
         "BadtLigneRenvoyee" => "The Decision-maker is sending a BADT update line back to you for requalification.\n\nOpen ticket {numeroTicket}: the reason is in the history; requalify the line and, if needed, escalate it again.",
         "BadtLigneDecidee" => "The Decision-maker has ruled on a BADT update line (approval or refusal).\n\nOpen ticket {numeroTicket} to see the decision and continue: generate the Navis file for granted containers, then close.",
+        "BadtTicketRemisEnFile" => "A colleague has put a BADT update ticket back in the queue and it can be picked up.\n\nOpen ticket {numeroTicket}: the handover comment is in the history, along with the actions already done and the lines' state. Take it over to continue processing.",
         _ => $"{objet}.\n\nSee the related ticket for details and next steps.",
     };
 
