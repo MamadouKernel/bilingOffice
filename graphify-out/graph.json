@@ -40176,7 +40176,7 @@
       },
       "norm_label": ".getenglishdictionary()",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7641"
+      "source_location": "L7659"
     },
     {
       "id": "src_cit_plateforme_web_resources_sharedresourceslocalizer_cit_plateforme_web_resources_sharedresourceslocalizer_getfrenchdictionary",
@@ -40194,7 +40194,7 @@
       },
       "norm_label": ".getfrenchdictionary()",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7640"
+      "source_location": "L7658"
     },
     {
       "id": "tests_cit_plateforme_web_tests_localisation_nfrcert07completuderessourcestests_cit_plateforme_web_tests_localisation_nfrcert07completuderessourcestests_fallback_doitrenvoyerfrancais_quandcultureestanglaisemaisclenondefinieenanglais",
@@ -50002,7 +50002,7 @@
       },
       "norm_label": ".getallstrings()",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7619"
+      "source_location": "L7637"
     },
     {
       "id": "src_cit_plateforme_web_resources_sharedresourceslocalizer_cit_plateforme_web_resources_sharedresourceslocalizer_t",
@@ -50020,7 +50020,7 @@
       },
       "norm_label": ".t()",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7628"
+      "source_location": "L7646"
     },
     {
       "id": "tests_cit_plateforme_web_tests_localisation_libellesmetiertests_cit_plateforme_web_tests_localisation_libellesmetiertests_enculture",
@@ -75738,7 +75738,7 @@
       },
       "norm_label": ".get()",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7634"
+      "source_location": "L7652"
     },
     {
       "id": "src_cit_plateforme_domain_notifications_modelenotification_cit_plateforme_domain_notifications_modelenotification_activer",
@@ -282988,7 +282988,7 @@
       "file_type": "code",
       "norm_label": "groupepermissions",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1132"
+      "source_location": "L1135"
     },
     {
       "id": "profilmetierui",
@@ -282999,7 +282999,7 @@
       "file_type": "code",
       "norm_label": "profilmetierui",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1092"
+      "source_location": "L1094"
     },
     {
       "id": "resultathabilitationsenmasse",
@@ -283021,7 +283021,7 @@
       "file_type": "code",
       "norm_label": "resumecategorie",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1233"
+      "source_location": "L1240"
     },
     {
       "id": "src_cit_plateforme_web_components_pages_administration_comptesagents",
@@ -283153,7 +283153,7 @@
       "file_type": "code",
       "norm_label": "demanderconfirmationprofilmetier",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1107"
+      "source_location": "L1110"
     },
     {
       "id": "src_cit_plateforme_web_components_pages_administration_comptesagents_demanderconfirmationprofilsupportn1",
@@ -283241,7 +283241,7 @@
       "file_type": "code",
       "norm_label": "executerprofilmetierasync",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1126"
+      "source_location": "L1129"
     },
     {
       "id": "src_cit_plateforme_web_components_pages_administration_comptesagents_executerprofilsupportn1async",
@@ -283296,7 +283296,7 @@
       "file_type": "code",
       "norm_label": "obtenircategoriesagent",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1233"
+      "source_location": "L1240"
     },
     {
       "id": "src_cit_plateforme_web_components_pages_administration_comptesagents_obtenirinitiales",
@@ -283340,7 +283340,7 @@
       "file_type": "code",
       "norm_label": "profilmetierui",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1090"
+      "source_location": "L1092"
     },
     {
       "id": "src_cit_plateforme_web_components_pages_administration_comptesagents_razor_applicationuser",
@@ -396727,7 +396727,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7636",
+      "source_location": "L7654",
       "weight": 1.0
     },
     {
@@ -396739,7 +396739,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7630",
+      "source_location": "L7648",
       "weight": 1.0
     },
     {
@@ -457522,7 +457522,7 @@
         "ref_token": "Dictionary"
       },
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L3798",
+      "source_location": "L3807",
       "weight": 1.0
     },
     {
@@ -560598,7 +560598,7 @@
         "ref_token": "LocalizedString"
       },
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7619",
+      "source_location": "L7637",
       "weight": 1.0
     },
     {
@@ -756434,7 +756434,7 @@
         "ref_token": "IEnumerable"
       },
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7619",
+      "source_location": "L7637",
       "weight": 1.0
     },
     {
@@ -756779,7 +756779,7 @@
         "ref_token": "IReadOnlyDictionary"
       },
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7641",
+      "source_location": "L7659",
       "weight": 1.0
     },
     {
@@ -756794,7 +756794,7 @@
         "ref_token": "IReadOnlyDictionary"
       },
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7640",
+      "source_location": "L7658",
       "weight": 1.0
     },
     {
@@ -757694,7 +757694,7 @@
         "ref_token": "LocalizedString"
       },
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7628",
+      "source_location": "L7646",
       "weight": 1.0
     },
     {
@@ -808637,7 +808637,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1092",
+      "source_location": "L1094",
       "weight": 1.0
     },
     {
@@ -808648,7 +808648,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1214",
+      "source_location": "L1221",
       "weight": 1.0
     },
     {
@@ -808659,7 +808659,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/Administration/ComptesAgents.razor",
-      "source_location": "L1233",
+      "source_location": "L1240",
       "weight": 1.0
     },
     {
@@ -948923,7 +948923,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7619",
+      "source_location": "L7637",
       "weight": 1.0
     },
     {
@@ -948934,7 +948934,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7640",
+      "source_location": "L7658",
       "weight": 1.0
     },
     {
@@ -948945,7 +948945,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/CIT.Plateforme.Web/Resources/SharedResourcesLocalizer.cs",
-      "source_location": "L7641",
+      "source_location": "L7659",
       "weight": 1.0
     },
     {
@@ -1102565,5 +1102565,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "bc87f0dd250f026d2f7cf3bde4fee181d01b29e4"
+  "built_at_commit": "fc8d8820c72bdc7a7740012540370f4fdcdf7744"
 }

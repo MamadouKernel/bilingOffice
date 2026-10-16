@@ -1057,6 +1057,8 @@ else
             [Permission.AvoirDecider] = "AdmCompte.D.AvoirDecider",
             [Permission.ExonerationInstruire] = "AdmCompte.D.ExonerationInstruire",
             [Permission.ExonerationDecider] = "AdmCompte.D.ExonerationDecider",
+            [Permission.ActualisationBadtInstruire] = "AdmCompte.D.BadtInstruire",
+            [Permission.ActualisationBadtDecider] = "AdmCompte.D.BadtDecider",
             [Permission.ComplaintSoumettre] = "AdmCompte.D.ComplaintSoumettre",
             [Permission.ComplaintInstruire] = "AdmCompte.D.ComplaintInstruire",
             [Permission.ComplaintRepondre] = "AdmCompte.D.ComplaintRepondre",
@@ -1098,6 +1100,7 @@ else
         new("ComptableClient", "📒", "AdmCompte.Profil.ComptableClient.Nom", "AdmCompte.Profil.ComptableClient.Desc"),
         new("ControleDocumentaire", "📑", "AdmCompte.Profil.ControleDocumentaire.Nom", "AdmCompte.Profil.ControleDocumentaire.Desc"),
         new("SupportOperationnel", "📢", "AdmCompte.Profil.SupportOperationnel.Nom", "AdmCompte.Profil.SupportOperationnel.Desc"),
+        new("DecideurActualisationBadt", "🗓️", "AdmCompte.Profil.DecideurBadt.Nom", "AdmCompte.Profil.DecideurBadt.Desc"),
         new("AgentGate", "🚚", "AdmCompte.Profil.AgentGate.Nom", "AdmCompte.Profil.AgentGate.Desc"),
         new("Superviseur", "📊", "AdmCompte.Profil.Superviseur.Nom", "AdmCompte.Profil.Superviseur.Desc"),
         new("AdminFonctionnel", "🛡️", "AdmCompte.Profil.AdminFonctionnel.Nom", "AdmCompte.Profil.AdminFonctionnel.Desc"),
@@ -1177,6 +1180,10 @@ else
             new ElementPermission(Permission.ComplaintInstruire, Loc["AdmCompte.P.ComplaintInstruire"].Value),
             new ElementPermission(Permission.ComplaintRepondre, Loc["AdmCompte.P.ComplaintRepondre"].Value),
             new ElementPermission(Permission.AdministrationCategoriesReclamation, Loc["AdmCompte.P.ComplaintCategories"].Value),
+        ]),
+        new GroupePermissions(Loc["AdmCompte.G.Badt"].Value, "🗓️", Loc["AdmCompte.GD.Badt"].Value, [
+            new ElementPermission(Permission.ActualisationBadtInstruire, Loc["AdmCompte.P.BadtInstruire"].Value),
+            new ElementPermission(Permission.ActualisationBadtDecider, Loc["AdmCompte.P.BadtDecider"].Value),
         ]),
         new GroupePermissions(Loc["AdmCompte.G.Enrolement"].Value, "🚚", Loc["AdmCompte.GD.Enrolement"].Value, [
             new ElementPermission(Permission.EnrolementSoumettre, Loc["AdmCompte.P.EnrolSoumettre"].Value),
