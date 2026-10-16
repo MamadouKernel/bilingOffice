@@ -222,6 +222,8 @@ public static class CatalogueNavigation
             new("File Actualisation BADT", "🗓️", "/actualisation-badt/file",
                 [Permission.ActualisationBadtInstruire, Permission.ActualisationBadtDecider],
                 Domain.Tickets.Ticket.ModuleActualisationBadt, ActualisationBadt.CreerDemandeActualisationBadtCommand.NomFile),
+            new("Reporting Actualisation BADT", "📊", "/administration/reporting-badt",
+                [Permission.ActualisationBadtInstruire, Permission.ActualisationBadtDecider]),
             new("File Agent Gate", "🛂", "/enrolement/file-agent-gate",
                 [Permission.EnrolementInstruire],
                 SoumettreEnrolementCommand.Module, SoumettreEnrolementCommand.FileAgentGate),
@@ -265,6 +267,7 @@ public static class CatalogueNavigation
         [
             new("Vue Supervision", "📈", "/supervision", [Permission.SupervisionConsulter], CorrespondanceExacte: true),
             new("Performance agents", "📊", "/administration/performance-agents", [Permission.SupervisionConsulter]),
+            new("Reporting Actualisation BADT", "📊", "/administration/reporting-badt", [Permission.SupervisionConsulter]),
         ]),
         new("Gestion des Dossiers", "📦",
         [

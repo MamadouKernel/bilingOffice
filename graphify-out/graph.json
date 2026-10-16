@@ -482947,7 +482947,7 @@
         "ref_token": "IReadOnlyList"
       },
       "source_file": "src/CIT.Plateforme.Application/Web/CatalogueNavigation.cs",
-      "source_location": "L335",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -545522,7 +545522,7 @@
         "ref_token": "GroupeNavigation"
       },
       "source_file": "src/CIT.Plateforme.Application/Web/CatalogueNavigation.cs",
-      "source_location": "L335",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -1114136,5 +1114136,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f2103abfaeb7c47cc4b5e76f68208a11187c1533"
+  "built_at_commit": "176543fe4309382427e303dd03744ef268a41394"
 }
