@@ -329851,17 +329851,6 @@
       "source_location": "L41"
     },
     {
-      "id": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt_razor_inputfile",
-      "label": "InputFile",
-      "_origin": "ast",
-      "community": 72,
-      "community_name": "FicheActualisationBadt.razor",
-      "file_type": "code",
-      "norm_label": "inputfile",
-      "source_file": "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FicheActualisationBadt.razor",
-      "source_location": "L290"
-    },
-    {
       "id": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt_razor_istringlocalizer",
       "label": "IStringLocalizer",
       "_origin": "ast",
@@ -329937,6 +329926,17 @@
       "norm_label": "statutbadge",
       "source_file": "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FicheActualisationBadt.razor",
       "source_location": "L58"
+    },
+    {
+      "id": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt_razor_zonedepot",
+      "label": "ZoneDepot",
+      "_origin": "ast",
+      "community": 72,
+      "community_name": "FicheActualisationBadt.razor",
+      "file_type": "code",
+      "norm_label": "zonedepot",
+      "source_file": "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FicheActualisationBadt.razor",
+      "source_location": "L290"
     },
     {
       "id": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt_refuserasync",
@@ -821289,7 +821289,7 @@
     },
     {
       "source": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt",
-      "target": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt_razor_inputfile",
+      "target": "src_cit_plateforme_web_components_pages_actualisationbadt_ficheactualisationbadt_razor_zonedepot",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -1118741,5 +1118741,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "32c52972392d5af3b7b80e04752a77b39d89c784"
+  "built_at_commit": "e2c171025930239f58926e14b2b917cbc3976495"
 }
