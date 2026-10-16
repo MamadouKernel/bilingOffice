@@ -122,7 +122,9 @@ public sealed class SeedRecetteUat(
              Permission.BillingExportIesBackOfficeInstruire]),
         (SupportOperationnel, "UAT_Support Operationnel", NatureUtilisateur.Agent, true,
             [Permission.TicketPrendreEnCharge, Permission.MessageNoteInterne, Permission.ComplaintInstruire,
-             Permission.ComplaintRepondre, Permission.DocumentDeposer, Permission.DocumentTelecharger]),
+             Permission.ComplaintRepondre, Permission.DocumentDeposer, Permission.DocumentTelecharger,
+             // FEATURE 010 — Support Client qualifie et (pour la démo UAT) décide les demandes BADT.
+             Permission.ActualisationBadtInstruire, Permission.ActualisationBadtDecider]),
         (AgentGate, "UAT_Agent Gate", NatureUtilisateur.Agent, true,
             [Permission.TicketPrendreEnCharge, Permission.MessageNoteInterne, Permission.EnrolementInstruire,
              Permission.DocumentTelecharger, Permission.DocumentDeposer]),
