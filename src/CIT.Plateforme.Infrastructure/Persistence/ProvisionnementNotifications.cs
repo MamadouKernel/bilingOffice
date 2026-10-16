@@ -113,6 +113,13 @@ public sealed class ProvisionnementNotifications(
         ("DemandeAnnulationAcceptee", CanalNotification.Email, false, "Votre demande d'annulation est acceptée"),
         ("DemandeAnnulationRejetee", CanalNotification.InApp, false, "Votre demande d'annulation n'est pas retenue"),
         ("DemandeAnnulationRejetee", CanalNotification.Email, false, "Votre demande d'annulation n'est pas retenue"),
+
+        // FEATURE 010 (Actualisation BADT) : escalade vers le Décideur (une ligne terminale attend sa
+        // décision) et renvoi du Décideur vers l'agent de la file (requalification attendue).
+        ("BadtLigneEscaladee", CanalNotification.InApp, false, "Une demande d'actualisation BADT attend votre décision"),
+        ("BadtLigneEscaladee", CanalNotification.Email, false, "Une demande d'actualisation BADT attend votre décision"),
+        ("BadtLigneRenvoyee", CanalNotification.InApp, false, "Une ligne d'actualisation BADT vous est renvoyée"),
+        ("BadtLigneRenvoyee", CanalNotification.Email, false, "Une ligne d'actualisation BADT vous est renvoyée"),
     ];
 
     private static readonly Dictionary<string, string> ObjetsAnglais = new(StringComparer.Ordinal)
@@ -149,6 +156,8 @@ public sealed class ProvisionnementNotifications(
         ["Un client demande l'annulation d'un ticket"] = "A customer requests a ticket cancellation",
         ["Votre demande d'annulation est acceptée"] = "Your cancellation request is accepted",
         ["Votre demande d'annulation n'est pas retenue"] = "Your cancellation request was not accepted",
+        ["Une demande d'actualisation BADT attend votre décision"] = "A BADT update request awaits your decision",
+        ["Une ligne d'actualisation BADT vous est renvoyée"] = "A BADT update line has been sent back to you",
     };
 
     public async Task ExecuterAsync(CancellationToken ct = default)
@@ -221,6 +230,8 @@ public sealed class ProvisionnementNotifications(
         "RappelEcheanceDocument" => "Un document de votre flotte (assurance, visite technique…) arrive à échéance.\n\nPensez à le renouveler et à déposer la version à jour. Le détail figure sur le ticket {numeroTicket}.",
         "TicketIncidentResolu" => "Votre incident technique a été résolu.\n\nLe détail de la résolution figure sur le ticket {numeroTicket}. Si le problème persistait, répondez directement depuis le ticket pour le rouvrir.",
         "CollaborateurMentionne" => "Vous avez été mentionné sur un ticket.\n\nOuvrez le ticket {numeroTicket} pour prendre connaissance du message et y répondre si nécessaire.",
+        "BadtLigneEscaladee" => "Une demande d'actualisation BADT a été qualifiée « terminale » et attend votre décision.\n\nOuvrez le ticket {numeroTicket} pour accorder un nombre de jours, refuser, ou renvoyer la ligne à l'agent.",
+        "BadtLigneRenvoyee" => "Le Décideur vous renvoie une ligne d'actualisation BADT pour requalification.\n\nOuvrez le ticket {numeroTicket} : le motif du renvoi figure dans l'historique ; requalifiez la ligne puis, si besoin, escaladez-la à nouveau.",
         _ => $"{objet}.\n\nConsultez le ticket concerné pour le détail et la suite à donner.",
     };
 
@@ -259,6 +270,8 @@ public sealed class ProvisionnementNotifications(
         "RappelEcheanceDocument" => "A fleet document (insurance, technical inspection, etc.) is about to expire.\n\nRemember to renew it and upload the up-to-date version. The details are on ticket {numeroTicket}.",
         "TicketIncidentResolu" => "Your technical incident has been resolved.\n\nThe resolution details are on ticket {numeroTicket}. Should the problem persist, reply directly from the ticket to reopen it.",
         "CollaborateurMentionne" => "You have been mentioned on a ticket.\n\nOpen ticket {numeroTicket} to read the message and reply if necessary.",
+        "BadtLigneEscaladee" => "A BADT update request has been qualified as \"terminal\" and awaits your decision.\n\nOpen ticket {numeroTicket} to grant a number of days, refuse, or send the line back to the agent.",
+        "BadtLigneRenvoyee" => "The Decision-maker is sending a BADT update line back to you for requalification.\n\nOpen ticket {numeroTicket}: the reason is in the history; requalify the line and, if needed, escalate it again.",
         _ => $"{objet}.\n\nSee the related ticket for details and next steps.",
     };
 

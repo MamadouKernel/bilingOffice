@@ -13,6 +13,10 @@ namespace CIT.Plateforme.Domain.ActualisationBadt;
 /// </summary>
 public sealed class LigneActualisationBadt
 {
+    /// <summary>Bornes alignées sur le schéma de persistance (colonnes NumeroBl / NumeroConteneur).</summary>
+    public const int LongueurMaxBl = 64;
+    public const int LongueurMaxConteneur = 32;
+
     public Guid Id { get; private set; }
 
     /// <summary>Ticket (la demande d'actualisation) auquel la ligne est rattachée.</summary>
@@ -70,6 +74,18 @@ public sealed class LigneActualisationBadt
             throw new ArgumentException("Au moins un numéro (BL ou conteneur) est obligatoire.", nameof(numeroBl));
         }
 
+        // Bornes alignées sur le schéma (BL 64, conteneur 32) : une saisie trop longue est rejetée
+        // avec un message clair plutôt que par une erreur de troncature SQL à l'enregistrement.
+        if (bl.Length > LongueurMaxBl)
+        {
+            throw new ArgumentException($"Le numéro de BL ne peut dépasser {LongueurMaxBl} caractères.", nameof(numeroBl));
+        }
+
+        if (conteneur.Length > LongueurMaxConteneur)
+        {
+            throw new ArgumentException($"Le numéro de conteneur ne peut dépasser {LongueurMaxConteneur} caractères.", nameof(numeroConteneur));
+        }
+
         return new LigneActualisationBadt
         {
             Id = Guid.NewGuid(),
@@ -95,7 +111,13 @@ public sealed class LigneActualisationBadt
             throw new ArgumentException("Le numéro de conteneur est obligatoire.", nameof(numeroConteneur));
         }
 
-        NumeroConteneur = numeroConteneur.Trim();
+        var valeur = numeroConteneur.Trim();
+        if (valeur.Length > LongueurMaxConteneur)
+        {
+            throw new ArgumentException($"Le numéro de conteneur ne peut dépasser {LongueurMaxConteneur} caractères.", nameof(numeroConteneur));
+        }
+
+        NumeroConteneur = valeur;
     }
 
     /// <summary>Qualifie la cause de l'expiration (agent). Le commentaire/motif est obligatoire.</summary>

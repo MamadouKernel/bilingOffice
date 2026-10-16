@@ -63,6 +63,14 @@ public sealed class LigneActualisationBadtTests
     }
 
     [Fact]
+    public void Creer_ConteneurTropLong_LeveArgumentException()
+    {
+        var conteneurTropLong = new string('X', LigneActualisationBadt.LongueurMaxConteneur + 1);
+        Assert.Throws<ArgumentException>(() =>
+            LigneActualisationBadt.Creer(_ticketId, "269102688", conteneurTropLong));
+    }
+
+    [Fact]
     public void Qualifier_Terminale_MarqueEscaladeEtRefusLaLeve()
     {
         var ligne = LigneActualisationBadt.Creer(_ticketId, "269102688", "TRHU7943941");

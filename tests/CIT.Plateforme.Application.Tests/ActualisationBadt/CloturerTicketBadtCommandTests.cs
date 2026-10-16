@@ -65,6 +65,28 @@ public class CloturerTicketBadtCommandTests
     }
 
     [Fact]
+    public async Task Cloture_notifie_le_client_via_TicketCloture()
+    {
+        var ligne = Ligne();
+        ligne.Refuser("Hors délai.");
+        _lignes.Setup(r => r.ListerParTicketAsync(_ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync([ligne]);
+
+        await _command.ExecuterAsync(Guid.NewGuid(), _ticket.Id, CancellationToken.None);
+
+        _journalisation.Verify(j => j.PublierEvenementAsync("TicketCloture", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Refuse_la_cloture_si_un_BL_n_est_pas_deplie()
+    {
+        var blSeul = LigneActualisationBadt.Creer(_ticket.Id, "BL1");
+        _lignes.Setup(r => r.ListerParTicketAsync(_ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync([blSeul]);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _command.ExecuterAsync(Guid.NewGuid(), _ticket.Id, CancellationToken.None));
+        Assert.NotEqual(StatutTicket.Cloture, _ticket.Statut);
+    }
+
+    [Fact]
     public async Task Refuse_sans_permission()
     {
         _autorisation.Setup(a => a.EstAutoriseAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);

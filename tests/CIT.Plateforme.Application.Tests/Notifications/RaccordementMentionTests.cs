@@ -193,7 +193,10 @@ public class RaccordementMentionTests
         // 14/10/2026 — ResolveurClientDuRendezVous (Feature 010 / Guichet) : notifie le client de la
         // confirmation et de l'annulation de son rendez-vous Billing Office. NOMINATIF (le client du
         // dossier), par délégation à ResolveurClientDuDossier — aucune diffusion collective.
-        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurClientDuRendezVous", "ResolveurCollaborateurMentionne", "ResolveurDemandeurCompte", "ResolveurPreparateurEnrolement", "ResolveurSuperviseursDeLaFile", "ResolveurValidateursSociete", "ResolveurValideursCompte"], implementations);
+        // 16/10/2026 — ResolveurDecideursBadt (Feature 010) : escalade d'une ligne terminale vers le
+        // Décideur Actualisateur BADT. NOMINATIF — les seuls détenteurs de la permission de décision
+        // BADT, pas de broadcast ni de « file » comme destinataire.
+        Assert.Equal(["ResolveurAgentsDeLaFile", "ResolveurClientDuDossier", "ResolveurClientDuRendezVous", "ResolveurCollaborateurMentionne", "ResolveurDecideursBadt", "ResolveurDemandeurCompte", "ResolveurPreparateurEnrolement", "ResolveurSuperviseursDeLaFile", "ResolveurValidateursSociete", "ResolveurValideursCompte"], implementations);
 
         // Toujours aucune diffusion collective.
         Assert.DoesNotContain(implementations, n => n.Contains("Broadcast", StringComparison.OrdinalIgnoreCase));

@@ -29,7 +29,19 @@ public sealed class CloturerTicketBadtCommand(
         }
 
         var toutesLignes = await lignes.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false);
-        if (toutesLignes.Count == 0 || toutesLignes.Any(l => l.Decision == DecisionLigneBadt.EnAttente))
+        if (toutesLignes.Count == 0)
+        {
+            throw new InvalidOperationException("La demande ne porte aucune ligne : rien à clôturer.");
+        }
+
+        // Un BL non encore déplié (ligne sans conteneur) reste « en attente » : on l'explicite pour
+        // éviter le message générique « conteneurs à statuer » qui masque la vraie cause.
+        if (toutesLignes.Any(l => l.NumeroConteneur.Length == 0))
+        {
+            throw new InvalidOperationException("Certains BL n'ont pas encore été dépliés en conteneurs : ajoutez les conteneurs (ou retirez le BL) avant la clôture.");
+        }
+
+        if (toutesLignes.Any(l => l.Decision == DecisionLigneBadt.EnAttente))
         {
             throw new InvalidOperationException("Tous les conteneurs doivent être statués (accordés ou refusés) avant la clôture.");
         }
@@ -39,6 +51,9 @@ public sealed class CloturerTicketBadtCommand(
 
         await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.Cloture", nameof(Ticket), ticket.Id, null, "clôturé", ct).ConfigureAwait(false);
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "TicketCloture", "Fichier Navis intégré, demande traitée.", agentId, ct).ConfigureAwait(false);
+        // Le client est informé que sa demande d'actualisation est traitée et clôturée (résultat
+        // par conteneur consultable sur le ticket). Événement déjà câblé au ResolveurClientDuDossier.
+        await journalisation.PublierEvenementAsync("TicketCloture", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }

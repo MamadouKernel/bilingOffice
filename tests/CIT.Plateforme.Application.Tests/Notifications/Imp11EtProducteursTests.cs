@@ -123,7 +123,14 @@ public class Imp11EtProducteursTests
         // « 4-yeux » publie TicketArriveeEnFile quand un validateur libère un dossier parqué.
         // 55e producteur (10/10/2026) — RendreTicketALaFileCommand.cs : passation de chiffre, l'agent
         // rend son ticket à la file (relève) et publie TicketRenduALaFile. Producteur délibéré.
-        Assert.Equal(55, fichiersProducteurs.Count);
+        // 56e et 57e producteurs (16/10/2026) — Feature 010 Actualisation BADT :
+        //   TraitementLigneBadtCommands.cs publie BadtLigneEscaladee (escalade vers le Décideur) et
+        //   BadtLigneRenvoyee (renvoi du Décideur à l'agent) ; CloturerTicketBadtCommand.cs publie
+        //   TicketCloture (le client est informé que sa demande est traitée). Producteurs délibérés.
+        Assert.Equal(58, fichiersProducteurs.Count);
+        Assert.Contains("CreerDemandeActualisationBadtCommand.cs", fichiersProducteurs);
+        Assert.Contains("TraitementLigneBadtCommands.cs", fichiersProducteurs);
+        Assert.Contains("CloturerTicketBadtCommand.cs", fichiersProducteurs);
         Assert.Contains("RendreTicketALaFileCommand.cs", fichiersProducteurs);
         Assert.Contains("ValidationInterneEnrolementCommand.cs", fichiersProducteurs);
         Assert.Contains("SoumettreDemandeCompteCommand.cs", fichiersProducteurs);
@@ -369,13 +376,17 @@ public class Imp11EtProducteursTests
         // + ResolveurPreparateurEnrolement (informe le préparateur de la décision) — validation interne 4-yeux.
         // Neuf depuis le 14/10/2026 : + ResolveurClientDuRendezVous (Feature 010 / Guichet), qui
         // notifie le client de la confirmation et de l'annulation de son rendez-vous Billing Office.
-        Assert.Equal(9, implementations.Count);
+        // Dix depuis le 16/10/2026 : + ResolveurDecideursBadt (Feature 010 / Actualisation BADT), qui
+        // notifie le Décideur Actualisateur BADT à l'escalade d'une ligne terminale (nominatif).
+        Assert.Equal(10, implementations.Count);
 
         // Aucun résolveur ne dépend d'un port de file ou d'habilitation globale — SAUF les résolveurs
         // NOMINATIFS scopés par permission (superviseurs/agents de la file, valideurs de compte) : ils
         // lisent les habilitations d'une file/permission précise pour cibler des utilisateurs nommés
         // (ALE-03), jamais une diffusion collective.
-        var exceptionsScopees = new[] { "ResolveurSuperviseursDeLaFile", "ResolveurAgentsDeLaFile", "ResolveurValideursCompte" };
+        // ResolveurDecideursBadt : nominatif par permission (ActualisationBadtDecider), comme les
+        // résolveurs scopés par file — cible des décideurs nommés, jamais une diffusion collective.
+        var exceptionsScopees = new[] { "ResolveurSuperviseursDeLaFile", "ResolveurAgentsDeLaFile", "ResolveurValideursCompte", "ResolveurDecideursBadt" };
         foreach (var implementation in implementations.Where(i => !exceptionsScopees.Contains(i.Name)))
         {
             var dependances = implementation.GetConstructors().Single().GetParameters()

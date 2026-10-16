@@ -37,6 +37,11 @@ public sealed class QualifierLigneBadtCommand(
             $"conteneur={ligne.NumeroConteneur};cause={cause}", agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.Qualification", nameof(LigneActualisationBadt),
             ligne.Id, null, $"{cause}", ct).ConfigureAwait(false);
+        // Cause terminale → escalade vers le Décideur : l'informer qu'une ligne attend sa décision.
+        if (ligne.Escalade)
+        {
+            await journalisation.PublierEvenementAsync("BadtLigneEscaladee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+        }
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 
@@ -75,6 +80,11 @@ public sealed class QualifierLigneBadtCommand(
             $"bl={numeroBl};cause={cause};conteneurs={cibles.Count}", agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.QualificationBl", nameof(LigneActualisationBadt),
             ticket.Id, null, $"{cause};{cibles.Count}", ct).ConfigureAwait(false);
+        // Un BL qualifié terminal escalade tous ses conteneurs : un seul événement vers le Décideur.
+        if (cause == CauseExpirationBadt.Terminale)
+        {
+            await journalisation.PublierEvenementAsync("BadtLigneEscaladee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+        }
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 
@@ -166,6 +176,8 @@ public sealed class RenvoyerLigneBadtCommand(
             $"conteneur={ligne.NumeroConteneur};motif={motif.Trim()}", decideurId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(decideurId, "ActualisationBadt.Renvoi", nameof(LigneActualisationBadt),
             ligne.Id, null, motif.Trim(), ct).ConfigureAwait(false);
+        // Le renvoi remet le travail à l'agent de la file : l'en informer (requalification attendue).
+        await journalisation.PublierEvenementAsync("BadtLigneRenvoyee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }

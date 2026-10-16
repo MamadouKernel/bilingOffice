@@ -95,7 +95,11 @@ public sealed record FicheBadtDto(
     bool PeutQualifier,
     bool PeutDecider,
     IReadOnlyList<LigneBadtDto> Lignes,
-    IReadOnlyList<MessageItemVue> Messages);
+    IReadOnlyList<MessageItemVue> Messages,
+    IReadOnlyList<JournalDecisionBadtDto> JournalDecisions);
+
+/// <summary>Trace d'une décision de workflow (renvoi, rejet agent) pour affichage sur la fiche.</summary>
+public sealed record JournalDecisionBadtDto(string Evenement, string? Detail, DateTime HorodatageUtc);
 
 /// <summary>
 /// FEATURE 010 (Actualisation BADT) — fiche agent : le ticket, son client, et ses lignes conteneur
@@ -109,6 +113,7 @@ public sealed class ObtenirFicheBadtQuery(
     ILigneActualisationBadtRepository lignes,
     IMessageRepository messages,
     IUtilisateurInfoRepository utilisateursInfo,
+    IHistoriqueTicketRepository historique,
     IAutorisationService autorisation)
 {
     public async Task<FicheBadtDto> ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
@@ -145,11 +150,21 @@ public sealed class ObtenirFicheBadtQuery(
                 m.Type == TypeMessage.NoteInterne, m.HorodatageUtc))
             .ToList();
 
+        // Journal des décisions de workflow (renvois du Décideur, rejets agent) : la trace est dans
+        // l'historique du ticket ; on l'expose à l'agent pour qu'il voie le motif d'un renvoi avant
+        // de requalifier, plutôt que de refaire la même erreur.
+        var evenementsSuivis = new HashSet<string>(StringComparer.Ordinal) { "LigneRenvoyee", "LigneRejeteeAgent" };
+        var journalDto = (await historique.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
+            .Where(h => evenementsSuivis.Contains(h.Evenement))
+            .OrderByDescending(h => h.HorodatageUtc)
+            .Select(h => new JournalDecisionBadtDto(h.Evenement, h.Detail, h.HorodatageUtc))
+            .ToList();
+
         return new FicheBadtDto(
             ticket.Id, ticket.Numero, dossier?.Numero,
             societe?.InformationsDeclarees ?? "Client",
             ticket.Objet ?? string.Empty, ticket.Description ?? string.Empty,
             ticket.Statut, ticket.DateCreationUtc,
-            peutQualifier, peutDecider, lignesDto, messagesDto);
+            peutQualifier, peutDecider, lignesDto, messagesDto, journalDto);
     }
 }

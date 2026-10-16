@@ -238,6 +238,21 @@ else
         </div>
     }
 
+    @* JOURNAL DES DÉCISIONS — renvois du décideur et rejets agent, pour que l'agent voie le motif. *@
+    @if (_fiche.JournalDecisions.Count > 0)
+    {
+        <div class="cit-card mb-4 p-3 shadow-sm border-secondary-subtle">
+            <div class="fw-semibold small mb-2">@Loc["BadtFiche.DecisionLogTitle"]</div>
+            @foreach (var j in _fiche.JournalDecisions)
+            {
+                <div class="small d-flex justify-content-between gap-2 border-bottom py-1">
+                    <span><span class="badge bg-light text-dark border me-2">@LibelleEvenement(j.Evenement)</span>@j.Detail</span>
+                    <span class="text-muted u-fs-xs">@j.HorodatageUtc.Horodate()</span>
+                </div>
+            }
+        </div>
+    }
+
     @* GÉNÉRATION NAVIS — dès qu'au moins un conteneur est accordé : l'agent dépose l'extraction N4
        et la plateforme réinjecte automatiquement la colonne T des conteneurs accordés. *@
     @if (_fiche.PeutQualifier && _fiche.Lignes.Any(l => l.Decision == DecisionLigneBadt.Accordee))
@@ -573,6 +588,13 @@ else
         DecisionLigneBadt.Accordee => Loc["BadtFiche.DecAccordee"].Value,
         DecisionLigneBadt.Refusee => Loc["BadtFiche.DecRefusee"].Value,
         _ => Loc["BadtFiche.DecEnAttente"].Value,
+    };
+
+    private string LibelleEvenement(string evenement) => evenement switch
+    {
+        "LigneRenvoyee" => Loc["BadtFiche.LogRenvoi"].Value,
+        "LigneRejeteeAgent" => Loc["BadtFiche.LogRejetAgent"].Value,
+        _ => evenement,
     };
 
     private string LibelleCause(CauseExpirationBadt c) =>

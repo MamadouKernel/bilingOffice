@@ -530,6 +530,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurDemandeurCompte>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurSuperviseursDeLaFile>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurAgentsDeLaFile>();
+        services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurDecideursBadt>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurValideursCompte>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurValidateursSociete>();
         services.AddScoped<Application.Abstractions.IResolveurDestinataires, Application.Notifications.Resolveurs.ResolveurPreparateurEnrolement>();

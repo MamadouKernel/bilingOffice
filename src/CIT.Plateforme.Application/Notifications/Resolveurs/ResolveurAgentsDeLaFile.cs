@@ -20,7 +20,11 @@ public sealed class ResolveurAgentsDeLaFile(
 {
     public const string TypeArrivee = "TicketArriveeEnFile";
 
-    public bool PeutResoudre(string typeEvenement) => typeEvenement == TypeArrivee;
+    /// <summary>FEATURE 010 — renvoi BADT : le Décideur renvoie une ligne à l'agent de la file pour
+    /// requalification. Même ciblage « agents de la file » que l'arrivée d'une demande.</summary>
+    public const string TypeRenvoiBadt = "BadtLigneRenvoyee";
+
+    public bool PeutResoudre(string typeEvenement) => typeEvenement is TypeArrivee or TypeRenvoiBadt;
 
     public async Task<IReadOnlyList<Guid>> ResoudreAsync(string typeEvenement, string chargeUtile, CancellationToken ct = default)
     {

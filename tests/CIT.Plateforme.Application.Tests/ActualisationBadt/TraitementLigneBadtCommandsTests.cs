@@ -75,6 +75,30 @@ public class TraitementLigneBadtCommandsTests
     }
 
     [Fact]
+    public async Task Qualifier_terminale_publie_l_evenement_d_escalade()
+    {
+        var ligne = UneLigne();
+        var agentId = Guid.NewGuid();
+        _autorisation.Setup(a => a.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, _ticket.FileCouranteId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await _qualifier.ExecuterAsync(agentId, ligne.Id, CauseExpirationBadt.Terminale, "Panne terminal.", CancellationToken.None);
+
+        _journalisation.Verify(j => j.PublierEvenementAsync("BadtLigneEscaladee", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Qualifier_non_terminale_ne_publie_pas_d_escalade()
+    {
+        var ligne = UneLigne();
+        var agentId = Guid.NewGuid();
+        _autorisation.Setup(a => a.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, _ticket.FileCouranteId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await _qualifier.ExecuterAsync(agentId, ligne.Id, CauseExpirationBadt.NonTerminale, "Chauffeur absent.", CancellationToken.None);
+
+        _journalisation.Verify(j => j.PublierEvenementAsync("BadtLigneEscaladee", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task QualifierParBl_applique_la_cause_a_tous_les_conteneurs_en_attente_du_bl()
     {
         var c1 = LigneActualisationBadt.Creer(_ticket.Id, "BL123", "TCLU1111111");
@@ -135,6 +159,7 @@ public class TraitementLigneBadtCommandsTests
         Assert.Equal(DecisionLigneBadt.EnAttente, ligne.Decision);
         Assert.Null(ligne.Cause);
         Assert.False(ligne.Escalade);
+        _journalisation.Verify(j => j.PublierEvenementAsync("BadtLigneRenvoyee", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
