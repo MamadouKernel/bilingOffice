@@ -3780,6 +3780,13 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["BadtFiche.DecRefusee"] = "Refusée",
         ["BadtFiche.DecEnAttente"] = "En attente",
 
+        // Actualisation BADT — génération du fichier Navis
+        ["BadtNavis.Title"] = "Générer le fichier Navis",
+        ["BadtNavis.Hint"] = "Déposez l'extraction N4 : la colonne T (date de validité) est réinjectée automatiquement pour les conteneurs accordés.",
+        ["BadtNavis.UploadLabel"] = "Extraction Navis (.csv)",
+        ["BadtNavis.GenerateBtn"] = "Générer et télécharger",
+        ["BadtNavis.FileTooBig"] = "Le fichier dépasse 10 Mo.",
+
         // Libellés de menu (la clé EST le libellé FR canonique du CatalogueNavigation)
         ["Actualisation BADT"] = "Actualisation BADT",
         ["File Actualisation BADT"] = "File Actualisation BADT",
@@ -7557,6 +7564,13 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["BadtFiche.DecAccordee"] = "Granted",
         ["BadtFiche.DecRefusee"] = "Refused",
         ["BadtFiche.DecEnAttente"] = "Pending",
+
+        // BADT renewal — Navis file generation
+        ["BadtNavis.Title"] = "Generate the Navis file",
+        ["BadtNavis.Hint"] = "Upload the N4 extraction: column T (validity date) is re-injected automatically for granted containers.",
+        ["BadtNavis.UploadLabel"] = "Navis extraction (.csv)",
+        ["BadtNavis.GenerateBtn"] = "Generate and download",
+        ["BadtNavis.FileTooBig"] = "The file exceeds 10 MB.",
 
         // Menu labels (the key IS the canonical FR label from CatalogueNavigation)
         ["Actualisation BADT"] = "BADT renewal",

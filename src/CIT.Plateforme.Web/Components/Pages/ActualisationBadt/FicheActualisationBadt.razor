@@ -13,6 +13,8 @@
 @inject ObtenirFicheBadtQuery ObtenirFiche
 @inject QualifierLigneBadtCommand Qualifier
 @inject DeciderLigneBadtCommand Decider
+@inject GenererFichierNavisBadtCommand GenererNavis
+@inject IJSRuntime Js
 @inject NavigationManager Navigation
 
 <PageTitle>@Loc["BadtFiche.PageTitle"]</PageTitle>
@@ -146,6 +148,30 @@ else
             }
         </div>
     }
+
+    @* GÉNÉRATION NAVIS — dès qu'au moins un conteneur est accordé : l'agent dépose l'extraction N4
+       et la plateforme réinjecte automatiquement la colonne T des conteneurs accordés. *@
+    @if (_fiche.PeutQualifier && _fiche.Lignes.Any(l => l.Decision == DecisionLigneBadt.Accordee))
+    {
+        <div class="cit-card mt-4 p-4 shadow-sm border-primary-subtle">
+            <h5 class="fw-bold mb-1">@Loc["BadtNavis.Title"]</h5>
+            <p class="text-muted small mb-3">@Loc["BadtNavis.Hint"]</p>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label small text-muted mb-1">@Loc["BadtNavis.UploadLabel"]</label>
+                    <InputFile class="form-control form-control-sm" accept=".csv,.txt" OnChange="OnExtractionSelected" />
+                    @if (_extraction is not null)
+                    {
+                        <div class="form-text small">📎 @_nomExtraction (@(_extraction.Length / 1024) @Loc["Common.KoUnit"])</div>
+                    }
+                </div>
+                <div class="col-md-4 text-end">
+                    <button type="button" class="btn btn-sm btn-primary" disabled="@(_busy || _extraction is null)"
+                            @onclick="GenererAsync">@Loc["BadtNavis.GenerateBtn"]</button>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -165,6 +191,8 @@ else
     private string? _erreur;
     private FicheBadtDto? _fiche;
     private readonly Dictionary<Guid, EditionLigne> _editions = new();
+    private byte[]? _extraction;
+    private string? _nomExtraction;
 
     private EditionLigne Edition(Guid ligneId) =>
         _editions.TryGetValue(ligneId, out var e) ? e : _editions[ligneId] = new();
@@ -239,6 +267,59 @@ else
 
             await action(contexte);
             _editions.Clear();
+            await ChargerAsync();
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task OnExtractionSelected(InputFileChangeEventArgs e)
+    {
+        _erreur = null;
+        try
+        {
+            var file = e.File;
+            if (file.Size > 10 * 1024 * 1024)
+            {
+                _erreur = Loc["BadtNavis.FileTooBig"].Value;
+                return;
+            }
+
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(10 * 1024 * 1024).CopyToAsync(ms);
+            _extraction = ms.ToArray();
+            _nomExtraction = file.Name;
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+    }
+
+    private async Task GenererAsync()
+    {
+        if (_busy || _extraction is null) return;
+        _busy = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _erreur = Loc["Badt.SessionExpired"].Value;
+                return;
+            }
+
+            var resultat = await GenererNavis.ExecuterAsync(contexte.UtilisateurId, TicketId, _extraction);
+            await Js.InvokeVoidAsync("telechargerFichier", resultat.NomFichier, "text/csv", Convert.ToBase64String(resultat.Contenu));
+            _extraction = null;
+            _nomExtraction = null;
             await ChargerAsync();
         }
         catch (Exception ex)
