@@ -42,14 +42,24 @@ public sealed class LigneActualisationBadtTests
         Assert.Equal(string.Empty, ligne.NumeroConteneur);
     }
 
+    [Fact]
+    public void Creer_ConteneurSeul_SansBl_EstAutorise()
+    {
+        // Le client peut ne connaître que le conteneur : le BL est alors complété par l'agent.
+        var ligne = LigneActualisationBadt.Creer(_ticketId, null, "TRHU7943941");
+
+        Assert.Equal(string.Empty, ligne.NumeroBl);
+        Assert.Equal("TRHU7943941", ligne.NumeroConteneur);
+    }
+
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Creer_BlInvalide_LeveArgumentException(string? bl)
+    [InlineData(null, null)]
+    [InlineData("", "")]
+    [InlineData("   ", "   ")]
+    public void Creer_NiBlNiConteneur_LeveArgumentException(string? bl, string? conteneur)
     {
         Assert.Throws<ArgumentException>(() =>
-            LigneActualisationBadt.Creer(_ticketId, bl!, "TRHU7943941"));
+            LigneActualisationBadt.Creer(_ticketId, bl, conteneur));
     }
 
     [Fact]

@@ -53,6 +53,7 @@
             <p class="text-muted small mb-4">@Loc["Badt.Intro"]</p>
 
             <label class="form-label fw-semibold text-dark">@Loc["Badt.LinesLabel"]</label>
+            <div class="form-text small mb-2">@Loc["Badt.LinesHint"]</div>
             @foreach (var ligne in _lignes)
             {
                 <div class="row g-2 mb-2 align-items-end">
@@ -120,10 +121,11 @@
     private string _description = string.Empty;
     private readonly List<LigneSaisie> _lignes = [new()];
 
-    // Le conteneur est optionnel : le client ne connaît pas forcément ses conteneurs ; l'agent les
-    // déplie ensuite sur la fiche. Seul le BL est requis pour qu'une ligne soit valide.
+    // BL et conteneur sont tous deux optionnels, mais AU MOINS UN des deux est requis par ligne :
+    // le client peut ne connaître que le BL, ou que le conteneur. L'agent complète le reste pendant
+    // le traitement (dépliage, chat).
     private IEnumerable<LigneSaisie> LignesValides =>
-        _lignes.Where(l => !string.IsNullOrWhiteSpace(l.NumeroBl));
+        _lignes.Where(l => !string.IsNullOrWhiteSpace(l.NumeroBl) || !string.IsNullOrWhiteSpace(l.NumeroConteneur));
 
     private bool PeutSoumettre =>
         !string.IsNullOrWhiteSpace(_description) && LignesValides.Any();
@@ -132,7 +134,7 @@
     {
         get
         {
-            if (!_lignes.Any(l => !string.IsNullOrWhiteSpace(l.NumeroBl))) yield return Loc["Badt.MissingBl"].Value;
+            if (!LignesValides.Any()) yield return Loc["Badt.MissingBlOrContainer"].Value;
             if (string.IsNullOrWhiteSpace(_description)) yield return Loc["Badt.MissingDescription"].Value;
         }
     }

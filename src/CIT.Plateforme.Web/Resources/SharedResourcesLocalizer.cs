@@ -3717,7 +3717,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Badt.Subtitle"] = "Signalez les conteneurs dont le BADT a expiré ; le support complétera avec vous.",
         ["Badt.MyRequests"] = "Mes demandes",
         ["Badt.Intro"] = "Indiquez le(s) numéro(s) de BL et leurs conteneurs, puis décrivez la situation. Le support vous recontactera dans le ticket pour les compléments.",
-        ["Badt.LinesLabel"] = "Conteneurs concernés",
+        ["Badt.LinesLabel"] = "BL / conteneurs concernés",
+        ["Badt.LinesHint"] = "Indiquez le numéro de BL et/ou de conteneur. L'un des deux suffit — l'agent complétera le reste pendant le traitement.",
         ["Badt.BlLabel"] = "Numéro de BL",
         ["Badt.BlPlaceholder"] = "Ex. SITA123456",
         ["Badt.ContainerLabel"] = "Conteneur (TC)",
@@ -3736,6 +3737,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Badt.MissingPrefix"] = "Éléments manquants :",
         ["Badt.MissingBl"] = "au moins un numéro de BL",
         ["Badt.MissingContainer"] = "au moins un conteneur",
+        ["Badt.MissingBlOrContainer"] = "au moins un numéro de BL ou de conteneur",
         ["Badt.MissingDescription"] = "une description",
 
         // Actualisation BADT — file agent
@@ -7524,7 +7526,8 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Badt.Subtitle"] = "Report the containers whose BADT has expired; support will follow up with you.",
         ["Badt.MyRequests"] = "My requests",
         ["Badt.Intro"] = "Enter the BL number(s) and their containers, then describe the situation. Support will reach out in the ticket for any additional details.",
-        ["Badt.LinesLabel"] = "Containers concerned",
+        ["Badt.LinesLabel"] = "BL / containers concerned",
+        ["Badt.LinesHint"] = "Enter the BL and/or container number. Either one is enough — the agent will complete the rest during processing.",
         ["Badt.BlLabel"] = "BL number",
         ["Badt.BlPlaceholder"] = "e.g. SITA123456",
         ["Badt.ContainerLabel"] = "Container (TC)",
@@ -7543,6 +7546,7 @@ public class SharedResourcesLocalizer : IStringLocalizer<SharedResources>
         ["Badt.MissingPrefix"] = "Missing items:",
         ["Badt.MissingBl"] = "at least one BL number",
         ["Badt.MissingContainer"] = "at least one container",
+        ["Badt.MissingBlOrContainer"] = "at least one BL or container number",
         ["Badt.MissingDescription"] = "a description",
 
         // BADT renewal — agent queue

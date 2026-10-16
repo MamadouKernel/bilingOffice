@@ -54,23 +54,28 @@ public sealed class LigneActualisationBadt
     private LigneActualisationBadt() { }
 
     /// <summary>
-    /// Crée une ligne. Le BL est obligatoire ; le conteneur est OPTIONNEL : le client ne saisit que
-    /// le(s) BL, et l'agent déplie ensuite les conteneurs sur la fiche (N4 n'est pas interrogeable en
-    /// direct). Une ligne sans conteneur matérialise un BL en attente de dépliage.
+    /// Crée une ligne. BL et conteneur sont tous deux OPTIONNELS, mais AU MOINS UN des deux est
+    /// obligatoire : le client peut déposer sa demande avec seulement un numéro de BL, seulement un
+    /// numéro de conteneur, ou les deux. L'agent complète ensuite l'information manquante pendant le
+    /// traitement (dépliage des conteneurs d'un BL, ou chat avec le client — N4 n'est pas
+    /// interrogeable en direct).
     /// </summary>
-    public static LigneActualisationBadt Creer(Guid ticketId, string numeroBl, string? numeroConteneur = null)
+    public static LigneActualisationBadt Creer(Guid ticketId, string? numeroBl = null, string? numeroConteneur = null)
     {
-        if (string.IsNullOrWhiteSpace(numeroBl))
+        var bl = numeroBl?.Trim() ?? string.Empty;
+        var conteneur = numeroConteneur?.Trim() ?? string.Empty;
+
+        if (bl.Length == 0 && conteneur.Length == 0)
         {
-            throw new ArgumentException("Le numéro de BL est obligatoire.", nameof(numeroBl));
+            throw new ArgumentException("Au moins un numéro (BL ou conteneur) est obligatoire.", nameof(numeroBl));
         }
 
         return new LigneActualisationBadt
         {
             Id = Guid.NewGuid(),
             TicketId = ticketId,
-            NumeroBl = numeroBl.Trim(),
-            NumeroConteneur = numeroConteneur?.Trim() ?? string.Empty,
+            NumeroBl = bl,
+            NumeroConteneur = conteneur,
         };
     }
 
