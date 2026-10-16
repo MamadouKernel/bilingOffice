@@ -16,6 +16,8 @@ public sealed class AjouterConteneursBadtCommand(
     ITicketRepository tickets,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
+    IHorloge horloge,
+    IMesureActualisationBadtRepository mesures,
     IUniteDeTravail uniteDeTravail)
 {
     public async Task ExecuterAsync(Guid agentId, Guid ticketId, string numeroBl, IReadOnlyList<string> conteneurs, CancellationToken ct = default)
@@ -57,6 +59,7 @@ public sealed class AjouterConteneursBadtCommand(
                         && l.NumeroConteneur.Length == 0
                         && l.Decision == DecisionLigneBadt.EnAttente));
 
+        var maintenant = horloge.MaintenantUtc;
         foreach (var conteneur in aAjouter.Where(c => !dejaPresents.Contains(c)))
         {
             if (placeholders.Count > 0)
@@ -67,6 +70,10 @@ public sealed class AjouterConteneursBadtCommand(
             {
                 await lignes.AjouterAsync(LigneActualisationBadt.Creer(ticketId, blNormalise, conteneur), ct).ConfigureAwait(false);
             }
+
+            // Reporting (approche B) : trace du dépliage — qui a ajouté quel conteneur, quand.
+            await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+                ticketId, null, blNormalise, conteneur, TypeMesureBadt.Depliage, agentId, maintenant), ct).ConfigureAwait(false);
         }
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "ConteneursAjoutes",

@@ -131,6 +131,24 @@ public sealed class LigneActualisationBadtRepository(PlateformeDbContext dbConte
 
     public async Task<IReadOnlyList<Domain.ActualisationBadt.LigneActualisationBadt>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default) =>
         await dbContext.LignesActualisationBadt.Where(l => l.TicketId == ticketId).ToListAsync(ct).ConfigureAwait(false);
+
+    public Task<int> CompterBlNonDepliesEnAttenteAsync(CancellationToken ct = default) =>
+        dbContext.LignesActualisationBadt
+            .CountAsync(l => l.NumeroConteneur == "" && l.Decision == Domain.ActualisationBadt.DecisionLigneBadt.EnAttente, ct);
+}
+
+/// <summary>FEATURE 010 (Actualisation BADT) — reporting (approche B) : table de mesures du workflow.</summary>
+public sealed class MesureActualisationBadtRepository(PlateformeDbContext dbContext) : IMesureActualisationBadtRepository
+{
+    public async Task AjouterAsync(Domain.ActualisationBadt.MesureActualisationBadt mesure, CancellationToken ct = default) =>
+        await dbContext.MesuresActualisationBadt.AddAsync(mesure, ct).ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<Domain.ActualisationBadt.MesureActualisationBadt>> ListerEntreAsync(DateTime debutUtc, DateTime finUtc, CancellationToken ct = default) =>
+        await dbContext.MesuresActualisationBadt
+            .Where(m => m.HorodatageUtc >= debutUtc && m.HorodatageUtc <= finUtc)
+            .OrderBy(m => m.HorodatageUtc)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 }
 
 public sealed class DossierRepository(PlateformeDbContext dbContext) : IDossierRepository

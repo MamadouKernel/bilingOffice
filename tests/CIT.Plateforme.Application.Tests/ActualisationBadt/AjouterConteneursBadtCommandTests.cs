@@ -21,6 +21,8 @@ public class AjouterConteneursBadtCommandTests
     private readonly Mock<ITicketRepository> _tickets = new();
     private readonly Mock<IAutorisationService> _autorisation = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
+    private readonly Mock<IHorloge> _horloge = new();
+    private readonly Mock<IMesureActualisationBadtRepository> _mesures = new();
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
     private readonly AjouterConteneursBadtCommand _command;
 
@@ -29,7 +31,7 @@ public class AjouterConteneursBadtCommandTests
 
     public AjouterConteneursBadtCommandTests()
     {
-        _command = new AjouterConteneursBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
+        _command = new AjouterConteneursBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _mesures.Object, _uniteDeTravail.Object);
         _tickets.Setup(r => r.ObtenirParIdAsync(_ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(_ticket);
         _autorisation.Setup(a => a.EstAutoriseAsync(It.IsAny<Guid>(), Permission.ActualisationBadtInstruire, _ticket.FileCouranteId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
     }

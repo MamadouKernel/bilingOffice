@@ -19,6 +19,7 @@ public class TraitementLigneBadtCommandsTests
     private readonly Mock<IAutorisationService> _autorisation = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
     private readonly Mock<IHorloge> _horloge = new();
+    private readonly Mock<IMesureActualisationBadtRepository> _mesures = new();
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
 
     private readonly Ticket _ticket = Ticket.CreerDemandeActualisationBadt(
@@ -31,10 +32,10 @@ public class TraitementLigneBadtCommandsTests
 
     public TraitementLigneBadtCommandsTests()
     {
-        _qualifier = new QualifierLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
-        _rejeter = new RejeterLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
-        _renvoyer = new RenvoyerLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
-        _decider = new DeciderLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _uniteDeTravail.Object);
+        _qualifier = new QualifierLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _mesures.Object, _uniteDeTravail.Object);
+        _rejeter = new RejeterLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _mesures.Object, _uniteDeTravail.Object);
+        _renvoyer = new RenvoyerLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _mesures.Object, _uniteDeTravail.Object);
+        _decider = new DeciderLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _mesures.Object, _uniteDeTravail.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 10, 15, 10, 0, 0, DateTimeKind.Utc));
         _tickets.Setup(r => r.ObtenirParIdAsync(_ticket.Id, It.IsAny<CancellationToken>())).ReturnsAsync(_ticket);
@@ -58,6 +59,7 @@ public class TraitementLigneBadtCommandsTests
 
         Assert.Equal(CauseExpirationBadt.Terminale, ligne.Cause);
         Assert.Equal("Retard terminal.", ligne.MotifCause);
+        _mesures.Verify(m => m.AjouterAsync(It.Is<MesureActualisationBadt>(x => x.Type == TypeMesureBadt.Qualification && x.ActeurId == agentId), It.IsAny<CancellationToken>()), Times.Once);
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -187,6 +189,7 @@ public class TraitementLigneBadtCommandsTests
         Assert.Equal(DecisionLigneBadt.Accordee, ligne.Decision);
         Assert.Equal(7, ligne.NombreJoursAccordes);
         Assert.Equal(new DateOnly(2026, 10, 22), ligne.NouvelleDateValidite);
+        _mesures.Verify(m => m.AjouterAsync(It.Is<MesureActualisationBadt>(x => x.Type == TypeMesureBadt.Accord && x.NombreJoursAccordes == 7), It.IsAny<CancellationToken>()), Times.Once);
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

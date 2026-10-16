@@ -1,0 +1,246 @@
+@page "/administration/reporting-badt"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@using CIT.Plateforme.Application.ActualisationBadt
+@using CIT.Plateforme.Application.Securite
+@using CIT.Plateforme.Web.Components.Shared
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject IContexteUtilisateurWeb ContexteService
+@inject RapportActualisationBadtQuery Rapport
+
+<PageTitle>@Loc["RepBadt.PageTitle"]</PageTitle>
+
+<div class="cit-page-header">
+    <div>
+        <h1 class="cit-page-title"><span>📊</span> @Loc["RepBadt.Title"]</h1>
+        <div class="cit-page-subtitle">@Loc["RepBadt.Subtitle"]</div>
+    </div>
+</div>
+
+<div class="cit-card mb-4 p-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold text-dark" for="rep-debut">@Loc["RepBadt.Debut"]</label>
+            <input id="rep-debut" type="date" class="form-control form-control-sm" @bind="_debut" @bind:format="yyyy-MM-dd" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label class="form-label small fw-bold text-dark" for="rep-fin">@Loc["RepBadt.Fin"]</label>
+            <input id="rep-fin" type="date" class="form-control form-control-sm" @bind="_fin" @bind:format="yyyy-MM-dd" />
+        </div>
+        <div class="col-12 col-md-3 d-grid">
+            <button type="button" class="btn btn-sm btn-primary" @onclick="ChargerAsync" disabled="@_chargement">
+                @Loc["RepBadt.Appliquer"]
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (_chargement)
+{
+    <IndicateurChargement Message="@Loc["RepBadt.Loading"]" />
+}
+else if (_nonAutorise)
+{
+    <PermissionDenied Message="@_messageNonAutorise" />
+}
+else if (_rapport is not null)
+{
+    @if (_erreur is not null)
+    {
+        <div class="alert alert-danger mb-3" role="alert">@_erreur</div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur">@_rapport.TotalDemandes</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiDemandes"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur @(_rapport.BlNonDeplies > 0 ? "text-warning" : null)">@_rapport.BlNonDeplies</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiBlNonDeplies"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur">@_rapport.NombreEscalades</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiEscalades"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur">@FormaterDuree(_rapport.DelaiMoyen)</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiDelaiMoyen"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur text-success">@_rapport.NombreAccords</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiAccords"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur text-danger">@_rapport.NombreRefus</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiRefus"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur">@_rapport.NombreRenvois</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiRenvois"]</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cit-stat-card">
+                <div class="cit-stat-valeur">@_rapport.NombreRejetsAgent</div>
+                <div class="cit-stat-libelle">@Loc["RepBadt.KpiRejets"]</div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4 mb-3"><span>👥</span> @Loc["RepBadt.ActeursTitle"]</h2>
+    @if (_rapport.ParActeur.Count == 0)
+    {
+        <div class="cit-card p-4 text-center text-muted small">@Loc["RepBadt.Vide"]</div>
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Loc["RepBadt.ColActeur"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColQualifs"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColDepliages"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColRejets"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColAccords"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColRefus"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColRenvois"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColTauxAccord"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColTauxRefus"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColTauxRenvoi"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in _rapport.ParActeur)
+                        {
+                            <tr>
+                                <td class="text-dark fw-semibold">@(string.IsNullOrWhiteSpace(a.Nom) ? Loc["RepBadt.ActeurNonId"].Value : a.Nom)</td>
+                                <td class="text-end font-monospace">@a.Qualifications</td>
+                                <td class="text-end font-monospace">@a.Depliages</td>
+                                <td class="text-end font-monospace">@a.RejetsAgent</td>
+                                <td class="text-end font-monospace text-success">@a.Accords</td>
+                                <td class="text-end font-monospace text-danger">@a.Refus</td>
+                                <td class="text-end font-monospace">@a.Renvois</td>
+                                <td class="text-end font-monospace">@a.TauxAccord.ToString("0.0")%</td>
+                                <td class="text-end font-monospace">@a.TauxRefus.ToString("0.0")%</td>
+                                <td class="text-end font-monospace">@a.TauxRenvoi.ToString("0.0")%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <h2 class="h5 mt-4 mb-3"><span>📦</span> @Loc["RepBadt.DepliagesTitle"]</h2>
+    <div class="cit-page-subtitle small mb-2">@Loc["RepBadt.DepliagesSubtitle"]</div>
+    @if (_rapport.Depliages.Count == 0)
+    {
+        <div class="cit-card p-4 text-center text-muted small">@Loc["RepBadt.Vide"]</div>
+    }
+    else
+    {
+        <div class="cit-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Loc["RepBadt.ColBl"]</th>
+                            <th>@Loc["RepBadt.ColConteneur"]</th>
+                            <th>@Loc["RepBadt.ColAgent"]</th>
+                            <th class="text-end">@Loc["RepBadt.ColQuand"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in _rapport.Depliages)
+                        {
+                            <tr>
+                                <td class="font-monospace">@d.NumeroBl</td>
+                                <td class="font-monospace">@d.NumeroConteneur</td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(d.ActeurNom) ? Loc["RepBadt.ActeurNonId"].Value : d.ActeurNom)</td>
+                                <td class="text-end small font-monospace">@d.HorodatageUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _chargement = true;
+    private bool _nonAutorise;
+    private string _messageNonAutorise = string.Empty;
+    private string? _erreur;
+    private RapportActualisationBadtDto? _rapport;
+
+    // Période par défaut : les 30 derniers jours.
+    private DateTime _debut = DateTime.UtcNow.Date.AddDays(-30);
+    private DateTime _fin = DateTime.UtcNow.Date;
+
+    protected override async Task OnInitializedAsync() => await ChargerAsync();
+
+    private async Task ChargerAsync()
+    {
+        _chargement = true;
+        _erreur = null;
+        try
+        {
+            var contexte = await ContexteService.ObtenirContexteAsync();
+            if (contexte is null || !contexte.EstAuthentifie)
+            {
+                _nonAutorise = true;
+                _messageNonAutorise = Loc["RepBadt.LoginRequis"].Value;
+                return;
+            }
+
+            var debutUtc = DateTime.SpecifyKind(_debut.Date, DateTimeKind.Utc);
+            var finUtc = DateTime.SpecifyKind(_fin.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+
+            _rapport = await Rapport.ExecuterAsync(contexte.UtilisateurId, debutUtc, finUtc);
+            _nonAutorise = false;
+        }
+        catch (AccesRefuseException ex)
+        {
+            _nonAutorise = true;
+            _messageNonAutorise = MessagesUtilisateur.Texte(ex);
+        }
+        catch (Exception ex)
+        {
+            _erreur = MessagesUtilisateur.Pour(ex);
+        }
+        finally
+        {
+            _chargement = false;
+        }
+    }
+
+    private static string FormaterDuree(TimeSpan? duree)
+    {
+        if (duree is null || duree.Value <= TimeSpan.Zero) return "—";
+        var d = duree.Value;
+        return d.TotalDays >= 1
+            ? $"{(int)d.TotalDays}j {d.Hours}h"
+            : $"{(int)d.TotalHours}h {d.Minutes}min";
+    }
+}

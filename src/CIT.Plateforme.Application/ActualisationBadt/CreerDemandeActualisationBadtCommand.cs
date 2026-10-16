@@ -32,6 +32,7 @@ public sealed class CreerDemandeActualisationBadtCommand(
     IServiceNumerotation numerotation,
     IJournalisationService journalisation,
     IHorloge horloge,
+    IMesureActualisationBadtRepository mesures,
     IUniteDeTravail uniteDeTravail)
 {
     /// <summary>Module et nom de la file BADT, approvisionnés par <c>ProvisionnementParametrageMetier</c>.</summary>
@@ -77,6 +78,10 @@ public sealed class CreerDemandeActualisationBadtCommand(
         // comme e-mail — car la couche Notifications se déclenche sur l'événement, pas sur la commande.
         await journalisation.PublierEvenementAsync("TicketCree", $"{{\"ticketId\":\"{ticket.Id}\",\"numero\":\"{ticket.Numero}\"}}", ct).ConfigureAwait(false);
         await journalisation.PublierEvenementAsync("TicketArriveeEnFile", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+
+        // Reporting (approche B) : volume de demandes par période.
+        await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+            ticket.Id, null, null, null, TypeMesureBadt.Creation, requete.DemandeurId, maintenant), ct).ConfigureAwait(false);
 
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
 

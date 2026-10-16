@@ -23,6 +23,7 @@ public class CreerDemandeActualisationBadtCommandTests
     private readonly Mock<IServiceNumerotation> _numerotation = new();
     private readonly Mock<IJournalisationService> _journalisation = new();
     private readonly Mock<IHorloge> _horloge = new();
+    private readonly Mock<IMesureActualisationBadtRepository> _mesures = new();
     private readonly Mock<IUniteDeTravail> _uniteDeTravail = new();
 
     private readonly CreerDemandeActualisationBadtCommand _command;
@@ -32,7 +33,7 @@ public class CreerDemandeActualisationBadtCommandTests
         _command = new CreerDemandeActualisationBadtCommand(
             _tickets.Object, _dossiers.Object, _lignes.Object, _files.Object,
             _utilisateurSocietes.Object, _numerotation.Object, _journalisation.Object,
-            _horloge.Object, _uniteDeTravail.Object);
+            _horloge.Object, _mesures.Object, _uniteDeTravail.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 10, 15, 10, 0, 0, DateTimeKind.Utc));
         _numerotation.Setup(n => n.ProchainNumeroDossierAsync(It.IsAny<CancellationToken>())).ReturnsAsync("DOS-BADT-001");

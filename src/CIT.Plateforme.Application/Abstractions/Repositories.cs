@@ -784,6 +784,19 @@ public interface ILigneActualisationBadtRepository
     Task<LigneActualisationBadt?> ObtenirParIdAsync(Guid id, CancellationToken ct = default);
 
     Task<IReadOnlyList<LigneActualisationBadt>> ListerParTicketAsync(Guid ticketId, CancellationToken ct = default);
+
+    /// <summary>Reporting — nombre de BL non dépliés encore en attente (ligne BL-seul sans conteneur).</summary>
+    Task<int> CompterBlNonDepliesEnAttenteAsync(CancellationToken ct = default);
+}
+
+/// <summary>FEATURE 010 (Actualisation BADT) — reporting (approche B) : écriture append-only et
+/// lecture bornée par période de la table de mesures du workflow.</summary>
+public interface IMesureActualisationBadtRepository
+{
+    Task AjouterAsync(MesureActualisationBadt mesure, CancellationToken ct = default);
+
+    /// <summary>Toutes les mesures dont l'horodatage est dans [debutUtc, finUtc], ordonnées.</summary>
+    Task<IReadOnlyList<MesureActualisationBadt>> ListerEntreAsync(DateTime debutUtc, DateTime finUtc, CancellationToken ct = default);
 }
 
 /// <summary>FEATURE 009 : port de lecture/marquage du journal d'événements par le moteur de

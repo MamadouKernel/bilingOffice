@@ -17,6 +17,8 @@ public sealed class QualifierLigneBadtCommand(
     ITicketRepository tickets,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
+    IHorloge horloge,
+    IMesureActualisationBadtRepository mesures,
     IUniteDeTravail uniteDeTravail)
 {
     public async Task ExecuterAsync(Guid agentId, Guid ligneId, CauseExpirationBadt cause, string motif, CancellationToken ct = default)
@@ -42,6 +44,9 @@ public sealed class QualifierLigneBadtCommand(
         {
             await journalisation.PublierEvenementAsync("BadtLigneEscaladee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
         }
+        await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+            ticket.Id, ligne.Id, ligne.NumeroBl, ligne.NumeroConteneur,
+            TypeMesureBadt.Qualification, agentId, horloge.MaintenantUtc, cause), ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 
@@ -71,9 +76,13 @@ public sealed class QualifierLigneBadtCommand(
             throw new InvalidOperationException("Aucun conteneur à qualifier pour ce BL.");
         }
 
+        var maintenant = horloge.MaintenantUtc;
         foreach (var ligne in cibles)
         {
             ligne.Qualifier(cause, motif);
+            await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+                ticket.Id, ligne.Id, ligne.NumeroBl, ligne.NumeroConteneur,
+                TypeMesureBadt.Qualification, agentId, maintenant, cause), ct).ConfigureAwait(false);
         }
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "BlQualifie",
@@ -112,6 +121,8 @@ public sealed class RejeterLigneBadtCommand(
     ITicketRepository tickets,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
+    IHorloge horloge,
+    IMesureActualisationBadtRepository mesures,
     IUniteDeTravail uniteDeTravail)
 {
     public async Task ExecuterAsync(Guid agentId, Guid ligneId, string motif, CancellationToken ct = default)
@@ -137,6 +148,9 @@ public sealed class RejeterLigneBadtCommand(
             $"conteneur={ligne.NumeroConteneur}", agentId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(agentId, "ActualisationBadt.RejetAgent", nameof(LigneActualisationBadt),
             ligne.Id, null, "refusée", ct).ConfigureAwait(false);
+        await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+            ticket.Id, ligne.Id, ligne.NumeroBl, ligne.NumeroConteneur,
+            TypeMesureBadt.RejetAgent, agentId, horloge.MaintenantUtc), ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }
@@ -151,6 +165,8 @@ public sealed class RenvoyerLigneBadtCommand(
     ITicketRepository tickets,
     IAutorisationService autorisation,
     IJournalisationService journalisation,
+    IHorloge horloge,
+    IMesureActualisationBadtRepository mesures,
     IUniteDeTravail uniteDeTravail)
 {
     public async Task ExecuterAsync(Guid decideurId, Guid ligneId, string motif, CancellationToken ct = default)
@@ -178,6 +194,9 @@ public sealed class RenvoyerLigneBadtCommand(
             ligne.Id, null, motif.Trim(), ct).ConfigureAwait(false);
         // Le renvoi remet le travail à l'agent de la file : l'en informer (requalification attendue).
         await journalisation.PublierEvenementAsync("BadtLigneRenvoyee", $"{{\"ticketId\":\"{ticket.Id}\"}}", ct).ConfigureAwait(false);
+        await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+            ticket.Id, ligne.Id, ligne.NumeroBl, ligne.NumeroConteneur,
+            TypeMesureBadt.Renvoi, decideurId, horloge.MaintenantUtc), ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }
@@ -201,6 +220,7 @@ public sealed class DeciderLigneBadtCommand(
     IAutorisationService autorisation,
     IJournalisationService journalisation,
     IHorloge horloge,
+    IMesureActualisationBadtRepository mesures,
     IUniteDeTravail uniteDeTravail)
 {
     public async Task ExecuterAsync(Guid decideurId, DeciderLigneBadtRequete requete, CancellationToken ct = default)
@@ -245,6 +265,10 @@ public sealed class DeciderLigneBadtCommand(
             $"conteneur={ligne.NumeroConteneur};{detail}", decideurId, ct).ConfigureAwait(false);
         await journalisation.ConsignerAuditAsync(decideurId, "ActualisationBadt.Decision", nameof(LigneActualisationBadt),
             ligne.Id, null, detail, ct).ConfigureAwait(false);
+        await mesures.AjouterAsync(MesureActualisationBadt.Creer(
+            ticket.Id, ligne.Id, ligne.NumeroBl, ligne.NumeroConteneur,
+            requete.Decision == DecisionLigneBadt.Accordee ? TypeMesureBadt.Accord : TypeMesureBadt.Refus,
+            decideurId, maintenant, nombreJoursAccordes: ligne.NombreJoursAccordes), ct).ConfigureAwait(false);
         await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
     }
 }

@@ -68,6 +68,9 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
     /// <summary>FEATURE 010 (Actualisation BADT) : une ligne par conteneur d'une demande d'actualisation.</summary>
     public DbSet<Domain.ActualisationBadt.LigneActualisationBadt> LignesActualisationBadt => Set<Domain.ActualisationBadt.LigneActualisationBadt>();
 
+    // FEATURE 010 (Actualisation BADT) — reporting (approche B) : mesures append-only du workflow.
+    public DbSet<Domain.ActualisationBadt.MesureActualisationBadt> MesuresActualisationBadt => Set<Domain.ActualisationBadt.MesureActualisationBadt>();
+
     /// <summary>§11.4 / §9.10 : libellés de statut paramétrables, sans développement.</summary>
     public DbSet<LibelleStatutTicket> LibellesStatutTicket => Set<LibelleStatutTicket>();
 
@@ -403,6 +406,20 @@ public sealed class PlateformeDbContext(DbContextOptions<PlateformeDbContext> op
             b.Property(l => l.MotifRefus).HasMaxLength(2000);
             // écart 5 — sous-état « escaladé » (champ, pas une valeur d'enum StatutTicket).
             b.Property(l => l.Escalade).HasDefaultValue(false);
+        });
+
+        // FEATURE 010 (Actualisation BADT) — reporting (approche B) : table de mesures append-only,
+        // satellite autonome (aucune relation EF vers Ticket/Ligne), indexée par horodatage pour la
+        // lecture bornée par période.
+        builder.Entity<Domain.ActualisationBadt.MesureActualisationBadt>(b =>
+        {
+            b.HasKey(m => m.Id);
+            b.Property(m => m.NumeroBl).IsRequired().HasMaxLength(64);
+            b.Property(m => m.NumeroConteneur).IsRequired().HasMaxLength(32);
+            b.Property(m => m.Type).HasConversion<string>().HasMaxLength(32).IsRequired();
+            b.Property(m => m.Cause).HasConversion<string>().HasMaxLength(32);
+            b.HasIndex(m => m.HorodatageUtc);
+            b.HasIndex(m => m.LigneId);
         });
 
         builder.Entity<Dossier>(b =>

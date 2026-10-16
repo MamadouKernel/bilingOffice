@@ -88,6 +88,60 @@ namespace CIT.Plateforme.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CIT.Plateforme.Domain.ActualisationBadt.MesureActualisationBadt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActeurId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Cause")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("HorodatageUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LigneId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("NombreJoursAccordes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NumeroBl")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("NumeroConteneur")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HorodatageUtc");
+
+                    b.HasIndex("LigneId");
+
+                    b.ToTable("MesuresActualisationBadt", t =>
+                        {
+                            t.HasCheckConstraint("CK_MesuresActualisationBadt_Cause", "[Cause] IN (N'Terminale', N'NonTerminale')");
+
+                            t.HasCheckConstraint("CK_MesuresActualisationBadt_Type", "[Type] IN (N'Creation', N'Depliage', N'Qualification', N'RejetAgent', N'Accord', N'Refus', N'Renvoi')");
+                        });
+                });
+
             modelBuilder.Entity("CIT.Plateforme.Domain.Affectation.CompetenceOperateur", b =>
                 {
                     b.Property<Guid>("Id")

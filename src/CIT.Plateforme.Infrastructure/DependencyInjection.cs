@@ -185,6 +185,9 @@ public static class DependencyInjection
         services.AddScoped<Application.Abstractions.IPassageEnFileRepository, Persistence.PassageEnFileRepository>();
         // FEATURE 010 (Actualisation BADT) : lignes conteneur + handler de création de la demande.
         services.AddScoped<Application.Abstractions.ILigneActualisationBadtRepository, Persistence.LigneActualisationBadtRepository>();
+        // Reporting (approche B) : table de mesures + requête du tableau de bord.
+        services.AddScoped<Application.Abstractions.IMesureActualisationBadtRepository, Persistence.MesureActualisationBadtRepository>();
+        services.AddScoped<Application.ActualisationBadt.RapportActualisationBadtQuery>();
         services.AddScoped<Application.ActualisationBadt.CreerDemandeActualisationBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.AjouterConteneursBadtCommand>();
         services.AddScoped<Application.ActualisationBadt.QualifierLigneBadtCommand>();
