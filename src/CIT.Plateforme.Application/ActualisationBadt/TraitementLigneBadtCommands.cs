@@ -131,6 +131,45 @@ public sealed class RejeterLigneBadtCommand(
     }
 }
 
+/// <summary>
+/// FEATURE 010 — écart 6 : RENVOI par le Décideur (permission <c>actualisationbadt.decider</c>). Au
+/// lieu d'accorder ou de refuser, il renvoie la ligne à l'agent pour requalification (cause effacée,
+/// escalade levée). Le motif est obligatoire et journalisé.
+/// </summary>
+public sealed class RenvoyerLigneBadtCommand(
+    ILigneActualisationBadtRepository lignes,
+    ITicketRepository tickets,
+    IAutorisationService autorisation,
+    IJournalisationService journalisation,
+    IUniteDeTravail uniteDeTravail)
+{
+    public async Task ExecuterAsync(Guid decideurId, Guid ligneId, string motif, CancellationToken ct = default)
+    {
+        var ligne = await lignes.ObtenirParIdAsync(ligneId, ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Ligne d'actualisation introuvable.");
+
+        var ticket = await QualifierLigneBadtCommand.ChargerTicketBadtAsync(tickets, ligne.TicketId, ct).ConfigureAwait(false);
+
+        if (!await autorisation.EstAutoriseAsync(decideurId, Permission.ActualisationBadtDecider, null, ct).ConfigureAwait(false))
+        {
+            throw new AccesRefuseException("Permission de décision des demandes d'actualisation BADT requise.");
+        }
+
+        if (string.IsNullOrWhiteSpace(motif))
+        {
+            throw new ArgumentException("Le motif de renvoi est obligatoire.", nameof(motif));
+        }
+
+        ligne.Renvoyer(motif);
+
+        await journalisation.ConsignerHistoriqueAsync(ticket.Id, "LigneRenvoyee",
+            $"conteneur={ligne.NumeroConteneur};motif={motif.Trim()}", decideurId, ct).ConfigureAwait(false);
+        await journalisation.ConsignerAuditAsync(decideurId, "ActualisationBadt.Renvoi", nameof(LigneActualisationBadt),
+            ligne.Id, null, motif.Trim(), ct).ConfigureAwait(false);
+        await uniteDeTravail.EnregistrerAsync(ct).ConfigureAwait(false);
+    }
+}
+
 /// <summary>Accord (nombre de jours) ou refus (motif) d'une ligne, par le Décideur Actualisateur BADT.</summary>
 public sealed record DeciderLigneBadtRequete(
     Guid LigneId,

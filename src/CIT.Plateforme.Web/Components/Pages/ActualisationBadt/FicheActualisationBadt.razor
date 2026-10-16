@@ -17,6 +17,7 @@
 @inject QualifierLigneBadtCommand Qualifier
 @inject RejeterLigneBadtCommand Rejeter
 @inject DeciderLigneBadtCommand Decider
+@inject RenvoyerLigneBadtCommand Renvoyer
 @inject GenererFichierNavisBadtCommand GenererNavis
 @inject CloturerTicketBadtCommand CloturerTicket
 @inject IJSRuntime Js
@@ -219,6 +220,17 @@ else
                                     @onclick="() => RefuserAsync(ligne.Id, e)">@Loc["BadtFiche.RefuseBtn"]</button>
                         </div>
                     </div>
+                    @* écart 6 — RENVOI à l'agent : le Décideur ne tranche pas et renvoie pour requalification. *@
+                    <div class="row g-2 align-items-end mt-1">
+                        <div class="col-md-9">
+                            <label class="form-label small text-muted mb-1">@Loc["BadtFiche.SendBackMotifLabel"]</label>
+                            <input class="form-control form-control-sm" @bind="e.MotifRenvoi" @bind:event="oninput" maxlength="2000" />
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100" disabled="@(_busy || string.IsNullOrWhiteSpace(e.MotifRenvoi))"
+                                    @onclick="() => RenvoyerAsync(ligne.Id, e)">@Loc["BadtFiche.SendBackBtn"]</button>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
@@ -322,6 +334,7 @@ else
         public int? Jours { get; set; }
         public DateOnly? AncienneDate { get; set; }
         public string MotifRefus { get; set; } = string.Empty;
+        public string MotifRenvoi { get; set; } = string.Empty;
     }
 
     private bool _chargement = true;
@@ -431,6 +444,14 @@ else
         {
             await Decider.ExecuterAsync(contexte.UtilisateurId,
                 new DeciderLigneBadtRequete(ligneId, DecisionLigneBadt.Refusee, MotifRefus: e.MotifRefus.Trim()));
+        });
+    }
+
+    private async Task RenvoyerAsync(Guid ligneId, EditionLigne e)
+    {
+        await ExecuterAsync(async contexte =>
+        {
+            await Renvoyer.ExecuterAsync(contexte.UtilisateurId, ligneId, e.MotifRenvoi.Trim());
         });
     }
 

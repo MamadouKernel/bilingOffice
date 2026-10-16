@@ -144,6 +144,34 @@ public sealed class LigneActualisationBadt
         Escalade = false;
     }
 
+    /// <summary>
+    /// écart 6 — RENVOI par le Décideur : il ne tranche pas (ni accord ni refus) et renvoie la ligne
+    /// à l'agent pour requalification. La décision reste <see cref="DecisionLigneBadt.EnAttente"/>, la
+    /// cause est effacée (la ligne retourne à l'étape de qualification) et l'escalade est levée. Le
+    /// motif est obligatoire ; il est journalisé par l'appelant.
+    /// </summary>
+    public void Renvoyer(string motif)
+    {
+        if (Decision != DecisionLigneBadt.EnAttente)
+        {
+            throw new InvalidOperationException($"La ligne {NumeroConteneur} est déjà décidée ({Decision}).");
+        }
+
+        if (Cause is null)
+        {
+            throw new InvalidOperationException("Seule une ligne déjà qualifiée peut être renvoyée à l'agent.");
+        }
+
+        if (string.IsNullOrWhiteSpace(motif))
+        {
+            throw new ArgumentException("Le motif de renvoi est obligatoire.", nameof(motif));
+        }
+
+        Cause = null;
+        MotifCause = null;
+        Escalade = false;
+    }
+
     /// <summary>Rejet (agent, cause non terminale) ou refus (Décideur). Le motif est obligatoire.</summary>
     public void Refuser(string motif)
     {

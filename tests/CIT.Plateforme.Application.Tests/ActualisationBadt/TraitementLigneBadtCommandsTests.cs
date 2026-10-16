@@ -26,12 +26,14 @@ public class TraitementLigneBadtCommandsTests
 
     private readonly QualifierLigneBadtCommand _qualifier;
     private readonly RejeterLigneBadtCommand _rejeter;
+    private readonly RenvoyerLigneBadtCommand _renvoyer;
     private readonly DeciderLigneBadtCommand _decider;
 
     public TraitementLigneBadtCommandsTests()
     {
         _qualifier = new QualifierLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
         _rejeter = new RejeterLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
+        _renvoyer = new RenvoyerLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _uniteDeTravail.Object);
         _decider = new DeciderLigneBadtCommand(_lignes.Object, _tickets.Object, _autorisation.Object, _journalisation.Object, _horloge.Object, _uniteDeTravail.Object);
 
         _horloge.Setup(h => h.MaintenantUtc).Returns(new DateTime(2026, 10, 15, 10, 0, 0, DateTimeKind.Utc));
@@ -117,6 +119,34 @@ public class TraitementLigneBadtCommandsTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _rejeter.ExecuterAsync(agentId, ligne.Id, "Tentative.", CancellationToken.None));
         _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Renvoyer_repasse_la_ligne_en_qualification_et_leve_l_escalade()
+    {
+        var ligne = UneLigne();
+        ligne.Qualifier(CauseExpirationBadt.Terminale, "Panne terminal.");
+        Assert.True(ligne.Escalade);
+        var decideurId = Guid.NewGuid();
+        _autorisation.Setup(a => a.EstAutoriseAsync(decideurId, Permission.ActualisationBadtDecider, null, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        await _renvoyer.ExecuterAsync(decideurId, ligne.Id, "Préciser le motif terminal.", CancellationToken.None);
+
+        Assert.Equal(DecisionLigneBadt.EnAttente, ligne.Decision);
+        Assert.Null(ligne.Cause);
+        Assert.False(ligne.Escalade);
+        _uniteDeTravail.Verify(u => u.EnregistrerAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Renvoyer_sans_permission_decider_refuse()
+    {
+        var ligne = UneLigne();
+        ligne.Qualifier(CauseExpirationBadt.Terminale, "Panne terminal.");
+        _autorisation.Setup(a => a.EstAutoriseAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+
+        await Assert.ThrowsAsync<AccesRefuseException>(() =>
+            _renvoyer.ExecuterAsync(Guid.NewGuid(), ligne.Id, "Motif.", CancellationToken.None));
     }
 
     [Fact]
