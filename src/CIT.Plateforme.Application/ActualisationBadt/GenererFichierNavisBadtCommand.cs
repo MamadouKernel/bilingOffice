@@ -50,6 +50,17 @@ public sealed class GenererFichierNavisBadtCommand(
         // à l'octet près tout le contenu d'origine ; seules les dates (ASCII) de la colonne T changent.
         var contenu = Encoding.Latin1.GetString(extractionNavis);
         var genere = GenerateurFichierNavisBadt.Injecter(contenu, datesParConteneur);
+
+        // Si rien n'a changé, aucune ligne du fichier ne portait un conteneur accordé (colonne 8) :
+        // au lieu de renvoyer silencieusement un fichier identique (« rien ne se passe »), on le dit.
+        if (string.Equals(genere, contenu, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "Aucune ligne modifiée : la colonne conteneur (8ᵉ) du fichier ne correspond à aucun conteneur accordé (" +
+                string.Join(", ", datesParConteneur.Keys) +
+                "), ou la colonne T est déjà à jour. Vérifiez le fichier d'extraction N4 déposé.");
+        }
+
         var octets = Encoding.Latin1.GetBytes(genere);
 
         var nomFichier = $"actualisation-badt-{ticket.Numero}-{horloge.MaintenantUtc:yyyyMMdd-HHmm}.csv";
