@@ -1,6 +1,8 @@
 using CIT.Plateforme.Application.Abstractions;
 using CIT.Plateforme.Application.Securite;
+using CIT.Plateforme.Application.Tickets;
 using CIT.Plateforme.Domain.ActualisationBadt;
+using CIT.Plateforme.Domain.Messagerie;
 using CIT.Plateforme.Domain.Securite;
 using CIT.Plateforme.Domain.Tickets;
 
@@ -91,7 +93,8 @@ public sealed record FicheBadtDto(
     DateTime DateCreationUtc,
     bool PeutQualifier,
     bool PeutDecider,
-    IReadOnlyList<LigneBadtDto> Lignes);
+    IReadOnlyList<LigneBadtDto> Lignes,
+    IReadOnlyList<MessageItemVue> Messages);
 
 /// <summary>
 /// FEATURE 010 (Actualisation BADT) — fiche agent : le ticket, son client, et ses lignes conteneur
@@ -103,6 +106,8 @@ public sealed class ObtenirFicheBadtQuery(
     IDossierRepository dossiers,
     ISocieteClienteRepository societes,
     ILigneActualisationBadtRepository lignes,
+    IMessageRepository messages,
+    IUtilisateurInfoRepository utilisateursInfo,
     IAutorisationService autorisation)
 {
     public async Task<FicheBadtDto> ExecuterAsync(Guid agentId, Guid ticketId, CancellationToken ct = default)
@@ -127,11 +132,23 @@ public sealed class ObtenirFicheBadtQuery(
                 l.Decision, l.NombreJoursAccordes, l.AncienneDateExpiration, l.NouvelleDateValidite, l.MotifRefus))
             .ToList();
 
+        // Fiche agent (Support Client / Décideur) : le fil complet, notes internes comprises. Le
+        // client voit le même ticket via la fiche générique /tickets/{id} (messages visibles client).
+        var msgs = await messages.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false);
+        var auteurs = await utilisateursInfo.ObtenirInfosAsync(msgs.Select(m => m.AuteurId).Distinct(), ct).ConfigureAwait(false);
+        var messagesDto = msgs
+            .OrderBy(m => m.HorodatageUtc)
+            .Select(m => new MessageItemVue(
+                m.Id, m.Contenu,
+                auteurs.TryGetValue(m.AuteurId, out var a) ? (a.NomAffiche ?? a.Email) : "Utilisateur",
+                m.Type == TypeMessage.NoteInterne, m.HorodatageUtc))
+            .ToList();
+
         return new FicheBadtDto(
             ticket.Id, ticket.Numero, dossier?.Numero,
             societe?.InformationsDeclarees ?? "Client",
             ticket.Objet ?? string.Empty, ticket.Description ?? string.Empty,
             ticket.Statut, ticket.DateCreationUtc,
-            peutQualifier, peutDecider, lignesDto);
+            peutQualifier, peutDecider, lignesDto, messagesDto);
     }
 }

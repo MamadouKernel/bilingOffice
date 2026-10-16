@@ -12,6 +12,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirFicheBadtQuery ObtenirFiche
+@inject CIT.Plateforme.Application.Messagerie.PublierMessageCommand PublierMessage
 @inject QualifierLigneBadtCommand Qualifier
 @inject DeciderLigneBadtCommand Decider
 @inject GenererFichierNavisBadtCommand GenererNavis
@@ -189,6 +190,52 @@ else
     {
         <div class="alert alert-success mt-4 mb-0" role="alert">@Loc["BadtFiche.Closed"]</div>
     }
+
+    @* CHAT AGENT ⇄ CLIENT — messagerie du ticket (compléments). Notes internes réservées aux agents. *@
+    <div class="cit-card mt-4 p-0">
+        <div class="px-3 pt-3 border-bottom fw-bold">@Loc["Ticket.TabMessages"] (@_fiche.Messages.Count)</div>
+        <div class="p-3">
+            <div class="messages-container mb-3" style="max-height: 400px; overflow-y: auto;">
+                @if (_fiche.Messages.Count == 0)
+                {
+                    <div class="text-muted small py-4 text-center">@Loc["Ticket.NoMessages"]</div>
+                }
+                else
+                {
+                    @foreach (var msg in _fiche.Messages)
+                    {
+                        <div class="card mb-2 @(msg.EstInterne ? "border-warning bg-warning-subtle" : "bg-light border-0")">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold small text-dark">
+                                        @msg.AuteurNom
+                                        @if (msg.EstInterne)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-2">@Loc["Ticket.InternalNoteBadge"]</span>
+                                        }
+                                    </span>
+                                    <span class="text-muted u-fs-xs">@msg.DateEnvoiUtc.Horodate()</span>
+                                </div>
+                                <div class="small text-dark" style="white-space: pre-wrap;">@msg.Contenu</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="border-top pt-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="@Loc["Ticket.MessagePlaceholder"]"
+                           @bind="_nouveauMessage" @bind:event="oninput" />
+                    <div class="input-group-text bg-light">
+                        <input class="form-check-input mt-0 me-1" type="checkbox" @bind="_noteInterne" id="chkNoteInterneBadt" />
+                        <label class="small mb-0" for="chkNoteInterneBadt">@Loc["Ticket.InternalNoteCheck"]</label>
+                    </div>
+                    <button type="button" class="btn btn-primary" @onclick="EnvoyerMessageAsync"
+                            disabled="@(_busy || string.IsNullOrWhiteSpace(_nouveauMessage))">@Loc["Ticket.Send"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
@@ -210,6 +257,8 @@ else
     private readonly Dictionary<Guid, EditionLigne> _editions = new();
     private byte[]? _extraction;
     private string? _nomExtraction;
+    private string _nouveauMessage = string.Empty;
+    private bool _noteInterne;
 
     private EditionLigne Edition(Guid ligneId) =>
         _editions.TryGetValue(ligneId, out var e) ? e : _editions[ligneId] = new();
@@ -352,6 +401,26 @@ else
     private async Task CloturerAsync()
     {
         await ExecuterAsync(async contexte => await CloturerTicket.ExecuterAsync(contexte.UtilisateurId, TicketId));
+    }
+
+    private async Task EnvoyerMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_nouveauMessage)) return;
+        var contenu = _nouveauMessage.Trim();
+        var interne = _noteInterne;
+        await ExecuterAsync(async contexte =>
+        {
+            if (interne)
+            {
+                await PublierMessage.PublierNoteInterneAsync(contexte.UtilisateurId, TicketId, contenu);
+            }
+            else
+            {
+                await PublierMessage.PublierMessageAgentAsync(contexte.UtilisateurId, TicketId, contenu);
+            }
+            _nouveauMessage = string.Empty;
+            _noteInterne = false;
+        });
     }
 
     private string BadgeDecision(DecisionLigneBadt d) => d switch
