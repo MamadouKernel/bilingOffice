@@ -90,6 +90,13 @@ builder.Services.AddRazorComponents()
 // Quota par adresse IP, paramétrable : derrière un NAT d'entreprise, tous les postes d'un même
 // site partagent une adresse — la valeur se règle à l'exploitation, sans redéploiement de code.
 var requetesParMinuteParIp = Math.Max(30, builder.Configuration.GetValue("LimitationDebit:RequetesParMinuteParIp", 240));
+// Quota RESSERRÉ pour les points d'authentification (connexion, réinitialisation, 2FA). Le quota
+// global ci-dessus borne le flood, mais 240/min reste bien trop large contre le brute-force de mot
+// de passe, le bourrage d'identifiants et le flux d'e-mails de réinitialisation. Ces POST sensibles
+// obtiennent donc leur propre compartiment, par IP ET par chemin (une IP freinée sur /connexion
+// garde l'accès au reste du site). Le verrouillage d'Identity (lockoutOnFailure) protège déjà PAR
+// COMPTE ; ce plafond ajoute la protection PAR IP (énumération, stuffing, flood de reset/2FA).
+var tentativesAuthParIp = Math.Max(5, builder.Configuration.GetValue("LimitationDebit:TentativesAuthParIpPar5Min", 10));
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -105,7 +112,28 @@ builder.Services.AddRateLimiter(options =>
             return RateLimitPartition.GetNoLimiter("infra");
         }
 
-        var cle = httpContext.Connection.RemoteIpAddress?.ToString() ?? "inconnu";
+        var ipAppelante = httpContext.Connection.RemoteIpAddress?.ToString() ?? "inconnu";
+
+        // Seul le POST (la soumission d'identifiants / de code) est plafonné serré : le GET affiche
+        // le formulaire et ne doit jamais verrouiller l'utilisateur hors de la page.
+        var estPostAuthSensible = HttpMethods.IsPost(httpContext.Request.Method)
+            && (chemin.StartsWithSegments("/comptes/connexion")
+                || chemin.StartsWithSegments("/comptes/mot-de-passe-oublie")
+                || chemin.StartsWithSegments("/comptes/reinitialiser-mot-de-passe")
+                || chemin.StartsWithSegments("/comptes/verifier-code"));
+        if (estPostAuthSensible)
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(
+                $"auth:{chemin.Value}:{ipAppelante}",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = tentativesAuthParIp,
+                    Window = TimeSpan.FromMinutes(5),
+                    QueueLimit = 0,
+                });
+        }
+
+        var cle = ipAppelante;
         return RateLimitPartition.GetFixedWindowLimiter(cle, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = requetesParMinuteParIp,
