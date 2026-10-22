@@ -10570,5 +10570,11 @@
     "seen": 1792648010.3531947,
     "ast_hash": "87206f00ece0f50335efefbcb8ec4a30",
     "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Web.Tests/Securite/LimitationDebitAuthTests.cs": {
+    "mtime": 1792648933.8174026,
+    "seen": 1792649153.6011605,
+    "ast_hash": "6942c8e1645596afab556a29ef66d639",
+    "semantic_hash": ""
   }
 }

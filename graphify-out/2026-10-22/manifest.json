@@ -4380,9 +4380,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Program.cs": {
-    "mtime": 1791978893.3986387,
-    "seen": 1791989740.8327544,
-    "ast_hash": "8ede1223806e18ce86502403a7b32908",
+    "mtime": 1792647870.6538277,
+    "seen": 1792648010.1811209,
+    "ast_hash": "d2da57281b9ca2c832ab68b6bae6b5c3",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Properties/launchSettings.json": {
@@ -10563,6 +10563,12 @@
     "mtime": 1792168848.2294896,
     "seen": 1792169057.0109324,
     "ast_hash": "e1813f226013cfa22a95b4e0f06ad9da",
+    "semantic_hash": ""
+  },
+  "docs/revue-securite-2026-10-22.md": {
+    "mtime": 1792647682.3707526,
+    "seen": 1792648010.3531947,
+    "ast_hash": "87206f00ece0f50335efefbcb8ec4a30",
     "semantic_hash": ""
   }
 }
