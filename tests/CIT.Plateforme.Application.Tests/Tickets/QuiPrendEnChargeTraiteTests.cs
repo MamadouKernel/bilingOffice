@@ -88,20 +88,26 @@ public sealed class QuiPrendEnChargeTraiteTests
     }
 
     [Fact]
-    public async Task Un_superviseur_peut_toujours_reprendre_la_main()
+    public async Task Un_superviseur_reprend_la_main_en_se_reaffectant_le_ticket()
     {
         var c = await ConstruireAsync();
 
+        // Option B : même un superviseur traite par étape — il se réaffecte d'abord le ticket (la
+        // réaffectation est sa façon de « reprendre la main »), puis il le traite.
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, c.TicketId, c.Superviseur);
         await c.Valider.ExecuterAsync(c.Superviseur, c.TicketId);
 
         Assert.Contains(c.Db.HistoriqueTickets, h => h.TicketId == c.TicketId && h.Evenement == "TicketImportValide" && h.AuteurId == c.Superviseur);
     }
 
     [Fact]
-    public async Task Un_ticket_non_affecte_reste_ouvert_a_tout_agent_habilite()
+    public async Task Un_ticket_non_affecte_s_ouvre_a_tout_agent_habilite_qui_le_prend_en_charge()
     {
         var c = await ConstruireAsync(affecterAgentA: false);
 
+        // Option B : un ticket non affecté n'est plus traité « à la volée » — tout agent habilité peut
+        // le prendre, mais il doit le prendre en charge explicitement avant de le traiter.
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, c.TicketId, c.AgentB);
         await c.Valider.ExecuterAsync(c.AgentB, c.TicketId);
 
         Assert.Contains(c.Db.HistoriqueTickets, h => h.TicketId == c.TicketId && h.Evenement == "TicketImportValide");

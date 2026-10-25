@@ -74,6 +74,7 @@ public sealed class PaiementDeclaratifExportParametrableTests : IDisposable
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeExportRequete(c.SocieteId, c.AuteurId, [booking]));
         var id = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, id);
         return id;
     }
@@ -97,6 +98,7 @@ public sealed class PaiementDeclaratifExportParametrableTests : IDisposable
         Assert.False(ticket.EstEnEtatEngageant);
         Assert.Equal(NomsFilesExport.Facturation, (await c.Db.Files.FindAsync(ticket.FileCouranteId))!.Nom);
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticketId, c.AgentId);
         await c.Reglement.ConfirmerAsync(c.AgentId, ticketId);
         ticket = (await c.Db.Tickets.FindAsync(ticketId))!;
         Assert.True(ticket.EstEnEtatEngageant);

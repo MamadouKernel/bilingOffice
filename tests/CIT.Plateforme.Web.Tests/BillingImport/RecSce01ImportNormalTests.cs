@@ -70,6 +70,10 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
             HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer));
         await dbContext.SaveChangesAsync();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingImportManifesteInstruire, Permission.BillingImportFacturationEditer, Permission.BillingImportPaiementValider, Permission.BillingImportControleDocumentaireTraiter]);
+
         var suffixe = Guid.NewGuid().ToString("N")[..8];
         var soumettre = services.GetRequiredService<SoumettreDemandeImportCommand>();
         var soumission = await soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(
@@ -80,18 +84,23 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
 
         // --- BL2 : rejeté par le Pilote Manifeste, motif obligatoire (IMP-04). ---
         var rejeter = services.GetRequiredService<RejeterTicketImportCommand>();
+        await PrendreEnChargeAsync(ticketRejete.Id);
         await rejeter.ExecuterAsync(agentId, ticketRejete.Id, "BL illisible sur le document joint");
 
         // --- BL3 : complément demandé, déposé par le client, puis validé (IMP-05). ---
         var complement = services.GetRequiredService<GestionComplementManifesteCommand>();
         var valider = services.GetRequiredService<ValiderTicketImportCommand>();
+        await PrendreEnChargeAsync(ticketComplement.Id);
         await complement.DemanderComplementAsync(agentId, ticketComplement.Id, "Facture d'origine manquante");
         var ticketComplementApresDemande = await dbContext.Tickets.FindAsync(ticketComplement.Id);
         Assert.Equal(StatutTicket.EnAttenteClient, ticketComplementApresDemande!.Statut);
         await complement.DeposerComplementAsync(auteurId, ticketComplement.Id);
+        // Le dépôt du complément (client) laisse le ticket EnCours, toujours affecté à l'agent qui
+        // l'avait pris pour demander le complément — pas de nouvelle prise en charge avant de valider.
         await valider.ExecuterAsync(agentId, ticketComplement.Id);
 
         // --- BL1 : validé et mené jusqu'à clôture (circuit Client Normal complet, IMP-06, IMP-10→14). ---
+        await PrendreEnChargeAsync(ticketValide.Id);
         await valider.ExecuterAsync(agentId, ticketValide.Id);
 
         var demanderFacture = services.GetRequiredService<DemanderFactureCommand>();
@@ -102,9 +111,12 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
         {
             // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
             var proforma1 = Contenu("proforma");
+            await PrendreEnChargeAsync(ticketValide.Id);
             await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
                 agentId, ticketValide.Id, "proforma.pdf", "application/pdf", proforma1, proforma1.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
             await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(auteurId, ticketValide.Id);
+            // Pas de prise en charge ici : la validation client de la proforma laisse le ticket EnCours,
+            // toujours affecté à l'agent — il garde la main pour éditer la facture.
             await editerFacture.ExecuterAsync(agentId, ticketValide.Id, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
 
@@ -115,11 +127,13 @@ public sealed class RecSce01ImportNormalTests(PlateformeWebApplicationFactory fa
         }
 
         var validerPreuve = services.GetRequiredService<ValiderPreuvePaiementCommand>();
+        await PrendreEnChargeAsync(ticketValide.Id);
         await validerPreuve.ValiderAsync(agentId, ticketValide.Id);
 
         var controleEtCloturer = services.GetRequiredService<DeposerDocumentsControleEtCloturerCommand>();
         using (var badt = Contenu("badt"))
         {
+            await PrendreEnChargeAsync(ticketValide.Id);
             await controleEtCloturer.ExecuterAsync(agentId, ticketValide.Id, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
         }
 

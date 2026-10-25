@@ -79,6 +79,7 @@ public sealed class CircuitClientIesExportTests
         var ticket = soumission.TicketsCrees[0];
 
         // 1. Validation Back Office -> Aiguillage File IES et création des 2 branches (BackOffice + ControleDoc)
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticket.Id);
 
         // Tentative de finalisation prématurée -> doit lever JointureIesIncompleteException

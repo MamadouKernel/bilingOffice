@@ -28,6 +28,10 @@ public sealed class InstruireBrancheIesExportCommand(
 
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        // Option B ne s'applique PAS à l'instruction des branches IES : deux agents (Back Office et
+        // Contrôle Documentaire) traitent leurs branches en parallèle sur le même ticket (research.md
+        // D9/D10) — imposer une affectation unique briserait ce modèle. La garde par étape reste sur
+        // l'entrée (ValiderTicketExport, qui aiguille vers la File IES) et la jointure est terminale.
 
         // RG-SEC-01 — droit d'action au niveau bloc, symétrique de l'import.
         var bloc = branche == BrancheIes.BackOffice ? BlocDonneesIes.Manifeste : BlocDonneesIes.Douane;

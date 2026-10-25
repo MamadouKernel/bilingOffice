@@ -337,6 +337,23 @@ public sealed partial class Ticket
         DateDerniereActiviteUtc = maintenantUtc;
     }
 
+    /// <summary>
+    /// « Qui a pris en charge, traite », imposé par étape (décision du 05/10/2026, option B) : une
+    /// action de traitement Billing n'est permise qu'à l'agent qui a explicitement pris en charge le
+    /// ticket sur l'étape courante — le ticket doit être <see cref="StatutTicket.EnCours"/> ET lui
+    /// être affecté. Un ticket encore « en attente de prise en charge », ou tenu par un collègue, est
+    /// refusé : l'agent doit d'abord le prendre en charge (ou s'en faire réaffecter). Chaque étape
+    /// repart à zéro car <see cref="Transferer"/> remet le ticket non affecté à chaque transition.
+    /// </summary>
+    public void ExigerPriseEnChargePar(Guid agentId)
+    {
+        if (Statut != StatutTicket.EnCours || OperateurAssigneId != agentId)
+        {
+            throw new InvalidOperationException(
+                $"Le ticket {Numero} doit être pris en charge avant d'être traité (statut : {Statut}).");
+        }
+    }
+
     /// <summary>CLAR-03 : après un transfert, le ticket arrive non affecté « en attente de prise
     /// en charge » sauf destinataire explicitement désigné (TRF-03).</summary>
     public void Transferer(Guid fileCibleId, Guid? destinataireId, DateTime maintenantUtc)

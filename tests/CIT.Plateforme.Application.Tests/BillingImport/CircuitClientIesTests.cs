@@ -78,6 +78,7 @@ public sealed class CircuitClientIesTests
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, [numeroBl]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentManifesteId);
         await c.Valider.ExecuterAsync(c.AgentManifesteId, ticketId);
         return ticketId;
     }

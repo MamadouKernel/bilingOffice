@@ -83,6 +83,7 @@ public sealed class DeclarationPresentielleTests
         var c = await ConstruireContexteAsync();
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-PR1"]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
         await c.Declarer.ExecuterAsync(c.AuteurId, ticketId);
@@ -111,6 +112,7 @@ public sealed class DeclarationPresentielleTests
         var c = await ConstruireContexteAsync();
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-PR3"]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
         var tiersId = Guid.NewGuid();
@@ -125,6 +127,7 @@ public sealed class DeclarationPresentielleTests
         var c = await ConstruireContexteAsync();
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-PR4"]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
         var demain = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1));

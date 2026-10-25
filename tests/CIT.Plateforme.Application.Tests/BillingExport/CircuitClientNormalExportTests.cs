@@ -102,15 +102,18 @@ public sealed class CircuitClientNormalExportTests
         var ticket = soumission.TicketsCrees[0];
 
         // 1. Back Office valide -> File Facturation
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticket.Id);
 
         // 2. Facturation émet la facture -> File Validation Paiement
         var factureContenu = Encoding.UTF8.GetBytes("Facture EXPORT FCT-2026-001");
         // RG-EXP-03 : le Draft IN précède l'édition de la facture (remédiation post-audit final).
         var draftContenu = System.Text.Encoding.UTF8.GetBytes("draft-in");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.EmettreDraftIn.ExecuterAsync(c.AgentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", new MemoryStream(draftContenu), draftContenu.Length, Regles);
 
         await ProformaDeTest.ValiderAsync(c.DbContext, ticket.Id, c.AgentId);
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", new MemoryStream(factureContenu), factureContenu.Length, Regles);
 
         // 3. Client dépose la preuve de paiement
@@ -118,10 +121,12 @@ public sealed class CircuitClientNormalExportTests
         await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticket.Id, "Preuve.pdf", "application/pdf", new MemoryStream(preuveContenu), preuveContenu.Length, Regles);
 
         // 4. Validation du paiement -> File Contrôle Documentaire
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticket.Id);
 
         // 5. Contrôle Documentaire dépose le BEE (Bordereau d'Enlèvement Export) et clôture
         var beeContenu = Encoding.UTF8.GetBytes("Bordereau d'Enlèvement Export");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticket.Id, c.AgentId);
         await c.FinaliserControle.ExecuterAsync(c.AgentId, ticket.Id, "BEE-2026-001.pdf", "application/pdf", new MemoryStream(beeContenu), beeContenu.Length, Regles);
 
         var ticketCloture = await new TicketRepository(c.DbContext).ObtenirParIdAsync(ticket.Id);

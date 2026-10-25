@@ -32,15 +32,9 @@ public sealed class GestionComplementManifesteCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportManifesteInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         var maintenant = horloge.MaintenantUtc;
-        // Ticket.MettreEnAttenteClient exige le statut EnCours (F001) : la demande de complément
-        // implique que le Pilote Manifeste a pris en charge le ticket pour l'instruire — prise en
-        // charge implicite si ce n'est pas déjà fait, cohérente avec IMP-04 (contrôle BL en cours).
-        if (ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge)
-        {
-            ticket.PrendreEnCharge(agentId, maintenant);
-        }
 
         ticket.MettreEnAttenteClient(maintenant);
 

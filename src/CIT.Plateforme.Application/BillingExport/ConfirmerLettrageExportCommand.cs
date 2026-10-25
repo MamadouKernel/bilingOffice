@@ -23,6 +23,7 @@ public sealed class ConfirmerLettrageExportCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingExportComptabiliteConfirmerLettrage, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         var toutesLesFiles = await files.ListerAsync(ct).ConfigureAwait(false);
         var fileControleDocumentaire = toutesLesFiles.SingleOrDefault(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == NomsFilesExport.ControleDocumentaire)

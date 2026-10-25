@@ -127,7 +127,10 @@ public class Imp11EtProducteursTests
         //   TraitementLigneBadtCommands.cs publie BadtLigneEscaladee (escalade vers le Décideur) et
         //   BadtLigneRenvoyee (renvoi du Décideur à l'agent) ; CloturerTicketBadtCommand.cs publie
         //   TicketCloture (le client est informé que sa demande est traitée). Producteurs délibérés.
-        Assert.Equal(59, fichiersProducteurs.Count);
+        // 60e producteur (25/10/2026) — option B : PrendreEnChargeEtapeBillingCommand.cs publie
+        // TicketPrisEnCharge quand un agent prend explicitement en charge un ticket Billing à une étape.
+        Assert.Equal(60, fichiersProducteurs.Count);
+        Assert.Contains("PrendreEnChargeEtapeBillingCommand.cs", fichiersProducteurs);
         Assert.Contains("CreerDemandeActualisationBadtCommand.cs", fichiersProducteurs);
         Assert.Contains("TraitementLigneBadtCommands.cs", fichiersProducteurs);
         Assert.Contains("CloturerTicketBadtCommand.cs", fichiersProducteurs);

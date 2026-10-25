@@ -75,6 +75,7 @@ public sealed class AiguillageTypeClientTests
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societeId, auteurId, ["BL-AIG"]));
         var ticketId = soumission.TicketsCrees[0].Id;
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -98,6 +99,7 @@ public sealed class AiguillageTypeClientTests
         c.DbContext.Societes.Update(societe);
         await c.DbContext.SaveChangesAsync();
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);

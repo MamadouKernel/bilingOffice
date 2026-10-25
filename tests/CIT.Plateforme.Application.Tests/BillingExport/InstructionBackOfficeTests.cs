@@ -79,6 +79,7 @@ public sealed class InstructionBackOfficeTests
         dbContext.Tickets.Add(ticket);
         await dbContext.SaveChangesAsync();
 
+        await PriseEnChargeDeTest.PrendreAsync(dbContext, ticket.Id, agentId);
         await valider.ExecuterAsync(agentId, ticket.Id);
 
         var ticketApres = await new TicketRepository(dbContext).ObtenirParIdAsync(ticket.Id);
@@ -101,6 +102,7 @@ public sealed class InstructionBackOfficeTests
         dbContext.Tickets.Add(ticket);
         await dbContext.SaveChangesAsync();
 
+        await PriseEnChargeDeTest.PrendreAsync(dbContext, ticket.Id, agentId);
         await valider.ExecuterAsync(agentId, ticket.Id);
 
         var ticketApres = await new TicketRepository(dbContext).ObtenirParIdAsync(ticket.Id);
@@ -126,6 +128,7 @@ public sealed class InstructionBackOfficeTests
         dbContext.Tickets.Add(ticket);
         await dbContext.SaveChangesAsync();
 
+        await PriseEnChargeDeTest.PrendreAsync(dbContext, ticket.Id, agentId);
         await rejeter.ExecuterAsync(agentId, ticket.Id, "Booking annulé par la compagnie");
 
         var ticketApres = await new TicketRepository(dbContext).ObtenirParIdAsync(ticket.Id);
@@ -156,6 +159,7 @@ public sealed class InstructionBackOfficeTests
         await dbContext.SaveChangesAsync();
 
         // Demande de complément
+        await PriseEnChargeDeTest.PrendreAsync(dbContext, ticket.Id, agentId);
         await complement.DemanderComplementAsync(agentId, ticket.Id, "Préciser la nature des conteneurs");
 
         var ticketAttente = await new TicketRepository(dbContext).ObtenirParIdAsync(ticket.Id);

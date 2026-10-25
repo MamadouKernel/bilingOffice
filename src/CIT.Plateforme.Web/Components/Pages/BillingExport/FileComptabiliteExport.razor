@@ -91,9 +91,14 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button type="button" class="btn btn-outline-success" @onclick="() => ConfirmerLettrageAsync(t.Id)" title="@Loc["FileComptaExp.ConfirmTitle"]">
-                                            @Loc["FileComptaExp.Confirm"]
-                                        </button>
+                                        @if (t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId)
+                                        {
+                                            <button type="button" class="btn btn-outline-success" @onclick="() => ConfirmerLettrageAsync(t.Id)" title="@Loc["FileComptaExp.ConfirmTitle"]">
+                                                @Loc["FileComptaExp.Confirm"]
+                                            </button>
+                                        }
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingExportComptabiliteConfirmerLettrage })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => { _message = m; _erreur = true; }" />
                                     </div>
                                 </td>
                             </tr>

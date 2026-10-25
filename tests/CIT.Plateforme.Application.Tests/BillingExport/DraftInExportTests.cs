@@ -107,6 +107,7 @@ public sealed class DraftInExportTests
         var soumission = await c.Soumettre.ExecuterAsync(
             new SoumettreDemandeExportRequete(c.SocieteId, c.AuteurId, ["BKG-DRAFT-01"]));
         var ticket = soumission.TicketsCrees[0];
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticket.Id);
         return ticket;
     }
@@ -121,6 +122,7 @@ public sealed class DraftInExportTests
 
         Assert.False(ticket.DraftInExportEmis);
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         await c.EmettreDraftIn.ExecuterAsync(
             c.AgentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", Fichier("draft"), 5, Regles);
 
@@ -128,6 +130,7 @@ public sealed class DraftInExportTests
         Assert.NotNull(ticket.DraftInExportEmisLeUtc);
 
         await ProformaDeTest.ValiderAsync(c.Db, ticket.Id, c.AgentId);
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         await c.EditerFacture.ExecuterAsync(
             c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", Fichier("facture"), 7, Regles);
 
@@ -145,6 +148,7 @@ public sealed class DraftInExportTests
         using var _ = c.Db;
         var ticket = await TicketEnFacturationAsync(c);
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         await Assert.ThrowsAsync<DraftInRequisException>(() => c.EditerFacture.ExecuterAsync(
             c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", Fichier("facture"), 7, Regles));
 
@@ -161,6 +165,7 @@ public sealed class DraftInExportTests
         using var _ = c.Db;
         var ticket = await TicketEnFacturationAsync(c);
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         await c.EmettreDraftIn.ExecuterAsync(
             c.AgentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", Fichier("draft"), 5, Regles);
 
@@ -179,6 +184,7 @@ public sealed class DraftInExportTests
         using var _ = c.Db;
         var ticket = await TicketEnFacturationAsync(c);
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         await c.EmettreDraftIn.ExecuterAsync(
             c.AgentId, ticket.Id, "DraftIN-001.pdf", "application/pdf", Fichier("draft"), 5, Regles);
 
@@ -220,6 +226,7 @@ public sealed class DraftInExportTests
         c.Db.Habilitations.Add(HabilitationUtilisateur.Attribuer(c.AgentId, Permission.BillingExportFacturationEditer, fileImport.Id));
         c.Db.SaveChanges();
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticketImport.Id, c.AgentId);
         await Assert.ThrowsAsync<InvalidOperationException>(() => c.EmettreDraftIn.ExecuterAsync(
             c.AgentId, ticketImport.Id, "DraftIN-001.pdf", "application/pdf", Fichier("draft"), 5, Regles));
 
@@ -240,6 +247,7 @@ public sealed class DraftInExportTests
         // Le ticket IES part en File IES, jamais en Facturation — la facture est produite hors
         // plateforme (RG-EXP-04). L'édition de facture reste refusée pour une raison de PROFIL,
         // pas pour absence de Draft IN.
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticket.Id, c.AgentId);
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => c.EditerFacture.ExecuterAsync(
             c.AgentId, ticket.Id, "Facture-001.pdf", "application/pdf", Fichier("facture"), 7, Regles));
 

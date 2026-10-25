@@ -68,6 +68,7 @@ public sealed class SnapshotTypeClientExportTests
         var validerBO = new ValiderTicketExportCommand(
             ticketRepository, dossierRepository, fileRepository, suiviRepository, autorisation, journalisation, horloge, uniteDeTravail);
 
+        await PriseEnChargeDeTest.PrendreAsync(dbContext, ticketId, agentId);
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         var ticketApresValidation = await ticketRepository.ObtenirParIdAsync(ticketId);

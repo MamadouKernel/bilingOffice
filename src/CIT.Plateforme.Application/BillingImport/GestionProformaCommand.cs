@@ -54,6 +54,7 @@ public sealed class GestionProformaCommand(
         };
         await autorisation.ExigerAsync(agentId, permission, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         if (ticket.Module == SoumettreDemandeExportCommand.Module && !ticket.DraftInExportEmis)
         {
@@ -72,11 +73,6 @@ public sealed class GestionProformaCommand(
         }
 
         await deposerDocument.DeposerPourAgentAsync(agentId, ticketId, nomFichier, typeContenu, contenu, tailleOctets, reglesEtape, ct).ConfigureAwait(false);
-
-        if (ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge)
-        {
-            ticket.PrendreEnCharge(agentId, maintenant);
-        }
 
         ticket.EmettreProforma(maintenant);
 

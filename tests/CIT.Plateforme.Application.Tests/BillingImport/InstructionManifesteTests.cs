@@ -74,6 +74,7 @@ public sealed class InstructionManifesteTests
         var ticketId = soumission.TicketsCrees[0].Id;
         var fileAvantValidation = soumission.TicketsCrees[0].FileCouranteId; // capturé avant mutation
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -87,6 +88,7 @@ public sealed class InstructionManifesteTests
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-R1"]));
         var ticketId = soumission.TicketsCrees[0].Id;
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Rejeter.ExecuterAsync(c.AgentId, ticketId, "Document manquant");
         Assert.Contains(c.DbContext.JournalEvenements, e => e.TypeEvenement == "TicketRejete" && e.ChargeUtile.Contains(ticketId.ToString()));
 
@@ -102,6 +104,7 @@ public sealed class InstructionManifesteTests
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-R2"]));
         var ticketId = soumission.TicketsCrees[0].Id;
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await Assert.ThrowsAsync<ArgumentException>(() => c.Rejeter.ExecuterAsync(c.AgentId, ticketId, ""));
     }
 
@@ -113,6 +116,7 @@ public sealed class InstructionManifesteTests
         var ticketId = soumission.TicketsCrees[0].Id;
 
         // Le client doit savoir quoi fournir : une demande de complément sans contenu est refusée.
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await Assert.ThrowsAsync<ArgumentException>(() => c.Complement.DemanderComplementAsync(c.AgentId, ticketId, "  "));
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -126,6 +130,7 @@ public sealed class InstructionManifesteTests
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-C1"]));
         var ticketId = soumission.TicketsCrees[0].Id;
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Complement.DemanderComplementAsync(c.AgentId, ticketId, "Facture manquante");
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -138,6 +143,7 @@ public sealed class InstructionManifesteTests
         var c = await ConstruireContexteAsync();
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-C2"]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Complement.DemanderComplementAsync(c.AgentId, ticketId, "Facture manquante");
 
         await c.Complement.DeposerComplementAsync(c.AuteurId, ticketId);
@@ -153,8 +159,11 @@ public sealed class InstructionManifesteTests
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, ["BL-M1", "BL-M2", "BL-M3"]));
         var (t1, t2, t3) = (soumission.TicketsCrees[0], soumission.TicketsCrees[1], soumission.TicketsCrees[2]);
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, t1.Id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, t1.Id);
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, t2.Id, c.AgentId);
         await c.Rejeter.ExecuterAsync(c.AgentId, t2.Id, "Motif");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, t3.Id, c.AgentId);
         await c.Complement.DemanderComplementAsync(c.AgentId, t3.Id, "Elements");
 
         var ticket1 = await c.DbContext.Tickets.FindAsync(t1.Id);

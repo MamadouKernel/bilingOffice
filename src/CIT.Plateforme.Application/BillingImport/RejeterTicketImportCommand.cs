@@ -30,6 +30,7 @@ public sealed class RejeterTicketImportCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportManifesteInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         var maintenant = horloge.MaintenantUtc;
         ticket.RejeterImport(maintenant);

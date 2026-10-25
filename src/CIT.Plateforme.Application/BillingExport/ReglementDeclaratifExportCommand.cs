@@ -63,6 +63,7 @@ public sealed class ReglementDeclaratifExportCommand(
         ExigerModuleExport(ticket);
         await autorisation.ExigerAsync(agentId, Permission.BillingExportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         if (ticket.ReglementDeclareUtc is null)
         {

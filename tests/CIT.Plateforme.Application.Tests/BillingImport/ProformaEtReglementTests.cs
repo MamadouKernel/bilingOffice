@@ -94,7 +94,10 @@ public sealed class ProformaEtReglementTests
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, [bl], DateEnlevementSouhaitee: dateEnlevement));
         var id = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, id);
+        // Option B : la Facturation reprend le ticket (transféré non affecté) avant de l'instruire.
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, id, c.AgentId);
         return id;
     }
 
@@ -135,7 +138,9 @@ public sealed class ProformaEtReglementTests
             c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles));
 
         await EmettreProformaAsync(c, ticketId, c.Aujourdhui.AddDays(2));
-        await Assert.ThrowsAsync<ProformaNonValideeException>(() =>
+        // Proforma émise : le ticket passe en attente client ; l'édition reste refusée (option B : la
+        // garde de prise en charge par étape remonte avant la vérification proforma spécifique).
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles));
     }
 
@@ -210,6 +215,7 @@ public sealed class ProformaEtReglementTests
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticketId, c.AgentId);
         await Assert.ThrowsAsync<ArgumentException>(() => c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId, MoyenPaiement.Wave, null));
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId, MoyenPaiement.Wave, " WV-778812 ");
 
@@ -227,6 +233,7 @@ public sealed class ProformaEtReglementTests
             await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
 
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticketId, c.AgentId);
         await c.ValiderPreuve.RefuserAsync(c.AgentId, ticketId, "Montant incorrect");
         var ticket = (await c.Db.Tickets.FindAsync(ticketId))!;
         Assert.Equal(StatutTicket.EnAttenteClient, ticket.Statut);

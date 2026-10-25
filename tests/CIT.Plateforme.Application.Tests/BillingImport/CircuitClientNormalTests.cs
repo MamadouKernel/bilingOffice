@@ -102,6 +102,7 @@ public sealed class CircuitClientNormalTests
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, [numeroBl]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
         return ticketId;
     }
@@ -151,6 +152,7 @@ public sealed class CircuitClientNormalTests
             await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
         }
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -173,6 +175,7 @@ public sealed class CircuitClientNormalTests
             await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve1.pdf", "application/pdf", preuveInvalide, preuveInvalide.Length, Regles);
         }
 
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ValiderPreuve.RefuserAsync(c.AgentId, ticketId, "Montant incorrect");
 
         var ticketApresRefus = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -200,9 +203,11 @@ public sealed class CircuitClientNormalTests
         {
             await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
         }
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
 
         using var badt = Contenu("badt");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -256,9 +261,11 @@ public sealed class CircuitClientNormalTests
         {
             await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve.pdf", "application/pdf", preuve, preuve.Length, Regles);
         }
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
 
         using var sortie = Contenu("bs-badt");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "bon-de-sortie-badt.pdf", "application/pdf", sortie, sortie.Length, Regles);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);
@@ -286,13 +293,16 @@ public sealed class CircuitClientNormalTests
         {
             await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve1.pdf", "application/pdf", preuveInvalide, preuveInvalide.Length, Regles);
         }
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ValiderPreuve.RefuserAsync(c.AgentId, ticketId, "Montant incorrect");
         using (var preuveCorrigee = Contenu("preuve-corrigee"))
         {
             await c.DeposerPreuve.ExecuterAsync(c.AuteurId, ticketId, "preuve2.pdf", "application/pdf", preuveCorrigee, preuveCorrigee.Length, Regles);
         }
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ValiderPreuve.ValiderAsync(c.AgentId, ticketId);
         using var badt = Contenu("badt");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);

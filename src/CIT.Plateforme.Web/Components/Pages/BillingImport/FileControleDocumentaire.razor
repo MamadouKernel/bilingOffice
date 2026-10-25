@@ -91,12 +91,19 @@ else
                                     @t.DateArriveeEnFileUtc.Horodate()
                                 </td>
                                 <td>
-                                    <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, DeposerEtCloturerAsync)" />
+                                    @if (t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId)
+                                    {
+                                        <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, DeposerEtCloturerAsync)" />
+                                    }
                                 </td>
                                 <td class="text-end">
-                                    <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="@Loc["File.SheetTitle"]">
-                                        @Loc["File.Sheet"]
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
+                                            @Loc["File.Sheet"]
+                                        </a>
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingImportControleDocumentaireTraiter })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => { _message = m; _erreur = true; }" />
+                                    </div>
                                 </td>
                             </tr>
                         }

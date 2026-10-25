@@ -94,13 +94,18 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button type="button" class="btn btn-outline-success" @onclick="() => _ticketEnValidation = t.Id" title="@Loc["FilePayExp.ValidateTitle"]">
-                                            @Loc["FilePayExp.Validate"]
-                                        </button>
-                                        <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModalRefus(t.Id)" title="@Loc["FilePayExp.RefuseTitle"]">
-                                            @Loc["FilePayExp.Refuse"]
-                                        </button>
-                                                                        </div>
+                                        @if (t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId)
+                                        {
+                                            <button type="button" class="btn btn-outline-success" @onclick="() => _ticketEnValidation = t.Id" title="@Loc["FilePayExp.ValidateTitle"]">
+                                                @Loc["FilePayExp.Validate"]
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModalRefus(t.Id)" title="@Loc["FilePayExp.RefuseTitle"]">
+                                                @Loc["FilePayExp.Refuse"]
+                                            </button>
+                                        }
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingExportPaiementValider })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => { _message = m; _erreur = true; }" />
+                                    </div>
                                     @if (_ticketEnValidation == t.Id)
                                     {
                                         <SaisieReglement OnConfirmer="r => ValiderPaiementAsync(t.Id, r.Moyen, r.Reference)" OnAnnuler="() => _ticketEnValidation = null" />

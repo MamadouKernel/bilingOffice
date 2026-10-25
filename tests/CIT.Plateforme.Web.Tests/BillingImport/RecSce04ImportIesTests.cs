@@ -64,12 +64,17 @@ public sealed class RecSce04ImportIesTests(PlateformeWebApplicationFactory facto
             HabilitationUtilisateur.Attribuer(CIT.Plateforme.Tests.Partages.ComptesDeTest.CompteActif(dbContext, agentControleDocumentaireId), Permission.BillingImportIesControleDocumentaireInstruire));
         await dbContext.SaveChangesAsync();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentManifesteId, tId, [Permission.BillingImportManifesteInstruire]);
+
         var suffixe = Guid.NewGuid().ToString("N")[..8];
         var soumettre = services.GetRequiredService<SoumettreDemandeImportCommand>();
         var soumission = await soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societe.Id, auteurId, [$"REC4-{suffixe}"]));
         var ticket = soumission.TicketsCrees[0];
 
         var valider = services.GetRequiredService<ValiderTicketImportCommand>();
+        await PrendreEnChargeAsync(ticket.Id);
         await valider.ExecuterAsync(agentManifesteId, ticket.Id);
 
         var ticketAiguille = await dbContext.Tickets.FindAsync(ticket.Id);

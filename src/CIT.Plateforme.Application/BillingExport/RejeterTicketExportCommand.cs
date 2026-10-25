@@ -27,6 +27,7 @@ public sealed class RejeterTicketExportCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingExportBackOfficeInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         ticket.RejeterExport(horloge.MaintenantUtc);
 

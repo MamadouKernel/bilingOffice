@@ -59,7 +59,8 @@ public sealed class AuditDistinctionAnnulationRejetTests
         // individuel — même convention que DemanderFactureCommand/DeposerPreuvePaiementCommand.
         await annulerClient.AnnulerLibrementAsync(auteurId, ticketAnnuleParClient.Id, "Je n'ai plus besoin de ce dossier");
 
-        // Rejet Pilote Manifeste (Feature 003).
+        // Rejet Pilote Manifeste (Feature 003) — l'agent prend d'abord en charge le ticket (option B).
+        await PriseEnChargeDeTest.PrendreAsync(dbContext, ticketRejeteParManifeste.Id, agentId);
         await rejeterManifeste.ExecuterAsync(agentId, ticketRejeteParManifeste.Id, "BL illisible");
 
         var finAnnuleParClient = await dbContext.Tickets.FindAsync(ticketAnnuleParClient.Id);

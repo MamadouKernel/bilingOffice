@@ -106,6 +106,10 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var validerPaiement = services.GetRequiredService<ValiderPreuvePaiementExportCommand>();
         var finaliserDoc = services.GetRequiredService<FinaliserControleDocumentaireExportCommand>();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingExportBackOfficeInstruire, Permission.BillingExportFacturationEditer, Permission.BillingExportPaiementValider, Permission.BillingExportComptabiliteConfirmerLettrage, Permission.BillingExportControleDocumentaireTraiter]);
+
         var bookingNo = $"BKG-NORM-{Guid.NewGuid():N}"[..15];
         var resultat = await soumettre.ExecuterAsync(new SoumettreDemandeExportRequete(
             societe.Id, clientId, [bookingNo]));
@@ -114,25 +118,30 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var ticketId = resultat.TicketsCrees[0].Id;
 
         // 1. Back Office Export
+        await PrendreEnChargeAsync(ticketId);
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Facturation
         // RG-EXP-03 : le Draft IN précède la facture.
+        await PrendreEnChargeAsync(ticketId);
         await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
         // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
         var proforma1 = Contenu("proforma");
         await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
             agentId, ticketId, "proforma.pdf", "application/pdf", proforma1, proforma1.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
         await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(clientId, ticketId);
+        // La validation client de la proforma laisse le ticket EnCours, toujours affecté à l'agent.
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Client dépose preuve paiement
         await deposerPreuve.ExecuterAsync(clientId, ticketId, "virement.pdf", "application/pdf", Contenu("VIREMENT"), 8, Regles);
 
         // 4. Validation Paiement
+        await PrendreEnChargeAsync(ticketId);
         await validerPaiement.ValiderAsync(agentId, ticketId);
 
         // 5. Contrôle Documentaire (BEE) & Clôture
+        await PrendreEnChargeAsync(ticketId);
         await finaliserDoc.ExecuterAsync(agentId, ticketId, "bee.pdf", "application/pdf", Contenu("BEE"), 3, Regles);
 
         var ticketFinal = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == ticketId);
@@ -163,22 +172,29 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var editerFacture = services.GetRequiredService<EditerFactureExportCommand>();
         var finaliserDoc = services.GetRequiredService<FinaliserControleDocumentaireExportCommand>();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingExportBackOfficeInstruire, Permission.BillingExportFacturationEditer, Permission.BillingExportPaiementValider, Permission.BillingExportComptabiliteConfirmerLettrage, Permission.BillingExportControleDocumentaireTraiter]);
+
         var bookingNo = $"BKG-CPTE-{Guid.NewGuid():N}"[..15];
         var res = await soumettre.ExecuterAsync(new SoumettreDemandeExportRequete(
             societe.Id, clientId, [bookingNo]));
         var ticketId = res.TicketsCrees[0].Id;
 
         // 1. Back Office
+        await PrendreEnChargeAsync(ticketId);
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Facturation -> Direct Contrôle Doc (pas de caisse)
         // RG-EXP-03 : le Draft IN précède la facture.
+        await PrendreEnChargeAsync(ticketId);
         await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
         // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
         var proforma2 = Contenu("proforma");
         await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
             agentId, ticketId, "proforma.pdf", "application/pdf", proforma2, proforma2.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
         await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(clientId, ticketId);
+        // La validation client de la proforma laisse le ticket EnCours, toujours affecté à l'agent.
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         var fileDoc = await dbContext.Files.SingleAsync(f => f.Module == SoumettreDemandeExportCommand.Module && f.Nom == NomsFilesExport.ControleDocumentaire);
@@ -186,6 +202,7 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         Assert.Equal(fileDoc.Id, ticketFacture.FileCouranteId);
 
         // 3. Contrôle Doc (BEE) & Clôture
+        await PrendreEnChargeAsync(ticketId);
         await finaliserDoc.ExecuterAsync(agentId, ticketId, "bee.pdf", "application/pdf", Contenu("BEE"), 3, Regles);
 
         var ticketFinal = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == ticketId);
@@ -217,28 +234,37 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var confirmerLettrage = services.GetRequiredService<ConfirmerLettrageExportCommand>();
         var finaliserDoc = services.GetRequiredService<FinaliserControleDocumentaireExportCommand>();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingExportBackOfficeInstruire, Permission.BillingExportFacturationEditer, Permission.BillingExportPaiementValider, Permission.BillingExportComptabiliteConfirmerLettrage, Permission.BillingExportControleDocumentaireTraiter]);
+
         var bookingNo = $"BKG-DEPO-{Guid.NewGuid():N}"[..15];
         var res = await soumettre.ExecuterAsync(new SoumettreDemandeExportRequete(
             societe.Id, clientId, [bookingNo]));
         var ticketId = res.TicketsCrees[0].Id;
 
         // 1. Back Office
+        await PrendreEnChargeAsync(ticketId);
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Facturation -> Comptabilité Client
         // RG-EXP-03 : le Draft IN précède la facture.
+        await PrendreEnChargeAsync(ticketId);
         await emettreDraftIn.ExecuterAsync(agentId, ticketId, "draft-in.pdf", "application/pdf", Contenu("DRAFTIN"), 7, Regles);
         // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
         var proforma3 = Contenu("proforma");
         await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
             agentId, ticketId, "proforma.pdf", "application/pdf", proforma3, proforma3.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
         await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(clientId, ticketId);
+        // La validation client de la proforma laisse le ticket EnCours, toujours affecté à l'agent.
         await editerFacture.ExecuterAsync(agentId, ticketId, "facture-export.pdf", "application/pdf", Contenu("FACTURE"), 7, Regles);
 
         // 3. Confirmation Lettrage
+        await PrendreEnChargeAsync(ticketId);
         await confirmerLettrage.ExecuterAsync(agentId, ticketId);
 
         // 4. Contrôle Doc (BEE) & Clôture
+        await PrendreEnChargeAsync(ticketId);
         await finaliserDoc.ExecuterAsync(agentId, ticketId, "bee.pdf", "application/pdf", Contenu("BEE"), 3, Regles);
 
         var ticketFinal = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == ticketId);
@@ -268,12 +294,17 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var instruireIes = services.GetRequiredService<InstruireBrancheIesExportCommand>();
         var constaterJointure = services.GetRequiredService<ConstaterJointureIesExportEtFinaliserCommand>();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingExportBackOfficeInstruire, Permission.BillingExportFacturationEditer, Permission.BillingExportPaiementValider, Permission.BillingExportComptabiliteConfirmerLettrage, Permission.BillingExportControleDocumentaireTraiter]);
+
         var bookingNo = $"BKG-IES-{Guid.NewGuid():N}"[..15];
         var res = await soumettre.ExecuterAsync(new SoumettreDemandeExportRequete(
             societe.Id, clientId, [bookingNo]));
         var ticketId = res.TicketsCrees[0].Id;
 
         // 1. Validation Back Office -> Aiguillage automatique vers File IES et création des branches de suivi
+        await PrendreEnChargeAsync(ticketId);
         await validerBO.ExecuterAsync(agentId, ticketId);
 
         // 2. Instruction parallèle : BackOffice et Contrôle Doc
@@ -310,6 +341,10 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var rejeterBO = services.GetRequiredService<RejeterTicketExportCommand>();
         var gestionComplement = services.GetRequiredService<GestionComplementExportCommand>();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingExportBackOfficeInstruire, Permission.BillingExportFacturationEditer, Permission.BillingExportPaiementValider, Permission.BillingExportComptabiliteConfirmerLettrage, Permission.BillingExportControleDocumentaireTraiter]);
+
         var bkg1 = $"BKG-M1-{Guid.NewGuid():N}"[..15];
         var bkg2 = $"BKG-M2-{Guid.NewGuid():N}"[..15];
         var bkg3 = $"BKG-M3-{Guid.NewGuid():N}"[..15];
@@ -323,17 +358,20 @@ public sealed class RecSce05ExportE2ETests(PlateformeWebApplicationFactory facto
         var tck3 = res.TicketsCrees[2].Id;
 
         // TCK 1: Valider
+        await PrendreEnChargeAsync(tck1);
         await validerBO.ExecuterAsync(agentId, tck1);
         var state1 = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == tck1);
         Assert.Equal(StatutTicket.EnAttenteDePriseEnCharge, state1.Statut);
 
         // TCK 2: Rejeter
+        await PrendreEnChargeAsync(tck2);
         await rejeterBO.ExecuterAsync(agentId, tck2, "Booking inexistant chez l'armateur");
         var state2 = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == tck2);
         Assert.Equal(StatutTicket.Annule, state2.Statut);
         Assert.Equal(TypeAnnulationExport.RejetBackOffice, state2.TypeAnnulationExport);
 
         // TCK 3: Complément puis Réponse
+        await PrendreEnChargeAsync(tck3);
         await gestionComplement.DemanderComplementAsync(agentId, tck3, "Document d'empotage requis");
         var state3a = await dbContext.Tickets.AsNoTracking().SingleAsync(t => t.Id == tck3);
         Assert.Equal(StatutTicket.EnAttenteClient, state3a.Statut);

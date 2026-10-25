@@ -67,6 +67,7 @@ public sealed class ReglementDeclaratifCommand(
         ExigerModuleImport(ticket);
         await autorisation.ExigerAsync(agentId, Permission.BillingImportFacturationEditer, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
 
         if (ticket.ReglementDeclareUtc is null)
         {

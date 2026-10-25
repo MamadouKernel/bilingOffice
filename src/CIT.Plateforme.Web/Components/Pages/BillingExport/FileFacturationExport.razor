@@ -77,6 +77,7 @@ else
                         @foreach (var ticket in _pagination1.Appliquer(_tickets))
                         {
                             var t = ticket;
+                            var peutTraiter = t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId;
                             <tr>
                                 <td>
                                     <a href="/tickets/@t.Id" class="fw-bold text-decoration-none text-primary font-monospace">
@@ -106,7 +107,7 @@ else
                                             <div class="small text-muted mt-1">@Loc["FileFactExp.EmittedOnPrefix"] @emisLe.Horodate()</div>
                                         }
                                     }
-                                    else
+                                    else if (peutTraiter)
                                     {
                                         <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, EmettreDraftInAsync)" />
                                     }
@@ -120,11 +121,11 @@ else
                                                 {
                                                     <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
                                                 }
-                                                else
+                                                else if (peutTraiter)
                                                 {
                                                     <CelluleProforma Ticket="t" AgentId="_agentId" Termine="ProformaTermineeAsync" />
                                                 }
-                                                @if (CIT.Plateforme.Application.BillingImport.GestionProformaCommand.FacturePermise(t))
+                                                @if (peutTraiter && CIT.Plateforme.Application.BillingImport.GestionProformaCommand.FacturePermise(t))
                                                 {
                                                     @if (t.EtatProforma == EtatProforma.Aucune)
                                                     {
@@ -136,7 +137,10 @@ else
                                                 {
                                                     @* Écart 06/10 #2 (export), mode déclaratif : le client a déclaré le règlement, le facturier confirme. *@
                                                     <div class="small text-info mt-2">🕗 @Loc["Reglement.EnAttenteConfirmation"]</div>
-                                                    <button type="button" class="btn btn-success btn-sm mt-1" @onclick="() => ConfirmerReglementAsync(t.Id)">✅ @Loc["Reglement.Confirmer"]</button>
+                                                    @if (peutTraiter)
+                                                    {
+                                                        <button type="button" class="btn btn-success btn-sm mt-1" @onclick="() => ConfirmerReglementAsync(t.Id)">✅ @Loc["Reglement.Confirmer"]</button>
+                                                    }
                                                 }
                                             </div>
                                         }
@@ -147,9 +151,13 @@ else
                                     </div>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="@Loc["File.SheetTitle"]">
-                                        @Loc["File.Sheet"]
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
+                                            @Loc["File.Sheet"]
+                                        </a>
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingExportFacturationEditer })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => { _message = m; _erreur = true; }" />
+                                    </div>
                                 </td>
                             </tr>
                         }

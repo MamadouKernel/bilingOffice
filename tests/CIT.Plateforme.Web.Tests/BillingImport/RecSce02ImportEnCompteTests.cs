@@ -66,12 +66,17 @@ public sealed class RecSce02ImportEnCompteTests(PlateformeWebApplicationFactory 
             HabilitationUtilisateur.Attribuer(agentId, Permission.DocumentDeposer));
         await dbContext.SaveChangesAsync();
 
+        async Task PrendreEnChargeAsync(Guid tId) =>
+            await services.GetRequiredService<CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand>()
+                .ExecuterAsync(agentId, tId, [Permission.BillingImportManifesteInstruire, Permission.BillingImportFacturationEditer, Permission.BillingImportControleDocumentaireTraiter]);
+
         var suffixe = Guid.NewGuid().ToString("N")[..8];
         var soumettre = services.GetRequiredService<SoumettreDemandeImportCommand>();
         var soumission = await soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(societe.Id, auteurId, [$"REC2-{suffixe}"]));
         var ticket = soumission.TicketsCrees[0];
 
         var valider = services.GetRequiredService<ValiderTicketImportCommand>();
+        await PrendreEnChargeAsync(ticket.Id);
         await valider.ExecuterAsync(agentId, ticket.Id);
 
         var editerFacture = services.GetRequiredService<EditerFactureCommand>();
@@ -79,9 +84,11 @@ public sealed class RecSce02ImportEnCompteTests(PlateformeWebApplicationFactory 
         {
             // Parcours TO BE : proforma déposée par le Pilote Facturation, validée par le client, puis facture.
             var proforma1 = Contenu("proforma");
+            await PrendreEnChargeAsync(ticket.Id);
             await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().EmettreAsync(
                 agentId, ticket.Id, "proforma.pdf", "application/pdf", proforma1, proforma1.Length, Regles, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)));
             await services.GetRequiredService<CIT.Plateforme.Application.BillingImport.GestionProformaCommand>().ValiderAsync(auteurId, ticket.Id);
+            // La validation client de la proforma laisse le ticket EnCours, toujours affecté à l'agent.
             await editerFacture.ExecuterAsync(agentId, ticket.Id, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
         }
 
@@ -93,6 +100,7 @@ public sealed class RecSce02ImportEnCompteTests(PlateformeWebApplicationFactory 
         var controleEtCloturer = services.GetRequiredService<DeposerDocumentsControleEtCloturerCommand>();
         using (var badt = Contenu("badt"))
         {
+            await PrendreEnChargeAsync(ticket.Id);
             await controleEtCloturer.ExecuterAsync(agentId, ticket.Id, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
         }
 

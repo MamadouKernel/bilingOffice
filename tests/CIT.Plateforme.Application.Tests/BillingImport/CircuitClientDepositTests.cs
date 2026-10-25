@@ -99,6 +99,7 @@ public sealed class CircuitClientDepositTests
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, [numeroBl]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
         return ticketId;
     }
@@ -109,6 +110,7 @@ public sealed class CircuitClientDepositTests
         using var facture = Contenu("facture");
         await ProformaDeTest.ValiderAsync(c.DbContext, ticketId, c.AgentId);
         await c.EditerFacture.ExecuterAsync(c.AgentId, ticketId, "facture.pdf", "application/pdf", facture, facture.Length, Regles);
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         return ticketId;
     }
 
@@ -162,6 +164,7 @@ public sealed class CircuitClientDepositTests
         await c.ConfirmerLettrage.ConfirmerAsync(c.AgentId, ticketId);
 
         using var badt = Contenu("badt");
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
 
         var ticket = await c.DbContext.Tickets.FindAsync(ticketId);

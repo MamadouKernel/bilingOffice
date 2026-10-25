@@ -112,6 +112,7 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False(c.Ticket.EstEnEtatEngageant);
 
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new ValiderPreuvePaiementCommand(new TicketRepository(db), new FileDeTraitementRepository(db), auto, journal, horloge, uow)
             .ValiderAsync(c.AgentId, c.Ticket.Id);
 
@@ -128,6 +129,7 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False(c.Ticket.EstEnEtatEngageant);
 
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new ConfirmerLettrageCommand(new TicketRepository(db), new FileDeTraitementRepository(db), auto, journal, horloge, uow)
             .ConfirmerAsync(c.AgentId, c.Ticket.Id);
 
@@ -144,6 +146,7 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False(c.Ticket.EstEnEtatEngageant);
 
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new ValiderPreuvePaiementExportCommand(new TicketRepository(db), new FileDeTraitementRepository(db), auto, journal, horloge, uow)
             .ValiderAsync(c.AgentId, c.Ticket.Id);
 
@@ -160,6 +163,7 @@ public sealed class CablageEtatEngageantTests
 
         Assert.False(c.Ticket.EstEnEtatEngageant);
 
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new ConfirmerLettrageExportCommand(new TicketRepository(db), new FileDeTraitementRepository(db), auto, journal, horloge, uow)
             .ExecuterAsync(c.AgentId, c.Ticket.Id);
 
@@ -197,6 +201,7 @@ public sealed class CablageEtatEngageantTests
 
         // RG-EXP-03 : le Draft IN précède la facture. Il ne rend PAS le ticket engageant —
         // un brouillon n'est pas un document officiel — ce que l'assertion ci-dessous vérifie.
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new EmettreDraftInExportCommand(
                 new TicketRepository(db), DepotDeTest(db, auto, journal, horloge, uow),
                 auto, journal, horloge, uow)
@@ -228,6 +233,7 @@ public sealed class CablageEtatEngageantTests
         using var db = c.Db;
         var (horloge, journal, uow, auto) = Socle(db);
 
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new ValiderPreuvePaiementCommand(new TicketRepository(db), new FileDeTraitementRepository(db), auto, journal, horloge, uow)
             .ValiderAsync(c.AgentId, c.Ticket.Id);
 
@@ -250,6 +256,7 @@ public sealed class CablageEtatEngageantTests
         using var db = c.Db;
         var (horloge, journal, uow, auto) = Socle(db);
 
+        await PriseEnChargeDeTest.PrendreAsync(db, c.Ticket.Id, c.AgentId);
         await new ConfirmerLettrageCommand(new TicketRepository(db), new FileDeTraitementRepository(db), auto, journal, horloge, uow)
             .ConfirmerAsync(c.AgentId, c.Ticket.Id);
 

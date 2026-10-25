@@ -102,15 +102,20 @@ else
                                         <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
                                             @Loc["File.Sheet"]
                                         </a>
-                                        <button type="button" class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="@Loc["FileManif.ValidateTitle"]">
-                                            @Loc["FileManif.Validate"]
-                                        </button>
-                                        <button type="button" class="btn btn-outline-warning" @onclick="() => OuvrirComplement(t.Id)" title="@Loc["FileManif.ComplementTitle"]">
-                                            @Loc["FileManif.Complement"]
-                                        </button>
-                                        <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModaleRejet(t.Id)" title="@Loc["FileManif.RejectTitle"]">
-                                            @Loc["FileManif.Reject"]
-                                        </button>
+                                        @if (t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId)
+                                        {
+                                            <button type="button" class="btn btn-outline-success" @onclick="() => ValiderAsync(t.Id)" title="@Loc["FileManif.ValidateTitle"]">
+                                                @Loc["FileManif.Validate"]
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning" @onclick="() => OuvrirComplement(t.Id)" title="@Loc["FileManif.ComplementTitle"]">
+                                                @Loc["FileManif.Complement"]
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" @onclick="() => OuvrirModaleRejet(t.Id)" title="@Loc["FileManif.RejectTitle"]">
+                                                @Loc["FileManif.Reject"]
+                                            </button>
+                                        }
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingImportManifesteInstruire })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => _erreur = m" />
                                     </div>
                                 </td>
                             </tr>

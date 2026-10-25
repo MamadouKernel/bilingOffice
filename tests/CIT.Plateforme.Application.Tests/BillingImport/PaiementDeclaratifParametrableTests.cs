@@ -78,6 +78,7 @@ public sealed class PaiementDeclaratifParametrableTests : IDisposable
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, [bl]));
         var id = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, id, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, id);
         return id;
     }
@@ -111,6 +112,7 @@ public sealed class PaiementDeclaratifParametrableTests : IDisposable
         Assert.Equal(NomsFiles.Facturation, (await c.Db.Files.FindAsync(ticket.FileCouranteId))!.Nom);
 
         // Le facturier confirme : ticket engageant et transféré au Contrôle Documentaire.
+        await PriseEnChargeDeTest.PrendreAsync(c.Db, ticketId, c.AgentId);
         await c.Reglement.ConfirmerAsync(c.AgentId, ticketId);
         ticket = (await c.Db.Tickets.FindAsync(ticketId))!;
         Assert.True(ticket.EstEnEtatEngageant);

@@ -62,11 +62,6 @@ public sealed class ValiderPreuvePaiementCommand(
         var ticket = await ChargerEtAutoriserAsync(agentId, ticketId, ct).ConfigureAwait(false);
         var maintenant = horloge.MaintenantUtc;
 
-        if (ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge)
-        {
-            ticket.PrendreEnCharge(agentId, maintenant);
-        }
-
         ticket.MettreEnAttenteClient(maintenant);
 
         await journalisation.ConsignerHistoriqueAsync(ticket.Id, "PreuvePaiementRefusee", motif, agentId, ct).ConfigureAwait(false);
@@ -86,6 +81,7 @@ public sealed class ValiderPreuvePaiementCommand(
 
         await autorisation.ExigerAsync(agentId, Permission.BillingImportPaiementValider, ticket.FileCouranteId, ct).ConfigureAwait(false);
         await global::CIT.Plateforme.Application.Securite.GardeAgentAffecte.ExigerAsync(autorisation, agentId, ticket, ct).ConfigureAwait(false);
+        ticket.ExigerPriseEnChargePar(agentId);
         return ticket;
     }
 }

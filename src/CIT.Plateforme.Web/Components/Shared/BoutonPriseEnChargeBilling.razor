@@ -1,0 +1,53 @@
+@using CIT.Plateforme.Application.Tickets
+@using CIT.Plateforme.Domain.Tickets
+@using CIT.Plateforme.Web.Resources
+@using CIT.Plateforme.Web.Services
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Loc
+@inject PrendreEnChargeEtapeBillingCommand PrendreEnCharge
+
+@* Option B (05/10/2026) : sur une file Billing, un ticket « en attente de prise en charge » offre le
+   bouton de prise en charge à tout agent habilité sur l'étape ; une fois pris, les autres ne voient
+   que le badge « Pris par … » (PrisEnChargePar) et les actions de traitement leur sont masquées. *@
+@if (Ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge)
+{
+    <button type="button" class="btn btn-outline-success fw-semibold" disabled="@_enCours"
+            @onclick="PrendreEnChargeAsync" title="@Loc["Ticket.TakeCharge"]">
+        @Loc["Ticket.TakeCharge"]
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired] public Ticket Ticket { get; set; } = default!;
+    [Parameter, EditorRequired] public Guid AgentId { get; set; }
+
+    /// <summary>Permissions d'étape acceptées (au moins une suffit) — la même liste que l'écran passe
+    /// déjà à <c>ConsulterFileBilling*Query</c>.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<string> Permissions { get; set; } = default!;
+
+    /// <summary>Appelé après une prise en charge réussie : l'écran recharge sa file.</summary>
+    [Parameter] public EventCallback OnPrise { get; set; }
+
+    /// <summary>Appelé avec un message si la prise en charge échoue (déjà pris, non habilité…).</summary>
+    [Parameter] public EventCallback<string> OnErreur { get; set; }
+
+    private bool _enCours;
+
+    private async Task PrendreEnChargeAsync()
+    {
+        _enCours = true;
+        try
+        {
+            await PrendreEnCharge.ExecuterAsync(AgentId, Ticket.Id, Permissions);
+            await OnPrise.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            await OnErreur.InvokeAsync(MessagesUtilisateur.Pour(ex));
+        }
+        finally
+        {
+            _enCours = false;
+        }
+    }
+}

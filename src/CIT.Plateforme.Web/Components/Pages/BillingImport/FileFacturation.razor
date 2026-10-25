@@ -97,6 +97,7 @@ else
                         @foreach (var ticket in _pagination1.Appliquer(_tickets))
                         {
                             var t = ticket;
+                            var peutTraiter = t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId;
                             <tr>
                                 <td>
                                     <a href="/tickets/@t.Id" class="fw-bold text-decoration-none text-primary font-monospace">
@@ -118,11 +119,11 @@ else
                                     {
                                         <span class="badge bg-success-subtle text-success mb-1">✅ @Loc["Proforma.Validee"]</span>
                                     }
-                                    else
+                                    else if (peutTraiter)
                                     {
                                         <CelluleProforma Ticket="t" AgentId="_agentId" AvecDateEnlevement="true" Termine="ProformaTermineeAsync" />
                                     }
-                                    @if (GestionProformaCommand.FacturePermise(t))
+                                    @if (peutTraiter && GestionProformaCommand.FacturePermise(t))
                                     {
                                         @if (t.EtatProforma == EtatProforma.Aucune)
                                         {
@@ -134,7 +135,10 @@ else
                                     {
                                         @* Écart 06/10 #2, mode déclaratif : le client a déclaré le règlement, le facturier confirme. *@
                                         <div class="small text-info mt-2">🕗 @Loc["Reglement.EnAttenteConfirmation"]</div>
-                                        <button type="button" class="btn btn-success btn-sm mt-1" @onclick="() => ConfirmerReglementAsync(t.Id)">✅ @Loc["Reglement.Confirmer"]</button>
+                                        @if (peutTraiter)
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm mt-1" @onclick="() => ConfirmerReglementAsync(t.Id)">✅ @Loc["Reglement.Confirmer"]</button>
+                                        }
                                     }
                                     @if (t.DateEnlevementSouhaitee is DateOnly enlevement)
                                     {
@@ -142,9 +146,13 @@ else
                                     }
                                 </td>
                                 <td class="text-end">
-                                    <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="@Loc["File.SheetTitle"]">
-                                        @Loc["File.Sheet"]
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
+                                            @Loc["File.Sheet"]
+                                        </a>
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingImportFacturationEditer })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => { _message = m; _erreur = true; }" />
+                                    </div>
                                 </td>
                             </tr>
                         }

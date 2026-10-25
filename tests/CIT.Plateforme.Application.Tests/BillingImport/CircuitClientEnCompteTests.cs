@@ -95,6 +95,7 @@ public sealed class CircuitClientEnCompteTests
     {
         var soumission = await c.Soumettre.ExecuterAsync(new SoumettreDemandeImportRequete(c.SocieteId, c.AuteurId, [numeroBl]));
         var ticketId = soumission.TicketsCrees[0].Id;
+        await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
         await c.Valider.ExecuterAsync(c.AgentId, ticketId);
         return ticketId;
     }
@@ -128,6 +129,7 @@ public sealed class CircuitClientEnCompteTests
         }
         using (var badt = Contenu("badt"))
         {
+            await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
             await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
         }
 
@@ -153,6 +155,7 @@ public sealed class CircuitClientEnCompteTests
         }
         using (var badt = Contenu("badt"))
         {
+            await PriseEnChargeDeTest.PrendreAsync(c.DbContext, ticketId, c.AgentId);
             await c.ControleEtCloturer.ExecuterAsync(c.AgentId, ticketId, "badt.pdf", "application/pdf", badt, badt.Length, Regles);
         }
 

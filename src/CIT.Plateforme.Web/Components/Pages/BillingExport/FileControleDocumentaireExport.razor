@@ -92,13 +92,20 @@ else
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, DeposerBeeEtCloturerAsync)" />
+                                        @if (t.Statut == StatutTicket.EnCours && t.OperateurAssigneId == _agentId)
+                                        {
+                                            <InputFile class="form-control form-control-sm" OnChange="e => DemanderConfirmation(t, e, DeposerBeeEtCloturerAsync)" />
+                                        }
                                     </div>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/tickets/@t.Id" class="btn btn-outline-secondary btn-sm" title="@Loc["File.SheetTitle"]">
-                                        @Loc["File.Sheet"]
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/tickets/@t.Id" class="btn btn-outline-secondary" title="@Loc["File.SheetTitle"]">
+                                            @Loc["File.Sheet"]
+                                        </a>
+                                        <BoutonPriseEnChargeBilling Ticket="t" AgentId="_agentId" Permissions="@(new[] { Permission.BillingExportControleDocumentaireTraiter })"
+                                            OnPrise="ChargerAsync" OnErreur="(m) => { _message = m; _erreur = true; }" />
+                                    </div>
                                 </td>
                             </tr>
                         }
