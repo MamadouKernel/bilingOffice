@@ -16,6 +16,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
+    <!-- Épingle de sécurité (SEC/A06) : la version transitive 9.0.11 est vulnérable
+         (GHSA-846f-f764-76mx). Cette référence directe force le correctif 10.0.13. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <!-- Génération du QR code 2FA EN LOCAL. Remplace un appel à api.qrserver.com qui
          transmettait le secret TOTP à un tiers. Dépendance build-time, versionnée et
          restaurable hors ligne : aucun appel réseau au runtime. -->

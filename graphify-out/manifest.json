@@ -2214,9 +2214,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/CIT.Plateforme.Infrastructure.csproj": {
-    "mtime": 1790887356.026808,
-    "seen": 1791300950.6819055,
-    "ast_hash": "00c88179e9a1a6588d3939f49feda13a",
+    "mtime": 1792930557.7968009,
+    "seen": 1792930788.0169086,
+    "ast_hash": "79bac910afa7fc1d395f1a69b108d666",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Infrastructure/DependencyInjection.cs": {
@@ -3468,9 +3468,9 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/CIT.Plateforme.Web.csproj": {
-    "mtime": 1791214455.1849897,
-    "seen": 1791300950.6823995,
-    "ast_hash": "e5b291b4875b1125144b5e46a7c3cc06",
+    "mtime": 1792930569.9687045,
+    "seen": 1792930788.0787191,
+    "ast_hash": "b5744ff00792e871fd40beae11cb0b0f",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/App.razor": {
@@ -10566,9 +10566,9 @@
     "semantic_hash": ""
   },
   "docs/revue-securite-2026-10-22.md": {
-    "mtime": 1792929762.1421692,
-    "seen": 1792930430.3819866,
-    "ast_hash": "ac030e79b9b35cf3fd519e2742678538",
+    "mtime": 1792930697.3193169,
+    "seen": 1792930788.3282197,
+    "ast_hash": "83d2e1d3fc3fe782090fef53ec109639",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Securite/LimitationDebitAuthTests.cs": {

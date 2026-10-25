@@ -19,7 +19,7 @@ scan de dépendances), **pas** un pentest dynamique en exécution · **Branche :
 | 7 | Divulgation d'info (A04/A05) | Moyen | ✅ Sûr | OpenAPI hors dev uniquement, `/ready` sans détail infra, journal sans secret | `SurfaceExposeeProduction`, `CablageJournalConnexion` |
 | 8 | Reset mot de passe (A07) | Moyen | ✅ Sûr | Non-divulgation de jeton testée | `SecResetDivulgationJeton` |
 | 9 | Brute-force / flood (A07) | Moyen | ✅ Corrigé | Pas de plafond resserré sur l'auth → **ajouté** : 10 tentatives/5 min par IP sur login, reset, 2FA + test | `a0a5daf`, `f968681`, `Program.cs:93` |
-| 10 | **Composants vulnérables (A06)** | **Élevé** | **⚠️ À corriger** | `System.Security.Cryptography.Pkcs` 9.0.11 (transitif, projets Infrastructure + Web) : advisory High + Moderate. `.Xml` 10.0.12 côté tests. | `dotnet list package --vulnerable` |
+| 10 | **Composants vulnérables (A06)** | Élevé | ✅ Corrigé | `System.Security.Cryptography.Pkcs` épinglé à **10.0.13** (correctif) dans Infrastructure + Web → plus aucun package vulnérable sur ces projets. `.Xml` 10.0.12 reste côté tests uniquement. | `dotnet list package --vulnerable` (vide) |
 
 ## Détail A06 (point 10) — à traiter
 
@@ -38,8 +38,10 @@ sur un checkout propre d'`origin/main`.
 
 - **Vulnérabilités dans le code maison : 0 critique/élevée.** Posture solide, déjà couverte par
   une suite de tests sécurité dédiée (`tests/.../Securite/`).
-- **1 durcissement livré** : rate-limiter par IP sur l'authentification (point 9).
-- **1 point ouvert** : mise à jour de la dépendance crypto vulnérable (point 10).
+- **2 durcissements livrés** : rate-limiter par IP sur l'authentification (point 9) et mise à jour
+  de la dépendance crypto vulnérable vers 10.0.13 (point 10).
+- **Reste** (hors demande) : `System.Security.Cryptography.Xml` 10.0.12 n'est tiré que par le projet
+  de tests Web — pas d'exposition en production ; à épingler aussi si on veut un scan 100 % vert.
 
 ## Portée & limites
 
