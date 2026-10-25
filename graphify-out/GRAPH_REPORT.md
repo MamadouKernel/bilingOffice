@@ -1,17 +1,17 @@
 # Graph Report - cit-digital-platform  (2026-10-25)
 
 ## Corpus Check
-- 1756 files · ~1,590,672 words
+- 1756 files · ~1,590,678 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 22 file(s) not represented in the graph (top: (none) 7, .css 7, .woff2 2)
 
 ## Summary
-- 22757 nodes · 57230 edges · 1011 communities (974 shown, 37 thin omitted)
+- 22758 nodes · 57231 edges · 1004 communities (971 shown, 33 thin omitted)
 - Extraction: 82% EXTRACTED · 18% INFERRED · 0% AMBIGUOUS · INFERRED: 10119 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8351afca`
+- Built from commit: `35a90616`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,34 +19,34 @@
 - CIT.Plateforme.Application.Tarification
 - .AjouterInfrastructure
 - ReferentielsTarifairesRepository
-- CIT.Plateforme.Application.ActualisationBadt
-- AccesRefuseException
-- PlateformeWebApplicationFactory
+- .ExecuterAsync
+- .ConsignerAuditAsync
+- NfrCert03DisponibiliteTests
 - CancellationToken
-- ReglesDepotDocument
-- IDocumentRepository
-- Grille de comparaison — modèle CDC vs implémentation
-- .HandleAsync
+- DeposerDocumentCommand
+- .PreparerActeursAsync
+- NiveauPriorite
+- LotPurgeRetention
 - PlateformeDbContext
 - CIT.Plateforme.Application.Securite
-- SoumettreDemandeExportCommand
+- TypeClient
 - .Rattacher
 - EntreeHistorique
-- IDossierRepository
+- DroitsDePersonneTests
 - CIT.Plateforme.Web.Resources
-- Spécification Fonctionnelle Clarifiée — Feature 010
+- EtatCompteEtAutorisationTests
 - IContexteUtilisateurWeb
 - Ticket
-- .ConfigurerServices
+- ConsulterDossierGuichetQuery
 - RelancesAbsenceReponseTests
 - CancellationToken
 - .ConstruireAsync
 - VersionGrilleTarifaire
-- CIT.Plateforme.Infrastructure.Tests.Support
+- CIT.Plateforme.Domain.Notifications
 - IReferentielsTarifairesRepository
-- ControleAccesRessourceService
+- ITicketRepository
 - ProfilSociete.razor
-- VersionGrilleTarifaireRepository
+- ImportateurGrilleTarifaireCsv
 - CategorieReclamation
 - SimulationProforma
 - GenerateurDocumentProformaPdf
@@ -55,10 +55,10 @@
 - CancellationToken
 - MoteurCalculProforma
 - .Executer
-- IdentiteTarificationTests
+- .ExigerConsultationTicketAsync
 - ReferentielsTarifaires
-- .CreerContexte
-- AutorisationChampService
+- .Creer
+- .ResoudreAsync
 - SurfaceRoutableTests
 - EvenementSocle
 - Spécification Fonctionnelle — Feature 012 (Remédiation Dettes Métier, Recette Transverse & Clôture Réserves)
@@ -71,28 +71,28 @@
 - LibelleStatutTicket
 - ReglePrioriteAutomatique
 - Task
-- .AppliquerParametres
+- .Creer
 - Task
 - Archives.razor
-- CIT.Plateforme.Domain.Documents
+- xunit
 - LigneActualisationBadt
-- .Une_categorie_configuree_par_l_administration_permet_de_soumettre_une_reclamation
+- .ExecuterAsync
 - SeedRecetteUat
 - Task
-- CIT.Plateforme.Web.Components.Shared
+- MesDemandesAvoirExo.razor
 - Dossier
-- CancellationToken
-- .EvaluerDroit
 - CanalNotification
+- .EvaluerDroit
+- .Creer
 - Audit final UI/UX
-- DossierSimulation
+- FicheEnrolement.razor
 - .ExecuterAsync
-- CloisonnementAgentFichesTests
+- AccesRefuseException
 - FicheActualisationBadt.razor
 - .CreerNouveauContexte
 - Remédiation P2-03 — Journalisation des connexions
 - BrouillonSaisie
-- Consolidation sécurité finale
+- Remédiation P3
 - AdministrationNotifications.razor
 - GestionnaireRetentionService
 - EcheanceDocumentEnrolement
@@ -107,12 +107,12 @@
 - SensEnrolement
 - DestinationEnvoi
 - SujetAssistant
-- .Module
-- EspaceFonctionnel
-- .DefinirAsync
+- Progression i18n FR/EN — par lots
+- ContexteUtilisateurVue
+- Remédiation post-audit final
 - SocieteCliente
 - AdministrationAide.razor
-- SoumettreDemandeImportRequete
+- .PreparerAsync
 - 6. Scénarios
 - Audit Post-Implémentation Indépendant — Feature 005 (Simulation Proforma)
 - Rapport d'Audit Post-Implémentation Indépendant — Feature 009
@@ -131,17 +131,17 @@
 - FileIes.razor
 - Plan de clôture et préparation production
 - AgendaGuichet.razor
-- SurveillerEcheancesUseCase
-- Matrice de tests de sécurité internes
+- .TraiterTicketAsync
+- AucuneRessourceExterneTests
 - DistribuerNotificationsUseCaseTests
 - FilArianeTests
 - .ExecuterAsync
-- AdministrationCategoriesIncident.razor
+- Contre-audit après P0/P1
 - LibellesStatut.razor
 - Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
 - TypeFormulaireFlotte
-- SoumettreEnrolementSocieteCommandTests
-- CategorieIncident
+- .ExecuterAsync
+- AdministrationCategoriesIncident.razor
 - DisponibiliteEnMemoire
 - .Valide
 - RepondeurDonneesAssistant
@@ -153,9 +153,9 @@
 - AdministrationNotificationsTests
 - CLOSURE REVIEW — FEATURE 012
 - Preflight — Feature 011 : Certification Sécurité & Socle Non-Fonctionnel
-- CategorieMarchandise
+- Audit final de conformité
 - Remédiation UI/UX — UX-P0 et UX-P1
-- ParametreTypeClient
+- .ExecuterAsync
 - AdministrationReferentielsConteneur.razor
 - A. Administration & référentiel (agents habilités)
 - EtapesBloquantesAnnulation.razor
@@ -169,26 +169,26 @@
 - FluxRejouable
 - SharedResourcesLocalizer
 - Fiche de tests — Parcours utilisateurs YABA (version métier)
-- NFR-03 (Must) — Disponibilité Cible $\ge 99\%$ en Heures Ouvrées
+- microsoft_extensions_diagnostics_healthchecks
 - Conformité de l'application à l'analyse MERISE
 - Remédiation P0-ter — Contrôle d'accès centralisé
 - ValiderDemandes.razor
 - FileFacturation.razor
 - AccepterInvitation.razor
-- PieceExigeeCompteRepository
+- InvitationCollaborateur
 - Research — Socle transverse de gestion des tickets et workflows
 - Rapport de Revue Visuelle et Fonctionnelle Indépendante
 - .Creer
 - EtatPagination
 - FluxAPasseUnique
-- Exception
+- DepotDocumentRefuseException
 - POST-F011 FEATURE SELECTION GATE
 - backlog-ui-ux-final.md
-- CIT.Plateforme.Infrastructure.Persistence
+- system
 - ComptesUtilisateurs.razor
 - FilePiloteManifeste.razor
 - Documents.razor
-- MarquerNotificationLueCommand
+- .Commandes
 - SPECIFICATION ET CLARIFICATIONS FONCTIONNELLES — FEATURE 013
 - EnrolementsAValider.razor
 - ConversationAssistant
@@ -205,7 +205,7 @@
 - Audit Global Post-F007 — Plateforme Digitale CIT
 - JournalMemoire
 - Remédiation UI/UX — maximum technique + recette
-- PrendreEnChargeCommand
+- PublierMessageCommand
 - 1. Décomposition par catégorie
 - Recette UI/UX navigateur
 - ParametresSla.razor
@@ -214,30 +214,30 @@
 - MetrologiePerformanceMiddleware
 - Analyse de Séquençage et Roadmap des Features
 - PerimetresSupervision.razor
-- FicheEnrolement.razor
+- AttenteClientCommand
 - .CompleterAsync
-- .CreerAgentAsync
-- 2. Matrice des 24 exigences retenues
+- ApplicationUser
+- SoumettreDemandeImportRequete
 - CablageEtatEngageantTests
 - ResolveurClientDuRendezVous
-- FileControleDocumentaire.razor
+- CIT.Plateforme.Web.Components.Shared
 - ValidationPaiement.razor
 - RechercheGuichet.razor
 - Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
 - .L_annuaire_classe_agents_transporteurs_et_clients_sans_societe
 - ReessayerEnvoisNotificationUseCaseTests
-- .EnregistrerAsync
-- POST-F012 FEATURE SELECTION GATE — RAPPORT D'ARBITRAGE ET ROADMAP
+- Contracts — Contrats fonctionnels des cas d'usage de Feature 003
+- Preflight — Feature 009 (Notifications Multicanales & Continuité Digital/Présentiel)
 - Audit UI/UX Complet — Features 001, 002 et 003
 - Preflight — Feature 007 (Avoir & Exonération)
 - Internationalisation & Ergonomie Bilingue (NFR-07)
 - CablageControleAccesTests
-- Revue de fermeture — Feature 003 : Billing Office IMPORT & Unicité BL
+- SoumettreDemandeImportCommand
 - Alerte
 - .Construire
 - .ExecuterAsync
 - StrategieFile.razor
-- ProvisionnementAdministrateurInitial
+- ProvisionnementAdministrateurInitialTests
 - ReglesPrioriteAutomatique.razor
 - FileControleDocumentaireExport.razor
 - Impersonation.razor
@@ -246,7 +246,7 @@
 - Feature Specification: Comptes clients, sociétés et utilisateurs rattachés
 - .ResoudreAsync
 - TraitementLigneBadtCommandsTests
-- PREFLIGHT RÉVISÉ — FEATURE 007 (Avoir & Exonération)
+- .ExecuterAsync
 - SignalSupervisionRedis
 - ConsulterTicketCloture.razor
 - NouvelleDemandeAvoirExo.razor
@@ -267,11 +267,11 @@
 - RegleEscalade
 - Checklist Qualité de la Spécification — Feature 009 (Notifications Multicanales & Centre In-App)
 - LiaisonTicket
-- .ConstruireContexteAvecDocumentAsync
+- .EnregistrerAsync
 - SoumettreEnrolementRequete
 - MoteurRetentionServiceTests
 - NavigationI18nTests
-- Revue de Fermeture Finale — Feature 005 (Simulation Proforma)
+- .ConstruireContexteAvecDocumentAsync
 - HandlerStub
 - TraductionParityTests
 - Preflight — Feature 010 (Continuité Guichet & Rendez-vous)
@@ -279,7 +279,7 @@
 - Runbook — réinitialisation sûre d'un mot de passe
 - ParametresPlateforme.razor
 - Recette navigateur authentifiée — mécanisme UAT + résultats
-- FileDeTraitement
+- .Objet_ou_motif_vide_leve_ArgumentException
 - FinitionsUiTests
 - FicheDossier.razor
 - ParcoursConnexion2FaTests
@@ -288,10 +288,10 @@
 - .Creer
 - Disponibilite.razor
 - MesEnrolements.razor
-- ConstaterJointureIesAutorisationTests
+- IncidentTraitementCommandTests
 - .Definir
 - ValeurReferentielle
-- .ExecuterAsync
+- .C_LibelleVide_LeveException
 - ActionsAgentTicket.razor
 - AssistantChat.razor
 - http
@@ -303,9 +303,9 @@
 - Filtres à créer
 - CentreAide.razor
 - SecCert04SessionTests
-- MaintenanceMiddleware
-- AssistantSimule
-- Permission
+- NotificationTests
+- DistribuerNotificationsUseCase
+- SurveillanceSlaService
 - .ExecuterAsync
 - VerdictImpersonation
 - BillingImport/SoumettreDemande.razor
@@ -325,15 +325,15 @@
 - ActionsClientBilling.razor
 - Runbook de déploiement en production
 - RetraitEnrolementSociete.razor
-- CreerCategorieReclamationCommand
+- EnvoiNotificationTests
 - Notification
 - AUDIT POST-IMPLÉMENTATION INDÉPENDANT : FEATURE 003.5 — CONSOLIDATION UI/UX (F001-F003)
 - SourceNavisRest
 - RappelerExpirationBadgesCommand
-- ParametresCourants
+- .ModifierAsync
 - Audit de conformité — Plateforme Digitale CIT
 - PassageEnFile
-- Audit post-implémentation — Feature 001 : Socle transverse de gestion des tickets et workflows
+- Rapport d'Implémentation — Feature 005 : Simulation de Proforma
 - ContrasteChampsWcagTests
 - ServicesAtteignablesTests
 - SecResetDivulgationJetonTests
@@ -345,19 +345,19 @@
 - .Ouvrir
 - Clôture finale UI/UX — rapport principal
 - .Construire
-- FakeAdministrationComptesRepository
+- .EnregistrerServices
 - FileComptabiliteClient.razor
 - ParametresSlaProvider
 - Revue de fermeture — Feature 003.5 : Consolidation UI/UX (F001-F003) & ACR-01
-- InvitationCollaborateur
-- ResolutionAuteurJournalAuditTests
+- Rapport d'Implémentation — Feature 009 (Notifications Multicanales & Centre In-App)
+- .DefinirAsync
 - AjouterBrouillonsSaisie
 - SecCert09EnvironnementTests
 - GestionnaireMaintenanceService
 - .ExecuterAsync
-- .ConsignerAuditAsync
-- TarifNonTrouveException
-- DeclarationPresentielleTests
+- .EnregistrerAsync
+- 2. Liste Détaillée des 40 Tâches d'Implémentation
+- IArticleAideRepository
 - EtapeBloquanteAnnulation
 - .Creer
 - PieceEnrolement
@@ -375,7 +375,7 @@
 - .PreparerAsync
 - ProvisionnementNotifications
 - .MainLayout_RenduComplet_HeaderEtSidebar
-- JointureIesIncompleteException
+- ParametreTypeClient
 - HistoriqueSimulationsPage.razor
 - Referentiels.razor
 - MesDonnees.razor
@@ -389,16 +389,16 @@
 - MesPreferencesNotification.razor
 - .Calculer
 - .Decider
-- .Construire
+- JourFerie
 - SimulationProformaWebTests
 - 6. Analyse détaillée par module
 - L4 — Passage multi-nœuds (scale-out horizontal)
 - Cahier de recette par rôle — YABA (06/10/2026)
 - 2. Découpage en 10 Phases d'Implémentation
 - .Definir
-- .ExecuterAsync
+- ErrCert01BrouillonsTests
 - AM-03 — confirmation des actions destructives / irréversibles
-- FileActualisationBadt.razor
+- 10.3 Batterie d'attaques automatisée (tests de non-régression sécurité)
 - ParametrePlateforme
 - SimulationProformaRepository
 - MesDemandes.razor
@@ -406,20 +406,20 @@
 - Collaborateurs.razor
 - RaccordementMentionTests
 - Spécification Fonctionnelle — Feature 006 (Customer Complaint)
-- DepotNotificationsEnMemoire
+- POST-IMPLEMENTATION AUDIT — FEATURE 012
 - CLOSURE REVIEW — FEATURE 013
 - Checklist GO / NO-GO
 - .ExecuterAsync
-- ChampFormulaireEnrolement
-- DateOnly
+- TypeObjetEnrolement
+- .DefinirAsync
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
 - GestionGrillesTarifaires.razor
 - .Construire
-- ComptesAgentsTests
+- .Reconstruire
 - Preflight Check — Feature 006 Customer Complaint
 - .Enrolement
 - Inventaire d'exécution pour Staging
-- .Arranger
+- ReessaiEnvoisNotificationService
 - CatalogueNavigation
 - AUTH / PRÉ-CONNEXION
 - SecurityHeadersMiddleware
@@ -430,20 +430,20 @@
 - TypesClient.razor
 - FileAvoirExoneration.razor
 - .Calculer
-- .ExigerAdministrateurDeLaSocieteAsync
+- CIT.Plateforme.Domain.Tests.Tickets
 - NouvelEnrolement.razor
 - FileIncidentsIT.razor
-- UtilisateurSociete
+- HabilitationUtilisateur
 - Checklist Qualité de la Spécification — Feature 011 (Certification Sécurité & Socle NFR)
-- .ExecuterAsync
+- StrategieAffectation
 - PerformanceAgents.razor
 - ResultatRechercheGuichetDto
 - 1. Accessibilité (WCAG 2.2 AA)
 - .Construire
 - 2.5 Invariants de sécurité
 - .Publier
-- SuiviBrancheIes
-- .Cree_dossier_ticket_et_une_ligne_par_conteneur_dans_la_file_BADT
+- BrancheIes
+- CreerDemandeActualisationBadtRequete
 - StockageDocumentsSecuriteTests
 - ImpersonationGuardTests
 - FEATURE 014 — SCOPE VALIDATION GATE
@@ -454,7 +454,7 @@
 - PARTIE A — Questionnaire d'atelier (à remplir avec le métier)
 - Connexion.razor
 - EntreeJournalAuditVue
-- NormalisationReferentielsTarifaires
+- AutorisationChampService
 - Requirements *(mandatory)*
 - Feature Specification: Billing Office IMPORT & Unicité BL
 - POST-IMPLEMENTATION AUDIT REPORT — FEATURE 013
@@ -465,9 +465,9 @@
 - 4. BACKLOG TECHNIQUE D'EXÉCUTION (45 TÂCHES ATOMIQUES)
 - 2. PHASAGE DU BACKLOG TECHNIQUE (T001 → T029)
 - CatalogueProfilsUatTests
-- .ExecuterAsync
+- LibellesReferentiels
 - NatureUtilisateur
-- Audit post-implémentation indépendant — Feature 003 : Billing Office IMPORT & Unicité BL
+- PrendreRendezVous.razor
 - ValeurChampEnrolement
 - ProformaEtReglementTests
 - ConversationAssistantTests
@@ -486,21 +486,21 @@
 - Runbook d'exploitation et de support
 - Demande d'environnement Staging — dossier à l'attention de la DSI
 - Rapport final — prêt pour test d'intrusion et recette
-- .LireGuid
+- .ResoudreAsync
 - CalendrierOuvre
-- .Up
+- Phase 1 — Guide de Validation : Feature 009
 - Matrice CDC globale post-F017 — 188 exigences
 - GenerateurQrCodeSvg
 - Checklist d'observabilité pour la recette
 - MesReclamations.razor
-- ConstruireNavigationQuery
-- CanalJournalise
+- .ExecuterAsync
+- Décisions externes — ce qui ne dépend plus du projet
 - Checklist Qualité de la Spécification — Feature 008 (Enrôlement Transporteurs)
-- ConflitDeConcurrenceException
+- GabaritNotificationTests
 - 2. DÉCISIONS DE CLARIFICATION FORMELLES (DEC-017-01 À DEC-017-08)
-- JustificatifDemandeCompte
+- RechercheGuichetTests
 - demarrer
-- Matrice de configuration par environnement
+- Tasks: Comptes clients, sociétés et utilisateurs rattachés
 - Post-Implementation Audit Indépendant — Feature 011 (Certification Sécurité & Socle NFR)
 - Audit d'Avancement Global — CIT Digital Platform
 - Rapport d'Implémentation Final — Feature 006 (Customer Complaint)
@@ -518,13 +518,13 @@
 - ActionsDocument.razor
 - .CreerPourDestinataireAsync
 - VerifierCode.razor
-- ApplicationUser
+- .La_reinitialisation_desactive_la_2fa_invalide_les_codes_et_revoque_les_sessions
 - Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
 - Audit de sécurité (pentest statique) — Plateforme YABA
 - SurveillerEcheancesCalendrierTests
-- .PreparerAsync
+- ParametresCourants
 - PassageEnFileRepository
-- 10.3 Batterie d'attaques automatisée (tests de non-régression sécurité)
+- EntetesSecuriteDurciesTests
 - CIT.Plateforme.Application.Supervision
 - .BuildTargetModel
 - .ExecuterAsync
@@ -532,7 +532,7 @@
 - NouvelleDemandeBadt.razor
 - CelluleProforma.razor
 - .CreerTicketReclamation
-- 2. Décisions Techniques Structurantes (D1 à D15)
+- DepotFilesFige
 - 1. TRAITEMENT & RÉSOLUTION FORMELLE DES POINTS À CLARIFIER (PC)
 - Audit de gouvernance Git — traçabilité des specs et de la documentation
 - 2. Décisions attendues
@@ -552,9 +552,9 @@
 - bilingOffice
 - Plan Technique d'Implémentation — Feature 004 : Billing Office EXPORT
 - 1. Parcours Client : Calcul, Sauvegarde & Export Proforma
-- AnnulationSeuilBloquantTests
+- AnnulationTests
 - 3. Checklist d'homologation
-- 2. Reconstruction Feature par Feature
+- DeclarationPresentielleTests
 - .ConstruireContexte
 - ComposantsPartagesAtteignablesTests
 - .ExecuterAsync
@@ -562,20 +562,20 @@
 - Point de publication — release `e0a3721`
 - Contracts — Contrats fonctionnels des cas d'usage de Feature 002
 - Analyse d'Éligibilité & Cadrage de la Prochaine Étape
-- ApercuDocument.razor
+- .ConstruireBase
 - RegleAccesConnexionTests
 - .Construire
-- LotPurgeRetention
+- AjoutRetentionEtGelLegal
 - .Creer
-- TypeClient
-- Preflight Feature 012 — Remédiation Dettes Métier, Recette Transverse & Clôture Réserves
+- CloisonnementService
+- 2. Audit Indépendant des Sujets Candidats
 - FEATURE 015 — RAPPORT DE VALIDATION DE SCOPE FORENSIQUE
 - AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010
 - Gestion des anomalies de recette
 - 8. MOT — modèle organisationnel des traitements
 - Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 - .Refuse_la_cloture_si_un_BL_n_est_pas_deplie
-- DetailDossier.razor
+- .DefinirAvecCalendrierAsync
 - FondsThematisesTests
 - Pec05AffectationDirecteTests
 - Spécification Fonctionnelle — Feature 011 (Certification Sécurité & Socle Non-Fonctionnel)
@@ -584,15 +584,15 @@
 - AdministrationComptesRepository
 - .ConstruireAsync
 - Point de publication — release `5fa9838` (AVEC migration)
-- Quickstart — Billing Office IMPORT & Unicité BL
+- .ConstruireContexte
 - Tasks: Consolidation UI/UX des Features 001 à 003
-- FakeAdministrationComptesRepository
+- PerimetresSupervisionTests
 - .ChargerParquesAsync
 - HistoriqueDisponibilite
-- .ExecuterAsync
+- .Agent_sans_permission_est_refuse
 - .Extraire
 - ReportingActualisationBadt.razor
-- Remédiation P0-bis — Cloisonnement agent sur les fiches Ticket / Dossier
+- TestDbIsolationTests
 - .SynchroniserTicketModifie
 - LibellesStatutParametrablesTests
 - UniteDeTravail
@@ -606,33 +606,33 @@
 - Analyse MERISE — Plateforme Digitale CIT
 - 3. MCD
 - MesIncidents.razor
-- ServiceNumerotation
+- Option B — Séquences globales ticket/dossier avec préfixes, conforme au code actuel
 - InMemoryEvenementSocleRepository
-- DashboardSociete.razor
+- Vérification des remédiations d'urgence
 - CIT.Plateforme.Web.Tests.csproj
 - TransitionAutorisee
 - REGRESSION AUDIT REPORT — FEATURE 013
 - Audit de périmètre — Scénarios de recette CDC §22 vs Feature 001
 - Feature Specification: Socle transverse de gestion des tickets et workflows
-- 3. Plan Détaillé des Tâches par Phase
+- NouvelleReclamation.razor
 - 3. Scénario E2E (REC-SCE-07)
 - 2. Parcours Utilisateurs Démonstrateurs
 - .Decider
-- PieceExigeeCompte
-- CircuitClientDepositTests
+- 1. Principe de Persistance
+- 3. Détail des Livrables
 - 1. SCÉNARIOS DE RECETTE NOMINATIFS
 - SondeDisponibiliteService
 - ValidateurFichierDocument
 - 2. PHASAGE DU BACKLOG TECHNIQUE (T001 → T040)
-- .CreerTicketAsync
+- Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 - .ExecuterAsync
-- Détail des 11 dettes techniques
+- SoumettreDemandeAvoirExoRequete
 - StatutBadgeTests
-- IndicateursTemps.razor
+- .ExecuterAsync
 - Backlog UI/UX final — après recette navigateur authentifiée
-- ManuelUtilisateur.razor
-- 1. Analyse des Décisions d'Architecture (D1 à D10)
-- ConsulterMesNotificationsQuery
+- EtatProforma
+- .ConstruireContexteAvecUnAdmin
+- Levée des Points de Clarification (PC) & Homologation des Exigences Restantes
 - FabriqueDebit
 - Implementation Plan: Feature 008 — Enrôlement Transporteurs
 - JournalConnexionService
@@ -647,33 +647,33 @@
 - Matrice des flux réseau
 - 5. MLD
 - Runbook d'exploitation — Exigences non vérifiables dans le code (NFR-03/04/05/06/09/10, SEC-09)
-- MessagesUtilisateur
-- SoumettreDemandeCompteCommand.cs
+- Sweep Design — fin (classification exhaustive + corrections)
+- RelancesAbsenceReponseService
 - Tasks: Feature 012 — Remédiation Dettes Métier, Recette Transverse & Clôture Réserves
 - NfrCert07CultureTests
 - ProvisionnementParametrageMetier
-- .Soumission
-- .DefinirAsync
+- Closure Review Finale — Feature 011 (Certification Sécurité & Socle NFR)
+- .ExecuterAsync
 - .ListerNiveauxAsync
-- ModificationPriorite
+- GererPiecesExigeesEtapeCommand
 - Point de publication — release `6f106dd`
 - MainLayout.razor
 - UtilisateurInfoToujoursActif
 - 1. CAS D'UTILISATION PRINCIPAUX
 - .PourFile
-- CanalEmailCapture
-- InvalidOperationException
-- .EnregistrerServices
-- .Changement_de_type_apres_creation_du_dossier_avant_aiguillage_n_affecte_pas_le_circuit
+- ProvisionnementAdministrateurInitial
+- ServiceNumerotation
+- SchemaDeTest
+- 2. Spécification Détaillée des Contrats
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
-- .Preparer
+- .ConstruireTicket
 - TicketExtensionsBillingImportTests
 - .BuildTargetModel
 - Remédiation UI/UX finale — clôture P1/P2
 - RessourcesReferenceesVersionneesTests
 - 7. Workflows : états et transitions
 - Matrice de Recette — Scénarios d'acceptation
-- CLOSURE REVIEW FORMELLE FINALE (31 août 2026)
+- .EmettreAsync
 - .InvokeAsync
 - Évaluation de la couverture du cahier des charges YABA — révisé le 05/10/2026
 - Sauvegarde, restauration et plan de reprise — NFR-06
@@ -681,27 +681,27 @@
 - Plan de tests de fumée — Staging
 - Options de traitement du secret dans l'historique Git
 - Plan de recette — version finale
-- Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
+- CategorieDocumentBillingImport
 - .Restreint_au_perimetre_et_enrichit_le_nom
 - DernierAdministrateurActifException
 - Architecture cible .NET 10 — archivage du prompt & analyse d'écart vs code
-- User Scenarios & Testing *(mandatory)*
-- .AffecterTicketNonPrisEnChargeAsync
-- 4. Spécification Détaillée des Fonctionnalités
+- CablageNavigationTests
+- ActionsSuperviseurCommand
+- .AgentHabilite_AccedeALaPage_EtVoitEtatVide
 - Quickstart — Socle transverse de gestion des tickets et workflows
 - 2. DÉCISIONS D'ARCHITECTURE
 - .Calculer
-- .EnregistrerServices
+- 11. Pentest dynamique COMPLET (2026-09-30) — instance locale `https://localhost:7097`
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
 - Guide de Démarrage Rapide & Validation — Feature 010
-- TypeObjetEnrolement
+- 72 — Mémo de déploiement IIS (YABA)
 - 2. DÉFINITION TECHNIQUE DÉTAILLÉE DES CONTRATS
 - 1. CONTRATS TECHNIQUES DE SÉCURITÉ (C15)
-- .BOOK_NORM_01_ABC123_puis_abc123_declare_doublon_insensibilite_casse
+- Option A — Séquence par (module, type), conforme à `research.md` actuel
 - Intention
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
 - .ConstruireAsync
-- CircuitClientEnCompteTests
+- DistributionAutomatiqueService
 - StatutVisuelDossier
 - CIT.Plateforme.Application.Tests.csproj
 - Checklist de préparation de l'environnement Staging
@@ -727,16 +727,16 @@
 - Atelier valeurs métier YABA — suivi de validation
 - .BuildModel
 - Quickstart & Manuel de Validation UI/UX: Consolidation F001-F003
-- ValiderEnrolementCommandTests
+- 1. SCÉNARIOS DE VÉRIFICATION RAPIDE
 - .ExecuterAsync
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
 - ParcoursImpersonationTests
 - Checklist Qualité de la Spécification — Feature 012 (Remédiation Dettes Métier & Recette Transverse)
-- 24. Remédiation ciblée — validation finale (2026-08-30, seconde session)
+- .ExecuterAsync
 - Cahier de tests utilisateurs YABA
 - ContenuAideInitial
 - Script de démonstration live — Plateforme YABA
-- Recertification post-remédiation
+- FileDeTraitement
 - ReconnectModal.razor.js
 - Quickstart — Comptes clients, sociétés et utilisateurs rattachés
 - Horodatage
@@ -746,7 +746,7 @@
 - NfrCert02ResponsiveTests
 - Audit après corrections
 - Comptes de Test (Environnement Development)
-- ResolveurSuperviseursDeLaFile
+- .LireGuid
 - Plan d'action vers la conformité 100 % — établi le 06/10/2026
 - RAPPORT DE SÉLECTION DE FEATURE POST-F015 (FEATURE SELECTION GATE)
 - RAPPORT DE SÉLECTION POST-F016 — FEATURE SELECTION GATE
@@ -754,18 +754,18 @@
 - Data Model — Modèle conceptuel fonctionnel
 - 6. MPD
 - DashboardClientVue
-- Spécification Fonctionnelle Clarifiée — Feature 007
+- DocumentsCommunsFormulaire.razor
 - Décisions requises pour atteindre 100/100
 - App.razor
 - Point de publication — release `76b2a30` (zone de dépôt « panier »)
-- RAPPORT D'IMPLÉMENTATION — FEATURE 010
+- DepotDocumentAutorisationTests
 - Clarifications
 - .Injecter
 - Guide de Démarrage Rapide (Quickstart) — Feature 004 : Billing Office EXPORT
 - Checklist de Conformité aux Exigences — Feature 006
 - Requirements *(mandatory)*
 - .ExecuterAsync
-- .ExecuterAsync
+- .Admin_peut_modifier_categorie
 - 6. Fiches de certification — SEC
 - Specs i18n FR/EN — backlog ClickUp
 - BandeauImpersonation.razor
@@ -773,50 +773,50 @@
 - 3. Détail des décisions et gates
 - Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 - 2. MODÈLES EN MÉMOIRE & STRUCTURES DTO
-- .ConstruireContexte
+- RelancesAbsenceReponseUseCaseTests
 - .BuildTargetModel
-- BandeauDisponibiliteAgent.razor
-- .Document_Depose_Avec_Categorie_Est_Persiste_Et_Retrouve_Avec_Sa_Categorie
+- .EnregistrerServices
+- .Refuse_si_un_ticket_n_appartient_pas_au_client
 - ArticleAideRepository
 - 2. Constats — Non-conformités confirmées
 - REGRESSION AUDIT F012
-- .EnregistrerServices
-- CablageNavigationTests
+- .AdminHabilite_AccedeALaPage
+- Remédiation UAT — P0 navigateur + filtrage de la sidebar
 - .ConstruireContexte
-- .CAS4_Desactivation_de_A_et_retrogradation_de_B_concurrentes_une_seule_reussit
-- .EnregistrerServices
+- User Scenarios & Testing *(mandatory)*
+- Contrats Applicatifs (Use Cases) — Feature 006
 - .BuildTargetModel
-- ObtenirDashboardAgentQuery
-- .EnregistrerServices
+- .La_charge_est_bornee_au_perimetre_et_montre_les_absents_avec_charge
+- .AdminHabilite_AccedeALaPage
 - Architecture & schéma global du workflow YABA (swimlanes)
 - Lot2PublicAuthI18nTests
 - .ListerParClientAsync
 - Comptes de Test — Jeu de Données CIT
-- DashboardAgentVue
-- .ListerAsync
+- .ExecuterAsync
+- UtilisateurSociete
 - CablageJournalConnexionTests
 - .BuildTargetModel
 - 20. Critères d'Acceptation (Given/When/Then)
-- xunit
+- CIT.Plateforme.Web.Tests.Support
 - .BuildTargetModel
-- .ExecuterAsync
+- .Un_agent_Support_IT_N1_ou_N2_prend_en_charge_un_incident
 - .BuildTargetModel
 - Workflow Support Opérationnel — Réclamations client (support de formation)
 - Specification Quality Checklist: Billing Office IMPORT & Unicité BL
 - .BuildTargetModel
 - .Attribuer
 - SujetAssistantRepository
-- .DefinirTransitionAsync
+- .ExecuterAsync
 - IAutorisationService
-- .ResoudreAsync
+- PiecesJointesFormulaire.razor
 - .EnregistrerDecisionAsync
 - .InvokeAsync
 - .BuildTargetModel
 - TypeBlocAide
 - .BuildTargetModel
-- .ResoudreDestinatairesPourTicketAsync
+- ResolveurClientDuDossier
 - PreuvePaiementTicket.razor
-- .EnregistrerServices
+- PrisEnChargePar.razor
 - CIT.Plateforme.Domain.Tests.csproj
 - TicketAnonymisationTests
 - .ResoudreAsync
@@ -826,24 +826,24 @@
 - Catégorie C — Descriptions altérant le sens d'une exigence
 - Q&R anticipées — Démo plateforme YABA
 - Résultats à cocher
-- Prêt d'exploitation — rétention et purge
+- .Commentaire_vide_est_refuse
 - Audit de sécurité des dépendances
 - 4. Vérification 3FN
 - LienCodeSecoursTests
 - Checklist de Conformité des Exigences — Feature 004 : Billing Office EXPORT
 - Checklist des Exigences — Feature 005 : Simulation de Proforma
 - Revue de Clôture Finale — Feature 007
-- StockageEspion
+- AccessibiliteFormelleTests
 - .Construire
 - 11. Suites TEST-SPEC — 11 suites nominatives
 - 9. NFR — certification sans seuil inventé
 - CompetenceOperateur
-- .ExecuterAsync
+- .ObtenirParSuperviseurAsync
 - Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
 - Disponibilité Opérationnelle, Performance Applicative & Résilience Continue
 - Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
-- RemediationCustomerComplaintContent
+- CLOSURE REVIEW FORMELLE FINALE (31 août 2026)
 - .ExecuterAsync
 - .BuildTargetModel
 - .BuildTargetModel
@@ -865,27 +865,27 @@
 - .BuildTargetModel
 - .BuildTargetModel
 - Backlog UI/UX ultime — après recette build publié
-- .BuildTargetModel
+- DateOnly
 - .BuildTargetModel
 - Routes.razor
 - ref_k6
 - Contrôle final
 - Quality Checklist: Consolidation UI/UX F001-F003
 - .BuildTargetModel
-- NumerotationAvecCollisionSurLeDeuxiemeTicket
+- .AnalyserAsync
 - 7. ERR-02 — seule correction de produit anticipée
 - REQUIREMENTS CHECKLIST — FEATURE 013 (POST-CLARIFY)
 - Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 - Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
-- PiecesExigeesCompteCommands.cs
+- .DefinirAsync
 - .BuildTargetModel
-- .CheckHealthAsync
+- EnvironnementDeTest
 - .BuildTargetModel
-- .BuildTargetModel
+- Data Model — Feature 008 (Enrôlement Transporteurs)
 - .BuildTargetModel
 - .BuildTargetModel
 - PieceExigeeEtapeRepository
-- 4.3 Exigences NON CONFORMES — établies par preuve
+- .TraiterTicketAsync
 - .BuildTargetModel
 - .BuildTargetModel
 - .BuildTargetModel
@@ -915,15 +915,15 @@
 - ValiderDemandeCompteTests
 - RAPPORT DE CAMPAGNE DE DISPONIBILITÉ (NFR-03 - L3)
 - RAPPORT DE BENCHMARK DE PERFORMANCE K6 (NFR-04 - L3)
-- NonRegressionIesImportTests.cs
-- .Une_mutation_en_place_des_motifs_autorises_est_detectee_et_persistee
-- .Le_rappel_part_une_seule_fois_par_document
+- NonRegressionIesImportTests
+- ProvisionnementRendezVous
+- .BuildTargetModel
 - LanguageSwitcher.razor
 - SaisieDateHeure
 - telechargements.js
 - ModaleConfirmationFocusTests
 - .Regroupe_les_agents_par_file_et_exclut_les_files_hors_carte
-- RendreTicketALaFileTests
+- .ConstruireAsync
 - .BuildTargetModel
 - NfrCert07SwitcherTests
 - .BuildTargetModel
@@ -948,7 +948,7 @@
 - sweep-design-final-publish.md
 - .BuildTargetModel
 - Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
-- DecisionLigneBadt
+- .BuildTargetModel
 - ApercuProformaFacture.razor
 - DependencyInjection
 - .BuildTargetModel
@@ -960,11 +960,11 @@
 - .Up
 - .BuildTargetModel
 - .BuildTargetModel
-- .BuildTargetModel
+- .PrendreEnCharge_HabiliteAvoirSeulement_RefuseSurExoneration
 - 2. EXÉCUTION DÉTAILLÉE PAR EXIGENCE
 - .BuildTargetModel
 - .BuildTargetModel
-- TypeActionRequise
+- .ConstruireContexte
 - .BuildTargetModel
 - .DefinirAsync
 - .BuildTargetModel
@@ -974,52 +974,45 @@
 - .BuildTargetModel
 - .BuildTargetModel
 - .BuildTargetModel
+- FakeUtilisateurInfoRepository
+- .BuildTargetModel
+- 7. RG-CPT-08 — fiche de décision
 - .BuildTargetModel
 - .BuildTargetModel
-- ZoneDepot.razor
+- 4. REC-SEC-01 → REC-SEC-06
 - .BuildTargetModel
 - .BuildTargetModel
-- .Up
-- .BuildTargetModel
-- .BuildTargetModel
-- .BuildTargetModel
-- .Up
-- .Conteneur_deja_present_est_ignore
+- 4. `DistribueLeUtc` — les quatre scénarios
+- .ConsignerAuditAsync
+- .ObtenirFiche_ClientAutreSociete_LeveAccesRefuseException
 - .ProchainNumeroDossierAsync
-- .Up
+- TitresPageTests
 - Conformité finale — 98 RG et dettes hors score
-- .Up
-- .Up
+- Procès-verbal de recette — YABA (§22 du CDC)
+- 5. Comment les exécuter
 - FakeNumerotationService
-- .ExecuterAsync
-- ProvisionnementChampsEnrolement
+- 25. Défauts
+- 13. Priorisation
 - MODÈLE DE DONNÉES & MATRICE DES RESSOURCES — FEATURE 014
 - ProvisionnementSujetsAssistant
 - .ExecuterAsync
-- .Persistance_TicketAvoirEtDecision_RoundtripSqlServerReussi
-- .GenererCodeTotp
-- .Up
+- .ExecuterAsync
+- 2. Décisions d'Architecture (D1 à D9)
+- OuvrirDossierAuGuichetRequest
 - LigneActualisationBadtRepository
-- ChronologieTicketTests
+- ChampFormulaireEnrolementTests.cs
 - 4. Client d’entreprise
-- 10. Déclencheurs Métier
-- 25. Clarifications
-- .Soumission_valide_cree_une_societe_en_attente_non_utilisable
-- Étape 0 — Garde de périmètre obligatoire et détermination mécanique du périmètre réel
-- .Up
-- 13. Destinataires
-- 18. Scénario Contractuel : REC-SCE-14
-- 21. Préférences Utilisateur
-- 22. Données de Contact
-- .Up
-- .Up
-- .Up
-- CompetenceOperateurRepository
-- 1. Les trois écarts qui portent une exigence
-- .TraiterUneFoisAsync
-- Clarifications
-- Success Criteria *(mandatory)*
-- .AjouterModificationAsync
+- 17. Checklist mise en production
+- 8. PC-16 / RG-COM-01 — fiche d'arbitrage
+- 9. Assistant IA — RG-IA-01 / RG-IA-02
+- .ExecuterAsync
+- GabaritNotification
+- FakeStockageDocuments
+- .ViderAsync
+- .ObtenirFile
+- .Un_gabarit_vide_rend_une_chaine_vide
+- .NfrCert04_01_RequeteHttp_InjecteEnTeteServerTiming_EtMesureDuree
+- CategorieReclamationTests.cs
 
 ## God Nodes (most connected - your core abstractions)
 1. `PlateformeDbContext` - 659 edges
@@ -1034,117 +1027,117 @@
 10. `UniteDeTravail` - 246 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Assistant IA` --references--> `IAssistantConversationnel`  [INFERRED]
-  docs/audit-final-conformite-98RG.md → src/CIT.Plateforme.Application/Abstractions/IAssistantConversationnel.cs
 - `4. AUDIT DES DÉPENDANCES ET POINTS À CLARIFIER` --references--> `ICanalNotification`  [INFERRED]
   docs/32-post-f017-feature-selection-gate.md → src/CIT.Plateforme.Application/Abstractions/ICanalNotification.cs
+- `D-07 — Fournisseur de notification (PC-16 / ENR-04, COM-01)` --references--> `ICanalNotification`  [INFERRED]
+  docs/82-external-decisions-only.md → src/CIT.Plateforme.Application/Abstractions/ICanalNotification.cs
+- `L'élément sourcé qui éclaire la décision` --references--> `ICanalNotification`  [INFERRED]
+  docs/plan-cloture-et-preparation-production.md → src/CIT.Plateforme.Application/Abstractions/ICanalNotification.cs
 - `2. Écarts déjà connus, confirmés` --references--> `IHorloge`  [INFERRED]
   docs/67-staging-readiness-gap-analysis.md → src/CIT.Plateforme.Application/Abstractions/IHorloge.cs
 - `3. Ce qui est techniquement prêt` --references--> `IHorloge`  [INFERRED]
   docs/73-retention-operations-readiness.md → src/CIT.Plateforme.Application/Abstractions/IHorloge.cs
-- `Faibles` --references--> `IHorloge`  [INFERRED]
-  docs/81-pre-pentest-risk-register.md → src/CIT.Plateforme.Application/Abstractions/IHorloge.cs
 
 ## Import Cycles
 - None detected.
 
-## Communities (1011 total, 37 thin omitted)
+## Communities (1004 total, 33 thin omitted)
 
 ### Community 0 - "CIT.Plateforme.Application.Tarification"
-Cohesion: 0.08
-Nodes (13): CIT.Plateforme.Application.Tarification, CIT.Plateforme.Domain.Tests.Tarification, CIT.Plateforme.Domain.Tarification.Exceptions, CIT.Plateforme.Domain.Tarification.Referentiels, CIT.Plateforme.Domain.Tarification, CIT.Plateforme.Infrastructure.Tests.Tarification, CIT.Plateforme.Application.Tests.Tarification, CIT.Plateforme.Domain.Tarification.Parametres (+5 more)
+Cohesion: 0.10
+Nodes (11): CIT.Plateforme.Application.Tarification, CIT.Plateforme.Domain.Tests.Tarification, CIT.Plateforme.Domain.Tarification.Exceptions, CIT.Plateforme.Domain.Tarification.Referentiels, CIT.Plateforme.Domain.Tarification, CIT.Plateforme.Infrastructure.Tests.Tarification, CIT.Plateforme.Application.Tests.Tarification, questpdf_fluent (+3 more)
 
 ### Community 1 - ".AjouterInfrastructure"
 Cohesion: 0.01
-Nodes (356): AnnuaireComptes, AntivirusHealthCheck, ArticleAideRepository, AutorisationChampService, BasculerAlternativePresentielleCommand, CanalEmailSmtp, ChampFormulaireEnrolementRepository, ChargerJoursFeries (+348 more)
+Nodes (357): AnnuaireComptes, AntivirusHealthCheck, ArticleAideRepository, AutorisationChampService, BasculerAlternativePresentielleCommand, CanalEmailSmtp, ChampFormulaireEnrolementRepository, ChargerJoursFeries (+349 more)
 
 ### Community 2 - "ReferentielsTarifairesRepository"
-Cohesion: 0.07
-Nodes (24): IQueryable, ReferentielsConteneurVue, IReadOnlyList, TailleConteneur, Actif, Code, Id, Libelle (+16 more)
-
-### Community 3 - "CIT.Plateforme.Application.ActualisationBadt"
 Cohesion: 0.12
-Nodes (8): CIT.Plateforme.Domain.Audit, CIT.Plateforme.Application.Tests.ActualisationBadt, CIT.Plateforme.Domain.Tests.Audit, CIT.Plateforme.Domain.ActualisationBadt, CIT.Plateforme.Domain.Tests.ActualisationBadt, CIT.Plateforme.Application.ActualisationBadt, microsoft_aspnetcore_identity_entityframeworkcore, microsoft_entityframeworkcore_changetracking
+Nodes (14): 9.3 Utilisation réelle, IQueryable, ReferentielsTarifairesRepository, VersionGrilleTarifaireRepository, CancellationToken, DateTime, Guid, IReadOnlyList (+6 more)
 
-### Community 4 - "AccesRefuseException"
+### Community 3 - ".ExecuterAsync"
+Cohesion: 0.10
+Nodes (23): 14. Matrice de Recette Contractuelle REC-SCE-14, CancellationToken, Func, Task, CancellationToken, Guid, IReadOnlyList, Task (+15 more)
+
+### Community 4 - ".ConsignerAuditAsync"
 Cohesion: 0.02
-Nodes (147): 9. Loading / Empty / Error, Classement des erreurs, 8.2 ÉCART CRITIQUE — `ConstaterJointureIesEtFinaliserCommand` n'a aucun contrôle d'autorisation, 14. Matrice de Recette Contractuelle REC-SCE-14, CancellationToken, Task, CancellationToken, Guid (+139 more)
+Nodes (158): 12. Audit du socle Ticket, IEndpointRouteBuilder, 11. Audit du Module ACR-01 Export, CancellationToken, Guid, Task, CancellationToken, Guid (+150 more)
 
-### Community 5 - "PlateformeWebApplicationFactory"
-Cohesion: 0.03
-Nodes (93): 1. Scénarios fonctionnels (§22), 2. Exigences non fonctionnelles à prouver (§19), 3. Synthèse et décision, En-tête, Procès-verbal de recette — YABA (§22 du CDC), 1. Billing Office — parcours Import (4 types de client) & Export, 3. Socle transverse & workflows, 4. Modules complémentaires (+85 more)
+### Community 5 - "NfrCert03DisponibiliteTests"
+Cohesion: 0.19
+Nodes (13): JsonDocument, 3. CONTRATS TECHNIQUES & TEST-SPEC, 2. TRAÇABILITÉ DES CONTRATS & TEST-SPEC, 3. STATUT DES CONTRATS C16 & TEST-SPEC, 3. MATRICE DE TRAÇABILITÉ CONTRATS C16 & TEST-SPEC, NfrCert03DisponibiliteTests, Fact, Task (+5 more)
 
 ### Community 6 - "CancellationToken"
 Cohesion: 0.03
-Nodes (57): Annexe B — Éléments modifiés pendant cette session de remédiation, C8-09 — Consulter "Mes enrôlements" (ÉTENDUE — nouvelle méthode générique de repository), 2.8 Persistance — repositories, CLAR-07 : COM-06 — Canaux configurables pour les relances automatiques, IAdministrationComptesRepository, IAlerteRepository, ICategorieIncidentRepository, ICompetenceOperateurRepository (+49 more)
+Nodes (44): C8-09 — Consulter "Mes enrôlements" (ÉTENDUE — nouvelle méthode générique de repository), 2.8 Persistance — repositories, CLAR-07 : COM-06 — Canaux configurables pour les relances automatiques, IAlerteRepository, ICategorieIncidentRepository, IEnvoiNotificationRepository, IEtapeBloquanteAnnulationRepository, IEvenementSocleRepository (+36 more)
 
-### Community 7 - "ReglesDepotDocument"
-Cohesion: 0.03
-Nodes (78): 5. Écarts fermés (depuis l'audit initial jusqu'à cette revue de fermeture), 0.1 Corrections appliquées dans cette session, 2. Table des 74 exigences — lignes modifiées par la remédiation, Contrat C4-02 : `ObtenirDashboardClientQuery`, D8 — Traitement parallèle IES : deux branches indépendantes, une entité satellite légère, 18 & 19. Audit de la Gestion Documentaire & BEE, C8-06 — Déposer une pièce (soumission ou complément) (RÉUTILISÉE telle quelle), 6. Invariants métier (portés par le Domain existant, aucun nouveau) (+70 more)
+### Community 7 - "DeposerDocumentCommand"
+Cohesion: 0.04
+Nodes (79): §2 — Dossier / Ticket / BL-Booking / Documents (infographie 1), §3 — Parcours IMPORT, §4 — Parcours EXPORT, Comparaison projet ↔ documents 06/10 (Parcours Client + Complément CDC + 3 infographies), Déjà conforme (rappel), Mise à jour — lot A+B livré (06/10/2026, TDD), 11. Capacités existantes NON CERTIFIÉES, 4.3 Exigences NON CONFORMES — établies par preuve (+71 more)
 
-### Community 8 - "IDocumentRepository"
-Cohesion: 0.08
-Nodes (51): 12.2 Blocages concrets identifiés dans le code, 12.5 Durcissements appliqués (2026-09-30), P3-06 — Portée de file (Avoir / Exonération), 1. Vue d'Ensemble des Contrats Applicatifs (C7-01 à C7-07), 2. Spécification Détaillée des Contrats, C7-01 — `SoumettreDemandeAvoirExonerationCommand`, C7-02 — `ListerMesDemandesAvoirExonerationQuery`, C7-03 — `ConsulterFileAvoirExonerationQuery` (+43 more)
+### Community 8 - ".PreparerActeursAsync"
+Cohesion: 0.36
+Nodes (6): AveSpecTests, ArgumentException, DateTime, Fact, Guid, Task
 
-### Community 9 - "Grille de comparaison — modèle CDC vs implémentation"
-Cohesion: 0.11
-Nodes (18): B. Contraintes et intégrité, C.1 Cycle de vie, C.2 Workflow et orientation, C.3 Temps et SLA, C.4 Affectation et supervision, C.5 Notifications, C.6 Simulation, C.7 Cloisonnement et sécurité (+10 more)
+### Community 9 - "NiveauPriorite"
+Cohesion: 0.04
+Nodes (44): B. Contraintes et intégrité, C.1 Cycle de vie, C.2 Workflow et orientation, C.3 Temps et SLA, C.4 Affectation et supervision, C.5 Notifications, C.6 Simulation, C.7 Cloisonnement et sécurité (+36 more)
 
-### Community 10 - ".HandleAsync"
-Cohesion: 0.09
-Nodes (32): C6-03 : `ConsulterSimulationProformaQuery`, LigneResultatSimulationVue, PartBeneficiaireVue, ProjectionsSimulation, ReferenceTarifaireVue, ResultatSimulationProformaVue, Guid, IReadOnlyList (+24 more)
+### Community 10 - "LotPurgeRetention"
+Cohesion: 0.05
+Nodes (32): 6. SEC-06 — chaîne de rétention, Classification, L'obligation, citée du CDC, Le point qui inverse la priorité, Spécification cible, 1.1 Entité `Ticket` (`CIT.Plateforme.Domain.Tickets`), 1.2 Entité `Document` (`CIT.Plateforme.Domain.Tickets`), 1. EXTENSIONS DU MODÈLE EXISTANT (+24 more)
 
 ### Community 11 - "PlateformeDbContext"
 Cohesion: 0.02
-Nodes (159): AdministrationNotifications, Archives, CompetencesOperateur, 24. Qualité frontend, Le seul vrai manquement d'architecture, Pages méritant une extraction de composants, IdentityDbContext, LotPurgeRetention (+151 more)
+Nodes (163): 24. Qualité frontend, Le seul vrai manquement d'architecture, Pages méritant une extraction de composants, FileReclamations, IdentityDbContext, LotPurgeRetention, PlateformeDbContext, Alertes (+155 more)
 
 ### Community 12 - "CIT.Plateforme.Application.Securite"
-Cohesion: 0.02
-Nodes (47): closedxml_excel, CIT.Plateforme.Application.AvoirExoneration, CIT.Plateforme.Domain.Securite, CIT.Plateforme.Application.Administration, CIT.Plateforme.Application.Tickets, CIT.Plateforme.Domain.Files, CIT.Plateforme.Application.Tests.Agent, CIT.Plateforme.Application.Messagerie (+39 more)
+Cohesion: 0.03
+Nodes (41): closedxml_excel, CIT.Plateforme.Application.AvoirExoneration, CIT.Plateforme.Domain.Securite, CIT.Plateforme.Application.Tickets, CIT.Plateforme.Application.Abstractions, CIT.Plateforme.Application.Tests.ActualisationBadt, CIT.Plateforme.Application.Dossiers, CIT.Plateforme.Domain.Tests.AvoirExoneration (+33 more)
 
-### Community 13 - "SoumettreDemandeExportCommand"
+### Community 13 - "TypeClient"
 Cohesion: 0.06
-Nodes (67): Billing EXPORT, Les ajustements de tests existants, 19. Scénario de Recette Contractuel REC-SCE-05, 4. Contrats d'Application C5-01 à C5-08, C5-01 : `SoumettreDemandeExportCommand`, C5-02 : `ConsulterFileBillingExportQuery`, C5-03 : `ValiderTicketExportCommand`, C5-04 : `GestionComplementExportCommand` (+59 more)
+Nodes (69): Billing EXPORT, Correction, 7. Type Client — snapshot exclusif, 19. Scénario de Recette Contractuel REC-SCE-05, 4. Contrats d'Application C5-01 à C5-08, C5-01 : `SoumettreDemandeExportCommand`, C5-02 : `ConsulterFileBillingExportQuery`, C5-03 : `ValiderTicketExportCommand` (+61 more)
 
 ### Community 14 - ".Rattacher"
-Cohesion: 0.04
-Nodes (59): MesReclamations, NouvelleDemandeAvoirExo, 8. Matrice REC-SEC-01 → REC-SEC-06, Acr01ExportDashboardTests, Fact, Task, SoumettreDemandeExportCommandTests, Fact (+51 more)
+Cohesion: 0.03
+Nodes (64): MesDonnees, MesReclamations, NouvelleDemandeAvoirExo, 5. Écarts fermés (depuis l'audit initial jusqu'à cette revue de fermeture), 8. Matrice REC-SEC-01 → REC-SEC-06, D1 — Audit exigence par exigence, Task, ParametresSlaProviderTests (+56 more)
 
 ### Community 15 - "EntreeHistorique"
 Cohesion: 0.03
-Nodes (80): A.2 Socle ticket, 1. Entités nouvelles (Feature 002), 2. Entités étendues (Feature 001, extension additive uniquement), 3. Relations principales, 4.1 Société cliente (état), 4.2 Utilisateur rattaché (état), 4. États et transitions, 5. Invariants fonctionnels (extraits traçables) (+72 more)
+Nodes (55): A.2 Socle ticket, A.3 Workflow et mesure du temps, A.6 Tarification, A.7 Notifications et périphérie, A.8 Sécurité, A. Structure des données — entités, 1. Exigences Cibles (CON / IMP / ERR), 2. Scénario Contractuel Transverse (REC-SCE-14) (+47 more)
 
-### Community 16 - "IDossierRepository"
-Cohesion: 0.06
-Nodes (43): 2.4 `ALE-02` *(Must)* — **PARTIELLEMENT CONFORME**, Contrat C4-04 : `ObtenirDashboardSocieteQuery`, 5. Matrice de Provenance et Sources des Données, 3.1 Couche Application (Nouvelles Queries et Read Models), D7 — Read-Model du Dashboard Administrateur Société, Phase 7 : Dashboard Administrateur Société & Collaborateurs (Contrat C4-04), C9-11 — Raccorder la mention `@Nom` au centre de notifications, D11 — Destinataires : réutilisation stricte du modèle d'habilitation existant (+35 more)
+### Community 16 - "DroitsDePersonneTests"
+Cohesion: 0.30
+Nodes (8): DroitsDePersonneTests, CancellationToken, DateTime, Fact, Guid, InvalidOperationException, Mock, Task
 
 ### Community 17 - "CIT.Plateforme.Web.Resources"
-Cohesion: 0.02
-Nodes (100): CIT.Plateforme.Web.Resources, Etape, IStringLocalizer, Microsoft.Extensions.Localization, SharedResources, IStringLocalizer, Microsoft.AspNetCore.Authorization, Microsoft.Extensions.Localization (+92 more)
+Cohesion: 0.01
+Nodes (117): CIT.Plateforme.Web.Resources, route:/dossiers/{DossierId:guid}/operationnel, Etape, IStringLocalizer, Microsoft.Extensions.Localization, SharedResources, IStringLocalizer, Microsoft.AspNetCore.Authorization (+109 more)
 
-### Community 18 - "Spécification Fonctionnelle Clarifiée — Feature 010"
-Cohesion: 0.10
-Nodes (19): 10. Clarifications Décidées & Validées (CLAR-CON), 11. Matrice de Réutilisation des Fondations (F001 à F009), 12. Frontières Strictes et Exclusions, 13. Projection de Couverture CDC, 1. Contexte & Alignement Stratégique, 2. Reconstitution Exhaustive des Exigences, 3. Acteurs, Rôles et Responsabilités, 5. Raccordement Événementiel avec F009 (Notifications) (+11 more)
+### Community 18 - "EtatCompteEtAutorisationTests"
+Cohesion: 0.19
+Nodes (10): CancellationToken, Guid, Task, EtatCompteEtAutorisationTests, PortComptes, CancellationToken, Fact, Guid (+2 more)
 
 ### Community 19 - "IContexteUtilisateurWeb"
-Cohesion: 0.02
-Nodes (137): AdministrationAssistant, AdministrationCategories, BunitContext, Collaborateurs, Trois notions, à ne jamais confondre, 15. Tests de mutation, FicheAvoirExoneration, FileReclamations (+129 more)
+Cohesion: 0.03
+Nodes (78): AdministrationAssistant, AdministrationNotifications, BunitContext, EtapesBloquantesAnnulation, Home, JournalAudit, LibellesStatut, MesEnrolements (+70 more)
 
 ### Community 20 - "Ticket"
 Cohesion: 0.02
-Nodes (111): 4.1 Matrice de l'état engageant, Spécification cible, Non-régression, RG-TCK-06, 17. Balayage des surfaces, Cause racine, Ce qui distingue désormais les deux notions, Fichiers concernés (+103 more)
+Nodes (94): 1. Entités nouvelles (Feature 002), 2. Entités étendues (Feature 001, extension additive uniquement), 3. Relations principales, 4.1 Société cliente (état), 4.2 Utilisateur rattaché (état), 4. États et transitions, 5. Invariants fonctionnels (extraits traçables), 6. Données paramétrables (administrées, jamais codées en dur) (+86 more)
 
-### Community 21 - ".ConfigurerServices"
+### Community 21 - "ConsulterDossierGuichetQuery"
 Cohesion: 0.05
-Nodes (90): FakeAutorisationService, FakeRechercheGuichetRepository, MesRendezVous, 10. Mode Dégradé (ERR-04) & Alternative Présentielle (IMP-15), 11. Intégration Événementielle F009, 12. Scénario Contractuel REC-SCE-14 (E2E), 13. Composants UI & Architecture Razor, 14. Valeurs de Configuration (+82 more)
+Nodes (97): MesRendezVous, 10. Mode Dégradé (ERR-04) & Alternative Présentielle (IMP-15), 11. Intégration Événementielle F009, 12. Scénario Contractuel REC-SCE-14 (E2E), 13. Composants UI & Architecture Razor, 14. Valeurs de Configuration, 15. Tâches Réalisées (`tasks.md`), 16. Matrice de Ségrégation Git (+89 more)
 
 ### Community 22 - "RelancesAbsenceReponseTests"
 Cohesion: 0.18
 Nodes (10): Cause racine, Défaut, Exigence, Fichiers modifiés, Mutations, Remédiation P2-04 — Tests de câblage de l'état engageant, Reproduction, Tests (+2 more)
 
 ### Community 23 - "CancellationToken"
-Cohesion: 0.07
-Nodes (13): ConversationAssistantRepository, BadgeEnrolement, CancellationToken, EntreeHistorique, Guid, IEnumerable, IReadOnlyDictionary, IReadOnlyList (+5 more)
+Cohesion: 0.06
+Nodes (14): ConversationAssistantRepository, BadgeEnrolement, CancellationToken, EntreeHistorique, Guid, IEnumerable, IReadOnlyDictionary, IReadOnlyList (+6 more)
 
 ### Community 24 - ".ConstruireAsync"
 Cohesion: 0.38
@@ -1152,107 +1145,107 @@ Nodes (6): Contexte, QuiPrendEnChargeTraiteTests, Fact, Guid, InvalidOperationEx
 
 ### Community 25 - "VersionGrilleTarifaire"
 Cohesion: 0.02
-Nodes (79): D-07 — `CreerVersionGrilleTarifaireCommandHandler` doublonné, 10. Rapport d'Erreurs CSV, 11. Export PDF (C6-05), 13. Interface Utilisateur Client, 14. Sécurité, 15. Migrations, 16. REC-SCE-06, 17. Migrations de Code Détectées et Corrigées Pendant Cette Session (+71 more)
+Nodes (86): CIT.Plateforme.Domain.Tarification.Parametres, 2. Moteur de Calcul (`MoteurCalculProforma`), 7. Grilles Tarifaires & Versionnage, 1. Inventaire des Décisions Architecturales (D1 à D16), D11 — Détection de Révision de Grille sur Simulation Enregistrée (`CLAR-SIM-04`), D12 — Extension Additive pour le Rattachement Billing (`CLAR-SIM-05`), D14 — Import de Grille Tarifaire par Fichier CSV Atomique (`SIM-10`, `CLAR-SIM-01`), D15 — Habilitations, Sécurité & Multi-Tenant (+78 more)
 
-### Community 26 - "CIT.Plateforme.Infrastructure.Tests.Support"
-Cohesion: 0.06
-Nodes (18): CIT.Plateforme.Infrastructure.Tests.Comptes, CIT.Plateforme.Application.Tests.Assistant, CIT.Plateforme.Infrastructure.Tests.BillingExport, CIT.Plateforme.Infrastructure.Tests.Persistence, CIT.Plateforme.Application.Tests.Aide, CIT.Plateforme.Infrastructure.Tests.Tickets, CIT.Plateforme.Infrastructure.Assistant, CIT.Plateforme.Domain (+10 more)
+### Community 26 - "CIT.Plateforme.Domain.Notifications"
+Cohesion: 0.04
+Nodes (24): CIT.Plateforme.Infrastructure.Tests.Notifications, CIT.Plateforme.Application.Tests.Assistant, CIT.Plateforme.Infrastructure.Guichet, CIT.Plateforme.Domain.Incidents, CIT.Plateforme.Infrastructure.Notifications, CIT.Plateforme.Domain.Referentiels, CIT.Plateforme.Domain.Notifications, CIT.Plateforme.Infrastructure.Assistant (+16 more)
 
 ### Community 27 - "IReferentielsTarifairesRepository"
 Cohesion: 0.06
-Nodes (46): 8. Correctifs appliqués (2026-09-25), IReferentielsTarifairesRepository, ISimulationProformaRepository, CancellationToken, Guid, IReadOnlyList, Task, AdministrerReferentielsConteneurCommandHandler (+38 more)
+Nodes (42): 8. Correctifs appliqués (2026-09-25), Phase 3 : Infrastructure, EF Core & Migration SQL Server (`SIM-07`, `SIM-08`), IReferentielsTarifairesRepository, ISimulationProformaRepository, IVersionGrilleTarifaireRepository, CancellationToken, DateTime, Guid (+34 more)
 
-### Community 28 - "ControleAccesRessourceService"
+### Community 28 - "ITicketRepository"
 Cohesion: 0.03
-Nodes (111): Correction du 2026-09-04 (soir) — `SEC-03` et `SEC-12` refermées, 10. Faux positifs de l'audit initial, 11. Faux négatifs de l'audit initial, 14. P0 restants, 15. P1 restants, 16. P2 reclassés, 17. P3 reclassés, 18. R-15 (+103 more)
+Nodes (184): Correction du 2026-09-04 (soir) — `SEC-03` et `SEC-12` refermées, Corrections appliquées le jour même, 10. Faux positifs de l'audit initial, 11. Faux négatifs de l'audit initial, 14. P0 restants, 15. P1 restants, 16. P2 reclassés, 17. P3 reclassés (+176 more)
 
 ### Community 29 - "ProfilSociete.razor"
 Cohesion: 0.13
 Nodes (14): route:/comptes/profil, ChargerAsync, NomLisible, OnInitializedAsync, EtatVide, FiltreTable, IndicateurChargement, IStringLocalizer (+6 more)
 
-### Community 30 - "VersionGrilleTarifaireRepository"
-Cohesion: 0.09
-Nodes (30): GestionGrillesTarifaires, C6-07 : `ImporterGrilleTarifaireCsvCommand`, 9. Import CSV Atomique, ImportateurGrilleTarifaireCsv, LigneTarifaireCsvModel, ResultatAnalyseCsv, IReadOnlyList, MemoryStream (+22 more)
+### Community 30 - "ImportateurGrilleTarifaireCsv"
+Cohesion: 0.05
+Nodes (53): D-02 — Actions en masse `ComptesAgents` non atomiques, D-03 — `AccesRefuseException` non gérée sur les actions en masse, D-04 — Couplage `ValidationInterval` ↔ clôture de compte, D-07 — `CreerVersionGrilleTarifaireCommandHandler` doublonné, D-08 — 2FA non éprouvé de bout en bout, D-09 — Clôture de compte en deux transactions, D-10 — Parallélisme de la suite, D-11 — `ComptesAgents.razor` sans test de rendu (+45 more)
 
 ### Community 31 - "CategorieReclamation"
 Cohesion: 0.15
 Nodes (11): CategorieReclamation, Code, EstActif, FileCibleDefautId, Id, Libelle, Guid, CancellationToken (+3 more)
 
 ### Community 32 - "SimulationProforma"
-Cohesion: 0.03
-Nodes (74): 1. Vue d'Ensemble du Modèle, 2.1. Énumérations du Domaine (`CIT.Plateforme.Domain.Tarification`), 2.2. Entité `VersionGrilleTarifaire`, 2.3. Entité `SimulationProforma`, 2.4. Entité `LigneResultatSimulationConteneur`, 2. Entités du Domaine & Objets de Valeur, 3.1. Agrégat `Dossier` (`CIT.Plateforme.Domain.Tickets`), 3. Extension Additive du Socle Existants (+66 more)
+Cohesion: 0.04
+Nodes (61): 1. Vue d'Ensemble du Modèle, 2.1. Énumérations du Domaine (`CIT.Plateforme.Domain.Tarification`), 2.2. Entité `VersionGrilleTarifaire`, 2.3. Entité `SimulationProforma`, 2.4. Entité `LigneResultatSimulationConteneur`, 2. Entités du Domaine & Objets de Valeur, 3.1. Agrégat `Dossier` (`CIT.Plateforme.Domain.Tickets`), 3. Extension Additive du Socle Existants (+53 more)
 
 ### Community 33 - "GenerateurDocumentProformaPdf"
-Cohesion: 0.06
-Nodes (25): ColumnDescriptor, Rubrique, 13–18. Audits par module, MontantFrancsCfa, TexteProforma, EnAnglais, Dictionary, GenerateurDocumentProformaPdf (+17 more)
+Cohesion: 0.07
+Nodes (21): ColumnDescriptor, Rubrique, MontantFrancsCfa, TexteProforma, EnAnglais, Dictionary, GenerateurDocumentProformaPdf, Rubrique (+13 more)
 
 ### Community 34 - "Tasks: Feature 009 — Notifications Multicanales & Centre de Notifications In-App"
-Cohesion: 0.06
-Nodes (36): Cas limites de la mention (ajout de la revue de cohérence, §9), Contrats C9-01 → C9-11, Dépendances et ordre d'exécution, Exigences → User Stories → Phases, I9 — Garantie de distribution, énoncée sans ambiguïté, Incréments suivants, Invariants de périmètre — opposables à chaque tâche, MVP — Phases 1 à 4 (+28 more)
+Cohesion: 0.07
+Nodes (27): Contrats C9-01 → C9-11, Dépendances et ordre d'exécution, Exigences → User Stories → Phases, I9 — Garantie de distribution, énoncée sans ambiguïté, Incréments suivants, Invariants de périmètre — opposables à chaque tâche, MVP — Phases 1 à 4, Notes (+19 more)
 
 ### Community 35 - "ModeleNotification"
-Cohesion: 0.04
-Nodes (44): A.3 Workflow et mesure du temps, A.6 Tarification, A.7 Notifications et périphérie, A.8 Sécurité, A. Structure des données — entités, 1. Entités réutilisées sans modification, 2. Entité étendue — une seule, additive, 4. Énumérations (+36 more)
+Cohesion: 0.05
+Nodes (37): 1. Entités réutilisées sans modification, 2. Entité étendue — une seule, additive, 4. Énumérations, 5. Relations, 6. Traçabilité CDC §20, 7. Migration, `EvenementSocle` (F001) — +1 propriété, Phase 1 — Modèle de Données : Feature 009 (+29 more)
 
 ### Community 36 - "CancellationToken"
-Cohesion: 0.07
-Nodes (27): RechercheGuichet, FakeAutorisationService, Autorise, FakeDocumentRepository, FakeDossierRepository, FakeHabilitationRepository, FakeJournalisationService, FakePerimetreSupervisionRepository (+19 more)
+Cohesion: 0.12
+Nodes (12): FakeDocumentRepository, FakeDossierRepository, FakeHabilitationRepository, FakeJournalisationService, FakeRendezVousRepository, FakeTicketRepository, FakeUtilisateurSocieteRepository, CancellationToken (+4 more)
 
 ### Community 37 - "MoteurCalculProforma"
-Cohesion: 0.08
-Nodes (32): 2. Moteur de Simulation de Proforma — cas de référence au franc près, A11Y — Audit lecteur d'écran formel, AM-01 — Durée de séjour facturable, D-04 — DataProtection / antiforgery / session expirée, Décisions finales UI/UX — clôture, 2. Matrice d'Exigences SIM-01 → SIM-11, 4. Matrice d'Audit SIM-01 → SIM-11, MoteurCalculProforma (+24 more)
+Cohesion: 0.06
+Nodes (43): 2. Moteur de Simulation de Proforma — cas de référence au franc près, 13–18. Audits par module, A11Y — Audit lecteur d'écran formel, AM-01 — Durée de séjour facturable, D-04 — DataProtection / antiforgery / session expirée, Décisions finales UI/UX — clôture, 2. Matrice d'Exigences SIM-01 → SIM-11, 4. Matrice d'Audit SIM-01 → SIM-11 (+35 more)
 
 ### Community 38 - ".Executer"
 Cohesion: 0.17
 Nodes (16): 3. CONTRATS D'USAGE SIM-11 (CONTRÔLES DE COHÉRENCE SIMULATION), Contrat `C13-07` : `ValiderCoherenceSimulationQuery`, 2.3 SIM-11 : Contrôles de cohérence à la saisie de simulation proforma (Could), 3.3 SIM-11 : Contrôles de cohérence à la saisie de simulation proforma (Could), ConteneurValidationRequete, ControlesCoherenceSimulation, ValidationCoherenceResultat, ValiderCoherenceSimulationQuery (+8 more)
 
-### Community 39 - "IdentiteTarificationTests"
-Cohesion: 0.16
-Nodes (18): Cause racine, Correction, Défaut, Exigence, Fichiers modifiés, Mutations, Remédiation P2-02 — Identité et société fournies par l'appelant (Tarification), Reproduction (+10 more)
+### Community 39 - ".ExigerConsultationTicketAsync"
+Cohesion: 0.13
+Nodes (20): Ce qui est confirmé fermé, Notes internes, Un point de décision unique, Cause racine, Défaut, Exigence, Fichiers modifiés, Mutations (+12 more)
 
 ### Community 40 - "ReferentielsTarifaires"
-Cohesion: 0.05
-Nodes (42): ConstructeurGrilleTarifaire, CreerVersionGrilleTarifaireCommande, FranchiseSaisie, LigneTarifaireSaisie, MajorationSaisie, ParametresGrilleSaisie, QuotePartSaisie, SeuilPoidsSaisie (+34 more)
+Cohesion: 0.03
+Nodes (60): Phase 1 : Entités Domaine & Moteur de Calcul Pur (`SIM-01` à `SIM-04`, `SIM-06`), D10 — Traitement des Combinaisons Non Tarifées (`CLAR-SIM-03`), Phase 2 : Moteur de Calcul Pur & Tests Golden Master (T004 à T008), ReferentielsConteneurVue, IReadOnlyList, TarifNonTrouveException, Categorie, Sens (+52 more)
 
-### Community 41 - ".CreerContexte"
-Cohesion: 0.15
-Nodes (19): D12 — Stratégie de tests, 10.1 CAS1/CAS2/CAS7 (unicité BL) — voir §5, tous verts sur SQL Server réel., 10.2 Atomicité multi-BL sous exception inattendue (D4/IMP-02) — test ajouté, 10.3 Limite méthodologique — CAS1-12 utilisent `EnsureCreated()`, pas les migrations réelles, 10.4 Instabilité de suite découverte pendant cet audit — `Infrastructure.Tests` sans `DisableTestParallelization`, 10. Audit concurrence, 21. Dette technique — synthèse, 10. Historique EF Core (`__EFMigrationsHistory` sur `BillingOffice`) (+11 more)
+### Community 41 - ".Creer"
+Cohesion: 0.04
+Nodes (68): Audit / traçabilité, 10.3 Limite méthodologique — CAS1-12 utilisent `EnsureCreated()`, pas les migrations réelles, BookingDejaActifException, NumeroBooking, ConflitDeConcurrenceException, BlDejaActifException, NumeroBl, TicketExistantId (+60 more)
 
-### Community 42 - "AutorisationChampService"
-Cohesion: 0.05
-Nodes (46): Conclusion, 30. Conclusion, 20. Conclusion, RG-SEC-01, Conclusion, P1 initiaux, Remédiation P1 — Bloquants métier, Risques résiduels (+38 more)
+### Community 42 - ".ResoudreAsync"
+Cohesion: 0.12
+Nodes (19): Cause racine, Ce que cela change pour l'utilisateur, Fichiers concernés, L'écart, cité de l'audit, La correction, RG-SEC-01, CancellationToken, Guid (+11 more)
 
 ### Community 43 - "SurfaceRoutableTests"
-Cohesion: 0.05
-Nodes (47): AuthorizeAttribute, 3. Findings détaillés, F1 — 🟠 Open redirect via `/culture/set` (MEDIUM), F2 — 🟠 CSP `script-src 'unsafe-inline'` (MEDIUM), F3 — 🟠 Page admin injectant un repository directement (MEDIUM), F5 — 🟡 CSRF de déconnexion (LOW), F6 — 🟡 Test de garde UAT trop strict (LOW — hygiène de test), F7 — 🟢 `MarkupString` avec arguments de format (INFO) (+39 more)
+Cohesion: 0.07
+Nodes (33): AuthorizeAttribute, F3 — 🟠 Page admin injectant un repository directement (MEDIUM), 1. Résumé exécutif, 24. Audit Interface utilisateur, Suite globale, 12. Risques résiduels, 13. R-15, 14. État des tests (+25 more)
 
 ### Community 44 - "EvenementSocle"
-Cohesion: 0.03
-Nodes (67): 10. Analyse des Scénarios de Recette Contractuels (REC-SCE), 11. Analyse des Points à Clarifier (PC), 12. Analyse du Découpage Fonctionnel, 13. Risques et Mesures d'Atténuation, 14. Décision Finale et Conditions d'Entrée, 15. Verdict Final, 1. État du Projet et Couverture CDC, 2. Reconstitution Exacte du Périmètre Candidat (+59 more)
+Cohesion: 0.04
+Nodes (51): 10. Journalisation disponible pour le test, 11. Preuves déjà produites, 12. Statut, 1. Ce qu'est la plateforme, 2. Authentification, 3. Autorisation, 4. API, 5. Dépôt documentaire (+43 more)
 
 ### Community 45 - "Spécification Fonctionnelle — Feature 012 (Remédiation Dettes Métier, Recette Transverse & Clôture Réserves)"
-Cohesion: 0.08
-Nodes (24): 1. PRI-02 (Must) — Priorité Automatique & Tri en File, 1. Summary, 2. IMP-03 (Must) — Communication Ticket Import par E-mail, 2. Technical Context, 3. Constitution Check (17 / 17 PASS), 3. REC-02 (Must) — Catégories de Réclamations Dynamiques, 4. Plan de Modification Détaillé par Exigence, 4. REC-03 (Must) — Orientation Support Opérationnel et Instruction (+16 more)
+Cohesion: 0.06
+Nodes (33): 1. PRI-02 (Must) — Priorité Automatique & Tri en File, 1. Summary, 2. IMP-03 (Must) — Communication Ticket Import par E-mail, 2. Technical Context, 3. Constitution Check (17 / 17 PASS), 3. REC-02 (Must) — Catégories de Réclamations Dynamiques, 4. Plan de Modification Détaillé par Exigence, 4. REC-03 (Must) — Orientation Support Opérationnel et Instruction (+25 more)
 
 ### Community 46 - "MotifTransfert"
 Cohesion: 0.13
 Nodes (11): MotifTransfert, Code, EstActif, Id, Libelle, Ordre, Guid, CancellationToken (+3 more)
 
 ### Community 47 - "MonProfil.razor"
-Cohesion: 0.08
-Nodes (36): route:/comptes/mon-profil, ModifierMonProfilCommand, ModifierMonProfilRequete, CancellationToken, Guid, Task, MonProfilVue, ObtenirMonProfilQuery (+28 more)
+Cohesion: 0.10
+Nodes (31): route:/comptes/mon-profil, ModifierMonProfilCommand, ModifierMonProfilRequete, CancellationToken, Guid, Task, AfficherModaleCloture, AnnulerAsync (+23 more)
 
 ### Community 48 - "RendezVous"
-Cohesion: 0.05
-Nodes (45): 1. Entité Domaine : `RendezVous`, 2. Schéma Relationnel EF Core (Table `RendezVous`), 3. Matrice de Migration EF Core Additive, Continuité Guichet & Rendez-vous, Index de Recherche et Contraintes d'Unicité, Invariants et Règles Métier du Domaine, Modèle de Données & Schéma Relationnel — Feature 010, 2. Inventaire des Fichiers Créés & Modifiés (+37 more)
+Cohesion: 0.04
+Nodes (54): 1. Entité Domaine : `RendezVous`, 2. Schéma Relationnel EF Core (Table `RendezVous`), 3. Matrice de Migration EF Core Additive, Continuité Guichet & Rendez-vous, Index de Recherche et Contraintes d'Unicité, Invariants et Règles Métier du Domaine, Modèle de Données & Schéma Relationnel — Feature 010, 1. Synthèse Exécutive (+46 more)
 
 ### Community 49 - "ComptesAgents.razor"
 Cohesion: 0.03
 Nodes (64): CompteAgentVue, ElementPermission, GroupePermissions, ProfilMetierUi, ResultatHabilitationsEnMasse, ResumeCategorie, route:/administration/comptes-agents, AfficherToast (+56 more)
 
 ### Community 50 - "DevelopmentSeeder"
-Cohesion: 0.14
-Nodes (21): 1. Ce qui s'est produit, 2. Preuve, 3. Volumétrie constatée, 4. Intégrité référentielle, 5. Ce qui subsiste, 6. Ce qui reste inconnu, 7. Verdict, Constat d'incident — base de développement `DbBillingOffice` (+13 more)
+Cohesion: 0.15
+Nodes (20): 1. Ce qui s'est produit, 2. Preuve, 3. Volumétrie constatée, 4. Intégrité référentielle, 5. Ce qui subsiste, 6. Ce qui reste inconnu, 7. Verdict, Constat d'incident — base de développement `DbBillingOffice` (+12 more)
 
 ### Community 51 - "BadgeEnrolement"
 Cohesion: 0.09
@@ -1264,15 +1257,15 @@ Nodes (16): 13. Textes, LibelleStatutTicket, Actif, Code, EstEngageant, LibelleE
 
 ### Community 53 - "ReglePrioriteAutomatique"
 Cohesion: 0.12
-Nodes (14): ReglePrioriteAutomatique, EstActif, Id, Module, Ordre, PrioriteId, TypeClient, TypeDemande (+6 more)
+Nodes (15): ReglePrioriteAutomatique, EstActif, Id, Module, Ordre, PrioriteId, TypeClient, TypeDemande (+7 more)
 
 ### Community 54 - "Task"
 Cohesion: 0.12
-Nodes (23): DirectExecuteurTransactionnel, FakeAutorisationService, Habilitations, FakeHorloge, MaintenantUtc, FakeJournalisationService, Evenements, FakeRendezVousRepository (+15 more)
+Nodes (22): DirectExecuteurTransactionnel, FakeAutorisationService, Habilitations, FakeHorloge, MaintenantUtc, FakeJournalisationService, Evenements, FakeRendezVousRepository (+14 more)
 
-### Community 55 - ".AppliquerParametres"
-Cohesion: 0.11
-Nodes (22): 12. REC-SCE-06 (E2E), 2. Baseline Réel, 32. REC-SCE-06, IVersionGrilleTarifaireRepository, DateTime, CalculerSimulationProformaQueryHandler, CalculerSimulationProformaRequete, ConteneurSimulationRequete (+14 more)
+### Community 55 - ".Creer"
+Cohesion: 0.10
+Nodes (29): C6-03 : `ConsulterSimulationProformaQuery`, CalculerSimulationProformaQueryHandler, CalculerSimulationProformaRequete, ConteneurSimulationRequete, LigneResultatSimulationVue, PartBeneficiaireVue, ProjectionsSimulation, ReferenceTarifaireVue (+21 more)
 
 ### Community 56 - "Task"
 Cohesion: 0.10
@@ -1282,17 +1275,17 @@ Nodes (23): ConsulterDossierGuichetTests, FakeAutorisationService, Habilitations
 Cohesion: 0.12
 Nodes (16): route:/administration/archives, ChargerAsync, OnInitializedAsync, ConsulterArchivesQuery, FiltreTable, IndicateurChargement, IServiceScopeFactory, IStringLocalizer (+8 more)
 
-### Community 58 - "CIT.Plateforme.Domain.Documents"
-Cohesion: 0.06
-Nodes (24): CIT.Plateforme.Web.Tests.BillingImport, CIT.Plateforme.Domain.Documents, CIT.Plateforme.Infrastructure.Tests.Securite, CIT.Plateforme.Application.Tests.Documents, CIT.Plateforme.Domain.Incidents, CIT.Plateforme.Domain.Referentiels, CIT.Plateforme.Infrastructure.Tests.Documents, CIT.Plateforme.Infrastructure.TraitementsDeFond (+16 more)
+### Community 58 - "xunit"
+Cohesion: 0.03
+Nodes (54): CIT.Plateforme.Domain.Audit, CIT.Plateforme.Infrastructure.Tests.Comptes, CIT.Plateforme.Web.Tests.BillingImport, CIT.Plateforme.Domain.Documents, CIT.Plateforme.Domain.Files, CIT.Plateforme.Infrastructure.Tests.BillingExport, CIT.Plateforme.Application.Tests.Agent, CIT.Plateforme.Application.Tests.Affectation (+46 more)
 
 ### Community 59 - "LigneActualisationBadt"
-Cohesion: 0.06
-Nodes (27): ReconstructeurMesuresBadt, DateTime, Dictionary, Guid, IReadOnlyDictionary, IReadOnlyList, List, CauseExpirationBadt (+19 more)
+Cohesion: 0.08
+Nodes (22): DecisionLigneBadt, Accordee, EnAttente, Refusee, LigneActualisationBadt, AncienneDateExpiration, Cause, Decision (+14 more)
 
-### Community 60 - ".Une_categorie_configuree_par_l_administration_permet_de_soumettre_une_reclamation"
-Cohesion: 0.11
-Nodes (24): 8. Tests, Résultat, Tests existants modifiés — signalés, GardeFileCibleReclamation, CancellationToken, Guid, Task, ModifierCategoriesReclamationRequete (+16 more)
+### Community 60 - ".ExecuterAsync"
+Cohesion: 0.09
+Nodes (32): CreerCategorieReclamationRequete, CancellationToken, Guid, Task, GardeFileCibleReclamation, CancellationToken, Guid, Task (+24 more)
 
 ### Community 61 - "SeedRecetteUat"
 Cohesion: 0.24
@@ -1300,43 +1293,43 @@ Nodes (12): ResultatSeedUat, SeedRecetteUat, CancellationToken, DateTime, Dictio
 
 ### Community 62 - "Task"
 Cohesion: 0.10
-Nodes (26): ReserverRendezVousRequest, DirectExecuteurTransactionnel, FakeDossierRepository, Dossiers, FakeHorloge, MaintenantUtc, FakeJournalisationService, Evenements (+18 more)
+Nodes (25): DirectExecuteurTransactionnel, FakeDossierRepository, Dossiers, FakeHorloge, MaintenantUtc, FakeJournalisationService, Evenements, Historiques (+17 more)
 
-### Community 63 - "CIT.Plateforme.Web.Components.Shared"
-Cohesion: 0.03
-Nodes (58): CIT.Plateforme.Web.Tests.Components, CIT.Plateforme.Web.Components.Shared, DemandeAvoirExoResumeDto, route:/acces-refuse, route:/assistant, route:/avoir-exoneration/mes-demandes, route:/reclamations/soumettre, route:/rendez-vous/prendre/{TicketId:guid} (+50 more)
+### Community 63 - "MesDemandesAvoirExo.razor"
+Cohesion: 0.13
+Nodes (14): DemandeAvoirExoResumeDto, route:/avoir-exoneration/mes-demandes, ChargerDemandesAsync, OnInitializedAsync, FiltreTable, IndicateurChargement, IStringLocalizer, Microsoft.AspNetCore.Authorization (+6 more)
 
 ### Community 64 - "Dossier"
 Cohesion: 0.08
-Nodes (35): SoumettreDemandeExportResultat, IReadOnlyList, SoumettreDemandeImportResultat, EstRetenu, IReadOnlyList, Dossier, AuteurId, ClientId (+27 more)
+Nodes (33): SoumettreDemandeImportResultat, EstRetenu, IReadOnlyList, Dossier, AuteurId, ClientId, DateCreationUtc, Id (+25 more)
 
-### Community 65 - "CancellationToken"
-Cohesion: 0.11
-Nodes (17): EnvoiNotificationRepository, EvenementSocleRepository, ModeleNotificationRepository, NotificationRepository, PreferenceCanalRepository, RegleDiffusionRepository, CancellationToken, DateTime (+9 more)
+### Community 65 - "CanalNotification"
+Cohesion: 0.09
+Nodes (24): 3.2 `EnvoiNotification` — une tentative de diffusion sur **un** canal, 3.3 `ModeleNotification` — COM-03, 3.4 `RegleDiffusion` — NOT-02, 3.5 `PreferenceCanalUtilisateur` — COM-05 (Should), 3. Entités nouvelles, CanalNotification, Email, InApp (+16 more)
 
 ### Community 66 - ".EvaluerDroit"
-Cohesion: 0.12
-Nodes (21): Le constat nouveau — RG-SEC-01, niveau champ, Sécurité, 15. SEC-CERT-02 (8 SCÉNARIOS), DroitsChampsIes, Aucun, AucunAcces, IReadOnlyDictionary, BlocDonneesIes (+13 more)
+Cohesion: 0.08
+Nodes (29): Le constat nouveau — RG-SEC-01, niveau champ, Sécurité, 1. CONTRAT C17-01 : ÉVALUATION DE PERMISSION PAR CHAMP (RBAC IES), 2. CONTRAT C17-02 : PROJECTION ET MASQUAGE CONTEXTUEL, 3. CONTRAT C17-03 : ÉVALUATION D'ÉLIGIBILITÉ À LA RÉTENTION, 4. CONTRAT C17-04 : EXÉCUTION DE PURGE ET ANONYMISATION, 5. CONTRAT C17-05 : GESTION DU GEL LÉGAL (*LEGAL HOLD*), CONTRATS D'UTILISATION HARDENED — FEATURE 017 (+21 more)
 
-### Community 67 - "CanalNotification"
-Cohesion: 0.05
-Nodes (30): 3.2 `EnvoiNotification` — une tentative de diffusion sur **un** canal, 3.3 `ModeleNotification` — COM-03, 3.4 `RegleDiffusion` — NOT-02, 3.5 `PreferenceCanalUtilisateur` — COM-05 (Should), 3. Entités nouvelles, CanalNotification, Email, InApp (+22 more)
+### Community 67 - ".Creer"
+Cohesion: 0.11
+Nodes (11): Guid, NotificationsBilinguesTests, Fact, CanalNotificationTests, ModeleNotificationTests, PreferenceCanalUtilisateurTests, RegleDiffusionTests, ArgumentException (+3 more)
 
 ### Community 68 - "Audit final UI/UX"
 Cohesion: 0.04
-Nodes (50): 10. Tableaux, 11. Responsive, 12. Accessibilité, 14. Dates et montants, 15. Permissions et UX, 16. Parcours Client, 17. Parcours Agent, 18. Parcours Administrateur (+42 more)
+Nodes (45): 10. Tableaux, 11. Responsive, 12. Accessibilité, 14. Dates et montants, 15. Permissions et UX, 16. Parcours Client, 17. Parcours Agent, 18. Parcours Administrateur (+37 more)
 
-### Community 69 - "DossierSimulation"
-Cohesion: 0.12
-Nodes (21): Phase 1 : Entités Domaine & Moteur de Calcul Pur (`SIM-01` à `SIM-04`, `SIM-06`), D1 — Architecture du Moteur de Calcul Pur (`Domain`), ConteneurSimulation, DossierSimulation, DureeSejourJours, Guid, IReadOnlyList, LigneResultatConteneur (+13 more)
+### Community 69 - "FicheEnrolement.razor"
+Cohesion: 0.06
+Nodes (32): route:/enrolement/{TicketId:guid}, ChargerAsync, ConstaterBadgeAsync, ConvoquerAsync, CorrigerExpirationAsync, DemanderComplementAsync, DeposerPieceAsync, EnvoyerMessageAsync (+24 more)
 
 ### Community 70 - ".ExecuterAsync"
 Cohesion: 0.15
 Nodes (20): IGenerateurReportingBadtPdf, CancellationToken, DateTime, Task, DetailMesureBadtDto, LigneActeurBadtDto, RapportActualisationBadtDto, RapportActualisationBadtQuery (+12 more)
 
-### Community 71 - "CloisonnementAgentFichesTests"
-Cohesion: 0.27
-Nodes (5): CloisonnementAgentFichesTests, Contexte, Fact, Guid, Task
+### Community 71 - "AccesRefuseException"
+Cohesion: 0.15
+Nodes (17): 9. Loading / Empty / Error, Classement des erreurs, Analyse ComptesAgents.razor, Changements fonctionnels, Changements sécurité, Comparaison, Impact RG-*, Impact tests (+9 more)
 
 ### Community 72 - "FicheActualisationBadt.razor"
 Cohesion: 0.06
@@ -1344,7 +1337,7 @@ Nodes (35): route:/actualisation-badt/fiche/{TicketId:guid}, AccorderAsync, Ajou
 
 ### Community 73 - ".CreerNouveauContexte"
 Cohesion: 0.05
-Nodes (45): MotifTransfertInconnuException, CancellationToken, Guid, Task, Contexte, GererNiveauxPrioriteTests, ArgumentException, Fact (+37 more)
+Nodes (44): ListerLibellesStatutQuery, MotifTransfertInconnuException, Contexte, GererLibellesStatutTests, Fact, Guid, InvalidOperationException, Task (+36 more)
 
 ### Community 74 - "Remédiation P2-03 — Journalisation des connexions"
 Cohesion: 0.12
@@ -1354,21 +1347,21 @@ Nodes (15): Cause racine, Correction, Défaut, Exigence, Fichiers modifiés, Mut
 Cohesion: 0.09
 Nodes (20): 1. NOUVELLES ENTITÉS, 2. MODÈLE RELATIONNEL & SCHÉMA SQL, 3. MIGRATION EF CORE PROJETÉE, DATA MODEL — FEATURE 013, Entité `BrouillonSaisie` (Domaine Socle / Formulaires), Table `BrouillonsSaisie`, 2.1 ERR-01 : Persistance serveur des brouillons de saisie, 2.2 NFR-08 : Façade d'API ouverte & documentation OpenAPI (+12 more)
 
-### Community 76 - "Consolidation sécurité finale"
-Cohesion: 0.08
-Nodes (24): 10. Tests ajoutés, 11. Mutations, 13. Régressions, 14. Risques résiduels, 15. Conclusion, 3. Centralisation après, 4. Identité utilisateur côté serveur, 5. ENT-03 (+16 more)
+### Community 76 - "Remédiation P3"
+Cohesion: 0.09
+Nodes (24): 14. Risques résiduels, Validation fixtures, 19. Risques résiduels, Conclusion, Documentation, Gardes UI, P3-05 — Avertissements `CS9113`, P3 initiaux (+16 more)
 
 ### Community 77 - "AdministrationNotifications.razor"
 Cohesion: 0.08
 Nodes (23): route:/administration/notifications, BasculerModeleAsync, BasculerRegleAsync, Canal, ChargerAsync, CommencerEditionModele, CreerModeleAsync, CreerRegleAsync (+15 more)
 
 ### Community 78 - "GestionnaireRetentionService"
-Cohesion: 0.16
-Nodes (22): 1. Ce qui est livré, D-01 — Chaîne de rétention SEC-06 sans déclencheur, État constaté, 1. `GestionnaireRetentionService`, 2. `MoteurRetentionService`, Services orphelins, Synthèse, 3. STATUT DES CONTRATS & TEST-SPECS (+14 more)
+Cohesion: 0.13
+Nodes (27): 1. Ce qui est livré, 2. G-02 — ce qui manque, et pourquoi ce n'est pas un oubli technique, 3. Ce qui est techniquement prêt, 4. Réserves à lever avant tout déclenchement automatique, 5. Décision attendue, Prêt d'exploitation — rétention et purge, D-01 — Chaîne de rétention SEC-06 sans déclencheur, État constaté (+19 more)
 
 ### Community 79 - "EcheanceDocumentEnrolement"
-Cohesion: 0.16
-Nodes (13): DocumentEnrolement, AssuranceVehicule, PermisConduire, VisiteTechnique, EcheanceDocumentEnrolement, DateExpiration, Document, Id (+5 more)
+Cohesion: 0.12
+Nodes (18): DocumentEnrolement, AssuranceVehicule, PermisConduire, VisiteTechnique, EcheanceDocumentEnrolement, DateExpiration, Document, Id (+10 more)
 
 ### Community 80 - "PiecesExigeesEtape.razor"
 Cohesion: 0.09
@@ -1379,8 +1372,8 @@ Cohesion: 0.04
 Nodes (44): Catégorie 1 — Volumétrie et dimensionnement, Catégorie 2 — Rôles et habilitations, Catégorie 3 — Workflow Billing Office, Catégorie 4 — SLA, Catégorie 5 — Infrastructure et déploiement, Catégorie 6 — Notifications et canaux, Catégorie 7 — Assistant IA, Catégorie 8 — Autres décisions métier (+36 more)
 
 ### Community 82 - ".CompteActif"
-Cohesion: 0.11
-Nodes (22): 16. Régressions P0 / P0-bis, Dis02ReaffectationDeMasseTests, Fact, Guid, Task, Contexte, ProfilsMetierTests, ArgumentException (+14 more)
+Cohesion: 0.12
+Nodes (19): 16. Régressions P0 / P0-bis, Dis02ReaffectationDeMasseTests, Fact, Guid, Task, Contexte, ProfilsMetierTests, ArgumentException (+11 more)
 
 ### Community 83 - "IdentityErreursBilingues"
 Cohesion: 0.10
@@ -1395,8 +1388,8 @@ Cohesion: 0.11
 Nodes (25): RegulariserModeDegradeRequest, DateTime, Guid, FakeAutorisationService, Habilitations, FakeHorloge, MaintenantUtc, FakeJournalisationService (+17 more)
 
 ### Community 86 - "ParametresSla"
-Cohesion: 0.09
-Nodes (20): 9. Audit MPD — 44 tables, Conventions SQL (§ 6.1 du document), 11. Migrations, Ordre par rapport à R-15, Séquence complète, EcheanceSla, ParametresSla, EcheanceAlerte (+12 more)
+Cohesion: 0.10
+Nodes (19): 11. Migrations, Ordre par rapport à R-15, Séquence complète, IParametresSlaProvider, ParametresSla, EcheanceAlerte, EcheanceEscalade, EcheanceInformation (+11 more)
 
 ### Community 87 - "CancellationToken"
 Cohesion: 0.14
@@ -1414,41 +1407,41 @@ Nodes (27): 1. Réglages critiques — à renseigner impérativement, Pourquoi c
 Cohesion: 0.11
 Nodes (16): SujetAssistant, EstActif, Id, MotsCles, Ordre, Reponse, ReponseEn, Guid (+8 more)
 
-### Community 91 - ".Module"
-Cohesion: 0.10
-Nodes (24): 2.1 `SLA-01` *(Must)* — **NON CONFORME**, Hors périmètre LOT 3 (→ LOT 4 Agent/Supervision), LOT 3 — CLIENT — EN COURS, Vague 1 — Simulateur de proforma ✅ (traduit, non encore « gate »), Vague 2 — Cœur Client (en cours), Vague 3 — Société + Compte + Avoir/Exonération (en cours, session post-compact), Vague 3 (suite) — Réclamations, Enrôlement, Guichet ✅ (post-compact, session 14 sept.), Vague 4 (suite) — Composants partagés, Tickets, Tarification, Billing, Dossiers ✅ (session 14 sept.) (+16 more)
+### Community 91 - "Progression i18n FR/EN — par lots"
+Cohesion: 0.15
+Nodes (13): Hors périmètre LOT 3 (→ LOT 4 Agent/Supervision), LOT 2 — PUBLIC / AUTH  ✅ GATE CLÔTURÉ, LOT 3 — CLIENT — EN COURS, LOT 4 — AGENT / SUPERVISEUR — à venir, LOT 5 — ADMINISTRATION — à venir, LOT 6 — RESTE — à venir, Progression i18n FR/EN — par lots, Simulation Proforma publique — RECERTIFIÉE (+5 more)
 
-### Community 92 - "EspaceFonctionnel"
-Cohesion: 0.10
-Nodes (21): AuthenticationState, AuthenticationStateProvider, 5. Contexte Utilisateur Web (`IContexteUtilisateurWeb`), EspaceFonctionnel, AdministrateurSociete, AdministrationCit, Agent, Client (+13 more)
+### Community 92 - "ContexteUtilisateurVue"
+Cohesion: 0.07
+Nodes (29): AuthenticationState, AuthenticationStateProvider, 5. Contexte Utilisateur Web (`IContexteUtilisateurWeb`), ContexteUtilisateurVue, EstTransporteur, EspaceFonctionnel, AdministrateurSociete, AdministrationCit (+21 more)
 
-### Community 93 - ".DefinirAsync"
-Cohesion: 0.29
-Nodes (8): IChampFormulaireEnrolementRepository, ChampFormulaireEnrolementVue, GererChampsFormulaireEnrolementCommand, ListerChampsFormulaireEnrolementQuery, CancellationToken, Guid, IReadOnlyList, Task
+### Community 93 - "Remédiation post-audit final"
+Cohesion: 0.07
+Nodes (27): Arbitrages toujours ouverts, Cause racine, Cause racine, Cause racine, Ce qui distingue désormais les deux notions, Conclusion, Constats nouveaux, à arbitrer, Deux décisions (+19 more)
 
 ### Community 94 - "SocieteCliente"
 Cohesion: 0.06
-Nodes (33): A.1 Comptes et habilitations, D10 — Désactivation d'un utilisateur rattaché, D1 — Relation entre l'identité technique (Identity) et l'utilisateur métier, D2 — Modèle société / utilisateur rattaché, D3 — Représentation du type de client (CPT-02), D7 — Stratégie de gestion de la concurrence (opérations sensibles), D8 — Audit (ENT-04, CPT-06 — réutilisation du journal Feature 001), D9 — Authentification renforcée (CPT-07, Could) (+25 more)
+Nodes (28): D10 — Désactivation d'un utilisateur rattaché, D1 — Relation entre l'identité technique (Identity) et l'utilisateur métier, D2 — Modèle société / utilisateur rattaché, D3 — Représentation du type de client (CPT-02), D7 — Stratégie de gestion de la concurrence (opérations sensibles), D8 — Audit (ENT-04, CPT-06 — réutilisation du journal Feature 001), D9 — Authentification renforcée (CPT-07, Could), Research — Comptes clients, sociétés et utilisateurs rattachés (+20 more)
 
 ### Community 95 - "AdministrationAide.razor"
 Cohesion: 0.09
 Nodes (21): ArticleAideAdminVue, route:/administration/aide, Annuler, ChargerAsync, EnregistrerAsync, Modifier, Nouvelle, OnInitializedAsync (+13 more)
 
-### Community 96 - "SoumettreDemandeImportRequete"
-Cohesion: 0.25
-Nodes (9): SoumettreDemandeImportRequete, InstructionManifesteTests, ArgumentException, Fact, Task, ControleUniciteBlWebTests, Fact, Guid (+1 more)
+### Community 96 - ".PreparerAsync"
+Cohesion: 0.13
+Nodes (19): CancellationToken, IReadOnlyCollection, Task, VueFile, CancellationToken, Guid, IReadOnlyList, Task (+11 more)
 
 ### Community 97 - "6. Scénarios"
 Cohesion: 0.05
 Nodes (38): 10. Responsabilités, 11. Verdict, 1. Objectif, 2. Périmètre, 3. Prérequis — tous bloquants, 4. Profils à provisionner, 5. Critères d'entrée, 6. Scénarios (+30 more)
 
 ### Community 98 - "Audit Post-Implémentation Indépendant — Feature 005 (Simulation Proforma)"
-Cohesion: 0.05
-Nodes (38): 10. Audit des Formules, 11. Majorations, 12. Seuils 15t / 26t, 13. Séjour, 14. Stationnement, 15. Reefer, 16. Répartition Bénéficiaires, 17. Absence de Tarif (+30 more)
+Cohesion: 0.03
+Nodes (63): 10. Contrats C6-01 → C6-08, 11. UI, 12. REC-SCE-06 (E2E), 13. Migrations, 14. SIM-11 (Could), 15. Couverture CDC, 16. Dettes Restantes, 17. Test UI Remédié (+55 more)
 
 ### Community 99 - "Rapport d'Audit Post-Implémentation Indépendant — Feature 009"
-Cohesion: 0.07
-Nodes (27): Tests modifiés, 7. Raccordements Transverses et Abstentions (MSG-04, ALE-03, IMP-11), 5. Idempotence et garantie de distribution, 9. MSG-04 — raccordement (Option B), 10. Audit MSG-04, ALE-03 et IMP-11, 11. Audit des Producteurs d'Événements, 14. Audit de l'Interface et Architecture UI, 15. Audit de Sécurité et Étanchéité (+19 more)
+Cohesion: 0.08
+Nodes (26): Tests modifiés, 7. Raccordements Transverses et Abstentions (MSG-04, ALE-03, IMP-11), 10. Audit MSG-04, ALE-03 et IMP-11, 11. Audit des Producteurs d'Événements, 13. Audit des Canaux et Fournisseurs Tiers, 14. Audit de l'Interface et Architecture UI, 15. Audit de Sécurité et Étanchéité, 16. Audit des Frontières (CON et AVE) (+18 more)
 
 ### Community 100 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -1459,16 +1452,16 @@ Cohesion: 0.05
 Nodes (38): C12-01 : Déduction et Ordonnancement de Priorité (PRI-02, Must), C12-02 : Communication du Numéro de Ticket Import par E-mail (IMP-03, Must), C12-03 : Administration des Catégories de Réclamations (REC-02, Must), C12-04 : Orientation Support Opérationnel et Instruction (REC-03, Must), C12-05 : Stabilisation et Certification 2FA (SEC-08, Should), C12-06 : Export de Données Tabulaire au Format CSV (SOC-14, Could), C12-07 : Configuration Multicanale des Relances Automatiques (COM-06, Could), C12-08 : Scénario Transverse de Bout en Bout REC-SCE-14 (+30 more)
 
 ### Community 102 - "StatutTicket"
-Cohesion: 0.05
-Nodes (65): Phase 8 : Fiche Ticket Métier Unifiée & Actions Contextuelles (Contrat C4-05), 1. Invariant Absolu Opposable & Baseline, Audit des Valeurs de Configuration (Non Contractuelles), Baseline de Référence Certifiée, Invariant Opposable I-FINANCE, FicheBadtDto, JournalDecisionBadtDto, LigneBadtDto (+57 more)
+Cohesion: 0.07
+Nodes (52): Phase 8 : Fiche Ticket Métier Unifiée & Actions Contextuelles (Contrat C4-05), Audit des Valeurs de Configuration (Non Contractuelles), FicheBadtDto, JournalDecisionBadtDto, LigneBadtDto, TicketFileBadtDto, CancellationToken, DateTime (+44 more)
 
 ### Community 103 - "TableauDeBord.razor"
 Cohesion: 0.05
 Nodes (37): ResultatActionDeMasse, route:/supervision, AffecterAsync, AppliquerEnMasseAsync, BasculerSelection, ChargerAsync, ChargerTicketsFileAsync, DisposeAsync (+29 more)
 
 ### Community 104 - ".Construire"
-Cohesion: 0.26
-Nodes (7): SoumettreDemandeCompteRequete, Guid, PiecesExigeesEtInvitationTests, Fact, Guid, InvalidOperationException, Task
+Cohesion: 0.15
+Nodes (17): Exception, DossierIncompletException, PiecesManquantes, JustificatifDepose, SoumettreDemandeCompteRequete, Guid, IReadOnlyList, LimiteBlDepasseeException (+9 more)
 
 ### Community 105 - "FicheTicket.razor"
 Cohesion: 0.05
@@ -1495,44 +1488,44 @@ Cohesion: 0.08
 Nodes (23): RendezVousClientDto, route:/rendez-vous/mes-rendez-vous, ChangerDateReportAsync, ChargerCreneauxReportAsync, ChargerRendezVousAsync, ConfirmerAnnulationAsync, ConfirmerReportAsync, FermerAnnulation (+15 more)
 
 ### Community 111 - "Document"
-Cohesion: 0.03
-Nodes (68): 1.1 SEC-02 (Must) — Contrôle d'Accès par Rôles au Niveau Champ (RBAC IES), 1.2 SEC-06 (Must) — Protection des Données Personnelles & Rétention ARTCI, 1. ANALYSE CONTRACTUELLE DES EXIGENCES, 2. MATRICE RBAC AU NIVEAU CHAMP (`SEC-02` / `PC-05`), 3. POLITIQUE DE CONSERVATION & DROITS ARTCI (`SEC-06` / `PC-14`), 4. IMPACTS SUR LE MODÈLE DE DONNÉES & MIGRATIONS, 5. SCORING DU BUNDLE & CONCLUSION, RAPPORT DE VALIDATION FORENSIQUE DU PÉRIMÈTRE — FEATURE 017 (+60 more)
+Cohesion: 0.05
+Nodes (40): 1.1 SEC-02 (Must) — Contrôle d'Accès par Rôles au Niveau Champ (RBAC IES), 1.2 SEC-06 (Must) — Protection des Données Personnelles & Rétention ARTCI, 1. ANALYSE CONTRACTUELLE DES EXIGENCES, 2. MATRICE RBAC AU NIVEAU CHAMP (`SEC-02` / `PC-05`), 3. POLITIQUE DE CONSERVATION & DROITS ARTCI (`SEC-06` / `PC-14`), 4. IMPACTS SUR LE MODÈLE DE DONNÉES & MIGRATIONS, 5. SCORING DU BUNDLE & CONCLUSION, RAPPORT DE VALIDATION FORENSIQUE DU PÉRIMÈTRE — FEATURE 017 (+32 more)
 
 ### Community 112 - "FileIes.razor"
 Cohesion: 0.10
 Nodes (19): route:/billing-import/ies, AcheverAsync, ChargerAsync, FinaliserAsync, OnInitializedAsync, BadgesCasParticuliers, ClientTicket, EtatVide (+11 more)
 
 ### Community 113 - "Plan de clôture et préparation production"
-Cohesion: 0.06
-Nodes (31): 10. R-15 — procédure de répétition sur copie de production, 12. Backlog final, 13. Priorisation, 14. RACI, 15. Matrice de risques, 16. Checklist avant pilote, 17. Checklist mise en production, 18. Rollback (+23 more)
+Cohesion: 0.13
+Nodes (14): 10. R-15 — procédure de répétition sur copie de production, 12. Backlog final, 14. RACI, 15. Matrice de risques, 16. Checklist avant pilote, 18. Rollback, 19. GO / NO-GO, 1. Résumé exécutif (+6 more)
 
 ### Community 114 - "AgendaGuichet.razor"
 Cohesion: 0.06
 Nodes (34): route:/guichet/agenda, Actions, AllerAujourdhuiAsync, BadgeStatut, Capitaliser, ChangerDateAsync, ChangerVueAsync, ChargerAgendaAsync (+26 more)
 
-### Community 115 - "SurveillerEcheancesUseCase"
-Cohesion: 0.21
-Nodes (14): IParametresSlaProvider, SurveillerEcheancesUseCase, CancellationToken, DateTime, Guid, IReadOnlyDictionary, IReadOnlyList, Task (+6 more)
+### Community 115 - ".TraiterTicketAsync"
+Cohesion: 0.13
+Nodes (16): CancellationToken, DateTime, Guid, IReadOnlyDictionary, IReadOnlyList, Task, EcheanceSla, StatutSla (+8 more)
 
-### Community 116 - "Matrice de tests de sécurité internes"
-Cohesion: 0.08
-Nodes (22): 11.1 DYN-4 — 🟠 Injection d'en-tête Host → redirection ouverte (MEDIUM) — CORRIGÉ, 11.2 Attaques avancées / peu évidentes — analyse adversariale honnête, 11. Pentest dynamique COMPLET (2026-09-30) — instance locale `https://localhost:7097`, AUTH — authentification, INPUT — injections, Légende, Matrice de tests de sécurité internes, RATE LIMITING (+14 more)
+### Community 116 - "AucuneRessourceExterneTests"
+Cohesion: 0.19
+Nodes (10): AUTH — authentification, DoubleAuthentificationTests, Fact, Task, UserManager, AucuneRessourceExterneTests, Fact, HashSet (+2 more)
 
 ### Community 117 - "DistribuerNotificationsUseCaseTests"
-Cohesion: 0.20
-Nodes (15): 4. `DistribueLeUtc` — les quatre scénarios, 7. Audit du Curseur `DistribueLeUtc` et Concurrence, ExecuteurTransactionnel, CancellationToken, Func, Task, DistribuerNotificationsUseCaseTests, CancellationToken (+7 more)
+Cohesion: 0.26
+Nodes (10): 7. Audit du Curseur `DistribueLeUtc` et Concurrence, DistribuerNotificationsUseCaseTests, CancellationToken, DateTime, Fact, Guid, InvalidOperationException, List (+2 more)
 
 ### Community 118 - "FilArianeTests"
-Cohesion: 0.14
-Nodes (13): 1. Ce qui a été corrigé (implémenté + testé + vérifié), CoherenceStylesTests, Fact, IEnumerable, TitresPageTests, Fact, IEnumerable, Regex (+5 more)
+Cohesion: 0.40
+Nodes (5): FilArianeTests, ElementAriane, Fact, FilAriane, List
 
 ### Community 119 - ".ExecuterAsync"
 Cohesion: 0.24
 Nodes (13): SoumettreReclamationRequete, SoumettreReclamationResultat, CancellationToken, Guid, Task, ArgumentException, CancellationToken, Fact (+5 more)
 
-### Community 120 - "AdministrationCategoriesIncident.razor"
-Cohesion: 0.10
-Nodes (20): FileSupportItVue, route:/administration/categories-incident, AppliquerAsync, BasculerAsync, ChargerAsync, CreerAsync, Editer, EnregistrerAsync (+12 more)
+### Community 120 - "Contre-audit après P0/P1"
+Cohesion: 0.08
+Nodes (25): 10. Normalisation — 1FN / 2FN / 3FN, 11.1 Scénario V1 → S1 → V2 → consultation de S1, 11.2 Réserve de couverture, 11.3 RG-SIM-11, 11. Versionnement tarifaire — RG-SIM-11 / RG-SIM-12, 12.1 Ce que fait réellement la migration, 12.2 Conséquence, 12.3 Cartographie de reprise (+17 more)
 
 ### Community 121 - "LibellesStatut.razor"
 Cohesion: 0.10
@@ -1546,16 +1539,16 @@ Nodes (32): 10. WRITE FORBIDDEN, 11. ROLE UNKNOWN & 12. BLOCK UNKNOWN, 14. AUDIT
 Cohesion: 0.11
 Nodes (22): DemandeFormulaireFlotte, FormulairesFlotte, IGenerateurFormulaireFlotte, TypeFormulaireFlotte, AjoutCamion, AjoutChauffeur, RetraitCamion, RetraitChauffeur (+14 more)
 
-### Community 124 - "SoumettreEnrolementSocieteCommandTests"
-Cohesion: 0.23
-Nodes (14): EcheanceDocumentSaisie, ObjetEnrolementSoumission, SoumettreEnrolementSocieteRequete, IReadOnlyList, SoumettreEnrolementSocieteCommandTests, ArgumentException, CancellationToken, Fact (+6 more)
+### Community 124 - ".ExecuterAsync"
+Cohesion: 0.19
+Nodes (19): EcheanceDocumentSaisie, ObjetEnrolementSoumission, SoumettreEnrolementSocieteRequete, SoumettreEnrolementSocieteResultat, TicketEnrolementCree, CancellationToken, Guid, IReadOnlyList (+11 more)
 
-### Community 125 - "CategorieIncident"
-Cohesion: 0.10
-Nodes (23): CreerCategorieIncidentCommand, CreerCategorieIncidentRequete, FileSupportItVue, ListerCategoriesIncidentQuery, ListerFilesSupportItQuery, ListerToutesCategoriesIncidentQuery, ModifierCategorieIncidentRequete, CancellationToken (+15 more)
+### Community 125 - "AdministrationCategoriesIncident.razor"
+Cohesion: 0.04
+Nodes (52): FileSupportItVue, route:/administration/categories-incident, route:/support/incidents/signaler, CreerCategorieIncidentRequete, FileSupportItVue, ListerCategoriesIncidentQuery, ListerFilesSupportItQuery, ListerToutesCategoriesIncidentQuery (+44 more)
 
 ### Community 126 - "DisponibiliteEnMemoire"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (18): ParametresEnMemoire, DisponibiliteEnMemoire, Maintenances, Pulsations, ExploitationTests, ParametresEnMemoire, Elements, ArgumentException (+10 more)
 
 ### Community 127 - ".Valide"
@@ -1571,15 +1564,15 @@ Cohesion: 0.06
 Nodes (33): 10. Validation / Rejet (ENR-02, détail), 11. Convocation (ENR-03, détail), 12. Badge (ENR-03, détail), 13. Clôture (ENR-03, détail), 14. Cloisonnement, 15. Audit, 16. SLA, 17. UI / UX (parcours fonctionnels, sans technique) (+25 more)
 
 ### Community 130 - "Spécification Fonctionnelle — Feature 009 (Notifications Multicanales & Centre de Notifications In-App)"
-Cohesion: 0.11
-Nodes (19): 11. Frontière ACR-01 ↔ Notification, 12. Frontière Messages F001 ↔ Notifications, 14. Sécurité et Cloisonnement, 15. Erreurs d'Envoi — ERR-02 (et ERR-04), 16. Audit, 19. User Stories, 1. Objectif, 23. Frontière avec la Feature 010 (CON) (+11 more)
+Cohesion: 0.06
+Nodes (33): 10.1 Trois niveaux de source — définitions, 10.2 Matrice des déclencheurs (exploitable par `/speckit.plan`), 10. Déclencheurs Métier, 11. Frontière ACR-01 ↔ Notification, 12. Frontière Messages F001 ↔ Notifications, 13.1 Événements notifiant un agent — frontière avec F001 (CLAR-NOT-01 · PC-25), 13. Destinataires, 14. Sécurité et Cloisonnement (+25 more)
 
 ### Community 131 - "CandidatAffectation"
-Cohesion: 0.13
-Nodes (18): CandidatAffectation, ChargeStrategy, CompetenceStrategy, DisponibiliteStrategy, FiltreDisponibilite, IStrategieAffectation, RoundRobinStrategy, DateTime (+10 more)
+Cohesion: 0.14
+Nodes (16): CandidatAffectation, ChargeStrategy, CompetenceStrategy, DisponibiliteStrategy, FiltreDisponibilite, IStrategieAffectation, RoundRobinStrategy, DateTime (+8 more)
 
 ### Community 132 - ".Construire"
-Cohesion: 0.23
+Cohesion: 0.24
 Nodes (8): NavigationParPermissionsTests, CancellationToken, Fact, Guid, InlineData, IReadOnlyList, Task, Theory
 
 ### Community 133 - "Préparation de l'environnement UAT authentifié"
@@ -1591,24 +1584,24 @@ Cohesion: 0.25
 Nodes (8): AdministrationNotificationsTests, PreferencesCanauxTests, ArgumentException, CancellationToken, Fact, Guid, Mock, Task
 
 ### Community 135 - "CLOSURE REVIEW — FEATURE 012"
-Cohesion: 0.04
-Nodes (46): ICollectionFixture, 10. RECALCUL STRICT DU SCORE CDC, 11. INVENTAIRE GIT POUR COMMIT SÉLECTIF, 12. CONCLUSION DE REVUE, 1. BASELINE TECHNIQUE VÉRIFIÉE, 2. AUDIT NOMINATIF DES 7 EXIGENCES MÉTIER, 3. AUDIT DÉTAILLÉ PAR EXIGENCE, 4. AUDIT DU SCÉNARIO TRANSVERSE E2E (REC-SCE-14) (+38 more)
+Cohesion: 0.06
+Nodes (29): ICollectionFixture, 10. RECALCUL STRICT DU SCORE CDC, 11. INVENTAIRE GIT POUR COMMIT SÉLECTIF, 12. CONCLUSION DE REVUE, 1. BASELINE TECHNIQUE VÉRIFIÉE, 2. AUDIT NOMINATIF DES 7 EXIGENCES MÉTIER, 3. AUDIT DÉTAILLÉ PAR EXIGENCE, 4. AUDIT DU SCÉNARIO TRANSVERSE E2E (REC-SCE-14) (+21 more)
 
 ### Community 136 - "Preflight — Feature 011 : Certification Sécurité & Socle Non-Fonctionnel"
-Cohesion: 0.11
-Nodes (19): 10. Migration, 11. Classification finale, 12. Risques de régression, 13. Projection de couverture, 1. Contexte R0, 2. Baseline technique (exécutée), 3. Contrôle du worktree, 5. ERR-02 — analyse détaillée (+11 more)
+Cohesion: 0.08
+Nodes (25): 10. Migration, 11. Classification finale, 13. Projection de couverture, 1. Contexte R0, 2. Baseline technique (exécutée), 3. Contrôle du worktree, 5. ERR-02 — analyse détaillée, 6. ERR-03 — analyse détaillée (+17 more)
 
-### Community 137 - "CategorieMarchandise"
-Cohesion: 0.03
-Nodes (64): 6. Validation lot 3FN, Assistant IA, Audit final de conformité, Customer Complaint, GO / NO-GO conformité, GO / NO-GO production, La règle de preuve appliquée, MCD / MLD / MPD (+56 more)
+### Community 137 - "Audit final de conformité"
+Cohesion: 0.06
+Nodes (33): Audit final de conformité, Customer Complaint, GO / NO-GO conformité, GO / NO-GO production, La règle de preuve appliquée, MCD / MLD / MPD, Méthodologie, Notifications (+25 more)
 
 ### Community 138 - "Remédiation UI/UX — UX-P0 et UX-P1"
 Cohesion: 0.10
-Nodes (19): 10. Changements de comportement, 12. UX-P2 / P3 volontairement non traités, 13. Recette navigateur, 14. Conclusion, 1. Cartographie des six écarts, 2. UI-01 — UX-P0 fermé, 5. UI-05 — un défaut qui n'existait pas, 6. Couverture réelle des UX-P1 (+11 more)
+Nodes (19): 10. Changements de comportement, 11. Risques résiduels, 12. UX-P2 / P3 volontairement non traités, 13. Recette navigateur, 14. Conclusion, 1. Cartographie des six écarts, 2. UI-01 — UX-P0 fermé, 5. UI-05 — un défaut qui n'existait pas (+11 more)
 
-### Community 139 - "ParametreTypeClient"
-Cohesion: 0.07
-Nodes (22): IParametreTypeClientRepository, ListerTypesClientQuery, TypeClientVue, CancellationToken, Guid, IReadOnlyList, Task, ParametreTypeClient (+14 more)
+### Community 139 - ".ExecuterAsync"
+Cohesion: 0.16
+Nodes (11): IParametreTypeClientRepository, ListerTypesClientQuery, TypeClientVue, CancellationToken, Guid, IReadOnlyList, Task, ParametreTypeClientRepository (+3 more)
 
 ### Community 140 - "AdministrationReferentielsConteneur.razor"
 Cohesion: 0.06
@@ -1628,7 +1621,7 @@ Nodes (31): 2.1 — Régime R1 : rattachement, sans test nouveau, 2.2 — SEC-01
 
 ### Community 144 - "Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT"
 Cohesion: 0.06
-Nodes (31): 10. Audit de la Frontière Back Office / IPAKI (EXP-02), 11. Audit du Module ACR-01 Export, 13 à 15. Audit des Circuits Clients (Normal, En Compte, Deposit), 16 & 17. Audit du Circuit IES Export & Non-Régression IES Import (EXP-04), 1. Méthode d'Audit, 21 & 22. Audit de l'Interface Utilisateur Blazor & Navigation, 23. Audit du Scénario Contractuel REC-SCE-05, 24. Audit des Migrations EF Core (+23 more)
+Nodes (32): 10. Audit de la Frontière Back Office / IPAKI (EXP-02), 13 à 15. Audit des Circuits Clients (Normal, En Compte, Deposit), 16 & 17. Audit du Circuit IES Export & Non-Régression IES Import (EXP-04), 1. Méthode d'Audit, 21 & 22. Audit de l'Interface Utilisateur Blazor & Navigation, 23. Audit du Scénario Contractuel REC-SCE-05, 24. Audit des Migrations EF Core, 25 & 26. Audit de Non-Régression F001 à F003.5 & Points de Clarification (PC) (+24 more)
 
 ### Community 145 - ".ValiderAsync"
 Cohesion: 0.17
@@ -1639,8 +1632,8 @@ Cohesion: 0.18
 Nodes (10): 1. BASELINE TECHNIQUE & INTÉGRITÉ DU SYSTÈME, 2.1 SEC-04 (Must) — Transport Sécurisé & Protection GED : CONFORME, 2.2 SEC-07 (Must) — Contrôle des Fichiers & Analyse Antivirale Réelle : CONFORME, 2.3 SEC-09 (Should) — Cloisonnement des Environnements & Secrets : CONFORME, 2. AUDIT FORENSIQUE DES PREUVES PAR EXIGENCE, 3. MATRICE DE TRAÇABILITÉ CONTRATS & TEST-SPEC, 4. ANTI-SCOPE & IMPACTS DE SCHÉMA, 5. PROJECTION CDC (+2 more)
 
 ### Community 147 - "ApiCloisonnementTests"
-Cohesion: 0.11
-Nodes (25): AuthenticateResult, AuthenticationHandler, AuthenticationSchemeOptions, ILoggerFactory, IOptionsMonitor, JeuDeDonnees, SchemaDeTest, ContexteUtilisateurVue (+17 more)
+Cohesion: 0.26
+Nodes (8): JeuDeDonnees, SchemaDeTest, ApiCloisonnementTests, JeuDeDonnees, Fact, Guid, HttpClient, Task
 
 ### Community 148 - "EnregistrerBrouillonCommand"
 Cohesion: 0.21
@@ -1651,28 +1644,28 @@ Cohesion: 0.11
 Nodes (18): route:/billing-export/comptabilite, ChargerAsync, ConfirmerLettrageAsync, OnInitializedAsync, ClientTicket, EtatVide, FiltreTable, IndicateurChargement (+10 more)
 
 ### Community 150 - "FluxRejouable"
-Cohesion: 0.14
-Nodes (14): 2. D-11a — le flux d'un navigateur ne se rembobine pas, Cause, `FluxRejouable` — la stratégie retenue, Sites recherchés et traités, Vérifié en navigateur — les quatre actions, IAsyncDisposable, FluxRejouable, ACopie (+6 more)
+Cohesion: 0.15
+Nodes (13): 2. D-11a — le flux d'un navigateur ne se rembobine pas, Cause, `FluxRejouable` — la stratégie retenue, Sites recherchés et traités, Vérifié en navigateur — les quatre actions, FluxRejouable, ACopie, Flux (+5 more)
 
 ### Community 151 - "SharedResourcesLocalizer"
-Cohesion: 0.09
-Nodes (20): CIT.Plateforme.Web.Tests, IStringLocalizer, LocalizedString, 3. CONTRATS ET COMPOSANTS LIVRÉS, 3. AUDIT DE LA SOURCE CDC & TRAÇABILITÉ NFR-07, 6. ANALYSE D'ARCHITECTURE & JUSTIFICATION D'ÉCART AU PLAN, 12. ARCHITECTURE DES RESSOURCES & JUSTIFICATION, 3. CONFORMITÉ NFR-07 & SOURCE CDC (+12 more)
+Cohesion: 0.11
+Nodes (17): CIT.Plateforme.Web.Tests, IStringLocalizer, LocalizedString, 3. CONTRATS ET COMPOSANTS LIVRÉS, SharedResources, SharedResourcesLocalizer, Dictionary, IEnumerable (+9 more)
 
 ### Community 152 - "Fiche de tests — Parcours utilisateurs YABA (version métier)"
-Cohesion: 0.08
-Nodes (21): Avant de commencer, Comptes de test fournis, Feuille de relevé des problèmes, Fiche de tests — Parcours utilisateurs YABA (version métier), Parcours 0 — Découverte & création de compte (AVANT d'avoir un compte), Parcours 1 — Client (compte : Awa), Parcours 2 — Administrateur de société (compte : Awa), Parcours 3 — Agent (compte : Konate) (+13 more)
+Cohesion: 0.07
+Nodes (22): Avant de commencer, Comptes de test fournis, Feuille de relevé des problèmes, Fiche de tests — Parcours utilisateurs YABA (version métier), Parcours 0 — Découverte & création de compte (AVANT d'avoir un compte), Parcours 1 — Client (compte : Awa), Parcours 2 — Administrateur de société (compte : Awa), Parcours 3 — Agent (compte : Konate) (+14 more)
 
-### Community 153 - "NFR-03 (Must) — Disponibilité Cible $\ge 99\%$ en Heures Ouvrées"
-Cohesion: 0.10
-Nodes (20): 2.1 Le mode maintenance rend `/ready` non disponible, IHealthCheck, NFR-03 (Must) — Disponibilité Cible $\ge 99\%$ en Heures Ouvrées, AntivirusHealthCheck, IConfiguration, DatabaseHealthCheck, CancellationToken, HealthCheckContext (+12 more)
+### Community 153 - "microsoft_extensions_diagnostics_healthchecks"
+Cohesion: 0.07
+Nodes (27): CIT.Plateforme.Infrastructure.HealthChecks, IHealthCheck, microsoft_extensions_diagnostics_healthchecks, NFR-03 (Must) — Disponibilité Cible $\ge 99\%$ en Heures Ouvrées, AntivirusHealthCheck, IConfiguration, ChiffrementDocumentsHealthCheck, CancellationToken (+19 more)
 
 ### Community 154 - "Conformité de l'application à l'analyse MERISE"
-Cohesion: 0.09
-Nodes (21): 2. Les écarts qui n'en sont pas, 3. Ce que l'application fait au-delà du CDC, 4.2 MCD — 61 entités implémentées vs 62 modélisées, 4.3 MLD — conforme, 4.4 MPD — conforme, et par endroits supérieur, 4.5 MCT — 11 traitements sur 13 à l'audit, **12 sur 13 après remédiation**, 4. Conformité détaillée par livrable, 5. Synthèse (+13 more)
+Cohesion: 0.07
+Nodes (27): 1. Les trois écarts qui portent une exigence, 2. Les écarts qui n'en sont pas, 3. Ce que l'application fait au-delà du CDC, 4.2 MCD — 61 entités implémentées vs 62 modélisées, 4.3 MLD — conforme, 4.4 MPD — conforme, et par endroits supérieur, 4.5 MCT — 11 traitements sur 13 à l'audit, **12 sur 13 après remédiation**, 4. Conformité détaillée par livrable (+19 more)
 
 ### Community 155 - "Remédiation P0-ter — Contrôle d'accès centralisé"
-Cohesion: 0.13
-Nodes (18): 13. Administration, 14. Tests ajoutés, 18. Fichiers modifiés, 1. Vulnérabilité, 20. Conclusion, 2. Chaîne d'exploitation, 3. Cause racine, 4. Reproduction avant correction (+10 more)
+Cohesion: 0.12
+Nodes (19): 10. Session déjà ouverte, 13. Administration, 14. Tests ajoutés, 18. Fichiers modifiés, 1. Vulnérabilité, 20. Conclusion, 2. Chaîne d'exploitation, 3. Cause racine (+11 more)
 
 ### Community 156 - "ValiderDemandes.razor"
 Cohesion: 0.07
@@ -1686,9 +1679,9 @@ Nodes (29): route:/billing-import/facturation, ChargerAsync, ConfirmerDepotAsync
 Cohesion: 0.09
 Nodes (24): route:/comptes/invitation/{Jeton}, CreerAsync, OnInitializedAsync, ApplicationUser, ChampMotDePasse, IStringLocalizer, Microsoft.AspNetCore.Identity, Microsoft.Extensions.Localization (+16 more)
 
-### Community 159 - "PieceExigeeCompteRepository"
-Cohesion: 0.26
-Nodes (7): InvitationCollaborateurRepository, JustificatifDemandeCompteRepository, PieceExigeeCompteRepository, CancellationToken, Guid, IReadOnlyList, Task
+### Community 159 - "InvitationCollaborateur"
+Cohesion: 0.05
+Nodes (39): InvitationCollaborateur, CreeParId, DateCreationUtc, DateExpirationUtc, Email, Etat, Id, Jeton (+31 more)
 
 ### Community 160 - "Research — Socle transverse de gestion des tickets et workflows"
 Cohesion: 0.13
@@ -1699,32 +1692,32 @@ Cohesion: 0.07
 Nodes (29): 1. Verdict Global, 2. Environnement d'Exécution et Conditions de Test, 3.1. Landing Page & Authentification (`/`, `/comptes/connexion`), 3.2. Shell & Design System (`MainLayout`, `NavMenu`, `HeaderBar`, `app.css`), 3.3. Dashboard Client & Actions Requises (ACR-01), 3.4. Nouvelle Demande IMPORT (`/billing-import/soumettre`), 3.5. Fiches Centralisées Ticket et Dossier, 3.6. Confidentialité et Étanchéité Multi-Tenant (+21 more)
 
 ### Community 162 - ".Creer"
-Cohesion: 0.04
-Nodes (63): MesDonnees, EvaluerReclamationRequete, CancellationToken, Guid, Task, DashboardAgentCloisonnementRoleTests, Fact, Task (+55 more)
+Cohesion: 0.05
+Nodes (47): 7. Raccordement F009 & Réutilisation du Socle, EvaluerReclamationRequete, CancellationToken, Guid, Task, DashboardAgentCloisonnementRoleTests, Fact, Task (+39 more)
 
 ### Community 163 - "EtatPagination"
 Cohesion: 0.10
 Nodes (18): EtatPagination, APagePrecedente, APageSuivante, DernierRang, EstUtile, Filtre, FiltreActif, NombrePages (+10 more)
 
 ### Community 164 - "FluxAPasseUnique"
-Cohesion: 0.16
-Nodes (10): DepotFluxNonRembobinableTests, FluxAPasseUnique, CanRead, CanSeek, CanWrite, Length, Position, Fact (+2 more)
+Cohesion: 0.12
+Nodes (16): Stream, AntivirusQuiLitVraiment, ContenuAnalyse, DepotFluxNonRembobinableTests, FluxAPasseUnique, CanRead, CanSeek, CanWrite (+8 more)
 
-### Community 165 - "Exception"
+### Community 165 - "DepotDocumentRefuseException"
 Cohesion: 0.10
-Nodes (19): Audit / traçabilité, Exception, D0 — Constat structurant : la couverture existante est plus forte qu'estimée au preflight, D2 — Décision : trois régimes de certification, pas un seul, D3 — ERR-02 : validation au démarrage du composant, D4 — NFR-02 : preuve structurelle, limite déclarée, D6 — Ordre de mise en œuvre d'ERR-02 (contraignant), D7 — SEC-10 : ne pas promouvoir le défaut technique (+11 more)
+Nodes (19): Priorité 2 — mineurs à impact réel, 6. Défauts mineurs (P2 / P3), 6. Extension de périmètre — signalée, pas dissimulée, D0 — Constat structurant : la couverture existante est plus forte qu'estimée au preflight, D2 — Décision : trois régimes de certification, pas un seul, D3 — ERR-02 : validation au démarrage du composant, D4 — NFR-02 : preuve structurelle, limite déclarée, D5 — GATE-ERR03 : le volet « intégrité » (+11 more)
 
 ### Community 166 - "POST-F011 FEATURE SELECTION GATE"
 Cohesion: 0.07
 Nodes (28): 10. Recommandation Scrum Master & Quality Gate, 11. Roadmap vers 188/188, 12. Risques & Points de Vigilance, 13. Verdict Quality Gate, 1. Baseline Technique Rejouée, 2. Baseline CDC Nominative Post-F011, 3. Les 31 Exigences Restantes (Inventaire Nominatif), 4. Audit des Dettes Ouvertes (+20 more)
 
 ### Community 167 - "backlog-ui-ux-final.md"
-Cohesion: 0.14
-Nodes (10): 1. Score global — 93/100, 2. Le point gagné ce tour — justification, 3. Classement des points non obtenus, 4. Régressions, Audit UI/UX — score recalculé depuis les preuves, 1. Couverture honnête, 2. Pages anonymes — mesures en direct (débordement horizontal de page), 3. Analyse statique — les 68 pages authentifiées (et les anonymes) (+2 more)
+Cohesion: 0.13
+Nodes (11): 1. Couverture honnête, 2. Pages anonymes — mesures en direct (débordement horizontal de page), 3. Analyse statique — les 68 pages authentifiées (et les anonymes), 4. Verdict, Matrice responsive — 81 pages, 1. Contraste — mesures navigateur (scanner de luminance), 2. Responsive — débordement horizontal de page (en direct), 3. Thème — vérification multi-état (+3 more)
 
-### Community 168 - "CIT.Plateforme.Infrastructure.Persistence"
+### Community 168 - "system"
 Cohesion: 0.01
-Nodes (156): CIT.Plateforme.Infrastructure.Guichet, CIT.Plateforme.Infrastructure.Persistence, CIT.Plateforme.Infrastructure.Persistence.Migrations, CIT.Plateforme.Web.Tests.Provisionnement, 5. GO / NO-GO, R-15 — évalué séparément, Migrations nouvelles, microsoft_data_sqlclient (+148 more)
+Nodes (177): CIT.Plateforme.Infrastructure.Persistence.Migrations, CIT.Plateforme.Domain.Tests.Guichet, 32. Tests manquants (à écrire, non codés), 5. GO / NO-GO, R-15 — évalué séparément, 2. État du repository, Migrations nouvelles, Fichiers modifiés (+169 more)
 
 ### Community 169 - "ComptesUtilisateurs.razor"
 Cohesion: 0.07
@@ -1738,9 +1731,9 @@ Nodes (28): route:/billing-import/manifeste, AnnulerComplement, AnnulerRejet, Ch
 Cohesion: 0.07
 Nodes (28): route:/tickets/{TicketId:guid}/documents, ChargerAsync, DeposerAsync, FermerApercu, LireContenuAsync, OnInitializedAsync, OuvrirApercuAsync, ApercuDocument (+20 more)
 
-### Community 172 - "MarquerNotificationLueCommand"
-Cohesion: 0.23
-Nodes (10): LigneNotification, MarquerNotificationLueCommand, CancellationToken, DateTime, Guid, IReadOnlyList, Task, CancellationToken (+2 more)
+### Community 172 - ".Commandes"
+Cohesion: 0.25
+Nodes (9): AdministrationComptesAgentsTests, PortComptesEnMemoire, ArgumentException, CancellationToken, Fact, Guid, InvalidOperationException, IReadOnlyList (+1 more)
 
 ### Community 173 - "SPECIFICATION ET CLARIFICATIONS FONCTIONNELLES — FEATURE 013"
 Cohesion: 0.07
@@ -1756,15 +1749,15 @@ Nodes (25): AuteurMessageAssistant, Assistant, Client, ConversationAssistant, Da
 
 ### Community 176 - "ParametreSlaAdministrable"
 Cohesion: 0.07
-Nodes (25): ParametreSlaAdministrable, DureeCible, FileId, HeureDebut, HeureFin, Id, JoursOuvresBitmask, Module (+17 more)
+Nodes (26): ParametreSlaAdministrable, DureeCible, FileId, HeureDebut, HeureFin, Id, JoursOuvresBitmask, Module (+18 more)
 
 ### Community 177 - "Disponibilite"
-Cohesion: 0.12
+Cohesion: 0.13
 Nodes (14): A.4 Supervision et SLA, Disponibilite, DateDernierChangementUtc, DateDerniereActiviteUtc, Id, OperateurId, PeutRecevoirAffectationAutomatique, Statut (+6 more)
 
 ### Community 178 - ".Verifier"
-Cohesion: 0.07
-Nodes (23): DatabaseFacade, ILoggerProvider, DbContextOptions, IWebHostBuilder, DbContextOptions, IWebHostBuilder, DbContextOptions, IWebHostBuilder (+15 more)
+Cohesion: 0.11
+Nodes (15): DatabaseFacade, ILoggerProvider, DbContextOptions, IWebHostBuilder, DbContextOptions, IWebHostBuilder, DbContextOptions, IWebHostBuilder (+7 more)
 
 ### Community 179 - "CompetencesOperateur.razor"
 Cohesion: 0.10
@@ -1787,32 +1780,32 @@ Cohesion: 0.08
 Nodes (22): 18. Migrations, 1.1 Build et état Git, 1.2 Migrations présentes, 1.3 Suite de tests — baseline annoncé vs réellement observé, 1.4 Tests de preuve ajoutés pendant cet audit (aucune correction, uniquement des preuves), 1. Méthode et baseline réellement observé, MigrationBuilder, ExtensionTicketBillingImport (+14 more)
 
 ### Community 184 - ".ObtenirAsync"
-Cohesion: 0.21
-Nodes (12): EnregistrerPulsationDisponibilite, IDisponibilitePlateformeRepository, MesureDisponibilite, RapportDisponibilite, RapportDisponibiliteQuery, CancellationToken, DateTime, Func (+4 more)
+Cohesion: 0.26
+Nodes (10): EnregistrerPulsationDisponibilite, IDisponibilitePlateformeRepository, MesureDisponibilite, RapportDisponibilite, CancellationToken, DateTime, Func, IReadOnlyList (+2 more)
 
 ### Community 185 - ".Construire"
 Cohesion: 0.32
 Nodes (7): ProviderEscalade, RegleEscaladeTests, ArgumentException, CancellationToken, Fact, Guid, Task
 
 ### Community 186 - "Audit Global Post-F007 — Plateforme Digitale CIT"
-Cohesion: 0.11
-Nodes (18): 10. Exigences restantes, par famille, 11. Capacités existantes NON CERTIFIÉES, 12. Conformités suspectes, 14. Scoring, 15. Roadmap jusqu'à 188/188, 16. Production Readiness, 17. Recommandation finale, 1. Executive Summary (+10 more)
+Cohesion: 0.10
+Nodes (19): 10. Exigences restantes, par famille, 12. Conformités suspectes, 14. Scoring, 15. Roadmap jusqu'à 188/188, 16. Production Readiness, 17. Recommandation finale, 1. Executive Summary, 2. Baseline technique — vérifiée par exécution réelle (+11 more)
 
 ### Community 187 - "JournalMemoire"
 Cohesion: 0.13
 Nodes (13): JournalMemoire, Enregistreur, JournalMemoire, Lignes, EventId, Exception, Func, IDisposable (+5 more)
 
 ### Community 188 - "Remédiation UI/UX — maximum technique + recette"
-Cohesion: 0.11
-Nodes (17): 1. Baseline (préconditions vérifiées), 2. Défauts trouvés et corrigés (thème sombre / contraste), 3. Régression introduite PENDANT la mission, puis corrigée (règle 13), 4. Responsive (vérification exhaustive raisonnée), 5. Sidebar, clavier, formulaires, feedback — non-régression, 6. Points restants (classés), 7. Tests & mutations, 8. Score recalculé — depuis les preuves (+9 more)
+Cohesion: 0.10
+Nodes (19): 1. Score global — 93/100, 2. Le point gagné ce tour — justification, 3. Classement des points non obtenus, 4. Régressions, Audit UI/UX — score recalculé depuis les preuves, 1. Baseline (préconditions vérifiées), 2. Défauts trouvés et corrigés (thème sombre / contraste), 3. Régression introduite PENDANT la mission, puis corrigée (règle 13) (+11 more)
 
-### Community 189 - "PrendreEnChargeCommand"
+### Community 189 - "PublierMessageCommand"
 Cohesion: 0.02
-Nodes (149): 7. Raccordement F009 & Réutilisation du Socle, 2. CloisonnementService avant, Analyse des 12 consommateurs, AM-02 — Collaborateur limité, B. SLA — Calcul de l'attente client → **CORRIGÉ**, 11. Frontière AVE, 12. Tâches T001 → T035 (recalculé indépendamment), 13. État Git (+141 more)
+Nodes (128): 3. REC-02 — Catégories de réclamations paramétrables sans développement, 2. CloisonnementService avant, Analyse des 12 consommateurs, 1. D-14 — Customer Complaint : le module était inatteignable, Ce qui a été fait, La règle métier, telle qu'elle existait déjà, Tests existants modifiés — signalés, Vérifié en navigateur (+120 more)
 
 ### Community 190 - "1. Décomposition par catégorie"
-Cohesion: 0.07
-Nodes (25): 1. Décomposition par catégorie, 2. Synthèse des points récupérables, 3. Feuille de route, 4. Sortie, Accessibilité — 7 / 10 (−3), Cohérence — 9 / 10 (−1), Design visuel — 14 / 15 (−1), Feedback — 9 / 10 (−1) (+17 more)
+Cohesion: 0.10
+Nodes (19): 1. Décomposition par catégorie, 2. Synthèse des points récupérables, 3. Feuille de route, 4. Sortie, Accessibilité — 7 / 10 (−3), Cohérence — 9 / 10 (−1), Design visuel — 14 / 15 (−1), Feedback — 9 / 10 (−1) (+11 more)
 
 ### Community 191 - "Recette UI/UX navigateur"
 Cohesion: 0.07
@@ -1827,12 +1820,12 @@ Cohesion: 0.07
 Nodes (26): 1. Contexte & Objectifs Métier, 2. Périmètre des Exigences Contractuelles, 3. Scénario de Recette Contractuel (REC-SCE-05), 4.1. Soumission Multi-Bookings & Indépendance des Tickets (EXP-01), 4.2. Unicité du Booking Actif (UNI-04, PC-09 & CLAR-BOOK-01), 4.3. File Back Office & Codification IPAKI (EXP-02), 4.4. Aiguillage selon le Profil Client & Draft IN (EXP-03), 4. Règles Métier & Principes de Conception (+18 more)
 
 ### Community 194 - ".CreerDemandeAvoirExo"
-Cohesion: 0.13
-Nodes (16): DeciderDemandeAvoirExoRequete, ArgumentException, CancellationToken, Fact, Task, CancellationToken, Fact, Task (+8 more)
+Cohesion: 0.24
+Nodes (8): DemandeAvoirExoTests, ArgumentException, DateTime, Fact, Guid, InlineData, InvalidOperationException, Theory
 
 ### Community 195 - "MetrologiePerformanceMiddleware"
-Cohesion: 0.22
-Nodes (8): Phase 4 — NFR-04 : Instrumentation & Métrologie de Latence HTTP (L2), MetrologiePerformanceMiddleware, MetrologiePerformanceMiddlewareExtensions, HttpContext, IApplicationBuilder, ILogger, RequestDelegate, Task
+Cohesion: 0.11
+Nodes (16): 1. SYNTHÈSE FORENSIQUE & BASELINE TECHNIQUE, 2. ANALYSE CRITIQUE DES NIVEAUX DE PREUVE (L2 vs L3/L4), 4. PRÉSERVATION DES FONCTIONNALITÉS HISTORIQUES & ANTI-SCOPE, 5. BILAN DU GAIN CDC & RECOMMANDATION CLOSURE, Disponibilité Opérationnelle, Performance Applicative & Résilience Continue, NFR-04 (Must) — Temps de Réponse $< 3\text{ s}$ sur Écrans Courants, NFR-10 (Must) — Accessibilité Permanente 24/7 & Mode Maintenance, RAPPORT DE POST-IMPLEMENTATION AUDIT — FEATURE 016 (+8 more)
 
 ### Community 196 - "Analyse de Séquençage et Roadmap des Features"
 Cohesion: 0.08
@@ -1842,33 +1835,33 @@ Nodes (25): 10. Roadmap Indicative Globale du Projet, 11. Recommandation Finale 
 Cohesion: 0.09
 Nodes (22): route:/administration/perimetres-supervision, BasculerFile, ChargerAsync, DefinirAsync, ModifierAsync, NomDeLaFile, OnInitializedAsync, PreremplirAsync (+14 more)
 
-### Community 198 - "FicheEnrolement.razor"
+### Community 198 - "AttenteClientCommand"
 Cohesion: 0.02
-Nodes (137): Enrôlement, route:/enrolement/{TicketId:guid}, 10. Frontières Métier et Respect du Périmètre, 11. Analyse des Dettes et Risques, 12. Analyse Git, 1. Baseline Finale Certifiée, 2. Évaluation des Exigences Métier : ENR-01 → ENR-05, 3. Évolution de la Couverture CDC (+129 more)
+Nodes (145): 5. Réutilisation des Capacités Existantes (F001 à F008), Enrôlement, 10. Frontières Métier et Respect du Périmètre, 11. Analyse des Dettes et Risques, 12. Analyse Git, 1. Baseline Finale Certifiée, 2. Évaluation des Exigences Métier : ENR-01 → ENR-05, 3. Évolution de la Couverture CDC (+137 more)
 
 ### Community 199 - ".CompleterAsync"
 Cohesion: 0.18
 Nodes (13): IReferentielsRepository, ReferentielCanalNotification, ProvisionnementReferentiels, ReferentielsRepository, ValeurInitiale, ValeursInitiales, CancellationToken, DbSet (+5 more)
 
-### Community 200 - ".CreerAgentAsync"
-Cohesion: 0.42
-Nodes (5): FixtureComptesDeTest, Guid, IServiceProvider, Task, UserManager
+### Community 200 - "ApplicationUser"
+Cohesion: 0.18
+Nodes (15): IdentityUser, ApplicationUser, EstActif, LanguePreferee, Nature, NomAffiche, Guid, Fact (+7 more)
 
-### Community 201 - "2. Matrice des 24 exigences retenues"
-Cohesion: 0.31
-Nodes (9): 2. Matrice des 24 exigences retenues, CircuitClientNormalTests, Fact, Guid, MemoryStream, Task, ProformaDeTest, Guid (+1 more)
+### Community 201 - "SoumettreDemandeImportRequete"
+Cohesion: 0.06
+Nodes (43): Contexte, 2. Matrice des 24 exigences retenues, SoumettreDemandeImportRequete, Fact, Task, AiguillageTypeClientTests, Contexte, Fact (+35 more)
 
 ### Community 202 - "CablageEtatEngageantTests"
-Cohesion: 0.34
+Cohesion: 0.32
 Nodes (7): CablageEtatEngageantTests, Contexte, DateTime, Fact, Guid, Stream, Task
 
 ### Community 203 - "ResolveurClientDuRendezVous"
 Cohesion: 0.22
 Nodes (9): ResolveurClientDuRendezVous, CancellationToken, Guid, HashSet, IReadOnlyList, Task, ResolveurClientDuRendezVousTests, InlineData (+1 more)
 
-### Community 204 - "FileControleDocumentaire.razor"
-Cohesion: 0.08
-Nodes (25): route:/billing-import/controle-documentaire, ChargerAsync, ConfirmerDepotAsync, DemanderConfirmation, DeposerEtCloturerAsync, DepotAConfirmer, OnInitializedAsync, BadgesCasParticuliers (+17 more)
+### Community 204 - "CIT.Plateforme.Web.Components.Shared"
+Cohesion: 0.02
+Nodes (78): CIT.Plateforme.Web.Components.Shared, route:/acces-refuse, route:/actualisation-badt/file, route:/aide/manuel, route:/assistant, route:/billing-import/controle-documentaire, route:/societe/dashboard, AssistantChat (+70 more)
 
 ### Community 205 - "ValidationPaiement.razor"
 Cohesion: 0.08
@@ -1887,16 +1880,16 @@ Cohesion: 0.13
 Nodes (20): CategorieCompte, AgentCit, ClientSansSociete, ClientSociete, Transporteur, CompteUtilisateurVue, IAnnuaireComptes, ListerComptesUtilisateursQuery (+12 more)
 
 ### Community 209 - "ReessayerEnvoisNotificationUseCaseTests"
+Cohesion: 0.19
+Nodes (14): CanalDeTest, Appels, Canal, ReessayerEnvoisNotificationUseCaseTests, CancellationToken, DateTime, Fact, Guid (+6 more)
+
+### Community 210 - "Contracts — Contrats fonctionnels des cas d'usage de Feature 003"
+Cohesion: 0.08
+Nodes (23): A. Soumission et contrôle d'unicité (IMP-01, IMP-02, IMP-03, UNI-01, UNI-02, UNI-03), B. Instruction Pilote Manifeste (IMP-04, IMP-05), C3-01 — Soumettre une demande IMPORT multi-BL, C3-02 — Contrôler l'unicité d'un BL à la création d'un ticket, C3-03 — Valider un ticket au contrôle BL, C3-04 — Rejeter un ticket au contrôle BL, C3-05 — Demander un complément, C3-06 — Déposer les éléments de complément (client) (+15 more)
+
+### Community 211 - "Preflight — Feature 009 (Notifications Multicanales & Continuité Digital/Présentiel)"
 Cohesion: 0.09
-Nodes (25): 6. Reprise sur échec (ERR-02), StatutEnvoi, Echec, EnAttente, Envoye, NonDelivrable, CanalDeTest, Appels (+17 more)
-
-### Community 210 - ".EnregistrerAsync"
-Cohesion: 0.15
-Nodes (15): 4.1 Mapping, collation, filtre (vérifié par SQL direct sur base recréée de zéro), 4.2 Traduction `DbUpdateException → BlDejaActifException`, 4.3 Rejet Manifeste et libération du BL, 4. Unicité BL — audit critique, 5. Audit Critique de l'Unicité Booking (UNI-04), 7. Audit des Scénarios de Concurrence Réels CAS-BOOK-01 à CAS-BOOK-08, BookingDejaActifException, NumeroBooking (+7 more)
-
-### Community 211 - "POST-F012 FEATURE SELECTION GATE — RAPPORT D'ARBITRAGE ET ROADMAP"
-Cohesion: 0.12
-Nodes (15): 10. CONCLUSION & VERDICT, 1. BASELINE TECHNIQUE POST-F012, 2. RECONSTRUCTION DE LA BASELINE CDC NOMINATIVE (188 EXIGENCES), 3. INVENTAIRE NOMINATIF DES 24 EXIGENCES RESTANTES, 4. AUDIT DES DETTES RESTANTES, 5. AUDIT DES POINTS À CLARIFIER (PC), 7. CANDIDATS DE FEATURE & SCORING, 8. RECOMMANDATION OFFICIELLE : FEATURE 013 (+7 more)
+Nodes (21): 10. Analyse des Scénarios de Recette Contractuels (REC-SCE), 11. Analyse des Points à Clarifier (PC), 12. Analyse du Découpage Fonctionnel, 13. Risques et Mesures d'Atténuation, 14. Décision Finale et Conditions d'Entrée, 15. Verdict Final, 1. État du Projet et Couverture CDC, 2. Reconstitution Exacte du Périmètre Candidat (+13 more)
 
 ### Community 212 - "Audit UI/UX Complet — Features 001, 002 et 003"
 Cohesion: 0.08
@@ -1907,16 +1900,16 @@ Cohesion: 0.10
 Nodes (19): 10. Roadmap alternative (F007 bloquée), 1. État du projet après F006, 2. AVE-01 → AVE-04 (reconstitution exacte), 3. Points bloquants (revalidés contre le CDC, pas repris tels quels), 4. PC-15 — Table détaillée du manquant (priorité maximale), 5. Dépendances existantes (F001, F002, F003/F004, F003.5, F006), 6. Frontière REC ↔ AVE, 7. REC-SCE dédié à AVE (+11 more)
 
 ### Community 214 - "Internationalisation & Ergonomie Bilingue (NFR-07)"
-Cohesion: 0.10
-Nodes (19): 10. AUDIT PRESERVATION API REST (NFR-08), 11. AUDIT PRESERVATION F009 (NOTIFICATIONS), 12. AUDIT ENUMS, STATUTS, VALIDATIONS, DATES & NOMBRES, 13. AUDIT DU SCAN DES CHAÎNES STATIQUES HARDCODÉES, 14. AUDIT DES CONTRATS C14 (5/5), 15. AUDIT DE LA SUITE TEST-SPEC « NFR-CERT-07 » (6/6 SCÉNARIOS), 16. AUDIT DU TEST HISTORIQUE ADAPTÉ (`AucuneRessourceExterneTests.cs`), 17. AUDIT DES TÂCHES DU BACKLOG (45/45) (+11 more)
+Cohesion: 0.09
+Nodes (21): 10. AUDIT PRESERVATION API REST (NFR-08), 11. AUDIT PRESERVATION F009 (NOTIFICATIONS), 12. AUDIT ENUMS, STATUTS, VALIDATIONS, DATES & NOMBRES, 13. AUDIT DU SCAN DES CHAÎNES STATIQUES HARDCODÉES, 14. AUDIT DES CONTRATS C14 (5/5), 15. AUDIT DE LA SUITE TEST-SPEC « NFR-CERT-07 » (6/6 SCÉNARIOS), 16. AUDIT DU TEST HISTORIQUE ADAPTÉ (`AucuneRessourceExterneTests.cs`), 17. AUDIT DES TÂCHES DU BACKLOG (45/45) (+13 more)
 
 ### Community 215 - "CablageControleAccesTests"
-Cohesion: 0.22
-Nodes (6): 12. Tests de câblage, 9. Tests de câblage, CablageControleAccesTests, Fact, InlineData, Theory
+Cohesion: 0.12
+Nodes (17): 12. Tests de câblage, Tests de câblage, 11. Résultats, 12. Risques résiduels, 13. Conclusion, 2. Cause racine, 3. Surface affectée, 4. Reproduction avant correction (+9 more)
 
-### Community 216 - "Revue de fermeture — Feature 003 : Billing Office IMPORT & Unicité BL"
-Cohesion: 0.04
-Nodes (47): 5.1 P1-01 — état engageant (RG-TCK-07, 10, 11, 12), 5.2 P1-02 — notifications (RG-COM-01/02/03, RG-NOT-01/02), 5. Validation P1, 6. Autorisations — corrigé, 12. Autorisation / IDOR — fermeture des écarts, 13. Sécurité — historique des écarts (référence), 14. IMP-15 — périmètre du Should, 15. Points PC — statut final (+39 more)
+### Community 216 - "SoumettreDemandeImportCommand"
+Cohesion: 0.02
+Nodes (167): 4. Conformité du schéma au code (vérifié), Deux faux positifs, écartés, 33. Plan de remédiation recommandé, Billing IMPORT, Ce qui décide réellement, surface par surface, D12 — Stratégie de tests, 10. Client Deposit, 11. IES (+159 more)
 
 ### Community 217 - "Alerte"
 Cohesion: 0.10
@@ -1934,9 +1927,9 @@ Nodes (15): Les quatorze scénarios, CloturerMonCompteRequete, CancellationToken
 Cohesion: 0.08
 Nodes (24): FileAdministrable, route:/administration/strategie-file, ChangerAsync, ChargerAsync, ClasseBadge, DescriptionStrategie, IconeStrategie, LibelleStrategie (+16 more)
 
-### Community 221 - "ProvisionnementAdministrateurInitial"
-Cohesion: 0.17
-Nodes (13): IUserStore, ProvisionnementAdministrateurInitial, CancellationToken, Guid, IConfiguration, ILogger, Task, UserManager (+5 more)
+### Community 221 - "ProvisionnementAdministrateurInitialTests"
+Cohesion: 0.34
+Nodes (6): IUserStore, ProvisionnementAdministrateurInitialTests, Fact, IConfiguration, Task, UserManager
 
 ### Community 222 - "ReglesPrioriteAutomatique.razor"
 Cohesion: 0.08
@@ -1952,15 +1945,15 @@ Nodes (15): route:/administration/impersonation, LibelleCategorie, OnInitialized
 
 ### Community 225 - "Internationalisation & Ergonomie Bilingue (NFR-07)"
 Cohesion: 0.08
-Nodes (22): 10. INVENTAIRE DES SURFACES & SCAN DES STATIQUES, 11. COMPLÉTUDE DES RESSOURCES & PARITÉ BILINGUE, 13. AUDIT FORMATAGE CULTUREL & DONNÉES MÉTIER, 14. AUDIT DES CONTRATS C14 (5/5), 15. AUDIT DE LA SUITE TEST-SPEC « NFR-CERT-07 » (6/6 SCÉNARIOS), 16. MIGRATION EF CORE & MODÈLE DE DONNÉES, 17. AUDIT DU RESPECT DE L'ANTI-SCOPE, 18. SYNTHÈSE DES TÂCHES (45/45) (+14 more)
+Nodes (24): 10. INVENTAIRE DES SURFACES & SCAN DES STATIQUES, 11. COMPLÉTUDE DES RESSOURCES & PARITÉ BILINGUE, 12. ARCHITECTURE DES RESSOURCES & JUSTIFICATION, 13. AUDIT FORMATAGE CULTUREL & DONNÉES MÉTIER, 14. AUDIT DES CONTRATS C14 (5/5), 15. AUDIT DE LA SUITE TEST-SPEC « NFR-CERT-07 » (6/6 SCÉNARIOS), 16. MIGRATION EF CORE & MODÈLE DE DONNÉES, 17. AUDIT DU RESPECT DE L'ANTI-SCOPE (+16 more)
 
 ### Community 226 - "PaiementDeclaratifParametrableTests"
 Cohesion: 0.17
 Nodes (10): PaiementDeclaratifExportParametrableTests, Fact, Guid, InvalidOperationException, Task, PaiementDeclaratifParametrableTests, Fact, Guid (+2 more)
 
 ### Community 227 - "Feature Specification: Comptes clients, sociétés et utilisateurs rattachés"
-Cohesion: 0.04
-Nodes (45): Content Quality, Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: Comptes clients, sociétés et utilisateurs rattachés, 0.1 Table de sélection des exigences (extraction depuis `docs/01-matrice-exigences.md`), 0.2 Vérification inverse (Feature 002 → exigences sélectionnées → matrice CDC), Analyse de `docs/04-matrice-recette.md` (+37 more)
+Cohesion: 0.05
+Nodes (34): Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: Comptes clients, sociétés et utilisateurs rattachés, 0.1 Table de sélection des exigences (extraction depuis `docs/01-matrice-exigences.md`), 0.2 Vérification inverse (Feature 002 → exigences sélectionnées → matrice CDC), Analyse de `docs/04-matrice-recette.md`, Assumptions (+26 more)
 
 ### Community 228 - ".ResoudreAsync"
 Cohesion: 0.19
@@ -1970,13 +1963,13 @@ Nodes (11): ResolveurDemandeurCompte, CancellationToken, Guid, HashSet, IReadOnl
 Cohesion: 0.30
 Nodes (9): DeciderLigneBadtRequete, TraitementLigneBadtCommandsTests, ArgumentException, CancellationToken, Fact, Guid, InvalidOperationException, Mock (+1 more)
 
-### Community 230 - "PREFLIGHT RÉVISÉ — FEATURE 007 (Avoir & Exonération)"
-Cohesion: 0.11
-Nodes (18): 10. Matrice des Points Restants, 11. Décision GO / NO-GO & Conclusion, 12. Bloc de Synthèse Prescrit, 1. Contexte Projet & Levée de l'Objection Historique, 2. Reconstitution Exacte des Exigences AVE, 3. Cadrage Métier & Frontière Portail / Hors-Portail, 4. Analyse de PC-15 et PC-03, 5. Workflow de Suivi Portail (+10 more)
+### Community 230 - ".ExecuterAsync"
+Cohesion: 0.19
+Nodes (12): DeciderDemandeAvoirExoRequete, PermissionsAvoirExoParType, PiecesAvoirExo, SoumettreDemandeAvoirExoReponse, CancellationToken, DateTime, Guid, Task (+4 more)
 
 ### Community 231 - "SignalSupervisionRedis"
 Cohesion: 0.12
-Nodes (14): 5.1 Chaîne recommandée (production), 5.2 Règles impératives (liste de contrôle), 5.3 Vérification, Estimation d'effort (code), L5 — Chaîne de connexion SQL de production, Mémo de mise en œuvre — Tenue en charge L4 & L5, Ordre de déploiement conseillé, SignalSupervisionRedis (+6 more)
+Nodes (15): 5.1 Chaîne recommandée (production), 5.2 Règles impératives (liste de contrôle), 5.3 Vérification, Estimation d'effort (code), L5 — Chaîne de connexion SQL de production, Mémo de mise en œuvre — Tenue en charge L4 & L5, Ordre de déploiement conseillé, IAsyncDisposable (+7 more)
 
 ### Community 232 - "ConsulterTicketCloture.razor"
 Cohesion: 0.12
@@ -1999,16 +1992,16 @@ Cohesion: 0.10
 Nodes (19): 14. Documents & Bordereau d'Enlèvement Export (BEE), 15. Intégration ACR-01 Export, 16. Immuabilité du Snapshot `Dossier.TypeClient`, 17. Sécurité & Cloisonnement Multi-Tenant (Anti-IDOR), 18. Interface Utilisateur Blazor & UX F003.5, 1. Résumé Exécutif, 20. Migrations & Modèle EF Core, 21. Périmètre Négatif & Points de Clarification (PC) (+11 more)
 
 ### Community 237 - "EnvoiNotification"
-Cohesion: 0.06
-Nodes (38): 2.3 Domaine — `EnvoiNotification` (CDC §20 : canal, statut d'envoi), 1. Principe Directeur : Zéro Migration, 2. Démonstration de Suffisance par Exigence, 3. Invariants de Données Préservés, 4. Synthèse, COM-06 — Relances automatiques multicanales, Data Model & Invariants de Persistance — Feature 012, IMP-03 — Numéro de ticket communiqué par e-mail (+30 more)
+Cohesion: 0.11
+Nodes (23): 2.3 Domaine — `EnvoiNotification` (CDC §20 : canal, statut d'envoi), Cycle de vie du curseur `DistribueLeUtc` — 4 scénarios (ajout de la revue de cohérence, §6), Implémentation, Phase 3 : US2 + US3 — Émission et lien sécurisé (Priorité P1 — Must) 🎯 MVP, Tests RED — lien sécurisé (C9-05, SEC-12), Tests RED — moteur de distribution (C9-01), ReessayerEnvoisNotificationUseCase, CancellationToken (+15 more)
 
 ### Community 238 - "Comptes/SoumettreDemande.razor"
 Cohesion: 0.08
 Nodes (23): InputSelect, route:/comptes/soumettre, OnInitializedAsync, ApplicationUser, ChampMotDePasse, EditForm, IBrowserFile, InfoBulle (+15 more)
 
 ### Community 239 - "Message"
-Cohesion: 0.13
-Nodes (21): C10-02 : `ConsulterDossierGuichetQuery`, DocumentGuichetDto, DossierGuichetCompletDto, HistoriqueGuichetDto, RendezVousGuichetDto, DateTime, Guid, TimeSpan (+13 more)
+Cohesion: 0.17
+Nodes (13): CancellationToken, Guid, Task, Message, AuteurId, CollaborateurMentionneId, Contenu, HorodatageUtc (+5 more)
 
 ### Community 240 - ".Creer"
 Cohesion: 0.20
@@ -2043,7 +2036,7 @@ Cohesion: 0.31
 Nodes (7): RapportDetailTicketsOperateurQueryTests, CancellationToken, DateTime, Fact, Guid, IEnumerable, Task
 
 ### Community 248 - "RegleEscalade"
-Cohesion: 0.10
+Cohesion: 0.11
 Nodes (14): ActionEscalade, NotifierSuperviseur, Reaffecter, RemonterPriorite, RegleEscalade, Action, EstActive, FileId (+6 more)
 
 ### Community 249 - "Checklist Qualité de la Spécification — Feature 009 (Notifications Multicanales & Centre In-App)"
@@ -2051,12 +2044,12 @@ Cohesion: 0.08
 Nodes (23): 10. Messages F001 ↔ Notifications — Non confondus, 11. Sécurité et cloisonnement — Testables, 12. Traitements de fond — Aucune implémentation présumée, 13. Clarifications, 14. Testabilité et couverture, 15. Absence d'anticipation technique, 16. Déclencheurs métier — reconstitution sourcée (CLAR-COM-02), 17. Notifications obligatoires (CLAR-COM-03) (+15 more)
 
 ### Community 250 - "LiaisonTicket"
-Cohesion: 0.09
-Nodes (21): 1. Exigences Cibles (AVE-01 à AVE-04), 2. Matrice des Clarifications Résolues (CLAR-AVE-01 à CLAR-AVE-12), 3. Synthèse de la Couverture des Scénarios de Test (TEST-SPEC), 4. Garde-fous et Invariants Architecturaux Validés, Checklist d'Exigences Fonctionnelles Clarifiées — Feature 007, Module Avoir & Exonération, 1. Synthèse Technique & Démarche de Réalisation, 3. Architecture Technique par Couche (+13 more)
+Cohesion: 0.03
+Nodes (60): 10. Matrice des Points Restants, 11. Décision GO / NO-GO & Conclusion, 12. Bloc de Synthèse Prescrit, 1. Contexte Projet & Levée de l'Objection Historique, 2. Reconstitution Exacte des Exigences AVE, 3. Cadrage Métier & Frontière Portail / Hors-Portail, 4. Analyse de PC-15 et PC-03, 5. Workflow de Suivi Portail (+52 more)
 
-### Community 251 - ".ConstruireContexteAvecDocumentAsync"
-Cohesion: 0.07
-Nodes (33): CryptographicException, IHostEnvironment, DocumentNonAccessibleException, CancellationToken, IConfiguration, Stream, Task, RattrapageAnalyseAntivirus (+25 more)
+### Community 251 - ".EnregistrerAsync"
+Cohesion: 0.16
+Nodes (14): CryptographicException, CancellationToken, IConfiguration, Stream, Task, StockageSecuriseTests, Fact, Task (+6 more)
 
 ### Community 252 - "SoumettreEnrolementRequete"
 Cohesion: 0.16
@@ -2067,20 +2060,20 @@ Cohesion: 0.13
 Nodes (15): ResultatEligibiliteRetention, DateTime, ActionRetention, Anonymisation, ArchivageInalterable, Aucune, Purge, ScellementArchive (+7 more)
 
 ### Community 254 - "NavigationI18nTests"
-Cohesion: 0.08
-Nodes (21): Clés ajoutées (familles), Gate LOT 1, LOT 1 — SHARED / NAVIGATION, LOT 2 — PUBLIC / AUTH  ✅ GATE CLÔTURÉ, LOT 4 — AGENT / SUPERVISEUR — à venir, LOT 5 — ADMINISTRATION — à venir, LOT 6 — RESTE — à venir, Menu latéral (+13 more)
+Cohesion: 0.16
+Nodes (11): Clés ajoutées (familles), Gate LOT 1, LOT 1 — SHARED / NAVIGATION, Menu latéral, Recette navigateur — profils vérifiés (serveur UAT, `/uat/session/{email}`), NavigationI18nTests, Fact, IEnumerable (+3 more)
 
-### Community 255 - "Revue de Fermeture Finale — Feature 005 (Simulation Proforma)"
-Cohesion: 0.10
-Nodes (19): 10. Contrats C6-01 → C6-08, 11. UI, 13. Migrations, 14. SIM-11 (Could), 15. Couverture CDC, 16. Dettes Restantes, 17. Test UI Remédié, 18. État Git (+11 more)
+### Community 255 - ".ConstruireContexteAvecDocumentAsync"
+Cohesion: 0.22
+Nodes (10): DocumentNonAccessibleException, AccesDocumentAutoriseTests, Fact, Guid, Task, RattrapageAnalyseAntivirusTests, CancellationToken, Fact (+2 more)
 
 ### Community 256 - "HandlerStub"
 Cohesion: 0.28
 Nodes (10): HttpMessageHandler, HttpRequestMessage, HandlerStub, NombreAppels, SourceNavisRestTests, CancellationToken, Fact, Func (+2 more)
 
 ### Community 257 - "TraductionParityTests"
-Cohesion: 0.09
-Nodes (22): Mise à jour du 2026-09-15 — `NFR-07` re-certifiée (i18n FR/EN livrée), 1. Correctif apporté ce cycle — StatutBadge bilingue, 2. Gardes de non-régression posées, 3. Feuille de route (NON réalisée ce cycle — honnêteté de portée), 4. Ce qui n'a délibérément PAS été fait, Remédiation traduction — correctif borné + feuille de route, 5. COMPLÉTUDE DES RESSOURCES & PARITÉ STRICTE, 1. SCÉNARIOS DE VÉRIFICATION RAPIDE (+14 more)
+Cohesion: 0.14
+Nodes (13): Mise à jour du 2026-09-15 — `NFR-07` re-certifiée (i18n FR/EN livrée), 1. Correctif apporté ce cycle — StatutBadge bilingue, 2. Gardes de non-régression posées, 3. Feuille de route (NON réalisée ce cycle — honnêteté de portée), 4. Ce qui n'a délibérément PAS été fait, Remédiation traduction — correctif borné + feuille de route, 5. COMPLÉTUDE DES RESSOURCES & PARITÉ STRICTE, IReadOnlyDictionary (+5 more)
 
 ### Community 258 - "Preflight — Feature 010 (Continuité Guichet & Rendez-vous)"
 Cohesion: 0.09
@@ -2102,9 +2095,9 @@ Nodes (18): ParametrePlateformeVue, route:/administration/parametres-plateforme,
 Cohesion: 0.14
 Nodes (14): 1. Mécanisme d'authentification UAT (sans secret), 2. Environnement de recette (confirmé), 3. Sidebar par profil — mesure LIVE (0 lien interdit), 4. Enforcement serveur (défense en profondeur), 5. Traversée de pages authentifiées (sans erreur), 6. Recette VISUELLE authentifiée — NON TESTÉE (blocage documenté), 7. AM-01 / AM-02 / AM-03 et D-04, 8. Score (+6 more)
 
-### Community 263 - "FileDeTraitement"
-Cohesion: 0.06
-Nodes (43): C. AFF-06 — Distribution selon la compétence → **CORRIGÉ**, 1. Entités Réutilisées, 2. Nouvelles Entités, 3. Extensions Additives (Ticket), 4. Invariants Métier (Domaine), 5. Script de Migration (Stratégie), `CategorieReclamation`, `EvaluationSatisfaction` (Value Object / Owned Entity) (+35 more)
+### Community 263 - ".Objet_ou_motif_vide_leve_ArgumentException"
+Cohesion: 0.22
+Nodes (10): SoumettreRetraitEnrolementSocieteRequete, Guid, IReadOnlyList, ArgumentException, CancellationToken, Fact, Guid, InlineData (+2 more)
 
 ### Community 264 - "FinitionsUiTests"
 Cohesion: 0.14
@@ -2127,8 +2120,8 @@ Cohesion: 0.09
 Nodes (22): MotifTransfertVue, route:/administration/motifs-transfert, AjouterAsync, BasculerAsync, ChargerAsync, CommencerEdition, EnregistrerEditionAsync, ExecuterAsync (+14 more)
 
 ### Community 269 - ".Creer"
-Cohesion: 0.25
-Nodes (7): RendezVousTests, ArgumentException, DateTime, Fact, Guid, InvalidOperationException, TimeSpan
+Cohesion: 0.15
+Nodes (13): 1. Baseline Certifiée & Valeurs de Configuration, 2. Tableau de Traçabilité Exigences / Contrats / Tâches / Tests, Audit des Valeurs de Configuration (Non Contractuelles), Baseline de Référence, Continuité Guichet & Rendez-vous, Plan de Tâches Exécutables — Feature 010, RendezVousTests, ArgumentException (+5 more)
 
 ### Community 270 - "Disponibilite.razor"
 Cohesion: 0.08
@@ -2138,21 +2131,21 @@ Nodes (24): route:/administration/disponibilite, RubriqueAnnuaireVue, ChargerAsy
 Cohesion: 0.11
 Nodes (18): route:/enrolement/mes-enrolements, DemanderRenouvellementAsync, OnInitializedAsync, DemanderRenouvellementBadgeCommand, EtatVide, FiltreTable, IndicateurChargement, IServiceScopeFactory (+10 more)
 
-### Community 272 - "ConstaterJointureIesAutorisationTests"
-Cohesion: 0.20
-Nodes (11): ADDENDUM — Final Scope Gate (1er septembre 2026), Cause racine, Périmètre final recalculé, Reproduction, SEC-02 — EXCLUE, SEC-07 — EXCLUE, SEC-08 — EXCLUE, ConstaterJointureIesAutorisationTests (+3 more)
+### Community 272 - "IncidentTraitementCommandTests"
+Cohesion: 0.24
+Nodes (11): ResoudreIncidentRequete, IncidentTraitementCommandTests, ArgumentException, CancellationToken, Fact, Guid, InlineData, InvalidOperationException (+3 more)
 
 ### Community 273 - ".Definir"
 Cohesion: 0.33
 Nodes (5): MotifTransfertTests, ArgumentException, Fact, InlineData, Theory
 
 ### Community 274 - "ValeurReferentielle"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (13): IValeurReferentielle, Actif, CodeTexte, LibelleEn, LibelleFr, Ordre, ValeurReferentielle, Actif (+5 more)
 
-### Community 275 - ".ExecuterAsync"
-Cohesion: 0.19
-Nodes (14): CreerCategorieReclamationRequete, CancellationToken, Guid, Task, CreerCategorieReclamationCommandTests, ArgumentException, CancellationToken, Fact (+6 more)
+### Community 275 - ".C_LibelleVide_LeveException"
+Cohesion: 0.22
+Nodes (8): ArgumentException, CancellationToken, Fact, Guid, InlineData, InvalidOperationException, Task, Theory
 
 ### Community 276 - "ActionsAgentTicket.razor"
 Cohesion: 0.08
@@ -2168,7 +2161,7 @@ Nodes (22): ASPNETCORE_ENVIRONMENT, CIT_TEST_USERS_PASSWORD, applicationUrl, com
 
 ### Community 279 - "RegleDiffusion"
 Cohesion: 0.04
-Nodes (49): Audit complet du 2026-09-04 — treize exigences déclassées, Ce qui a été livré le 2026-09-04, Correction d'audit du 2026-09-03 — huit exigences déclassées, sept refermées depuis, Correction du 2026-09-04 (soir) — `NFR-07` déclassée, 1. Méthode, 2.2 `SLA-02` *(Must)* — **PARTIELLEMENT CONFORME**, 2.3 `SLA-05` *(Must)* — **PARTIELLEMENT CONFORME**, 2.5 `ALE-03` *(Must)* — **NON CONFORME** (+41 more)
+Nodes (66): Référentiels / énumérations, Audit complet du 2026-09-04 — treize exigences déclassées, Ce qui a été livré le 2026-09-04, Correction d'audit du 2026-09-03 — huit exigences déclassées, sept refermées depuis, Correction du 2026-09-04 (soir) — `NFR-07` déclassée, 1. Méthode, 2.1 `SLA-01` *(Must)* — **NON CONFORME**, 2.2 `SLA-02` *(Must)* — **PARTIELLEMENT CONFORME** (+58 more)
 
 ### Community 280 - "RendezVousRepository"
 Cohesion: 0.19
@@ -2183,8 +2176,8 @@ Cohesion: 0.10
 Nodes (20): route:/administration/assistant, AjouterAsync, BasculerAsync, ChargerAsync, ExecuterAsync, OnInitializedAsync, FiltreTable, GererSujetsAssistantCommand (+12 more)
 
 ### Community 283 - "IMotifTransfertRepository"
-Cohesion: 0.26
-Nodes (10): IMotifTransfertRepository, GererMotifsTransfertCommand, ListerMotifsTransfertQuery, MotifTransfertVue, CancellationToken, Guid, IReadOnlyList, Task (+2 more)
+Cohesion: 0.30
+Nodes (8): IMotifTransfertRepository, GererMotifsTransfertCommand, ListerMotifsTransfertQuery, MotifTransfertVue, CancellationToken, Guid, IReadOnlyList, Task
 
 ### Community 284 - "Filtres à créer"
 Cohesion: 0.09
@@ -2195,20 +2188,20 @@ Cohesion: 0.11
 Nodes (17): route:/aide, SectionAide, ChargerAsync, OnInitializedAsync, ConsulterCentreAideQuery, ContenuAide, EtatVide, IndicateurChargement (+9 more)
 
 ### Community 286 - "SecCert04SessionTests"
-Cohesion: 0.13
-Nodes (16): CookieAuthenticationOptions&gt;, 10. Reste ouvert, 11. Environnement, 4. D-01 — la modale de confirmation, enfin visible, 7. Une régression introduite, trouvée et corrigée, 9. Non-régression UAT rejouée en navigateur, Cause, Correction — sans guerre de z-index (+8 more)
+Cohesion: 0.26
+Nodes (7): CookieAuthenticationOptions&gt;, SecCert04SessionTests, Fact, HttpClient, HttpResponseMessage, Task, UserManager
 
-### Community 287 - "MaintenanceMiddleware"
-Cohesion: 0.10
-Nodes (17): 5. Mise en maintenance, 1. OBSERVABILITÉ EN RECETTE / PRODUCTION, 2. VERDICT CDC NFR-10, RAPPORT D'ACCESSIBILITÉ CONTINUE (NFR-10 - L3/L4), 1. SYNTHÈSE FORENSIQUE & BASELINE TECHNIQUE, 2. ANALYSE CRITIQUE DES NIVEAUX DE PREUVE (L2 vs L3/L4), 4. PRÉSERVATION DES FONCTIONNALITÉS HISTORIQUES & ANTI-SCOPE, 5. BILAN DU GAIN CDC & RECOMMANDATION CLOSURE (+9 more)
+### Community 287 - "NotificationTests"
+Cohesion: 0.19
+Nodes (8): Guid, InlineData, Theory, NotificationTests, ArgumentException, DateTime, Fact, Guid
 
-### Community 288 - "AssistantSimule"
-Cohesion: 0.16
-Nodes (16): 5.3 P1-03 — assistant virtuel (RG-IA-01, RG-IA-02), 6.1 Statuts, 6. Validation P1-03 — **VALIDÉ en architecture, 🟡 en capacité**, Cause racine, Correction, Exigence, P1-03 — Assistant virtuel, Résultat (+8 more)
-
-### Community 289 - "Permission"
+### Community 288 - "DistribuerNotificationsUseCase"
 Cohesion: 0.06
-Nodes (36): 1. Rapport d'écart — stack & architecture, Référentiels / énumérations, 5. Réutilisation des Capacités Existantes (F001 à F008), 5. Capacités existantes non certifiées, Correction de l'affirmation de `docs/16`, 4. Analyse individuelle des 14 exigences candidates, 3. MATRICE DE VÉRITÉ FORENSIQUE (EXIGENCES DE SÉCURITÉ AUDITÉES), 4.1 Règles de gestion — 42 / 45 à l'audit, **45 / 45 après remédiation** (+28 more)
+Nodes (43): 6. PC-16 — ENR-04 : CANAL EXTERNE SMS & WHATSAPP BUSINESS, 5.1 P1-01 — état engageant (RG-TCK-07, 10, 11, 12), 5.2 P1-02 — notifications (RG-COM-01/02/03, RG-NOT-01/02), 5.3 P1-03 — assistant virtuel (RG-IA-01, RG-IA-02), 5. Validation P1, P1-02 — RG-COM-01 : aucun client n'est notifié hors du portail, Assistant IA, 6.1 Statuts (+35 more)
+
+### Community 289 - "SurveillanceSlaService"
+Cohesion: 0.36
+Nodes (6): SurveillanceSlaService, CancellationToken, ILogger, IServiceScopeFactory, Task, TimeSpan
 
 ### Community 290 - ".ExecuterAsync"
 Cohesion: 0.17
@@ -2255,16 +2248,16 @@ Cohesion: 0.30
 Nodes (7): Contexte, PaginationJournalAuditTests, Fact, Guid, InlineData, Task, Theory
 
 ### Community 301 - ".ExecuterAsync"
-Cohesion: 0.08
-Nodes (34): EscaladerIncidentRequete, ResoudreIncidentRequete, SoumettreIncidentRequete, SoumettreIncidentResultat, Guid, ProvisionnementSupportIt, CancellationToken, ILogger (+26 more)
+Cohesion: 0.12
+Nodes (21): EscaladerIncidentRequete, SoumettreIncidentRequete, SoumettreIncidentResultat, SupportItConstantes, CancellationToken, Guid, IReadOnlyList, Task (+13 more)
 
 ### Community 302 - ".ExecuterAsync"
-Cohesion: 0.13
-Nodes (15): Contrat C4-06 : `ObtenirDetailDossierQuery`, DossierVue, CancellationToken, Guid, IReadOnlyList, Task, EtatDossier, Actif (+7 more)
+Cohesion: 0.14
+Nodes (14): DossierVue, CancellationToken, Guid, IReadOnlyList, Task, EtatDossier, Actif, Termine (+6 more)
 
 ### Community 303 - "Intervalle"
-Cohesion: 0.17
-Nodes (12): ChronologieDisponibilite, Intervalle, Duree, IEnumerable, IReadOnlyList, List, TimeSpan, ChronologieDisponibiliteTests (+4 more)
+Cohesion: 0.15
+Nodes (13): ChronologieDisponibilite, Intervalle, Duree, IEnumerable, IReadOnlyList, List, TimeSpan, ChronologieDisponibiliteTests (+5 more)
 
 ### Community 304 - "FicheAvoirExoneration.razor"
 Cohesion: 0.11
@@ -2279,20 +2272,20 @@ Cohesion: 0.11
 Nodes (18): DeclarerReglementAsync, DemanderCorrectionAsync, DeposerPreuveAsync, ExecuterAsync, FinaliserPresentielAsync, DeclarerFinalisationPresentielleCommand, DeposerPreuvePaiementCommand, GestionProformaCommand (+10 more)
 
 ### Community 307 - "Runbook de déploiement en production"
-Cohesion: 0.14
-Nodes (14): 10. Retour arrière, 11. Validation métier, 12. Sortie de maintenance, 13. Surveillance renforcée, 14. Consignation, 1. Avertissement, 2. Prérequis — bloquants, 3. Préchecks (+6 more)
+Cohesion: 0.08
+Nodes (23): 10. Retour arrière, 11. Validation métier, 12. Sortie de maintenance, 13. Surveillance renforcée, 14. Consignation, 1. Avertissement, 2. Prérequis — bloquants, 3. Préchecks (+15 more)
 
 ### Community 308 - "RetraitEnrolementSociete.razor"
 Cohesion: 0.10
 Nodes (20): ObjetFlotte, route:/enrolement/societe/retrait, AjouterLigne, ChangerType, Choisir, OnInitializedAsync, BoutonSupprimer, IndicateurChargement (+12 more)
 
-### Community 309 - "CreerCategorieReclamationCommand"
-Cohesion: 0.07
-Nodes (42): 3. REC-02 — Catégories de réclamations paramétrables sans développement, 1. D-14 — Customer Complaint : le module était inatteignable, Ce qui a été fait, La règle métier, telle qu'elle existait déjà, Vérifié en navigateur, Cause de l'écart, Ce qui existait déjà (backend prêt, seul l'écran manquait), Contrat ajouté (+34 more)
+### Community 309 - "EnvoiNotificationTests"
+Cohesion: 0.16
+Nodes (10): StatutEnvoi, Echec, EnAttente, Envoye, NonDelivrable, EnvoiNotificationTests, ArgumentException, DateTime (+2 more)
 
 ### Community 310 - "Notification"
 Cohesion: 0.08
-Nodes (28): 3.1 `Notification` — le fait adressé à **un** destinataire, 7. Centre In-App, 2.2 Domaine — `Notification` (CDC §20 : destinataire, modèle), Cycle de vie du curseur `DistribueLeUtc` — 4 scénarios (ajout de la revue de cohérence, §6), Implémentation, Phase 3 : US2 + US3 — Émission et lien sécurisé (Priorité P1 — Must) 🎯 MVP, Tests RED — lien sécurisé (C9-05, SEC-12), Tests RED — moteur de distribution (C9-01) (+20 more)
+Nodes (32): CentreNotifications, DepotNotificationsEnMemoire, 3.1 `Notification` — le fait adressé à **un** destinataire, 7. Centre In-App, 2.2 Domaine — `Notification` (CDC §20 : destinataire, modèle), Notification, Corps, CreeeLeUtc (+24 more)
 
 ### Community 311 - "AUDIT POST-IMPLÉMENTATION INDÉPENDANT : FEATURE 003.5 — CONSOLIDATION UI/UX (F001-F003)"
 Cohesion: 0.11
@@ -2303,28 +2296,28 @@ Cohesion: 0.16
 Nodes (15): 9 à 11. Dashboards Multi-Rôles, ISourceNavis, LigneNavis, ResultatNavis, CancellationToken, IReadOnlyDictionary, IReadOnlyList, Task (+7 more)
 
 ### Community 313 - "RappelerExpirationBadgesCommand"
-Cohesion: 0.10
-Nodes (25): 2.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could), 4. CONTRATS D'USAGE ENR-05 (RENOUVELLEMENT BADGE & RAPPEL), Contrat `C13-08` : `RappelerExpirationBadgesCommand`, Contrat `C13-09` : `DemanderRenouvellementBadgeCommand`, 2.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could), 2.4 ENR-05 : Cycle de renouvellement de badge et rappel automatique, 2.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could), 3.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could) (+17 more)
+Cohesion: 0.09
+Nodes (28): 2.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could), 4. CONTRATS D'USAGE ENR-05 (RENOUVELLEMENT BADGE & RAPPEL), Contrat `C13-08` : `RappelerExpirationBadgesCommand`, Contrat `C13-09` : `DemanderRenouvellementBadgeCommand`, 2.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could), 2.4 ENR-05 : Cycle de renouvellement de badge et rappel automatique, 2.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could), 3.4 ENR-05 : Cycle de vie et renouvellement des badges transporteurs (Could) (+20 more)
 
-### Community 314 - "ParametresCourants"
-Cohesion: 0.10
-Nodes (24): CatalogueParametresPlateforme, Definitions, ChargerParametresPlateforme, DefinitionParametre, IParametrePlateformeRepository, ParametrePlateformeVue, ParametresCourants, ConservationAuditAnnees (+16 more)
+### Community 314 - ".ModifierAsync"
+Cohesion: 0.19
+Nodes (11): CatalogueParametresPlateforme, Definitions, ChargerParametresPlateforme, DefinitionParametre, IParametrePlateformeRepository, ParametrePlateformeVue, CancellationToken, DateTime (+3 more)
 
 ### Community 315 - "Audit de conformité — Plateforme Digitale CIT"
-Cohesion: 0.11
-Nodes (17): 10. Audit MCT — 7 macro-processus, 11. Audit MOT — 12 postes de travail, 19–21. Workflow, SLA, Notifications, 23. Audit Traçabilité, 25. Audit Tests, 26. Non-conformités P0, 28. Non-conformités P2, 29. Améliorations P3 (+9 more)
+Cohesion: 0.09
+Nodes (21): 10. Audit MCT — 7 macro-processus, 11. Audit MOT — 12 postes de travail, 19–21. Workflow, SLA, Notifications, 23. Audit Traçabilité, 25. Audit Tests, 26. Non-conformités P0, 27. Non-conformités P1, 28. Non-conformités P2 (+13 more)
 
 ### Community 316 - "PassageEnFile"
 Cohesion: 0.15
 Nodes (13): PassageEnFile, DateArriveeUtc, DatePriseEnChargeUtc, DateSortieUtc, EstEnCours, FileId, Id, OperateurId (+5 more)
 
-### Community 317 - "Audit post-implémentation — Feature 001 : Socle transverse de gestion des tickets et workflows"
-Cohesion: 0.12
-Nodes (15): 0. Historique du document, 10. Écarts et anomalies restant ouverts (non traités par cette remédiation, hors périmètre demandé), 11. Dette technique consolidée (mise à jour), 12. Corrections obligatoires avant recette — mise à jour, 13. Corrections obligatoires avant production — mise à jour, 14. Éléments pouvant attendre une feature ultérieure — mise à jour, 1. Score de conformité (recalculé après remédiation), 3. Audit des écarts architecturaux — mise à jour (+7 more)
+### Community 317 - "Rapport d'Implémentation — Feature 005 : Simulation de Proforma"
+Cohesion: 0.10
+Nodes (18): 10. Rapport d'Erreurs CSV, 11. Export PDF (C6-05), 13. Interface Utilisateur Client, 14. Sécurité, 15. Migrations, 16. REC-SCE-06, 17. Migrations de Code Détectées et Corrigées Pendant Cette Session, 18. Dettes Assumées (+10 more)
 
 ### Community 318 - "ContrasteChampsWcagTests"
-Cohesion: 0.18
-Nodes (8): ContrasteChampsWcagTests, Dictionary, Fact, IEnumerable, MemberData, Regex, Theory, TheoryData
+Cohesion: 0.16
+Nodes (9): 1. WCAG 1.4.11 — Contraste non textuel (champs de saisie) — PASS technique, ContrasteChampsWcagTests, Dictionary, Fact, IEnumerable, MemberData, Regex, Theory (+1 more)
 
 ### Community 319 - "ServicesAtteignablesTests"
 Cohesion: 0.25
@@ -2355,20 +2348,20 @@ Cohesion: 0.10
 Nodes (19): 1. Constat prioritaire — exposition déjà réalisée, 2. Audit des règles d'exclusion, 3. Inventaire exact, 4. Classification, 5. Pourquoi ce gate s'arrête ici, 6. Remédiation — deux chantiers distincts, 7. Avant toute remédiation — mesures conservatoires, 8. Ce qui reste à décider (+11 more)
 
 ### Community 326 - ".Ouvrir"
-Cohesion: 0.21
-Nodes (6): MesureTemps, DateTime, TimeSpan, MesureTempsParEtapeTests, DateTime, Fact
+Cohesion: 0.27
+Nodes (4): DateTime, MesureTempsParEtapeTests, DateTime, Fact
 
 ### Community 327 - "Clôture finale UI/UX — rapport principal"
 Cohesion: 0.10
-Nodes (17): 10. Verdicts, 1. Baseline confirmée avant modification, 2. Modifications de ce cycle, 3. Décisions et implémentations, 4. Tests, 5. Mutations (chacune restaurée, diff re-vérifié), 6. Recette navigateur / responsive / dark mode, 7. Accessibilité (+9 more)
+Nodes (16): 10. Verdicts, 1. Baseline confirmée avant modification, 2. Modifications de ce cycle, 3. Décisions et implémentations, 4. Tests, 5. Mutations (chacune restaurée, diff re-vérifié), 6. Recette navigateur / responsive / dark mode, 7. Accessibilité (+8 more)
 
 ### Community 328 - ".Construire"
 Cohesion: 0.25
 Nodes (8): Monde, Monde, RepondeurDonneesAssistantTests, Fact, Guid, InlineData, Task, Theory
 
-### Community 329 - "FakeAdministrationComptesRepository"
-Cohesion: 0.42
-Nodes (5): FakeAdministrationComptesRepository, CancellationToken, Guid, IReadOnlyList, Task
+### Community 329 - ".EnregistrerServices"
+Cohesion: 0.16
+Nodes (10): CompetencesOperateur, CompetenceOperateurRepository, CompetenceOperateur, CompetencesOperateurTests, FakeAdministrationComptesRepository, CancellationToken, Fact, Guid (+2 more)
 
 ### Community 330 - "FileComptabiliteClient.razor"
 Cohesion: 0.10
@@ -2379,24 +2372,24 @@ Cohesion: 0.32
 Nodes (7): ParametresSlaProvider, ParametresSlaAxesTests, ArgumentException, Fact, Guid, Task, TimeSpan
 
 ### Community 332 - "Revue de fermeture — Feature 003.5 : Consolidation UI/UX (F001-F003) & ACR-01"
+Cohesion: 0.08
+Nodes (27): ComptesAgents, 10. Tests E2E Personas & Parcours, 11. Responsive & Design System, 12. Analyse et Traitement de la Dette Résiduelle, 13. Baseline de Tests Revalidée, 14. Non-Régression F001-F003, 15. Couverture CDC Globale Réconciliée, 16. État Git (+19 more)
+
+### Community 333 - "Rapport d'Implémentation — Feature 009 (Notifications Multicanales & Centre In-App)"
 Cohesion: 0.10
-Nodes (19): 10. Tests E2E Personas & Parcours, 11. Responsive & Design System, 12. Analyse et Traitement de la Dette Résiduelle, 13. Baseline de Tests Revalidée, 14. Non-Régression F001-F003, 15. Couverture CDC Globale Réconciliée, 16. État Git, 17. Décision Finale (+11 more)
+Nodes (19): 5. Contrats de Cas d'Usage C9-01 à C9-11, 10. ALE-03 — abstention, 11. IMP-11, 12. Producteurs d'événements, 13. Interface, 14. Sécurité, 15. TEST-SPEC — 34 cas, 16. REC-SCE-14 (+11 more)
 
-### Community 333 - "InvitationCollaborateur"
-Cohesion: 0.12
-Nodes (16): EtatInvitation, Acceptee, EnAttente, Revoquee, InvitationCollaborateur, CreeParId, DateCreationUtc, DateExpirationUtc (+8 more)
-
-### Community 334 - "ResolutionAuteurJournalAuditTests"
-Cohesion: 0.44
-Nodes (4): ResolutionAuteurJournalAuditTests, Fact, Guid, Task
+### Community 334 - ".DefinirAsync"
+Cohesion: 0.16
+Nodes (13): IReglePrioriteAutomatiqueRepository, ListerReglesPrioriteAutomatiqueQuery, ReglePrioriteAutomatiqueVue, CancellationToken, Guid, IReadOnlyList, Task, ResoudrePrioriteAutomatiqueService (+5 more)
 
 ### Community 335 - "AjouterBrouillonsSaisie"
 Cohesion: 0.07
 Nodes (26): 1. BASELINE TECHNIQUE VÉRIFIÉE, 3. IMPACT SUR LE MODÈLE DE DONNÉES & MIGRATION, 4. PHASAGE TECHNIQUE D'IMPLÉMENTATION (TEST-FIRST STRICT), 5. TEST-SPEC STRATEGY, 6. CONSTITUTION CHECK (17/17), PLAN TECHNIQUE D'IMPLÉMENTATION — FEATURE 013, BACKLOG TECHNIQUE D'EXÉCUTION (50 TÂCHES ATOMIQUES), INVARIANTS TECHNIQUES ET ARCHITECTURAUX (+18 more)
 
 ### Community 336 - "SecCert09EnvironnementTests"
-Cohesion: 0.08
-Nodes (22): Bilan, Détail A06 (point 10) — à traiter, Portée & limites, Revue de sécurité — cit-digital-platform, Tableau des résultats, JsonElement, 1. AUDIT INDÉPENDANT DE CONFORMITÉ TECHNIQUE, 2.1 SEC-04 (Must) — Chiffrement des Échanges (HTTPS/TLS) et Protection des Documents Stockés (+14 more)
+Cohesion: 0.15
+Nodes (11): Bilan, Détail A06 (point 10) — à traiter, Portée & limites, Revue de sécurité — cit-digital-platform, Tableau des résultats, JsonElement, SecCert09EnvironnementTests, Fact (+3 more)
 
 ### Community 337 - "GestionnaireMaintenanceService"
 Cohesion: 0.09
@@ -2404,26 +2397,26 @@ Nodes (17): 1. ÉTAT DE L'EXISTANT & GAPS ARCHITECTURAUX, 2. DÉCISIONS D'ARCHIT
 
 ### Community 338 - ".ExecuterAsync"
 Cohesion: 0.20
-Nodes (13): IConversationAssistantRepository, CancellationToken, Guid, IReadOnlyList, Task, ConversationAssistantVue, MessageAssistantVue, PoserQuestionAssistantCommand (+5 more)
+Nodes (13): IConversationAssistantRepository, CancellationToken, Guid, IReadOnlyList, Task, ConsulterConversationAssistantQuery, ConversationAssistantVue, MessageAssistantVue (+5 more)
 
-### Community 339 - ".ConsignerAuditAsync"
+### Community 339 - ".EnregistrerAsync"
 Cohesion: 0.03
-Nodes (99): Analyse ComptesAgents.razor, Changements fonctionnels, Changements sécurité, Comparaison, Impact RG-*, Impact tests, Objectif apparent, Risques (+91 more)
+Nodes (92): 3. Atomicité, Modifiés, 6. AUDIT COM-06 : CANAUX DE RELANCE (GATE 7), EtapeBloquanteAnnulationVue, CancellationToken, Guid, IReadOnlyList, Task (+84 more)
 
-### Community 340 - "TarifNonTrouveException"
-Cohesion: 0.07
-Nodes (28): 1. Matrice des Contrats Applicatifs (Série C6), 2. Spécification Détaillée des Contrats, C6-01 : `CalculerSimulationProformaQuery`, C6-02 : `SauvegarderSimulationProformaCommand`, C6-04 : `ListerSimulationsProformaQuery`, C6-05 : `GenererDocumentProformaPdfQuery`, C6-06 : `CreerVersionGrilleTarifaireCommand`, C6-08 : `ConsulterVersionsGrillesTarifairesQuery` (+20 more)
+### Community 340 - "2. Liste Détaillée des 40 Tâches d'Implémentation"
+Cohesion: 0.14
+Nodes (13): 1. Vue d'Ensemble des Dépendances d'Exécution, 2. Liste Détaillée des 40 Tâches d'Implémentation, 3. Matrice de Traçabilité des Exigences, Contrats & Tâches, 4. Matrice des Cas Golden Master Annexe A.8, Phase 10 : Scénario Contractuel REC-SCE-06, Hardening & Finalisation (T037 à T040), Phase 1 : Preflight & Fondations Domaine (T001 à T003), Phase 3 : Infrastructure, EF Core & Migration SQL Server (T009 à T013), Phase 4 : Administration Tarifaire & Import CSV Atomique (T014 à T017) (+5 more)
 
-### Community 341 - "DeclarationPresentielleTests"
-Cohesion: 0.25
-Nodes (10): 4. Analyse de l'écart 152 / 146 — **RÉSOLU**, Famille IMP (21) · UNI (4) · EXP (4), 13. IMP-15 — déclaration présentielle, DeclarationPresentielleTests, DirectExecuteurTransactionnel, CancellationToken, Fact, Func (+2 more)
+### Community 341 - "IArticleAideRepository"
+Cohesion: 0.19
+Nodes (10): IArticleAideRepository, ObtenirAideContextuelleQuery, CancellationToken, Guid, IReadOnlyList, Task, CancellationToken, Guid (+2 more)
 
 ### Community 342 - "EtapeBloquanteAnnulation"
-Cohesion: 0.12
+Cohesion: 0.13
 Nodes (8): EtapeBloquanteAnnulation, EstActif, FileId, Id, Module, Motif, TypeDemande, Guid
 
 ### Community 343 - ".Creer"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (12): IReadOnlyList, ProvisionnementAide, ILogger, AideContextuelleTests, ArgumentException, Fact, InlineData, Task (+4 more)
 
 ### Community 344 - "PieceEnrolement"
@@ -2431,8 +2424,8 @@ Cohesion: 0.14
 Nodes (15): PieceEnrolement, Assurance, CarteGriseRecto, CarteGriseVerso, PermisRecto, PermisVerso, PhotoIdentite, PieceIdentiteRecto (+7 more)
 
 ### Community 345 - "TraductionMessagesMetierTests"
-Cohesion: 0.20
-Nodes (5): TraductionMessagesMetierTests, Fact, Func, IEnumerable, Regex
+Cohesion: 0.12
+Nodes (11): Lazy, MessagesConnus, IReadOnlyCollection, Regex, TraductionMessagesMetier, Dictionary, TraductionMessagesMetierTests, Fact (+3 more)
 
 ### Community 346 - "HeaderBar.razor"
 Cohesion: 0.11
@@ -2459,8 +2452,8 @@ Cohesion: 0.11
 Nodes (17): 1. Résumé Exécutif et Alignement Projet, 2. Contraintes Techniques et Choix d'Architecture, 3.2 Couche Présentation Web (Composants Razor & Layout), 3. Plan Détaillé des Composants et Fichiers, 4. Implémentation Détaillée de l'Exigence `ACR-01` ("Mes actions requises"), 5.1 Suite de Tests E2E Automatisés (`ParcoursUiE2ETests.cs`), 5.2 Tests Unitaires de Composants (bUnit), 5.3 Maintien du Baseline de Non-Régression (+9 more)
 
 ### Community 352 - "ArticleAide"
-Cohesion: 0.09
-Nodes (25): IArticleAideRepository, ObtenirAideContextuelleQuery, CancellationToken, Guid, IReadOnlyList, Task, ArticleAideAdminVue, ArticleAideVue (+17 more)
+Cohesion: 0.11
+Nodes (19): ArticleAideAdminVue, ArticleAideVue, ConsulterCentreAideQuery, ListerArticlesAideQuery, SectionAide, CancellationToken, Guid, IReadOnlyList (+11 more)
 
 ### Community 353 - "CentreNotificationsTests"
 Cohesion: 0.28
@@ -2471,24 +2464,24 @@ Cohesion: 0.05
 Nodes (37): 10. Score — complet, fondé sur observation réelle, 11. Verdict, 12. Ce qu'il reste à faire côté environnement, 1. Garde-fous vérifiés avant de commencer, 2.1 Un artefact d'outillage qu'il fallait comprendre avant de lire quoi que ce soit, 2.2 Deux autres limites, à ne pas confondre avec des constats, 2.3 Données de recette créées pendant la session, 2. Méthode — et ses limites, énoncées d'emblée (+29 more)
 
 ### Community 355 - ".Normaliser"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (8): NumeroRccm, Regex, IdentiteStructureeSocieteTests, ArgumentException, DateTime, Fact, InlineData, Theory
 
 ### Community 356 - ".PreparerAsync"
-Cohesion: 0.44
-Nodes (4): ActionsSuperviseurCablageTests, Fact, Guid, Task
+Cohesion: 0.22
+Nodes (8): ReglesPrioriteAutomatique, ActionsSuperviseurCablageTests, Fact, Guid, Task, ReglesPrioriteAutomatiqueTests, Fact, Guid
 
 ### Community 357 - "ProvisionnementNotifications"
-Cohesion: 0.15
-Nodes (14): Contenu livré, Deux migrations EF (toutes deux additives, rétro-compatibles), Procédure (ordre strict), Republication — rôles non-CIT + validation interne 4-yeux, Rollback, Vérifs fonctionnelles post-déploiement, ProvisionnementNotifications, CancellationToken (+6 more)
+Cohesion: 0.26
+Nodes (8): ProvisionnementNotifications, CancellationToken, Dictionary, ILogger, Task, ProvisionnementNotificationsTests, Fact, Task
 
 ### Community 358 - ".MainLayout_RenduComplet_HeaderEtSidebar"
-Cohesion: 0.24
-Nodes (9): MainLayout, ConsulterConversationAssistantQuery, DepotConversationsVide, DepotNotificationsVide, CancellationToken, Fact, Guid, IReadOnlyList (+1 more)
+Cohesion: 0.26
+Nodes (8): MainLayout, DepotConversationsVide, DepotNotificationsVide, CancellationToken, Fact, Guid, IReadOnlyList, Task
 
-### Community 359 - "JointureIesIncompleteException"
-Cohesion: 0.25
-Nodes (11): Billing IMPORT, 11. IES, 12. IES — audit approfondi (voir aussi §5, §8.2, §10.5), 16. REC-SCE-01→04 — rejeu réel et vérification des assertions (pas seulement le nom du test), JointureIesIncompleteException, TicketId, Guid, CircuitClientIesTests (+3 more)
+### Community 359 - "ParametreTypeClient"
+Cohesion: 0.13
+Nodes (9): ParametreTypeClient, Actif, Code, DescriptionEn, DescriptionFr, LibelleEn, LibelleFr, Ordre (+1 more)
 
 ### Community 360 - "HistoriqueSimulationsPage.razor"
 Cohesion: 0.14
@@ -2539,12 +2532,12 @@ Cohesion: 0.20
 Nodes (11): ActiviteOperateur, CalculateurActiviteOperateur, DateTime, Guid, IEnumerable, IReadOnlyList, TimeSpan, CalculateurActiviteOperateurTests (+3 more)
 
 ### Community 372 - ".Decider"
-Cohesion: 0.17
-Nodes (8): 2. Préalables — les deux causes sont refermées, INC-02 — Amorçage destructif non gardé, DecisionAmorcageDemo, PolitiqueAmorcageDemo, SeedSecuriteAmorcageTests, Fact, InlineData, Theory
+Cohesion: 0.23
+Nodes (5): DecisionAmorcageDemo, SeedSecuriteAmorcageTests, Fact, InlineData, Theory
 
-### Community 373 - ".Construire"
-Cohesion: 0.41
-Nodes (5): VerifierAccesCompteQueryTests, DateTime, Fact, Guid, Task
+### Community 373 - "JourFerie"
+Cohesion: 0.14
+Nodes (11): JourFerie, Date, EstActif, Id, Libelle, Guid, JourFerieRepository, CancellationToken (+3 more)
 
 ### Community 374 - "SimulationProformaWebTests"
 Cohesion: 0.21
@@ -2556,7 +2549,7 @@ Nodes (18): 6.10 Billing Office — EXPORT, 6.12 Avoir et Exonération, 6.14 Enr
 
 ### Community 376 - "L4 — Passage multi-nœuds (scale-out horizontal)"
 Cohesion: 0.12
-Nodes (14): 4.1 Sessions collantes (sticky sessions) — OBLIGATOIRE, 4.2 Clés Data Protection partagées — OBLIGATOIRE, 4.3 Propagation temps réel entre nœuds — `SignalSupervision`, 4.4 Configuration L4, 4.5 Paquets NuGet à ajouter, L4 — Passage multi-nœuds (scale-out horizontal), INotificateurTempsReel, CancellationToken (+6 more)
+Nodes (15): 12.4 Recommandations priorisées pour tenir la charge, 4.1 Sessions collantes (sticky sessions) — OBLIGATOIRE, 4.2 Clés Data Protection partagées — OBLIGATOIRE, 4.3 Propagation temps réel entre nœuds — `SignalSupervision`, 4.4 Configuration L4, 4.5 Paquets NuGet à ajouter, L4 — Passage multi-nœuds (scale-out horizontal), INotificateurTempsReel (+7 more)
 
 ### Community 377 - "Cahier de recette par rôle — YABA (06/10/2026)"
 Cohesion: 0.11
@@ -2564,31 +2557,31 @@ Nodes (17): 10. Agent Gate (Enrôlement), 11. Superviseur, 12. Administrateur fo
 
 ### Community 378 - "2. Découpage en 10 Phases d'Implémentation"
 Cohesion: 0.12
-Nodes (16): 1. Vue d'Ensemble & Objectifs, 2. Découpage en 10 Phases d'Implémentation, 3. Matrice de Traçabilité des Contrats & Exigences, 4.1. Répartition des Niveaux de Test, 4. Stratégie de Test & Sécurité, 5. Vérification de Non-Régression & Protection du Baseline, Phase 10 : Non-Régression Globale, Checklists & Finalisation, Phase 2 : Validation des Golden Master Tests (`REC-SCE-06`, Annexe A.8) (+8 more)
+Nodes (15): 1. Vue d'Ensemble & Objectifs, 2. Découpage en 10 Phases d'Implémentation, 3. Matrice de Traçabilité des Contrats & Exigences, 4.1. Répartition des Niveaux de Test, 4. Stratégie de Test & Sécurité, 5. Vérification de Non-Régression & Protection du Baseline, Phase 10 : Non-Régression Globale, Checklists & Finalisation, Phase 2 : Validation des Golden Master Tests (`REC-SCE-06`, Annexe A.8) (+7 more)
 
 ### Community 379 - ".Definir"
-Cohesion: 0.30
-Nodes (4): ChampFormulaireEnrolementTests, Fact, ChampFormulaireEnrolementTypeObjetTests, Fact
+Cohesion: 0.19
+Nodes (8): ProvisionnementChampsEnrolement, CancellationToken, ILogger, Task, ChampFormulaireEnrolementTests, Fact, ChampFormulaireEnrolementTypeObjetTests, Fact
 
-### Community 380 - ".ExecuterAsync"
-Cohesion: 0.17
-Nodes (12): CancellationToken, Guid, Task, BrouillonDto, CancellationToken, DateTime, Guid, Task (+4 more)
+### Community 380 - "ErrCert01BrouillonsTests"
+Cohesion: 0.16
+Nodes (15): CancellationToken, Guid, Task, BrouillonDto, CancellationToken, DateTime, Guid, Task (+7 more)
 
 ### Community 381 - "AM-03 — confirmation des actions destructives / irréversibles"
 Cohesion: 0.12
 Nodes (13): 4. Ce qui a été fait / non fait ce tour, 1. Inventaire complet des actions destructives (recalculé depuis le code), 2. Actions volontairement NON confirmées (réversibles / non destructives), 3. Implémentation, 4. Vérification, 5. Verdict AM-03, AM-03 — confirmation des actions destructives / irréversibles, ConfirmationEnAttente (+5 more)
 
-### Community 382 - "FileActualisationBadt.razor"
-Cohesion: 0.13
-Nodes (14): route:/actualisation-badt/file, ChargerAsync, OnInitializedAsync, PrendreEnChargeAsync, IndicateurChargement, IStringLocalizer, Microsoft.AspNetCore.Authorization, Microsoft.Extensions.Localization (+6 more)
+### Community 382 - "10.3 Batterie d'attaques automatisée (tests de non-régression sécurité)"
+Cohesion: 0.12
+Nodes (16): 10.1 Suites exécutées (unitaire + intégration + fonctionnel/E2E), 10.2 Couverture de lignes mesurée (coverlet, max par assembly), 10.3 Batterie d'attaques automatisée (tests de non-régression sécurité), 10. Couverture de tests & batterie d'attaques (2026-09-25), 9.4 Non exécutés (nécessitent un compte de test / instance déployée), HEADERS / SESSION / API, INPUT — injections, Légende (+8 more)
 
 ### Community 383 - "ParametrePlateforme"
-Cohesion: 0.16
-Nodes (13): ParametrePlateforme, Cle, Id, ModifieLeUtc, ModifieParId, Valeur, PulsationDisponibilite, EstSaine (+5 more)
+Cohesion: 0.18
+Nodes (12): ParametrePlateforme, Cle, Id, ModifieLeUtc, ModifieParId, Valeur, PulsationDisponibilite, EstSaine (+4 more)
 
 ### Community 384 - "SimulationProformaRepository"
-Cohesion: 0.05
-Nodes (53): ContexteTarifaire, Cause racine, Correction, Défaut, Exigence, Fichiers modifiés, Mutations, Remédiation P2-05 — Reproductibilité RG-SIM-12 (+45 more)
+Cohesion: 0.04
+Nodes (66): ContexteTarifaire, Correction, Cause racine, Correction, Défaut, Exigence, Fichiers modifiés, Mutations (+58 more)
 
 ### Community 385 - "MesDemandes.razor"
 Cohesion: 0.11
@@ -2610,9 +2603,9 @@ Nodes (10): CancellationToken, Guid, IReadOnlyList, Task, RaccordementMentionTes
 Cohesion: 0.11
 Nodes (17): 10. Matrice de Couverture, 1. Objectif, 2. Périmètre Contractuel (Exigences CDC), 3. Clarifications Fonctionnelles (CLAR-REC), 4. Cycle de Vie Exact (Workflow), 5. Scénario Contractuel Rejoué : REC-SCE-07, 6. Permissions Métier, 7. Testabilité des 4 Must (+9 more)
 
-### Community 390 - "DepotNotificationsEnMemoire"
-Cohesion: 0.28
-Nodes (7): DepotNotificationsEnMemoire, JournalisationMuette, CancellationToken, Guid, IReadOnlyList, List, Task
+### Community 390 - "POST-IMPLEMENTATION AUDIT — FEATURE 012"
+Cohesion: 0.11
+Nodes (17): 10. BASELINE TECHNIQUE FINALE OBTENUE, 11. RECALCUL DU COUVERTURE CDC, 12. SYNTHÈSE DE CLÔTURE D'AUDIT, 1. AUDIT EXIGENCE PAR EXIGENCE, 3. AUDIT DES MODIFICATIONS PRODUIT, 4. AUDIT DES TESTS HISTORIQUES & PRÉSERVATION F011, 5. AUDIT SEC-08 (DOUBLE AUTHENTIFICATION), 6. AUDIT SOC-14 (EXPORT CSV & SÉCURITÉ) (+9 more)
 
 ### Community 391 - "CLOSURE REVIEW — FEATURE 013"
 Cohesion: 0.11
@@ -2626,48 +2619,48 @@ Nodes (15): 10. Support et retour arrière, 11. Validations, 1. Application, 2. 
 Cohesion: 0.22
 Nodes (13): CancellationToken, Guid, IReadOnlyList, Task, ListerMesEnrolementsQueryTests, CancellationToken, Fact, Guid (+5 more)
 
-### Community 394 - "ChampFormulaireEnrolement"
-Cohesion: 0.10
-Nodes (19): ChampFormulaireEnrolement, Code, EstActif, EstObligatoire, Id, Libelle, Options, Ordre (+11 more)
+### Community 394 - "TypeObjetEnrolement"
+Cohesion: 0.07
+Nodes (35): ChampFormulaireEnrolementVue, ListerChampsFormulaireEnrolementQuery, CancellationToken, Guid, IReadOnlyList, Task, EnrolementAValiderVue, LigneObjetAValiderVue (+27 more)
 
-### Community 395 - "DateOnly"
-Cohesion: 0.05
-Nodes (48): CancellationToken, Guid, IReadOnlyList, Task, TimeSpan, IJourFerieRepository, JourFerie, ChargerJoursFeries (+40 more)
+### Community 395 - ".DefinirAsync"
+Cohesion: 0.20
+Nodes (11): IJourFerieRepository, JourFerie, ChargerJoursFeries, GererJoursFeriesCommand, JourFerieVue, ListerJoursFeriesQuery, CancellationToken, Guid (+3 more)
 
 ### Community 396 - "Disponibilité Opérationnelle, Performance Applicative & Résilience Continue"
 Cohesion: 0.12
 Nodes (15): 1. CONTEXTE & OBJECTIF CONTRACTUEL, 2. DÉCISIONS DE CLARIFICATION CONTRACTUELLES & TECHNIQUES (DEC-016-01 à 08), 3.1 NFR-03 (Must) — Disponibilité Cible ≥ 99% en Heures Ouvrées & Maintenance Planifiée, 3.2 NFR-04 (Must) — Temps de Réponse < 3 Secondes sur les Écrans Courants, 3.3 NFR-10 (Must) — Accessibilité 24h/24 et 7j/7 du Portail Client, 3. SPÉCIFICATION DÉTAILLÉE PAR EXIGENCE, 3. SÉPARATION DES RESPONSABILITÉS (APPLICATION vs INFRASTRUCTURE), 4. USER STORIES & CRITÈRES D'ACCEPTATION (+7 more)
 
 ### Community 397 - "GestionGrillesTarifaires.razor"
-Cohesion: 0.11
-Nodes (18): route:/admin/tarification, ChargerVersionsAsync, ExporterAsync, ImporterAsync, OnInitializedAsync, EtatVide, FiltreTable, IJSRuntime (+10 more)
+Cohesion: 0.08
+Nodes (31): route:/admin/tarification, ConsulterVersionsGrillesTarifairesQueryHandler, ConsulterVersionsGrillesTarifairesRequete, FranchiseStationnementVue, MajorationVue, ParametresGrilleVue, SeuilPoidsVue, TrancheStationnementVue (+23 more)
 
 ### Community 398 - ".Construire"
 Cohesion: 0.39
 Nodes (5): Contexte, ControleChampIesTests, Fact, Guid, Task
 
-### Community 399 - "ComptesAgentsTests"
-Cohesion: 0.24
-Nodes (8): ComptesAgents, ComptesAgentsTests, FakeAdministrationComptesRepository, CancellationToken, Fact, Guid, IReadOnlyList, Task
+### Community 399 - ".Reconstruire"
+Cohesion: 0.17
+Nodes (10): ReconstructeurMesuresBadt, DateTime, Dictionary, Guid, IReadOnlyDictionary, IReadOnlyList, List, ReconstructeurMesuresBadtTests (+2 more)
 
 ### Community 400 - "Preflight Check — Feature 006 Customer Complaint"
 Cohesion: 0.12
 Nodes (16): 1. Réconciliation des 188 Exigences CDC, 2. Baseline Technique (Point Zéro), 3. Matrice de Recette Manuelle — Comptes de Test, 4. Checklist de Recette Rapide (F001 → F005), 5. Préparation Feature 006 — Customer Complaint, 6. Décision, Acteurs et Permissions, Analyse des Dépendances (+8 more)
 
 ### Community 401 - ".Enrolement"
-Cohesion: 0.09
-Nodes (21): 6. CLASSIFICATION DU CODE EXISTANT POUR LES 24 EXIGENCES, 13. Risques non couverts par tests, 19. Périmètre négatif — confirmation par recherche de code, Parcours 1 — Demandeur (Transporteur/Chauffeur), Parcours 2 — Agent Gate : instruction jusqu'au complément, Parcours 3 — Demandeur : réponse au complément, Parcours 4 — Agent Gate : validation, convocation, badge, clôture, Parcours 5 — Sécurité (tests négatifs, research.md D11) (+13 more)
+Cohesion: 0.05
+Nodes (40): 10. CONCLUSION & VERDICT, 1. BASELINE TECHNIQUE POST-F012, 2. RECONSTRUCTION DE LA BASELINE CDC NOMINATIVE (188 EXIGENCES), 3. INVENTAIRE NOMINATIF DES 24 EXIGENCES RESTANTES, 4. AUDIT DES DETTES RESTANTES, 5. AUDIT DES POINTS À CLARIFIER (PC), 6. CLASSIFICATION DU CODE EXISTANT POUR LES 24 EXIGENCES, 7. CANDIDATS DE FEATURE & SCORING (+32 more)
 
 ### Community 402 - "Inventaire d'exécution pour Staging"
 Cohesion: 0.12
 Nodes (16): 1. Runtime, 2. Base de données, 3. Système de fichiers — stockage documentaire, 4. Réseau, 5. Antivirus, 6. Sécurité, 8. Observabilité, 9. Récapitulatif des dépendances (+8 more)
 
-### Community 403 - ".Arranger"
-Cohesion: 0.31
-Nodes (8): CentreNotifications, DepotNotificationsEnMemoire, CentreNotificationsTests, HorlogeFigee, MaintenantUtc, UniteDeTravailMuette, DateTime, Fact
+### Community 403 - "ReessaiEnvoisNotificationService"
+Cohesion: 0.26
+Nodes (11): BackgroundService, 7. Traitements de fond, D8 — Traitement de fond : patron `RelancesAbsenceReponseService` (F001), DistributionNotificationsService, ReessaiEnvoisNotificationService, Parametres, CancellationToken, ILogger (+3 more)
 
 ### Community 404 - "CatalogueNavigation"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (13): 1. Mécanisme (correct), 2. Couverture (le vrai trou), 3. Conséquence honnête, 5. Plan d'attaque proposé (lots), Audit i18n FR/EN — état réel (mesuré), Score, Les 7 composants réellement localisés, Matrice i18n FR/EN — état par surface (+5 more)
 
 ### Community 405 - "AUTH / PRÉ-CONNEXION"
@@ -2675,11 +2668,11 @@ Cohesion: 0.12
 Nodes (16): AccepterInvitation.razor — 13 chaînes (SocieteNom/Email = données), AUTH / PRÉ-CONNEXION, Connexion.razor — 9 nouvelles (5 déjà localisées : LoginTitle, Email, Password, ForgotPassword, SignInButton), Error.razor — 9 chaînes, Home.razor — 47 chaînes, InscriptionTransporteur.razor — 30 chaînes, Inventaire LOT 2 — Public / Auth (avant modification), MotDePasseOublie.razor — 12 chaînes (+8 more)
 
 ### Community 406 - "SecurityHeadersMiddleware"
-Cohesion: 0.07
-Nodes (27): 2.2 Chaîne HTTP, 1. SYNTHÈSE DE LA BASELINE TECHNIQUE & INTÉGRITÉ, 2.1 SEC-04 (Must) — Chiffrement des Échanges (HTTPS/TLS) et Protection des Documents Stockés : CONFORME, 2.2 SEC-07 (Must) — Contrôle des Fichiers Déposés : Types Autorisés, Taille Maximale, Analyse Antivirale : CONFORME, 2.3 SEC-09 (Should) — Cloisonnement des Environnements & Habilitations : CONFORME, 2. BILAN FINAL PAR EXIGENCE CONTRACTUELLE DU CDC, 3. MATRICE DE TRAÇABILITÉ CONTRATS C15 & TEST-SPEC, 4. DÉPENDANCES ET CONDITIONS D'EXPLOITATION (+19 more)
+Cohesion: 0.11
+Nodes (16): 2.2 Chaîne HTTP, 1. SYNTHÈSE D'EXÉCUTION TECHNIQUE, 2.1 SEC-04 (Must) — Transport HTTPS, HSTS & Protection Documentaire GED, 2.2 SEC-07 (Must) — Contrôle d'Admission & Analyse Antivirale Réelle, 2.3 SEC-09 (Should) — Cloisonnement des Environnements & Secrets, 2. BILAN DES EXIGENCES COUVERTES, 3. MATRICE DE TRAÇABILITÉ CONTRATS & TEST-SPEC, RAPPORT D'IMPLÉMENTATION — FEATURE 015 (+8 more)
 
 ### Community 407 - "Audit UI/UX — recalcul après recette authentifiée sur build publié"
-Cohesion: 0.12
+Cohesion: 0.13
 Nodes (11): Audit clavier / focus — pages authentifiées (build publié), 1. Score — 94/100, 2. Le point gagné — Responsive 9 → 10, 3. Ce qui empêche 100/100 (exactement), 4. Régressions, Audit UI/UX — recalcul après recette authentifiée sur build publié, Défaut trouvé et corrigé, Familles représentatives — 6 largeurs (+3 more)
 
 ### Community 408 - "DashboardAgent.razor"
@@ -2706,9 +2699,9 @@ Nodes (16): route:/avoir-exoneration/file, ChargerFileAsync, OnInitializedAsync,
 Cohesion: 0.22
 Nodes (9): 6. Disponibilité, D2 : Calcul de Disponibilité Opérationnelle (NFR-03), CalculateurDisponibilite, ResultatCalculDisponibilite, IEnumerable, TimeSpan, CalculateurDisponibiliteTests, Fact (+1 more)
 
-### Community 414 - ".ExigerAdministrateurDeLaSocieteAsync"
-Cohesion: 0.14
-Nodes (16): ConsulterInvitationQuery, InvitationOuverteVue, InvitationVue, ListerInvitationsQuery, CancellationToken, DateTime, Guid, IReadOnlyList (+8 more)
+### Community 414 - "CIT.Plateforme.Domain.Tests.Tickets"
+Cohesion: 0.13
+Nodes (3): CIT.Plateforme.Domain.Tests.Tickets, BrancheIesExportTests, Fact
 
 ### Community 415 - "NouvelEnrolement.razor"
 Cohesion: 0.12
@@ -2718,17 +2711,17 @@ Nodes (16): route:/enrolement/soumettre, DefinirValeurChamp, DeposerPieceAsync, 
 Cohesion: 0.12
 Nodes (16): route:/support/incidents/file, ChargerAsync, ConfirmerActionAsync, FermerAction, LibelleGravite, OnInitializedAsync, OuvrirAction, PrendreEnChargeAsync (+8 more)
 
-### Community 417 - "UtilisateurSociete"
-Cohesion: 0.03
-Nodes (61): 10. Points à clarifier (PC-xx) — classification revalidée, 11. Scénario contractuel (REC-SCE-08), 12. Risques, 1. État du projet après F006, 2. Feature 007 mise en attente métier, 3. ENR-01 → ENR-05 (reconstitution exacte), 4. Acteurs (aucun rôle Identity nouveau requis), 5. Objets métier — ambiguïté réelle identifiée (non résolue ici) (+53 more)
+### Community 417 - "HabilitationUtilisateur"
+Cohesion: 0.07
+Nodes (27): 10. Points à clarifier (PC-xx) — classification revalidée, 11. Scénario contractuel (REC-SCE-08), 12. Risques, 1. État du projet après F006, 2. Feature 007 mise en attente métier, 3. ENR-01 → ENR-05 (reconstitution exacte), 4. Acteurs (aucun rôle Identity nouveau requis), 5. Objets métier — ambiguïté réelle identifiée (non résolue ici) (+19 more)
 
 ### Community 418 - "Checklist Qualité de la Spécification — Feature 011 (Certification Sécurité & Socle NFR)"
 Cohesion: 0.12
 Nodes (16): 10. Traçabilité, 11. Couverture, 12. Qualité rédactionnelle, 13. Clarifications (session 2026-09-01), 14. Classification du code après clarification, 1. Périmètre — 11 exigences exactement, 2. Exclusions du Final Scope Gate, 3. Nature de certification — non-duplication (+8 more)
 
-### Community 419 - ".ExecuterAsync"
-Cohesion: 0.56
-Nodes (6): FileAdministrable, ListerFilesQuery, CancellationToken, Guid, IReadOnlyList, Task
+### Community 419 - "StrategieAffectation"
+Cohesion: 0.21
+Nodes (13): FileAdministrable, ListerFilesQuery, CancellationToken, Guid, IReadOnlyList, Task, StrategieAffectation, AffectationManuelle (+5 more)
 
 ### Community 420 - "PerformanceAgents.razor"
 Cohesion: 0.12
@@ -2751,15 +2744,15 @@ Cohesion: 0.14
 Nodes (13): 1. Synthèse, 2.1 Cloisonnement des couches — vérifié, 2.3 API, 2.5 Invariants de sécurité, 2. Contrôles passés, 3.1 `MEDIUM` — Aucune politique d'autorisation de repli, 3.2 `MEDIUM` — Page morte, routable et défaillante, 3.3 `MEDIUM` — Logique dupliquée dans sept fichiers (+5 more)
 
 ### Community 425 - ".Publier"
-Cohesion: 0.40
-Nodes (5): Contexte, IdentiteAppelanteEtCloisonnementTests, Fact, Guid, Task
+Cohesion: 0.17
+Nodes (16): 10. Tests ajoutés, 11. Mutations, 13. Régressions, 15. Conclusion, 3. Centralisation après, 4. Identité utilisateur côté serveur, 5. ENT-03, 6. Auteur des messages (+8 more)
 
-### Community 426 - "SuiviBrancheIes"
+### Community 426 - "BrancheIes"
 Cohesion: 0.04
-Nodes (51): D9 — Synchronisation (jointure) IES, 12 & 13. Circuit IES Export (EXP-04) & Non-Régression IES Import, 1.1. Extension de l'Agrégat `Ticket` (`CIT.Plateforme.Domain.Tickets`), 1.2. Extension de l'Énumération `BrancheIes` (`CIT.Plateforme.Domain.Tickets`), 1. Extensions du Modèle de Domaine, 2. Configuration Entity Framework Core (`PlateformeDbContext`), 3.1. Files de Traitement, 3.2. Habilitations & Permissions (+43 more)
+Nodes (42): 12 & 13. Circuit IES Export (EXP-04) & Non-Régression IES Import, 1.1. Extension de l'Agrégat `Ticket` (`CIT.Plateforme.Domain.Tickets`), 1.2. Extension de l'Énumération `BrancheIes` (`CIT.Plateforme.Domain.Tickets`), 1. Extensions du Modèle de Domaine, 2. Configuration Entity Framework Core (`PlateformeDbContext`), 3.1. Files de Traitement, 3.2. Habilitations & Permissions, 3. Données de Référence & Paramétrage Initial (Seed) (+34 more)
 
-### Community 427 - ".Cree_dossier_ticket_et_une_ligne_par_conteneur_dans_la_file_BADT"
-Cohesion: 0.23
+### Community 427 - "CreerDemandeActualisationBadtRequete"
+Cohesion: 0.22
 Nodes (10): CreerDemandeActualisationBadtRequete, LigneDemandeBadt, Guid, IReadOnlyList, ArgumentException, CancellationToken, Fact, InvalidOperationException (+2 more)
 
 ### Community 428 - "StockageDocumentsSecuriteTests"
@@ -2779,12 +2772,12 @@ Cohesion: 0.12
 Nodes (15): 1. Ce qui est déjà livré, 2. Pourquoi la certification ne peut pas se faire ici, 3. Prérequis avant lancement, 4.1 Variables à renseigner, 4.2 Étape 1 — Vérification préalable des sondes, 4.3 Étape 2 — Vérification de l'instrumentation, 4.4 Étape 3 — Tir de charge (NFR-04), 4.5 Étape 4 — Observation de disponibilité (NFR-03) (+7 more)
 
 ### Community 432 - ".ConstruireAsync"
-Cohesion: 0.39
+Cohesion: 0.35
 Nodes (5): ArchivageAutomatiqueTests, Contexte, Fact, Guid, Task
 
 ### Community 433 - ".JoindreAsync"
-Cohesion: 0.20
-Nodes (13): DepotFichiers, MaxParDepot, DocumentCommunSaisi, ResultatDepot, Func, Guid, HashSet, IBrowserFile (+5 more)
+Cohesion: 0.13
+Nodes (19): InputFile, InputFileChangeEventArgs, IStringLocalizer, Microsoft.AspNetCore.Components.Forms, Microsoft.Extensions.Localization, SharedResources, DepotFichiers, MaxParDepot (+11 more)
 
 ### Community 434 - "ReinitialiserMotDePasse.razor"
 Cohesion: 0.12
@@ -2799,20 +2792,20 @@ Cohesion: 0.12
 Nodes (15): route:/comptes/connexion, ConnecterAsync, EstAccesAutoriseAsync, MotifRefus, OnInitialized, ApplicationUser, ChampMotDePasse, EditForm (+7 more)
 
 ### Community 437 - "EntreeJournalAuditVue"
-Cohesion: 0.16
-Nodes (18): ConsulterJournalAuditQuery, EntreeJournalAuditVue, AuteurIntrouvable, AuteurLibelle, IJournalAuditLecture, PageJournalAudit, APagePrecedente, APageSuivante (+10 more)
+Cohesion: 0.13
+Nodes (21): EntreeJournalAuditVue, AuteurIntrouvable, AuteurLibelle, IJournalAuditLecture, PageJournalAudit, APagePrecedente, APageSuivante, DernierRang (+13 more)
 
-### Community 438 - "NormalisationReferentielsTarifaires"
-Cohesion: 0.15
-Nodes (11): 32. Tests manquants (à écrire, non codés), 2. État du repository, Fichiers modifiés, Résultat, Éléments reportés en P2/P3, Guid, MigrationBuilder, NormalisationReferentielsTarifaires (+3 more)
+### Community 438 - "AutorisationChampService"
+Cohesion: 0.05
+Nodes (43): 1. Conformité fonctionnelle, 2. Dette technique, 3. Risques résiduels classés, 4. Décisions métier ouvertes, 5. Conditions de déploiement, Conclusion, Risques résiduels, Résumé exécutif (+35 more)
 
 ### Community 439 - "Requirements *(mandatory)*"
 Cohesion: 0.12
 Nodes (16): Actions de masse (MAS), Affectation (AFF), Alertes et escalades (ALE), Cycle de vie du ticket (CYC), Disponibilité opérateur (DIS), Key Entities *(le socle manipule des données ; aucune structure de table ni classe n'est, Messages et notes internes (MSG), Mesure des temps (TPS) (+8 more)
 
 ### Community 440 - "Feature Specification: Billing Office IMPORT & Unicité BL"
-Cohesion: 0.12
-Nodes (16): Analyse littérale de `docs/04-matrice-recette.md`, Assumptions, Clarifications nécessaires avant planification, Conformité à la constitution (`.specify/memory/constitution.md`), Contrôle de couverture *(vérification mécanique finale)*, Documents, Feature Specification: Billing Office IMPORT & Unicité BL, Frontière avec le socle — besoins d'extension identifiés (fonctionnels uniquement) (+8 more)
+Cohesion: 0.06
+Nodes (35): 0.1 Contradiction IMP-15 — analyse et décision, 0.2 Contradiction UNI-04 — analyse et décision (découverte additionnelle, non signalée par la roadmap), 0.3 Table de sélection des exigences retenues, 0.4 Vérification inverse (Feature 003 → exigences sélectionnées → matrice CDC), Analyse littérale de `docs/04-matrice-recette.md`, Assumptions, Clarifications, Clarifications nécessaires avant planification (+27 more)
 
 ### Community 441 - "POST-IMPLEMENTATION AUDIT REPORT — FEATURE 013"
 Cohesion: 0.15
@@ -2828,7 +2821,7 @@ Nodes (15): Ce que ce quickstart ne couvre pas, Contrôles de sortie, H1 — Lan
 
 ### Community 444 - "ConsulterFileQuery"
 Cohesion: 0.03
-Nodes (74): 1. PRI-02 — Déduction et influence de la priorité, 2. Audit Indépendant des Sujets Candidats, 2. IMP-03 — Numéro de ticket communiqué sur le profil et par e-mail, 4. REC-03 — Orientation automatique Support Opérationnel et instruction, 5. SEC-08 — Double authentification (2FA) pour agents et administrateurs, 6. SOC-14 — Export des données, 7. COM-06 — Canaux des relances automatiques, 8. REC-SCE-14 — Preuve transverse de bout en bout (+66 more)
+Nodes (90): 4. Modules complémentaires, 6. Nature de ces tests (à expliquer au métier), Recette §22 automatisée — correspondance scénarios ↔ tests & mode d'exécution — 10/10/2026, 1. PRI-02 — Déduction et influence de la priorité, Correction du 2026-09-04 (nuit) — les neuf dernières fonctions sans interface, Correction du 2026-09-04 (soir) — parcours client : `IMP-10` et `ERR-01` refermées, 2.4 Autorisation applicative, Audit complet — les 188 exigences confrontées au code livré (+82 more)
 
 ### Community 445 - "SPÉCIFICATION FONCTIONNELLE DÉTAILLÉE & CLARIFIÉE — FEATURE 014"
 Cohesion: 0.12
@@ -2842,49 +2835,49 @@ Nodes (15): 1. INVARIANTS D'ARCHITECTURE & SÉCURITÉ F014, 2. INVENTAIRE DES SU
 Cohesion: 0.14
 Nodes (13): 1. INVARIANTS STRICTS DU PROJET, 2. PHASAGE DU BACKLOG TECHNIQUE (T001 → T029), 4. GESTION DU GAIN CDC CONDITIONNEL, BACKLOG TECHNIQUE & TÂCHES D'EXÉCUTION — FEATURE 016, Disponibilité Opérationnelle, Performance Applicative & Résilience Continue, Phase 10 — Documentation, Audits & Clôture F016, Phase 1 — Baseline, Worktree & Invariants de Surveillance, Phase 2 — NFR-03 : Health Checks & Sondes de Dépendances (L2) (+5 more)
 
-### Community 449 - ".ExecuterAsync"
-Cohesion: 0.23
-Nodes (11): DomaineReferentiel, CanalNotification, CategorieDocument, GraviteIncident, MotifCloture, IReferentielsRepository, ListerReferentielQuery, CancellationToken (+3 more)
+### Community 449 - "LibellesReferentiels"
+Cohesion: 0.14
+Nodes (17): DomaineReferentiel, CanalNotification, CategorieDocument, GraviteIncident, MotifCloture, IReferentielsRepository, ListerReferentielQuery, ValeurReferentielleVue (+9 more)
 
 ### Community 450 - "NatureUtilisateur"
-Cohesion: 0.07
-Nodes (30): 1. L'identité vient du serveur, jamais de l'appelant, 2. Une seule décision générique, 3. Le refus par défaut ne se raisonne pas par exclusion, 4. L'ordre est une règle, pas un détail de rédaction, 5. L'interface n'est jamais la frontière, Architecture d'autorisation — comment décider un accès, Ce qui protège ces règles, Comment écrire une nouvelle surface (+22 more)
+Cohesion: 0.08
+Nodes (25): 1. L'identité vient du serveur, jamais de l'appelant, 2. Une seule décision générique, 3. Le refus par défaut ne se raisonne pas par exclusion, 4. L'ordre est une règle, pas un détail de rédaction, 5. L'interface n'est jamais la frontière, Architecture d'autorisation — comment décider un accès, Ce qui protège ces règles, Comment écrire une nouvelle surface (+17 more)
 
-### Community 451 - "Audit post-implémentation indépendant — Feature 003 : Billing Office IMPORT & Unicité BL"
-Cohesion: 0.18
-Nodes (13): 0. Encart de remédiation ciblée (2026-08-30, seconde session), 15. Audit migrations — voir §9 (fusionné pour éviter la duplication), 17. Régression F001/F002 — modifications du socle, 22. Points PC toujours ouverts — récapitulatif final, 23. Score final (état à l'audit initial — conservé tel quel, voir §24 pour l'état courant), 25. Recommandation, 3. Matrice 23 Must → tests (vue consolidée), 6. UNI-03 — portée du contrôle limitée à Billing IMPORT (+5 more)
+### Community 451 - "PrendreRendezVous.razor"
+Cohesion: 0.13
+Nodes (14): route:/rendez-vous/prendre/{TicketId:guid}, ChangerDateAsync, ChargerCreneauxAsync, ChoisirHeure, ConfirmerReservationAsync, OnInitializedAsync, CreneauDisponibleDto, IndicateurChargement (+6 more)
 
 ### Community 452 - "ValeurChampEnrolement"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (10): ValeurChampEnrolement, ChampCode, Id, TicketId, Valeur, Guid, CancellationToken, Guid (+2 more)
 
 ### Community 453 - "ProformaEtReglementTests"
-Cohesion: 0.16
-Nodes (14): EtapeParcoursClient, EtatProforma, Aucune, CorrectionDemandee, EnAttenteValidation, Validee, ProformaEtReglementTests, ArgumentException (+6 more)
+Cohesion: 0.39
+Nodes (6): ProformaEtReglementTests, ArgumentException, Fact, Guid, MemoryStream, Task
 
 ### Community 454 - "ConversationAssistantTests"
 Cohesion: 0.28
 Nodes (6): ConversationAssistantTests, ArgumentException, DateTime, Fact, InlineData, Theory
 
 ### Community 455 - "DecisionAvoirExo"
-Cohesion: 0.05
-Nodes (38): A.5 Billing Office, 1. Vue d'Ensemble & Stratégie Additive, 2.1 Enum `DecisionAvoirExo`, 2. Énumérations & Types Métier, 3.1 Propriétés Additives, 3.2 Méthodes Métier de Domaine, 3. Extension de l'Entité `Ticket`, 4. Configuration Entity Framework Core (`PlateformeDbContext`) (+30 more)
+Cohesion: 0.04
+Nodes (50): A.5 Billing Office, 1. Vue d'Ensemble & Stratégie Additive, 2.1 Enum `DecisionAvoirExo`, 2. Énumérations & Types Métier, 3.1 Propriétés Additives, 3.2 Méthodes Métier de Domaine, 3. Extension de l'Entité `Ticket`, 4. Configuration Entity Framework Core (`PlateformeDbContext`) (+42 more)
 
 ### Community 456 - "FenetreMaintenance"
-Cohesion: 0.15
+Cohesion: 0.14
 Nodes (14): FenetreMaintenance, DebutUtc, DeclareeLeUtc, DeclareeParId, FinUtc, Id, Motif, DisponibilitePlateformeRepository (+6 more)
 
 ### Community 457 - "PerimetreSupervision"
-Cohesion: 0.23
-Nodes (8): PerimetreSupervision, FilesCouvertes, Id, SuperviseurId, Guid, IEnumerable, IReadOnlyList, List
+Cohesion: 0.17
+Nodes (9): PerimetreSupervision, FilesCouvertes, Id, SuperviseurId, Guid, IEnumerable, IReadOnlyList, List (+1 more)
 
 ### Community 458 - "ScannerAntivirusDefender"
 Cohesion: 0.07
-Nodes (31): 1. Ce que l'application impose, quelle que soit l'option, 2. Option A — IIS sur Windows Server, 3. Option B — Conteneur derrière un proxy inverse, 4. Le point qui distingue réellement les deux options, 5. Comparatif, 6. Réserve commune aux deux options — mise à l'échelle, 7. Verdict, Compatibilité : **partielle — l'antivirus ne fonctionne pas en l'état** (+23 more)
+Nodes (32): 1. Ce que l'application impose, quelle que soit l'option, 2. Option A — IIS sur Windows Server, 3. Option B — Conteneur derrière un proxy inverse, 4. Le point qui distingue réellement les deux options, 5. Comparatif, 6. Réserve commune aux deux options — mise à l'échelle, 7. Verdict, Compatibilité : **partielle — l'antivirus ne fonctionne pas en l'état** (+24 more)
 
 ### Community 459 - "ModaleConfirmationVisibiliteTests"
-Cohesion: 0.28
-Nodes (5): CulturePourLeTest, ModaleConfirmationVisibiliteTests, CultureInfo, Fact, ModaleConfirmation
+Cohesion: 0.26
+Nodes (6): IDisposable, CulturePourLeTest, ModaleConfirmationVisibiliteTests, CultureInfo, Fact, ModaleConfirmation
 
 ### Community 460 - "SoumettreDemandeExport.razor"
 Cohesion: 0.13
@@ -2926,17 +2919,17 @@ Nodes (14): 10. Statut, 1. Pourquoi cette demande, 2. Ce qui est demandé — in
 Cohesion: 0.13
 Nodes (14): Bloqueurs externes, Commits locaux, Conformité CDC, Défauts corrigés pendant cette mission, Incidents, La seule chose urgente, Paquets livrés, Porte de qualité (+6 more)
 
-### Community 470 - ".LireGuid"
-Cohesion: 0.25
-Nodes (8): ResolveurChargeUtile, Guid, ResolveurPreparateurEnrolement, ResolveurValidateursSociete, CancellationToken, Guid, IReadOnlyList, Task
+### Community 470 - ".ResoudreAsync"
+Cohesion: 0.33
+Nodes (6): ResolveurPreparateurEnrolement, ResolveurValidateursSociete, CancellationToken, Guid, IReadOnlyList, Task
 
 ### Community 471 - "CalendrierOuvre"
-Cohesion: 0.10
-Nodes (16): CalendrierOuvre, ToujoursOuvert, DateTime, IReadOnlySet, TimeOnly, TimeSpan, IReadOnlySet, DayOfWeek (+8 more)
+Cohesion: 0.16
+Nodes (10): CalendrierOuvre, ToujoursOuvert, DateTime, IReadOnlySet, TimeOnly, TimeSpan, MoteurSlaTests, Fact (+2 more)
 
-### Community 472 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
+### Community 472 - "Phase 1 — Guide de Validation : Feature 009"
+Cohesion: 0.13
+Nodes (12): Couverture REC-SCE-14 — partielle par construction, Parcours 1 — Centre de notifications et état Lu/Non lu (`TEST-NOT-01`), Parcours 2 — Administration des règles et des modèles (`TEST-NOT-02`), Parcours 3 — Préférences de canaux et notification obligatoire (`TEST-NOT-02` cas 7), Parcours 4 — Échec d'envoi, reprise et isolation (`TEST-ERR-02`), Parcours 5 — Raccordement de la mention `@Nom` (`TEST-MSG-04`), Parcours 6 — Sécurité et cloisonnement (`TEST-NOT-01` cas 5→8), Parcours 7 — Relances (`TEST-COM-06`, conditionnel) (+4 more)
 
 ### Community 473 - "Matrice CDC globale post-F017 — 188 exigences"
 Cohesion: 0.14
@@ -2947,44 +2940,44 @@ Cohesion: 0.20
 Nodes (8): ECCLevel, IGenerateurQrCode, GenerateurQrCodeSvg, GenerateurQrCodeSvgTests, ArgumentException, Fact, InlineData, Theory
 
 ### Community 475 - "Checklist d'observabilité pour la recette"
-Cohesion: 0.18
-Nodes (10): 1. Ce qui existe réellement — vérifié dans le code, 2.2 La durée des requêtes n'est journalisée nulle part, 2.3 La purge de rétention ne s'exécute pas d'elle-même, 2. Trois constats à connaître avant d'ouvrir la recette, 3. Ce qui n'existe pas, 4. À mettre en place avant l'ouverture de la campagne, 5. Contrôles quotidiens pendant la campagne, 6. Consignation (+2 more)
+Cohesion: 0.17
+Nodes (11): 1. Ce qui existe réellement — vérifié dans le code, 2.1 Le mode maintenance rend `/ready` non disponible, 2.2 La durée des requêtes n'est journalisée nulle part, 2.3 La purge de rétention ne s'exécute pas d'elle-même, 2. Trois constats à connaître avant d'ouvrir la recette, 3. Ce qui n'existe pas, 4. À mettre en place avant l'ouverture de la campagne, 5. Contrôles quotidiens pendant la campagne (+3 more)
 
 ### Community 476 - "MesReclamations.razor"
 Cohesion: 0.14
 Nodes (13): route:/reclamations/mes-reclamations, BadgeClasse, Libelle, OnInitializedAsync, EtatVide, FiltreTable, IndicateurChargement, IStringLocalizer (+5 more)
 
-### Community 477 - "ConstruireNavigationQuery"
+### Community 477 - ".ExecuterAsync"
 Cohesion: 0.23
-Nodes (10): ConstruireNavigationQuery, GroupeNavigationVue, LienNavigationVue, CancellationToken, FileDeTraitement, Guid, IReadOnlyList, Task (+2 more)
+Nodes (9): GroupeNavigationVue, LienNavigationVue, CancellationToken, FileDeTraitement, Guid, IReadOnlyList, Task, Guid (+1 more)
 
-### Community 478 - "CanalJournalise"
-Cohesion: 0.03
-Nodes (69): 1. BASELINE TECHNIQUE VALIDÉE, 2. PC-01 — NFR-05 : PROFIL DE CHARGE & VOLUMÉTRIE CIBLE, 3. PC-13 — NFR-09 : ARCHITECTURE CIBLE D'HÉBERGEMENT & CONFORMITÉ GROUPE, 4. STAGING / F016 ENVIRONMENT CERTIFICATION GATE, 5. NFR-06 : SAUVEGARDES, RESTAURATION & PLAN DE REPRISE D'ACTIVITÉ (PRA), 6. PC-16 — ENR-04 : CANAL EXTERNE SMS & WHATSAPP BUSINESS, 7. PC-18 — IA-01 À IA-07 : CADRAGE DU MODULE D'INTELLIGENCE ARTIFICIELLE, 8. SYNTHÈSE DE PRIORISATION & ROADMAP DE CLÔTURE DU CDC (174 $\rightarrow$ 188) (+61 more)
+### Community 478 - "Décisions externes — ce qui ne dépend plus du projet"
+Cohesion: 0.11
+Nodes (17): D-01 — Rotation du mot de passe compromis, D-02 — Environnement Staging / UAT, D-03 — Option de déploiement (PC-13 / NFR-09), D-04 — Profil de charge (PC-01 / NFR-05), D-05 — Fenêtre et définition des heures ouvrées (NFR-03), D-06 — Durée du tir d'endurance (NFR-10), D-07 — Fournisseur de notification (PC-16 / ENR-04, COM-01), D-08 — Assistant conversationnel (PC-18 / IA-01 à IA-07) (+9 more)
 
 ### Community 479 - "Checklist Qualité de la Spécification — Feature 008 (Enrôlement Transporteurs)"
 Cohesion: 0.13
 Nodes (14): 10. Réutilisation F001/F002, 11. Couverture CDC, 12. Matrice de couverture, 1. Fidélité au périmètre, 2. REC-SCE-08, 3. Acteurs, 4. Documents, 5. Badge (+6 more)
 
-### Community 480 - "ConflitDeConcurrenceException"
-Cohesion: 0.19
-Nodes (10): ConflitDeConcurrenceException, ConcurrenceDernierAdministrateurTests, Fact, Task, Fact, Task, ConcurrenceAutresOperationsAuditTests, Fact (+2 more)
+### Community 480 - "GabaritNotificationTests"
+Cohesion: 0.28
+Nodes (4): IReadOnlyDictionary, GabaritNotificationTests, Dictionary, Fact
 
 ### Community 481 - "2. DÉCISIONS DE CLARIFICATION FORMELLES (DEC-017-01 À DEC-017-08)"
 Cohesion: 0.13
 Nodes (14): 1. RÉFÉRENTIEL CONTRACTUEL & SOURCES DE VÉRITÉ, 2. DÉCISIONS DE CLARIFICATION FORMELLES (DEC-017-01 À DEC-017-08), 3. USER STORIES MÉTIER, 4. CONTRATS FONCTIONNELS & TEST-SPEC, DEC-017-01 : Matrice de Contrôle RBAC par Champ (Contexte IES), DEC-017-02 : Comportement du Masquage Côté Serveur, API & Export, DEC-017-03 : Dates de Référence pour les Délais de Conservation Légale, DEC-017-04 : Actions à l'Échéance du Délai (+6 more)
 
-### Community 482 - "JustificatifDemandeCompte"
-Cohesion: 0.18
-Nodes (11): JustificatifDemandeCompte, CleStockage, DateDepotUtc, Id, NomFichier, PieceCode, SocieteId, TailleOctets (+3 more)
+### Community 482 - "RechercheGuichetTests"
+Cohesion: 0.21
+Nodes (9): RechercheGuichet, FakeAutorisationService, Autorise, FakeRechercheGuichetRepository, Resultats, FakeUniteDeTravail, RechercheGuichetTests, Fact (+1 more)
 
 ### Community 483 - "demarrer"
 Cohesion: 0.30
 Nodes (14): creer(), demarrageAutomatique(), demarrer(), afficher(), avancer(), clavier(), fermer(), positionner() (+6 more)
 
-### Community 484 - "Matrice de configuration par environnement"
-Cohesion: 0.20
-Nodes (10): 2. Base de données, 3. Sécurité, 4. Antivirus, 5. Comptes et administration, 6. Notifications, 7. Journalisation, 8. Réglages sans intervention, 9. Récapitulatif (+2 more)
+### Community 484 - "Tasks: Comptes clients, sociétés et utilisateurs rattachés"
+Cohesion: 0.14
+Nodes (13): Contrôle de couverture *(vérification mécanique — à confirmer en Phase 9, T073)*, Dependencies & Execution Order, Format: `[ID] [P?] [Story] Description`, Implementation Strategy, Livraison incrémentale, MVP (User Story 1 uniquement), Parallel Opportunities, Path Conventions (+5 more)
 
 ### Community 485 - "Post-Implementation Audit Indépendant — Feature 011 (Certification Sécurité & Socle NFR)"
 Cohesion: 0.14
@@ -2995,8 +2988,8 @@ Cohesion: 0.14
 Nodes (13): 1. Résumé Exécutif, 2. État des Modules du Cahier des Charges, 3. Historique des Features Réalisées, 4. Couverture Exacte du CDC, 5. Baseline des Tests (État Actuel), 6. Dettes Acceptées et Points Bloquants, 7. Comptes et Personas pour la Recette Manuelle, 8. Roadmap Restante Recommandée (+5 more)
 
 ### Community 487 - "Rapport d'Implémentation Final — Feature 006 (Customer Complaint)"
-Cohesion: 0.07
-Nodes (27): 12. Scénario Contractuel REC-SCE-07 (CDC §22 / Matrice de Recette), 13. Migrations & Modèle de Données, 14. Validation Base de Données SQL Server, 15. Scans d'Architecture & Sécurité, 16. Journalisation & Audit, 17. Non-Régression Globale, 18. Synthèse Couverture F006, 19. Dettes / Écarts (+19 more)
+Cohesion: 0.06
+Nodes (30): 12. Scénario Contractuel REC-SCE-07 (CDC §22 / Matrice de Recette), 13. Migrations & Modèle de Données, 14. Validation Base de Données SQL Server, 15. Scans d'Architecture & Sécurité, 16. Journalisation & Audit, 17. Non-Régression Globale, 18. Synthèse Couverture F006, 19. Dettes / Écarts (+22 more)
 
 ### Community 488 - "Recette authentifiée exhaustive — build publié"
 Cohesion: 0.12
@@ -3035,56 +3028,52 @@ Cohesion: 0.42
 Nodes (5): Tests, JournalConnexionTests, Exception, Fact, Task
 
 ### Community 497 - "Backlog UI/UX ultime"
-Cohesion: 0.07
-Nodes (23): 1. Corrigé et vérifié (tours précédents, pages anonymes), 2. NON TESTÉ ce tour (pages authentifiées — blocage harnais), 3. Restant pour le 10ᵉ point d'accessibilité, Audit accessibilité technique, 1. Score — 93/100 (inchangé, et pourquoi), 2. Ce que le tour a réellement apporté (hors barème), 3. Points non obtenus — classement, 4. Régressions (+15 more)
+Cohesion: 0.08
+Nodes (19): 1. Score — 93/100 (inchangé, et pourquoi), 2. Ce que le tour a réellement apporté (hors barème), 3. Points non obtenus — classement, 4. Régressions, Audit UI/UX — recalcul après recette authentifiée, A. Décisions métier (AM) — NON tranchées, AM-01 — Durée de séjour facturée : borne incluse ou exclue ?, AM-02 — Périmètre du « collaborateur limité » (+11 more)
 
 ### Community 498 - "Revue de fermeture — Feature 001 : Socle transverse de gestion des tickets et workflows"
-Cohesion: 0.14
-Nodes (13): 10. Recommandation finale, 1. Décision D6 — appliquée, 2.0 Préalable — correction d'une incohérence arithmétique du rapport d'audit, 2.2 Traitement spécifique demandé — dette technique transverse (hors lignes des 74), 2. Analyse des exigences PARTIEL restantes, 3. Statut final recalculé (nouvelle taxonomie de clôture), 4. Vérifications finales (section 7 de la demande), 6. Dettes techniques acceptées (fermeture de la Feature 001, sans correction) (+5 more)
+Cohesion: 0.18
+Nodes (10): 10. Recommandation finale, 1. Décision D6 — appliquée, 3. Statut final recalculé (nouvelle taxonomie de clôture), 4. Vérifications finales (section 7 de la demande), 6. Dettes techniques acceptées (fermeture de la Feature 001, sans correction), 7. Points bloqués (non résolus, à dessein), 8. Risques résiduels, 9. Critères de clôture — vérification finale (+2 more)
 
 ### Community 499 - "ActionsDocument.razor"
 Cohesion: 0.12
 Nodes (15): ExecuterAsync, Fermer, LireAsync, OuvrirAsync, ApercuDocument, IJSRuntime, IServiceScopeFactory, IStringLocalizer (+7 more)
 
 ### Community 500 - ".CreerPourDestinataireAsync"
-Cohesion: 0.20
-Nodes (8): CancellationToken, Func, Task, Guid, CancellationToken, Guid, IReadOnlyList, Task
+Cohesion: 0.31
+Nodes (5): Guid, CancellationToken, Guid, IReadOnlyList, Task
 
 ### Community 501 - "VerifierCode.razor"
 Cohesion: 0.14
 Nodes (13): route:/comptes/verifier-code, EstAccesAutoriseAsync, OnInitialized, ApplicationUser, EditForm, IHttpContextAccessor, InfoBulle, InputText (+5 more)
 
-### Community 502 - "ApplicationUser"
-Cohesion: 0.11
-Nodes (24): IdentityUser, 13. Dette technique — 2 décisions à classifier, A. `UtilisateurSociete.UtilisateurId` sans FK vers `AspNetUsers.Id`, B. `Dossier.ClientId` sans FK vers `Societes.Id`, IDoubleAuthentificationAdministration, ApplicationUser, EstActif, LanguePreferee (+16 more)
+### Community 502 - ".La_reinitialisation_desactive_la_2fa_invalide_les_codes_et_revoque_les_sessions"
+Cohesion: 0.22
+Nodes (10): IDoubleAuthentificationAdministration, DoubleAuthentificationAdministration, CancellationToken, Guid, Task, UserManager, SecoursDoubleAuthentificationTests, Fact (+2 more)
 
 ### Community 503 - "Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)"
-Cohesion: 0.17
-Nodes (11): BACKLOG DES TÂCHES TECHNIQUES — FEATURE 017, Phase 10 — Audit de Non-Régression & Clôture, Phase 1 — Baseline & Worktree Safety, Phase 2 — SEC-02 : Moteur d'Autorisation RBAC par Champ (Domain & Application), Phase 3 — SEC-02 : Intégrations API REST, Export CSV & UI Blazor, Phase 4 — SEC-02 : Traçabilité des Refus & Certification `SEC-CERT-02`, Phase 6 — SEC-06 : Moteur Temporel de Rétention & Gel Légal, Phase 7 — SEC-06 : Exécution de Purge, Anonymisation & Traçabilité de Lot (+3 more)
+Cohesion: 0.18
+Nodes (10): BACKLOG DES TÂCHES TECHNIQUES — FEATURE 017, Phase 10 — Audit de Non-Régression & Clôture, Phase 1 — Baseline & Worktree Safety, Phase 3 — SEC-02 : Intégrations API REST, Export CSV & UI Blazor, Phase 4 — SEC-02 : Traçabilité des Refus & Certification `SEC-CERT-02`, Phase 6 — SEC-06 : Moteur Temporel de Rétention & Gel Légal, Phase 7 — SEC-06 : Exécution de Purge, Anonymisation & Traçabilité de Lot, Phase 8 — SEC-06 : Certification Temporelle & Invariant Append-Only `SEC-CERT-06` (+2 more)
 
 ### Community 504 - "Audit de sécurité (pentest statique) — Plateforme YABA"
-Cohesion: 0.08
-Nodes (23): 12.1 Le facteur dominant : architecture **Blazor Server**, 12.3 Ce qui tient bien, 12.4 Recommandations priorisées pour tenir la charge, 12.6 Mesures réelles (partielles, honnêtes), 12. Comportement sous charge — 10 000 connexions simultanées & fort débit, 1. Synthèse des findings, 2. Points forts vérifiés (contrôles solides), 4. Couverture OWASP Top 10 (2021) (+15 more)
+Cohesion: 0.07
+Nodes (28): 12.1 Le facteur dominant : architecture **Blazor Server**, 12.3 Ce qui tient bien, 12.6 Mesures réelles (partielles, honnêtes), 12. Comportement sous charge — 10 000 connexions simultanées & fort débit, 1. Synthèse des findings, 2. Points forts vérifiés (contrôles solides), 3. Findings détaillés, 4. Couverture OWASP Top 10 (2021) (+20 more)
 
 ### Community 505 - "SurveillerEcheancesCalendrierTests"
 Cohesion: 0.40
 Nodes (6): SurveillerEcheancesCalendrierTests, DateTime, Fact, Guid, Task, TimeSpan
 
-### Community 506 - ".PreparerAsync"
+### Community 506 - "ParametresCourants"
+Cohesion: 0.14
+Nodes (13): ParametresCourants, ConservationAuditAnnees, ConservationBrouillonJours, ConservationComptableAnnees, ConservationDossierAnnees, IntervalleSonde, MaxBlParDemande, MaxPiecesParDepot (+5 more)
+
+### Community 508 - "EntetesSecuriteDurciesTests"
 Cohesion: 0.35
-Nodes (7): ListerLibellesStatutQuery, Contexte, GererLibellesStatutTests, Fact, Guid, InvalidOperationException, Task
-
-### Community 507 - "PassageEnFileRepository"
-Cohesion: 0.18
-Nodes (6): MesureActualisationBadtRepository, PassageEnFileRepository, DateTime, IReadOnlyCollection, MesureActualisationBadt, PassageEnFile
-
-### Community 508 - "10.3 Batterie d'attaques automatisée (tests de non-régression sécurité)"
-Cohesion: 0.15
-Nodes (15): 10.1 Suites exécutées (unitaire + intégration + fonctionnel/E2E), 10.2 Couverture de lignes mesurée (coverlet, max par assembly), 10.3 Batterie d'attaques automatisée (tests de non-régression sécurité), 10. Couverture de tests & batterie d'attaques (2026-09-25), 9.4 Non exécutés (nécessitent un compte de test / instance déployée), HEADERS / SESSION / API, EntetesSecuriteDurciesTests, Fact (+7 more)
+Nodes (6): EntetesSecuriteDurciesTests, Fact, HttpClient, InlineData, Task, Theory
 
 ### Community 509 - "CIT.Plateforme.Application.Supervision"
-Cohesion: 0.06
-Nodes (14): CIT.Plateforme.Domain.Exploitation, CIT.Plateforme.Domain.Supervision, CIT.Plateforme.Application.SuiviTemps, CIT.Plateforme.Domain.Tests.SuiviTemps, CIT.Plateforme.Application.Tests.Supervision, CIT.Plateforme.Application.Tests.Exploitation, CIT.Plateforme.Application.Supervision, CIT.Plateforme.Application.Formulaires (+6 more)
+Cohesion: 0.08
+Nodes (12): CIT.Plateforme.Domain.Exploitation, CIT.Plateforme.Domain.Supervision, CIT.Plateforme.Application.SuiviTemps, CIT.Plateforme.Application.Affectation, CIT.Plateforme.Domain.Tests.SuiviTemps, CIT.Plateforme.Application.Tests.Supervision, CIT.Plateforme.Application.Supervision, CIT.Plateforme.Domain.SuiviTemps (+4 more)
 
 ### Community 510 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -3095,8 +3084,8 @@ Cohesion: 0.22
 Nodes (10): CategorieAdminVue, CancellationToken, Guid, IReadOnlyList, Task, ListerToutesCategoriesReclamationQueryTests, CancellationToken, Fact (+2 more)
 
 ### Community 512 - "CentreNotifications.razor"
-Cohesion: 0.14
-Nodes (13): LigneNotification, ChargerAsync, MarquerCommeLueAsync, MarquerToutesAsync, OnInitializedAsync, IndicateurChargement, IStringLocalizer, Microsoft.AspNetCore.Authorization (+5 more)
+Cohesion: 0.10
+Nodes (25): LigneNotification, ConsulterMesNotificationsQuery, LigneNotification, MarquerNotificationLueCommand, CancellationToken, DateTime, Guid, IReadOnlyList (+17 more)
 
 ### Community 513 - "NouvelleDemandeBadt.razor"
 Cohesion: 0.14
@@ -3110,9 +3099,9 @@ Nodes (11): EmettreAsync, OnParametersSet, GestionProformaCommand, InputFile, IS
 Cohesion: 0.36
 Nodes (4): CustomerComplaintTicketTests, ArgumentException, Fact, InvalidOperationException
 
-### Community 516 - "2. Décisions Techniques Structurantes (D1 à D15)"
-Cohesion: 0.13
-Nodes (14): 1. Vue d'Ensemble Architecturale, 2. Décisions Techniques Structurantes (D1 à D15), Architecture Research & Technical Decisions: Consolidation UI/UX F001-F003, D10 — Convention de Sécurité 403 / 404, D11 — Design System Léger & CSS Tokens, D12 — Responsive & Ergonomie Mobile (`NFR-02`), D13 — Plan de Migration des Routes, D15 — Éradication Complète des Saisies de GUIDs (+6 more)
+### Community 516 - "DepotFilesFige"
+Cohesion: 0.31
+Nodes (7): DepotFilesFige, DepotHabilitationsFige, NavigationDeTest, CancellationToken, Guid, IReadOnlyList, Task
 
 ### Community 517 - "1. TRAITEMENT & RÉSOLUTION FORMELLE DES POINTS À CLARIFIER (PC)"
 Cohesion: 0.15
@@ -3159,8 +3148,8 @@ Cohesion: 0.13
 Nodes (14): 1. CONTEXTE MÉTIER & EXIGENCES CDC CONTRACTUELLES, 2. DÉCISIONS DE CLARIFICATION FONCTIONNELLE (CLAR-SEC-015), 3.1 Surfaces applicatives et d'infrastructure, 3. PÉRIMÈTRE DÉTAILLÉ DES SURFACES & COMPOSANTS, 4. USER STORIES CONTRACTUELLES, 5. SUITE CONTRACTUELLE TEST-SPEC (11 SCÉNARIOS), 6. INVARIANTS & ANTI-SCOPE, SPÉCIFICATION FONCTIONNELLE & DÉCISIONS CLARIFIÉES — FEATURE 015 (+6 more)
 
 ### Community 528 - "Revue de Clôture Finale — Feature 009"
-Cohesion: 0.06
-Nodes (33): 10. Audit de la Migration EF Core, 12. Frontières Strictes (CON et AVE), 13. Évaluation des Dettes Acceptées, 14. Matrice Git de Préparation au Commit Sélectif, 15. Verdict Final, 1. Baseline Finale Certifiée, 2. Exigences COM (Communication & Canaux), 3. Exigences NOT (Centre de Notifications In-App) (+25 more)
+Cohesion: 0.07
+Nodes (25): 10. Audit de la Migration EF Core, 11. Canaux, Fournisseurs et Sécurité, 12. Frontières Strictes (CON et AVE), 13. Évaluation des Dettes Acceptées, 14. Matrice Git de Préparation au Commit Sélectif, 15. Verdict Final, 1. Baseline Finale Certifiée, 2. Exigences COM (Communication & Canaux) (+17 more)
 
 ### Community 529 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -3190,32 +3179,32 @@ Nodes (12): 1. Synthèse Exécutive & Objectifs, 2. Table Comparative des Circui
 Cohesion: 0.15
 Nodes (12): 1. Parcours Client : Calcul, Sauvegarde & Export Proforma, 2. Parcours Administrateur : Gestion des Grilles & Import CSV, 3. Parcours de Rattachement Billing (Optionnel), Quickstart & Validation Manuelle — Feature 005 : Simulation de Proforma, Étape 1 : Accès au Simulateur, Étape 1 : Accès à l'Administration Tarifaire, Étape 2 : Import d'un Fichier CSV Invalide (Test de Rejet Atomique), Étape 2 : Saisie des Paramètres du Dossier (+4 more)
 
-### Community 536 - "AnnulationSeuilBloquantTests"
-Cohesion: 0.12
-Nodes (20): 4.2 Vérification conceptuelle des transitions, 4.3 Règles recontrôlées, 4.4 Réserve, 4. Validation P1-01 — **VALIDÉ, avec une réserve de couverture**, Cause racine, Correction, Exigence, P1-01 — Fermeture de l'annulation directe (+12 more)
+### Community 536 - "AnnulationTests"
+Cohesion: 0.20
+Nodes (10): Tests ajoutés, Tests modifiés, AnnulationLibreFermeeException, Fact, Task, AnnulationTests, ArgumentException, Fact (+2 more)
 
 ### Community 537 - "3. Checklist d'homologation"
 Cohesion: 0.17
 Nodes (12): 1. Ce que le CDC exige, 2. Ce que l'équipe technique ne peut pas décider, 3.1 Localisation et architecture, 3.2 Base de données, 3.3 Réseau et exposition, 3.4 Identité, accès et secrets, 3.5 Exploitation, 3.6 Conformité Groupe (+4 more)
 
-### Community 538 - "2. Reconstruction Feature par Feature"
-Cohesion: 0.06
-Nodes (32): 10. Roadmap actualisée jusqu'à 188/188, 1. Méthode, 2. Reconstruction Feature par Feature, 3. Les 188 exigences — table nominative, 6. REC-SCE — réconciliation F009 / F010, 7. Baseline officielle R0, 8. Exigences restantes — 42, 9. Périmètre reconstruit de la Feature candidate (+24 more)
+### Community 538 - "DeclarationPresentielleTests"
+Cohesion: 0.05
+Nodes (43): 10. Roadmap actualisée jusqu'à 188/188, 1. Méthode, 2. Reconstruction Feature par Feature, 3. Les 188 exigences — table nominative, 4. Analyse de l'écart 152 / 146 — **RÉSOLU**, 6. REC-SCE — réconciliation F009 / F010, 7. Baseline officielle R0, 8. Exigences restantes — 42 (+35 more)
 
 ### Community 539 - ".ConstruireContexte"
 Cohesion: 0.48
 Nodes (4): VerifierAccesCompteTests, Fact, Guid, Task
 
 ### Community 540 - "ComposantsPartagesAtteignablesTests"
-Cohesion: 0.24
-Nodes (8): 9. Tests, Ajoutés — 27, Aucun test existant modifié, ComposantsPartagesAtteignablesTests, Dictionary, DirectoryInfo, Fact, IEnumerable
+Cohesion: 0.22
+Nodes (9): 7. Garde d'atteignabilité des composants partagés, 9. Tests, Ajoutés — 27, Aucun test existant modifié, ComposantsPartagesAtteignablesTests, Dictionary, DirectoryInfo, Fact (+1 more)
 
 ### Community 541 - ".ExecuterAsync"
 Cohesion: 0.17
 Nodes (12): ResultatActionDeMasse, TypeActionDeMasse, Affecter, ModifierPriorite, Reaffecter, Transferer, CancellationToken, Func (+4 more)
 
 ### Community 542 - "RecetteAuthentifieePublishTests"
-Cohesion: 0.22
+Cohesion: 0.20
 Nodes (8): Audit dark mode — pages authentifiées (build publié), Défauts trouvés et corrigés, Gardes, Non-régression clair, RecetteAuthentifieePublishTests, Fact, InlineData, Theory
 
 ### Community 543 - "Point de publication — release `e0a3721`"
@@ -3230,33 +3219,33 @@ Nodes (12): A. Cycle de vie du compte société (CIT + demandeur), B. Authentifi
 Cohesion: 0.17
 Nodes (11): 1. BASELINE TECHNIQUE VALIDÉE, 2 bis. CORRECTIONS APPLIQUÉES APRÈS RÉCONCILIATION CDC, 2. RECONSTRUCTION FORENSIQUE DES 188 EXIGENCES CDC, 3. ANALYSE D'ÉLIGIBILITÉ DES CANDIDATS & SCORING, 4. AUDIT DES DÉPENDANCES ET POINTS À CLARIFIER, 5. ROADMAP OFFICIELLE POUR ATTEINDRE 188 / 188 (100 %), 6. RECOMMANDATION FINALE, A. Bloc F016 — Techniquement livré / Preuves environnementales différées (3 exigences) (+3 more)
 
-### Community 546 - "ApercuDocument.razor"
-Cohesion: 0.18
-Nodes (10): DisposeAsync, FermerAsync, LibererAsync, OnAfterRenderAsync, IJSRuntime, IndicateurChargement, IStringLocalizer, Microsoft.Extensions.Localization (+2 more)
+### Community 546 - ".ConstruireBase"
+Cohesion: 0.27
+Nodes (7): NouvelleReclamation, FakeNumerotationService, NouvelleReclamationTests, CancellationToken, Fact, Guid, Task
 
 ### Community 547 - "RegleAccesConnexionTests"
-Cohesion: 0.27
-Nodes (9): 1. Conformité fonctionnelle, 2. Dette technique, 3. Risques résiduels classés, 4. Décisions métier ouvertes, 5. Conditions de déploiement, Risques résiduels, RegleAccesConnexionTests, Fact (+1 more)
+Cohesion: 0.53
+Nodes (3): RegleAccesConnexionTests, Fact, Task
 
 ### Community 548 - ".Construire"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (13): GraviteIncident, Critique, Majeure, Mineure, ReferentielGraviteIncident, ReferentielsTests, ArgumentException, CanalNotification (+5 more)
 
-### Community 549 - "LotPurgeRetention"
-Cohesion: 0.04
-Nodes (48): 1. Périmètre, 2. Résultat, 3. La seule opération à risque, 4. Ordonnancement et cohérence, 5. Contrainte connue sur `DbBillingOffice`, 6. Verdict, Audit de sûreté des migrations, 2. NOUVELLE ENTITÉ DE TRAÇABILITÉ DE LOT (`LotPurgeRetention`) (+40 more)
+### Community 549 - "AjoutRetentionEtGelLegal"
+Cohesion: 0.06
+Nodes (27): 1. Périmètre, 2. Résultat, 3. La seule opération à risque, 4. Ordonnancement et cohérence, 5. Contrainte connue sur `DbBillingOffice`, 6. Verdict, Audit de sûreté des migrations, 1. SYNTHÈSE FORENSIQUE (+19 more)
 
 ### Community 550 - ".Creer"
 Cohesion: 0.27
 Nodes (9): CommandFlags, RedisValue, SignalSupervisionRedisTests, Action, Fact, ISubscriber, Mock, RedisChannel (+1 more)
 
-### Community 551 - "TypeClient"
-Cohesion: 0.03
-Nodes (98): Arbitrages toujours ouverts, Cause racine, Cause racine, Conclusion, Constats nouveaux, à arbitrer, Deux décisions, Extension de la garde d'atteignabilité, Fichiers concernés (+90 more)
+### Community 551 - "CloisonnementService"
+Cohesion: 0.02
+Nodes (132): 12.2 Blocages concrets identifiés dans le code, 12.5 Durcissements appliqués (2026-09-30), 1. Rapport d'écart — stack & architecture, 5. Capacités existantes non certifiées, Correction de l'affirmation de `docs/16`, Famille SEC (12) — **AUCUNE n'a jamais été comptée dans un delta de Feature**, 12. Risques de régression, 4.1 Règles de gestion — 42 / 45 à l'audit, **45 / 45 après remédiation** (+124 more)
 
-### Community 552 - "Preflight Feature 012 — Remédiation Dettes Métier, Recette Transverse & Clôture Réserves"
-Cohesion: 0.17
-Nodes (11): 1. Baseline Technique et CDC, 3. Anti-Scope Strict de la Feature 012, 4. Synthèse des Classifications, 5. Bilan du Périmètre et Couverture, 6. Definition of Done (DoD) F012, 7. Registre des Risques F012, 8. Conclusion et Validation de Scope, Baseline CDC Nominative Post-F011 (+3 more)
+### Community 552 - "2. Audit Indépendant des Sujets Candidats"
+Cohesion: 0.11
+Nodes (18): 1. Baseline Technique et CDC, 2. Audit Indépendant des Sujets Candidats, 2. IMP-03 — Numéro de ticket communiqué sur le profil et par e-mail, 3. Anti-Scope Strict de la Feature 012, 4. REC-03 — Orientation automatique Support Opérationnel et instruction, 4. Synthèse des Classifications, 5. Bilan du Périmètre et Couverture, 5. SEC-08 — Double authentification (2FA) pour agents et administrateurs (+10 more)
 
 ### Community 553 - "FEATURE 015 — RAPPORT DE VALIDATION DE SCOPE FORENSIQUE"
 Cohesion: 0.17
@@ -3282,13 +3271,13 @@ Nodes (13): 1. OBJECTIF TECHNIQUE & CADRE D'EXÉCUTION, 2.1 Règle Fondamentale 
 Cohesion: 0.38
 Nodes (5): CancellationToken, Fact, Guid, InvalidOperationException, Task
 
-### Community 559 - "DetailDossier.razor"
-Cohesion: 0.17
-Nodes (11): route:/dossiers/{DossierId:guid}/operationnel, OnInitializedAsync, ConsulterDossierQuery, FiltreTable, IStringLocalizer, Microsoft.AspNetCore.Authorization, Microsoft.Extensions.Localization, PageTitle (+3 more)
+### Community 559 - ".DefinirAvecCalendrierAsync"
+Cohesion: 0.29
+Nodes (8): AxesSlaDisponibles, CancellationToken, Guid, IReadOnlyCollection, IReadOnlyList, Task, TimeOnly, TimeSpan
 
 ### Community 560 - "FondsThematisesTests"
-Cohesion: 0.09
-Nodes (21): 1. Baseline reconstruite (revalidée dans le code courant), 3. Non corrigés — et pourquoi (aucun report de confort), 4. D-04 — comportements et recommandation (analyse demandée), 5. Tests, 6. Verdict, Remédiation UI/UX complète — fermeture P1 + P2 + P3, 2. UI-R02 — la cause dans le système de thème, pas trois cartes, 1. Classification des 217 styles inline (+13 more)
+Cohesion: 0.12
+Nodes (16): ConcurrentQueue, 1. Baseline reconstruite (revalidée dans le code courant), 3. Non corrigés — et pourquoi (aucun report de confort), 4. D-04 — comportements et recommandation (analyse demandée), 5. Tests, 6. Verdict, Remédiation UI/UX complète — fermeture P1 + P2 + P3, 2. UI-R02 — la cause dans le système de thème, pas trois cartes (+8 more)
 
 ### Community 561 - "Pec05AffectationDirecteTests"
 Cohesion: 0.33
@@ -3307,8 +3296,8 @@ Cohesion: 0.17
 Nodes (11): 1. SYNTHÈSE DE LA REVUE DE CLÔTURE, 2. CONFORMITÉ TECHNIQUE & EXÉCUTION DES TESTS, 3. AUDIT DÉTAILLÉ DES SURFACES LOCALISÉES (13/13), 4. COMPLÉTUDE DES RESSOURCES & PARITÉ, 5. DÉCISION RELATIVE À L'ÉCART D'ARCHITECTURE, 6. CONTRATS C14 & SUITE TEST-SPEC (100 %), 7. RESPECT DE L'ANTI-SCOPE, 8. ÉTAT DES DETTES & ANOMALIES (+3 more)
 
 ### Community 565 - "AdministrationComptesRepository"
-Cohesion: 0.31
-Nodes (7): 10. Session déjà ouverte, AdministrationComptesRepository, CancellationToken, Guid, IReadOnlyList, Task, UserManager
+Cohesion: 0.36
+Nodes (6): AdministrationComptesRepository, CancellationToken, Guid, IReadOnlyList, Task, UserManager
 
 ### Community 566 - ".ConstruireAsync"
 Cohesion: 0.41
@@ -3318,41 +3307,41 @@ Nodes (6): RG-SLA-01, AxeCategorieClientSlaTests, Contexte, Fact, Guid, Task
 Cohesion: 0.20
 Nodes (9): 0. Pré-vol (poste de dev), 1. Sauvegarde base prod (SQL 10.88.179.104, base `yaba`) — AVANT tout, 2. Appliquer la migration (idempotent — ne rejoue que le manquant), 3. Mettre à jour le worktree de publication (JAMAIS depuis le dossier de travail), 4. Publier vers IIS (MSDeploy / WMSVC) — depuis `yaba-publication`, 5. Vérifications post-déploiement, 6. Rollback, Point de publication — release `5fa9838` (AVEC migration) (+1 more)
 
-### Community 568 - "Quickstart — Billing Office IMPORT & Unicité BL"
-Cohesion: 0.15
-Nodes (12): 1. Prérequis, 2. Installation / migration, 3. Paramétrage initial (avant tout usage métier), 4. Comptes de validation, 5.1 Scénarios CDC applicables (REC-SCE-01 à 04, portion Feature 003 uniquement), 5.2 TEST-SPEC — Must et Should sans scénario CDC applicable, 5.3 Scénarios de concurrence et de normalisation (unicité BL — CLAR-BL-01), 5.4 Scénarios IES (jointure indépendante de l'ordre) (+4 more)
+### Community 568 - ".ConstruireContexte"
+Cohesion: 0.46
+Nodes (4): SecCert02CloisonnementTests, Fact, Guid, Task
 
 ### Community 569 - "Tasks: Consolidation UI/UX des Features 001 à 003"
 Cohesion: 0.15
 Nodes (12): 1. Vue d'Ensemble et Baseline de Non-Régression, 2. Inventaire et Découpage des Tâches par Phase, 3. Matrice de Traçabilité des Contrats et des Exigences, 4. Bilan et Statistiques du Plan de Tâches, Baseline de Référence : **260 tests automatisés existants**, Phase 10 : Refactoring des Pages Billing Import & Éradication Complète des GUIDs, Phase 11 : Parcours E2E, Durcissement de Sécurité & Non-Régression Finale, Phase 2 : Design System Léger & Composants Partagés (+4 more)
 
-### Community 570 - "FakeAdministrationComptesRepository"
-Cohesion: 0.42
-Nodes (5): FakeAdministrationComptesRepository, CancellationToken, Guid, IReadOnlyList, Task
+### Community 570 - "PerimetresSupervisionTests"
+Cohesion: 0.24
+Nodes (8): PerimetresSupervision, FakeAdministrationComptesRepository, PerimetresSupervisionTests, CancellationToken, Fact, Guid, IReadOnlyList, Task
 
 ### Community 571 - ".ChargerParquesAsync"
 Cohesion: 0.31
 Nodes (7): CancellationToken, Guid, IReadOnlyList, Task, CancellationToken, Fact, Task
 
 ### Community 572 - "HistoriqueDisponibilite"
-Cohesion: 0.19
-Nodes (9): HistoriqueDisponibilite, AncienStatut, HorodatageUtc, Id, NouveauStatut, OperateurId, DateTime, Guid (+1 more)
+Cohesion: 0.12
+Nodes (13): HistoriqueDisponibilite, AncienStatut, HorodatageUtc, Id, NouveauStatut, OperateurId, DateTime, Guid (+5 more)
 
-### Community 573 - ".ExecuterAsync"
-Cohesion: 0.27
-Nodes (7): CancellationToken, Guid, Task, CancellationToken, Fact, InvalidOperationException, Task
+### Community 573 - ".Agent_sans_permission_est_refuse"
+Cohesion: 0.43
+Nodes (4): CancellationToken, Fact, InvalidOperationException, Task
 
 ### Community 574 - ".Extraire"
-Cohesion: 0.27
+Cohesion: 0.24
 Nodes (6): InformationsSociete, Regex, InformationsSocieteTests, Fact, InlineData, Theory
 
 ### Community 575 - "ReportingActualisationBadt.razor"
 Cohesion: 0.12
 Nodes (16): DetailMesureBadtDto, route:/administration/reporting-badt, BasculerDetailAsync, ChargerAsync, ExporterAsync, FormaterDuree, OnInitializedAsync, IJSRuntime (+8 more)
 
-### Community 576 - "Remédiation P0-bis — Cloisonnement agent sur les fiches Ticket / Dossier"
-Cohesion: 0.18
-Nodes (10): 11. Résultats, 12. Risques résiduels, 13. Conclusion, 2. Cause racine, 3. Surface affectée, 4. Reproduction avant correction, 6. Contrôle Agent, 7. Protection des notes internes (+2 more)
+### Community 576 - "TestDbIsolationTests"
+Cohesion: 0.24
+Nodes (5): TestDbIsolationTests, Fact, InlineData, InvalidOperationException, Theory
 
 ### Community 577 - ".SynchroniserTicketModifie"
 Cohesion: 0.44
@@ -3364,7 +3353,7 @@ Nodes (4): LibellesStatutParametrablesTests, ArgumentException, Fact, Task
 
 ### Community 579 - "UniteDeTravail"
 Cohesion: 0.03
-Nodes (142): AntivirusQuiLitVraiment, Contexte, Les 26 tableaux sans état vide, 9. Source unique d'autorisation, 🟠 P0 = FERMÉ AVEC RISQUE RÉSIDUEL, 1.1 Traités dans cette clôture, FileAvoirExoneration, IdentiteDeTest (+134 more)
+Nodes (186): AdministrationCategories, AntivirusQuiLitVraiment, Collaborateurs, Trois notions, à ne jamais confondre, Les 26 tableaux sans état vide, Comptes désactivés, 15. Tests de mutation, 1.1 Traités dans cette clôture (+178 more)
 
 ### Community 580 - "CIT.Plateforme.Application.csproj"
 Cohesion: 0.24
@@ -3403,28 +3392,28 @@ Cohesion: 0.18
 Nodes (11): 3.10 Sécurité et audit, 3.1 Comptes et habilitations, 3.2 Socle ticket, 3.3 Workflow, temps et SLA, 3.4 Supervision, affectation et priorité, 3.5 Alertes et escalades, 3.6 Billing Office, 3.7 Tarification (+3 more)
 
 ### Community 589 - "MesIncidents.razor"
-Cohesion: 0.07
-Nodes (26): route:/support/incidents/mes-incidents, route:/support/incidents/signaler, ValeurReferentielleVue, LibelleGravite, OnInitializedAsync, FiltreTable, IndicateurChargement, Microsoft.AspNetCore.Authorization (+18 more)
+Cohesion: 0.18
+Nodes (10): route:/support/incidents/mes-incidents, LibelleGravite, OnInitializedAsync, FiltreTable, IndicateurChargement, Microsoft.AspNetCore.Authorization, PageTitle, Pagination (+2 more)
 
-### Community 590 - "ServiceNumerotation"
-Cohesion: 0.08
-Nodes (30): Avantages, Avantages, Description, Description, Décision, Impact concurrence, Impact concurrence, Impact exploitation (+22 more)
+### Community 590 - "Option B — Séquences globales ticket/dossier avec préfixes, conforme au code actuel"
+Cohesion: 0.12
+Nodes (16): Avantages, Description, Décision, Impact concurrence, Impact exploitation, Impact maintenabilité, Impact migration, Impact volumétrie future (+8 more)
 
 ### Community 591 - "InMemoryEvenementSocleRepository"
-Cohesion: 0.12
-Nodes (19): Tests modifiés, DirectExecuteurTransactionnel, ImpCert03NotificationEmailTests, InMemoryEvenementSocleRepository, CancellationToken, DateTime, Func, Guid (+11 more)
+Cohesion: 0.26
+Nodes (9): DirectExecuteurTransactionnel, ImpCert03NotificationEmailTests, InMemoryEvenementSocleRepository, CancellationToken, DateTime, Func, Guid, IReadOnlyList (+1 more)
 
-### Community 592 - "DashboardSociete.razor"
-Cohesion: 0.18
-Nodes (10): route:/societe/dashboard, OnInitializedAsync, FiltreTable, IndicateurChargement, IStringLocalizer, Microsoft.AspNetCore.Authorization, Microsoft.Extensions.Localization, PageTitle (+2 more)
+### Community 592 - "Vérification des remédiations d'urgence"
+Cohesion: 0.17
+Nodes (10): 2. Préalables — les deux causes sont refermées, INC-01 — Secret embarqué, INC-02 — Amorçage destructif non gardé, INC-03 — Dépôt non reproductible, INC-04 — Divulgation du jeton de réinitialisation (G-04), INC-05 — Isolation de la base de test, INC-06 — `<ResourcePreloader />`, Synthèse (+2 more)
 
 ### Community 593 - "CIT.Plateforme.Web.Tests.csproj"
-Cohesion: 0.18
-Nodes (10): bunit (2.9.0), Microsoft.AspNetCore.Mvc.Testing (10.0.11), net10.0, coverlet.collector (6.0.4), Microsoft.EntityFrameworkCore.InMemory (10.0.11), Microsoft.NET.Test.Sdk (17.14.1), Moq (4.20.72), xunit (2.9.3) (+2 more)
+Cohesion: 0.17
+Nodes (11): bunit (2.9.0), Microsoft.AspNetCore.Mvc.Testing (10.0.11), System.Security.Cryptography.Xml (10.0.13), net10.0, coverlet.collector (6.0.4), Microsoft.EntityFrameworkCore.InMemory (10.0.11), Microsoft.NET.Test.Sdk (17.14.1), Moq (4.20.72) (+3 more)
 
 ### Community 594 - "TransitionAutorisee"
-Cohesion: 0.12
-Nodes (9): TransitionAutorisee, FileCibleId, FileSourceId, Id, MotifsAutorises, Guid, IEnumerable, IReadOnlyList (+1 more)
+Cohesion: 0.07
+Nodes (20): 1. Prérequis, 3. Paramétrage initial (avant tout usage métier), 4. Comptes de validation, 5.1 Scénarios CDC applicables (REC-SCE-01 à 04, portion Feature 003 uniquement), 5.2 TEST-SPEC — Must et Should sans scénario CDC applicable, 5.3 Scénarios de concurrence et de normalisation (unicité BL — CLAR-BL-01), 5.4 Scénarios IES (jointure indépendante de l'ordre), 5.5 Scénario multi-BL (indépendance) (+12 more)
 
 ### Community 595 - "REGRESSION AUDIT REPORT — FEATURE 013"
 Cohesion: 0.18
@@ -3438,9 +3427,9 @@ Nodes (10): Audit de périmètre — Scénarios de recette CDC §22 vs Feature 0
 Cohesion: 0.18
 Nodes (11): Assumptions, Clarifications nécessaires avant planification, Feature Specification: Socle transverse de gestion des tickets et workflows, Matrice de couverture — Exigence CDC → User Story → Critère d'acceptation → Couverture, Measurable Outcomes, Paramétrabilité *(comportements devant rester administrables sans développement, conformément, Périmètre de cette feature, Sources de vérité (+3 more)
 
-### Community 598 - "3. Plan Détaillé des Tâches par Phase"
+### Community 598 - "NouvelleReclamation.razor"
 Cohesion: 0.17
-Nodes (11): 1. Baseline Certifiée & Valeurs de Configuration, 2. Tableau de Traçabilité Exigences / Contrats / Tâches / Tests, 3. Plan Détaillé des Tâches par Phase, Audit des Valeurs de Configuration (Non Contractuelles), Baseline de Référence, Continuité Guichet & Rendez-vous, Phase 3 : Infrastructure, EF Core & Tests SQL Server Réel (Test-First), Phase 4 : Interface Utilisateur Blazor & Raccordement (+3 more)
+Nodes (11): route:/reclamations/soumettre, OnInitializedAsync, CategorieReclamationVue, IndicateurChargement, IServiceScopeFactory, Microsoft.AspNetCore.Authorization, NavigationManager, PageTitle (+3 more)
 
 ### Community 599 - "3. Scénario E2E (REC-SCE-07)"
 Cohesion: 0.18
@@ -3454,13 +3443,13 @@ Nodes (10): 1. Vue d'Ensemble, 2.1 Parcours Client — Soumission d'une Demande 
 Cohesion: 0.42
 Nodes (3): PolitiqueRecetteUatTests, InlineData, Theory
 
-### Community 602 - "PieceExigeeCompte"
-Cohesion: 0.14
-Nodes (9): PieceExigeeCompte, Code, EstActif, Id, Libelle, Obligatoire, Ordre, TypeClientCible (+1 more)
+### Community 602 - "1. Principe de Persistance"
+Cohesion: 0.17
+Nodes (11): 1. Principe de Persistance, 2.1 `ContexteUtilisateurVue`, 2. Modèles de Données du Contexte Utilisateur (Session), 3.1 `DashboardClientVue` (Dashboard Client & `ACR-01`), 3.2 `DashboardAgentVue` (Dashboard Agent CIT), 3.3 `DashboardSocieteVue` (Dashboard Administrateur Société), 3. Read-Models des Tableaux de Bord, 4.1 `TicketDetailVue` (Fiche Détaillée Unifiée) (+3 more)
 
-### Community 603 - "CircuitClientDepositTests"
-Cohesion: 0.37
-Nodes (6): 11. Circuits Client Normal / En Compte / Deposit — rejeu et vérification des assertions, CircuitClientDepositTests, Fact, Guid, MemoryStream, Task
+### Community 603 - "3. Détail des Livrables"
+Cohesion: 0.17
+Nodes (11): 1. Synthèse Exécutive, 2. Invariant Absolu I-FINANCE Vérifié, 3. Détail des Livrables, 4. Verdict Final, A. Domaine (`CIT.Plateforme.Domain`), C. Infrastructure & Persistance (`CIT.Plateforme.Infrastructure`), D. Interface Utilisateur Blazor (`CIT.Plateforme.Web`), E. Suites de Tests (`Domain.Tests`, `Application.Tests`, `Infrastructure.Tests`, `Web.Tests`) (+3 more)
 
 ### Community 604 - "1. SCÉNARIOS DE RECETTE NOMINATIFS"
 Cohesion: 0.18
@@ -3471,76 +3460,76 @@ Cohesion: 0.31
 Nodes (7): HealthCheckService, SondeDisponibiliteService, CancellationToken, ILogger, IServiceScopeFactory, Task, TimeSpan
 
 ### Community 606 - "ValidateurFichierDocument"
-Cohesion: 0.27
-Nodes (7): 2.6 `SOC-07` *(Must)* — **PARTIELLEMENT CONFORME**, Phase 4 — Module SEC-07 : Contrôle d'Admission des Fichiers (Type, Taille, Magic Bytes), ValidateurFichierDocument, HashSet, Stream, ControleFichiersTests, Fact
+Cohesion: 0.11
+Nodes (18): 2.6 `SOC-07` *(Must)* — **PARTIELLEMENT CONFORME**, 1. SYNTHÈSE DE LA BASELINE TECHNIQUE & INTÉGRITÉ, 2.1 SEC-04 (Must) — Chiffrement des Échanges (HTTPS/TLS) et Protection des Documents Stockés : CONFORME, 2.2 SEC-07 (Must) — Contrôle des Fichiers Déposés : Types Autorisés, Taille Maximale, Analyse Antivirale : CONFORME, 2.3 SEC-09 (Should) — Cloisonnement des Environnements & Habilitations : CONFORME, 2. BILAN FINAL PAR EXIGENCE CONTRACTUELLE DU CDC, 3. MATRICE DE TRAÇABILITÉ CONTRATS C15 & TEST-SPEC, 4. DÉPENDANCES ET CONDITIONS D'EXPLOITATION (+10 more)
 
 ### Community 607 - "2. PHASAGE DU BACKLOG TECHNIQUE (T001 → T040)"
-Cohesion: 0.15
-Nodes (12): 1. INVARIANTS D'ARCHITECTURE & SÉCURITÉ F015, 2. PHASAGE DU BACKLOG TECHNIQUE (T001 → T040), 3. MATRICE DE TRAÇABILITÉ CONTRATS C15, BACKLOG TECHNIQUE D'EXÉCUTION — FEATURE 015, Phase 10 — Documentation Post-Implémentation & Gates de Clôture, Phase 1 — Baseline, Worktree & Invariants de Sécurité, Phase 3 — Module SEC-04 : Protection Documentaire & Intégrité GED, Phase 5 — Module SEC-07 : Adaptateur Antivirus & Sécurité Fail-Closed (+4 more)
+Cohesion: 0.17
+Nodes (11): 1. INVARIANTS D'ARCHITECTURE & SÉCURITÉ F015, 2. PHASAGE DU BACKLOG TECHNIQUE (T001 → T040), 3. MATRICE DE TRAÇABILITÉ CONTRATS C15, BACKLOG TECHNIQUE D'EXÉCUTION — FEATURE 015, Phase 10 — Documentation Post-Implémentation & Gates de Clôture, Phase 1 — Baseline, Worktree & Invariants de Sécurité, Phase 3 — Module SEC-04 : Protection Documentaire & Intégrité GED, Phase 6 — Module SEC-07 : Gate de Preuve Moteur Antivirus Réel (EICAR & Clean File) (+3 more)
 
-### Community 608 - ".CreerTicketAsync"
-Cohesion: 0.42
-Nodes (5): SuiviPassagesEnFileTests, DateTime, Fact, Guid, Task
+### Community 608 - "Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement"
+Cohesion: 0.17
+Nodes (11): 1. AUDIT INDÉPENDANT DE CONFORMITÉ TECHNIQUE, 2.1 SEC-04 (Must) — Chiffrement des Échanges (HTTPS/TLS) et Protection des Documents Stockés, 2.2 SEC-07 (Must) — Contrôle des Fichiers Déposés : Types Autorisés, Taille Maximale, Analyse Antivirale, 2.3 SEC-09 (Should) — Cloisonnement des Environnements & Habilitations, 2. ÉVALUATION DÉTAILLÉE PAR EXIGENCE CONTRACTUELLE DU CDC, 3. MATRICE DE TRAÇABILITÉ CONTRATS C15 & TEST-SPEC, 4. DÉPENDANCES ET CONDITIONS D'EXPLOITATION, 5. SYNTHÈSE DE COUVERTURE CDC (+3 more)
 
 ### Community 609 - ".ExecuterAsync"
 Cohesion: 0.35
 Nodes (6): LangueCourante, Code, EnAnglais, CancellationToken, Guid, Task
 
-### Community 610 - "Détail des 11 dettes techniques"
-Cohesion: 0.17
-Nodes (11): Backlog de clôture, Chemin critique, D-02 — Actions en masse `ComptesAgents` non atomiques, D-03 — `AccesRefuseException` non gérée sur les actions en masse, D-04 — Couplage `ValidationInterval` ↔ clôture de compte, D-08 — 2FA non éprouvé de bout en bout, D-09 — Clôture de compte en deux transactions, D-10 — Parallélisme de la suite (+3 more)
+### Community 610 - "SoumettreDemandeAvoirExoRequete"
+Cohesion: 0.33
+Nodes (7): PieceJointeSoumission, SoumettreDemandeAvoirExoRequete, IReadOnlyList, ArgumentException, CancellationToken, Fact, Task
 
 ### Community 611 - "StatutBadgeTests"
 Cohesion: 0.32
 Nodes (7): D14 — Stratégie de Test E2E & Composants, StatutBadgeTests, Action, Fact, InlineData, StatutBadge, Theory
 
-### Community 612 - "IndicateursTemps.razor"
-Cohesion: 0.18
-Nodes (10): OnInitializedAsync, ControleAccesRessourceService, IServiceScopeFactory, IStringLocalizer, Microsoft.AspNetCore.Authorization, Microsoft.Extensions.DependencyInjection, Microsoft.Extensions.Localization, PageTitle (+2 more)
+### Community 612 - ".ExecuterAsync"
+Cohesion: 0.17
+Nodes (10): CancellationToken, Guid, Task, CancellationToken, Guid, Task, VueBranchesIes, PeutInstruireControleDocumentaire (+2 more)
 
 ### Community 613 - "Backlog UI/UX final — après recette navigateur authentifiée"
-Cohesion: 0.17
-Nodes (12): Arbitrages métier — DECISION REQUIRED, Backlog UI/UX final — après recette navigateur authentifiée, 🧭 Décisions métier (DECISION REQUIRED), ⌛ Encore ouverts, ✅ Fermés, Ordre d'attaque conseillé, Point de vigilance transversal, Priorité 0 — bloquants fonctionnels (+4 more)
+Cohesion: 0.18
+Nodes (11): Arbitrages métier — DECISION REQUIRED, Backlog UI/UX final — après recette navigateur authentifiée, 🧭 Décisions métier (DECISION REQUIRED), ⌛ Encore ouverts, ✅ Fermés, Ordre d'attaque conseillé, Point de vigilance transversal, Priorité 0 — bloquants fonctionnels (+3 more)
 
-### Community 614 - "ManuelUtilisateur.razor"
-Cohesion: 0.17
-Nodes (11): route:/aide/manuel, A, AnyA, OnInitializedAsync, IndicateurChargement, IStringLocalizer, Microsoft.AspNetCore.Authorization, Microsoft.Extensions.Localization (+3 more)
+### Community 614 - "EtatProforma"
+Cohesion: 0.18
+Nodes (8): EtapeParcoursClient, EtatProforma, Aucune, CorrectionDemandee, EnAttenteValidation, Validee, InlineData, Theory
 
-### Community 615 - "1. Analyse des Décisions d'Architecture (D1 à D10)"
-Cohesion: 0.17
-Nodes (11): 1. Analyse des Décisions d'Architecture (D1 à D10), D10 — Sécurité Multi-Société & Dérivation d'Identité, D1 — Frontière de Responsabilité : Dissociation Portail vs Finance Interne, D4 — Cycle de Vie & Statuts du Socle F001, D5 — Enregistrement de la Décision (Accord / Rejet Motivé — AVE-03), D6 — Liaison Optionnelle au Ticket Parent (AVE-04), D7 — Dépôt Manuel des Documents & Sécurité, D8 — Raccordement Événementiel F009 (+3 more)
+### Community 615 - ".ConstruireContexteAvecUnAdmin"
+Cohesion: 0.52
+Nodes (4): InvariantCompteurAdministrateurTests, Fact, Guid, Task
 
-### Community 616 - "ConsulterMesNotificationsQuery"
-Cohesion: 0.45
-Nodes (5): ConsulterMesNotificationsQuery, GardeIdentiteSurfacesPersonnellesTests, Fact, Guid, Task
+### Community 616 - "Levée des Points de Clarification (PC) & Homologation des Exigences Restantes"
+Cohesion: 0.18
+Nodes (10): 1. BASELINE TECHNIQUE VALIDÉE, 2. PC-01 — NFR-05 : PROFIL DE CHARGE & VOLUMÉTRIE CIBLE, 3. PC-13 — NFR-09 : ARCHITECTURE CIBLE D'HÉBERGEMENT & CONFORMITÉ GROUPE, 4. STAGING / F016 ENVIRONMENT CERTIFICATION GATE, 5. NFR-06 : SAUVEGARDES, RESTAURATION & PLAN DE REPRISE D'ACTIVITÉ (PRA), 7. PC-18 — IA-01 À IA-07 : CADRAGE DU MODULE D'INTELLIGENCE ARTIFICIELLE, 8. SYNTHÈSE DE PRIORISATION & ROADMAP DE CLÔTURE DU CDC (174 $\rightarrow$ 188), 9. RECOMMANDATION FINALE DE L'ATELIER DSI (+2 more)
 
 ### Community 617 - "FabriqueDebit"
 Cohesion: 0.31
 Nodes (8): FabriqueDebit, LimitationDebitAuthTests, Fact, HttpClient, HttpStatusCode, Lock, Program, Task
 
 ### Community 618 - "Implementation Plan: Feature 008 — Enrôlement Transporteurs"
-Cohesion: 0.18
-Nodes (9): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: Feature 008 — Enrôlement Transporteurs, Post-Design Constitution Check, Project Structure, Source Code (repository root, structure existante réutilisée telle quelle), Summary (+1 more)
+Cohesion: 0.20
+Nodes (8): Complexity Tracking, Documentation (this feature), Implementation Plan: Feature 008 — Enrôlement Transporteurs, Post-Design Constitution Check, Project Structure, Source Code (repository root, structure existante réutilisée telle quelle), Summary, Technical Context
 
 ### Community 619 - "JournalConnexionService"
 Cohesion: 0.53
 Nodes (4): JournalConnexionService, CancellationToken, Guid, Task
 
 ### Community 620 - ".Appliquer"
-Cohesion: 0.10
-Nodes (19): Expression, IMutableProperty, CategorieDocumentBillingImport, AutresPieces, CopieDuBl, DeclarationDouane, PreuvePaiement, ReferentielCategorieDocument (+11 more)
+Cohesion: 0.13
+Nodes (15): Expression, IMutableProperty, ReferentielMotifCloture, MotifClotureType, AbsenceReponse, Normale, ConfigurationReferentiels, Alerte (+7 more)
 
 ### Community 621 - ".ExecuterAsync"
-Cohesion: 0.10
-Nodes (22): CancellationToken, FileDeTraitement, Guid, Task, Ticket, CancellationToken, FileDeTraitement, Guid (+14 more)
+Cohesion: 0.09
+Nodes (26): InvalidOperationException, DerniereValeurActiveException, RouteAideDejaUtiliseeException, ProformaNonValideeException, CancellationToken, Guid, Task, AutoReinitialisation2FaInterditeException (+18 more)
 
 ### Community 622 - ".CreerUtilisateurActifAsync"
 Cohesion: 0.45
 Nodes (5): ConnexionPremierClicTests, Fact, HttpClient, Task, UserManager
 
 ### Community 623 - "CIT.Plateforme.Web.Services"
-Cohesion: 0.04
-Nodes (66): bunit, CIT.Plateforme.Web.Components.Layout, cit_plateforme_web_components_pages, cit_plateforme_web_components_pages_administration, cit_plateforme_web_components_pages_agent, cit_plateforme_web_components_pages_avoirexoneration, cit_plateforme_web_components_pages_billingimport, cit_plateforme_web_components_pages_client (+58 more)
+Cohesion: 0.05
+Nodes (59): bunit, CIT.Plateforme.Web.Components.Layout, cit_plateforme_web_components_pages, cit_plateforme_web_components_pages_administration, cit_plateforme_web_components_pages_agent, cit_plateforme_web_components_pages_avoirexoneration, cit_plateforme_web_components_pages_billingimport, cit_plateforme_web_components_pages_client (+51 more)
 
 ### Community 624 - "6.2 Moteur de workflow (WKF / PEC / TRF / AFF / PRI / DIS / MAS)"
 Cohesion: 0.20
@@ -3570,41 +3559,41 @@ Nodes (10): 5.1 Comptes, 5.2 Socle ticket, 5.3 Workflow, 5.4 Supervision et SLA,
 Cohesion: 0.20
 Nodes (9): NFR-03 — Disponibilité en heures ouvrées (≥ 99 %), NFR-04 — Temps de réponse < 3 secondes en charge normale, NFR-05 — Volumétrie dimensionnante, NFR-06 — Sauvegardes régulières et restauration testée, NFR-09 — Hébergement conforme aux standards du groupe, NFR-10 — Disponibilité 24h/24, 7j/7 du portail client, Runbook d'exploitation — Exigences non vérifiables dans le code (NFR-03/04/05/06/09/10, SEC-09), SEC-09 — Cloisonnement des environnements (production, recette) (+1 more)
 
-### Community 631 - "MessagesUtilisateur"
-Cohesion: 0.15
-Nodes (12): 6. Défauts mineurs (P2 / P3), 6. Extension de périmètre — signalée, pas dissimulée, 9. Score UI/UX final — 76 / 100, 11. Risques résiduels, Lazy, MessagesConnus, IReadOnlyCollection, Regex (+4 more)
+### Community 631 - "Sweep Design — fin (classification exhaustive + corrections)"
+Cohesion: 0.20
+Nodes (9): 1. Classification des 217 styles inline, 2. Correction appliquée (E/F), 3. Résidu assumé (NON un défaut), 4. Bilan, Sweep Design — fin (classification exhaustive + corrections), ReplisTokenInlineTests, Fact, IEnumerable (+1 more)
 
-### Community 632 - "SoumettreDemandeCompteCommand.cs"
-Cohesion: 0.40
-Nodes (4): DossierIncompletException, PiecesManquantes, JustificatifDepose, IReadOnlyList
+### Community 632 - "RelancesAbsenceReponseService"
+Cohesion: 0.24
+Nodes (9): Phase 7 : ERR-02 — Reprise sur échec (Priorité P1 — Must transverse), ParametresRelance, TimeSpan, RelancesAbsenceReponseService, CancellationToken, ILogger, IServiceScopeFactory, Task (+1 more)
 
 ### Community 633 - "Tasks: Feature 012 — Remédiation Dettes Métier, Recette Transverse & Clôture Réserves"
 Cohesion: 0.17
 Nodes (11): Invariants Opposables à Chaque Tâche, Phase 10 — Contrôles Anti-Scope, Non-Régression & Clôture, Phase 1 — Baseline & Worktree Gate, Phase 3 — Numéro de Ticket Import par E-mail (IMP-03 / US2, R3), Phase 4 — Certification Catégories de Réclamation (REC-02 / US3, R1), Phase 5 — Certification Orientation Support Opérationnel (REC-03 / US4, R1), Phase 6 — Stabilisation Harnais & Certification 2FA (SEC-08 / US5, R3), Phase 7 — Export Tabulaire CSV (SOC-14 / US6, R4) (+3 more)
 
 ### Community 634 - "NfrCert07CultureTests"
-Cohesion: 0.29
-Nodes (6): IDisposable, RequestLocalizationOptions, ServiceProvider, NfrCert07CultureTests, Fact, Task
+Cohesion: 0.33
+Nodes (5): RequestLocalizationOptions, ServiceProvider, NfrCert07CultureTests, Fact, Task
 
 ### Community 635 - "ProvisionnementParametrageMetier"
 Cohesion: 0.18
 Nodes (9): PiloteManifeste, ProvisionnementParametrageMetier, CancellationToken, ILogger, Task, TypeClient, ProvisionnementParametrageMetierTests, Fact (+1 more)
 
-### Community 636 - ".Soumission"
-Cohesion: 0.33
-Nodes (5): IdentiteSocieteCommandesTests, Exception, Fact, Guid, Task
+### Community 636 - "Closure Review Finale — Feature 011 (Certification Sécurité & Socle NFR)"
+Cohesion: 0.18
+Nodes (10): 1. Baseline Technique et Conformité Globale, 2. Revue Détaillée des 11 Exigences CDC, 3.1 — ERR-02 : Fail-Fast Runtime et Frontière, 3.2 — ERR-03 : Analyse Tripartite (Type, Taille, Intégrité), 3.3 — NFR-02 : Preuve Structurelle vs Recette Visuelle, 3. Focus d'Audit Spécifique, 5. Dettes et Anomalies Consignées, 6. Couverture CDC Finale (+2 more)
 
-### Community 637 - ".DefinirAsync"
-Cohesion: 0.21
-Nodes (10): PerimetreAdministre, PerimetresSupervisionVue, CancellationToken, Guid, IReadOnlyCollection, IReadOnlyList, Task, CancellationToken (+2 more)
+### Community 637 - ".ExecuterAsync"
+Cohesion: 0.36
+Nodes (7): PerimetreAdministre, PerimetresSupervisionVue, Guid, IReadOnlyList, CancellationToken, Guid, Task
 
 ### Community 638 - ".ListerNiveauxAsync"
-Cohesion: 0.06
-Nodes (37): NiveauPrioriteVue, CancellationToken, Guid, IReadOnlyList, Task, GererReglesPrioriteAutomatiqueCommand, ListerReglesPrioriteAutomatiqueQuery, ReglePrioriteAutomatiqueVue (+29 more)
+Cohesion: 0.07
+Nodes (30): NiveauPrioriteVue, CancellationToken, Guid, IReadOnlyList, Task, TriFileTicket, DateArriveeCroissante, DateArriveeDecroissante (+22 more)
 
-### Community 639 - "ModificationPriorite"
-Cohesion: 0.20
-Nodes (10): ModificationPriorite, AncienNiveauId, AuteurId, HorodatageUtc, Id, Motif, NouveauNiveauId, TicketId (+2 more)
+### Community 639 - "GererPiecesExigeesEtapeCommand"
+Cohesion: 0.44
+Nodes (6): GererPiecesExigeesEtapeCommand, PieceExigeeEtapeVue, CancellationToken, Guid, IReadOnlyList, Task
 
 ### Community 640 - "Point de publication — release `6f106dd`"
 Cohesion: 0.20
@@ -3626,29 +3615,29 @@ Nodes (9): 1. CAS D'UTILISATION PRINCIPAUX, 2. CONTRATS D'INTERFACE, C16-01 : So
 Cohesion: 0.32
 Nodes (4): Correctifs de fidélité au document (06/10/2026), LibellePaiementCdcHelper, LibellePaiementCdcHelperTests, Fact
 
-### Community 645 - "CanalEmailCapture"
-Cohesion: 0.31
-Nodes (8): ConcurrentQueue, CanalEmailCapture, Envois, RecuperationMotDePasseTests, Fact, IReadOnlyList, Task, UserManager
+### Community 645 - "ProvisionnementAdministrateurInitial"
+Cohesion: 0.33
+Nodes (7): ProvisionnementAdministrateurInitial, CancellationToken, Guid, IConfiguration, ILogger, Task, UserManager
 
-### Community 646 - "InvalidOperationException"
-Cohesion: 0.24
-Nodes (9): InvalidOperationException, DerniereValeurActiveException, RouteAideDejaUtiliseeException, AutoReinitialisation2FaInterditeException, CancellationToken, Guid, Task, DernierTypeClientActifException (+1 more)
+### Community 646 - "ServiceNumerotation"
+Cohesion: 0.38
+Nodes (5): ServiceNumerotation, CancellationToken, Task, Fact, Task
 
-### Community 647 - ".EnregistrerServices"
-Cohesion: 0.42
-Nodes (5): ReglesPrioriteAutomatique, ReglePrioriteAutomatiqueRepository, ReglesPrioriteAutomatiqueTests, Fact, Guid
+### Community 647 - "SchemaDeTest"
+Cohesion: 0.20
+Nodes (9): AuthenticateResult, AuthenticationHandler, AuthenticationSchemeOptions, ILoggerFactory, IOptionsMonitor, SchemaDeTest, Authentifie, UtilisateurId (+1 more)
 
-### Community 648 - ".Changement_de_type_apres_creation_du_dossier_avant_aiguillage_n_affecte_pas_le_circuit"
-Cohesion: 0.27
-Nodes (8): 7. Aiguillage Type Client (IMP-06) — snapshot exclusif, AiguillageTypeClientTests, Contexte, Fact, Guid, InlineData, Task, Theory
+### Community 648 - "2. Spécification Détaillée des Contrats"
+Cohesion: 0.20
+Nodes (9): 1. Matrice des Contrats Applicatifs (Série C6), 2. Spécification Détaillée des Contrats, C6-01 : `CalculerSimulationProformaQuery`, C6-02 : `SauvegarderSimulationProformaCommand`, C6-04 : `ListerSimulationsProformaQuery`, C6-05 : `GenererDocumentProformaPdfQuery`, C6-06 : `CreerVersionGrilleTarifaireCommand`, C6-08 : `ConsulterVersionsGrillesTarifairesQuery` (+1 more)
 
 ### Community 649 - "Disponibilité Opérationnelle, Performance Applicative & Résilience Continue"
 Cohesion: 0.20
 Nodes (9): 1. SYNTHÈSE DE LA REVUE DE CLÔTURE, 2. STATUT CONTRACTUEL PAR EXIGENCE, 4. PRÉSERVATION DES FONCTIONNALITÉS HISTORIQUES & ANTI-SCOPE, 5. DÉCISION DE GOUVERNANCE & IMPACT SUR LE BASELINE CDC, Disponibilité Opérationnelle, Performance Applicative & Résilience Continue, NFR-03 (Must) — Disponibilité Cible $\ge 99\%$ en Heures Ouvrées, NFR-04 (Must) — Temps de Réponse $< 3\text{ s}$ sur Écrans Courants, NFR-10 (Must) — Accessibilité Continue 24/7 & Mode Maintenance (+1 more)
 
-### Community 650 - ".Preparer"
-Cohesion: 0.42
-Nodes (5): Contexte, PorteeFileAvoirExonerationTests, Fact, Guid, Task
+### Community 650 - ".ConstruireTicket"
+Cohesion: 0.29
+Nodes (7): Impact REC-SCE-07, T001 → T035 (recalculé), MessagerieFicheTicketNonRegressionTests, Fact, Guid, Task, ReponseComplementDepuisFicheTicketTests
 
 ### Community 651 - "TicketExtensionsBillingImportTests"
 Cohesion: 0.40
@@ -3659,12 +3648,12 @@ Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
 ### Community 653 - "Remédiation UI/UX finale — clôture P1/P2"
-Cohesion: 0.18
-Nodes (11): 10. Verdict, 11. Environnement, 1.2 Confirmés en non-régression (corrigés au tour P0, re-validés ici), 1.3 Restés ouverts — classés, non corrigés, 1. Backlog réel reconstruit, 3. UI-R01 — la simulation est publique, 4. D-03 — le journal impute désormais ses entrées, 5. Les autres corrections, en bref (+3 more)
+Cohesion: 0.17
+Nodes (12): 10. Verdict, 11. Environnement, 1.2 Confirmés en non-régression (corrigés au tour P0, re-validés ici), 1.3 Restés ouverts — classés, non corrigés, 1. Backlog réel reconstruit, 3. UI-R01 — la simulation est publique, 4. D-03 — le journal impute désormais ses entrées, 5. Les autres corrections, en bref (+4 more)
 
 ### Community 654 - "RessourcesReferenceesVersionneesTests"
-Cohesion: 0.18
-Nodes (10): INC-01 — Secret embarqué, INC-03 — Dépôt non reproductible, INC-04 — Divulgation du jeton de réinitialisation (G-04), INC-05 — Isolation de la base de test, INC-06 — `<ResourcePreloader />`, Synthèse, Vérification des remédiations d'urgence, RessourcesReferenceesVersionneesTests (+2 more)
+Cohesion: 0.44
+Nodes (3): RessourcesReferenceesVersionneesTests, Fact, IEnumerable
 
 ### Community 655 - "7. Workflows : états et transitions"
 Cohesion: 0.22
@@ -3674,9 +3663,9 @@ Nodes (9): 7.1 Import — Client Normal, 7.2 Import — Client En Compte, 7.3 Im
 Cohesion: 0.22
 Nodes (8): Groupes d'exigences Must sans scénario de recette CDC, Important — Nature de ce document, Matrice de Recette — Scénarios d'acceptation, Partie 1 — Scénarios de recette (extraits du CDC §22), Partie 2 — Cas de référence simulation (Annexe A.8 du CDC), Partie 3 — Matrice de couverture des exigences Must, Partie 4 — Synthèse de la couverture, Plateforme Digitale CIT — v1.0
 
-### Community 657 - "CLOSURE REVIEW FORMELLE FINALE (31 août 2026)"
-Cohesion: 0.18
-Nodes (11): AVE, Baseline réexécutée, CLAR-REC-01 → 08, CLOSURE REVIEW FORMELLE FINALE (31 août 2026), Contrats C7, Couverture CDC après F006, Git status / diff (aucun staging effectué), REC-01 → REC-06 (+3 more)
+### Community 657 - ".EmettreAsync"
+Cohesion: 0.40
+Nodes (5): CancellationToken, DateTime, Guid, Stream, Task
 
 ### Community 658 - ".InvokeAsync"
 Cohesion: 0.22
@@ -3687,11 +3676,11 @@ Cohesion: 0.22
 Nodes (8): Conclusion, Incident du 02/10 — clos, Mise à jour 05/10/2026 — lots livrés depuis la v1, Méthode (à lire avant les chiffres), Renforcement de la paramétrabilité (05/10, soir), Synthèse par domaine, Écarts détaillés (toutes les lignes qui ne sont pas ✅), Évaluation de la couverture du cahier des charges YABA — révisé le 05/10/2026
 
 ### Community 660 - "Sauvegarde, restauration et plan de reprise — NFR-06"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (14): 1. Ce que le CDC exige, 2. Périmètre à sauvegarder, 3. Paramètres à arbitrer, 4.1 Restauration de la base, 4.2 Restauration du stockage documentaire, 4.3 Contrôles de cohérence après restauration, 4.4 Test de restauration — le seul qui certifie, 4. Procédure de restauration — à valider par un test réel (+6 more)
 
 ### Community 661 - "Préparation des tests de charge — NFR-05"
-Cohesion: 0.09
+Cohesion: 0.08
 Nodes (19): 1. Ce que le CDC exige, 2. Pourquoi rien ne peut être décidé ici, 3. Modèle de charge paramétrable, 4. Surfaces à solliciter, 5. Métriques à collecter, 6. Critères PASS / FAIL, 7. Ce qui existe déjà, 8. Verdict (+11 more)
 
 ### Community 662 - "Plan de tests de fumée — Staging"
@@ -3706,33 +3695,33 @@ Nodes (8): 1. Le fait à traiter, 2. Le point de départ, non négociable, 3. Op
 Cohesion: 0.22
 Nodes (8): 1. Conditions d'ouverture, 2. Ce qui ne sera pas testable, et doit être annoncé avant, 3. Parcours nominaux, 4. Parcours négatifs — obligatoires, 5. Contrôles transverses, 6. Traçabilité, 7. Consignation, Plan de recette — version finale
 
-### Community 665 - "Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)"
-Cohesion: 0.25
-Nodes (7): 1. CONTRAT C17-01 : ÉVALUATION DE PERMISSION PAR CHAMP (RBAC IES), 2. CONTRAT C17-02 : PROJECTION ET MASQUAGE CONTEXTUEL, 3. CONTRAT C17-03 : ÉVALUATION D'ÉLIGIBILITÉ À LA RÉTENTION, 4. CONTRAT C17-04 : EXÉCUTION DE PURGE ET ANONYMISATION, 5. CONTRAT C17-05 : GESTION DU GEL LÉGAL (*LEGAL HOLD*), CONTRATS D'UTILISATION HARDENED — FEATURE 017, Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
+### Community 665 - "CategorieDocumentBillingImport"
+Cohesion: 0.22
+Nodes (8): CategorieDocumentBillingImport, AutresPieces, CopieDuBl, DeclarationDouane, PreuvePaiement, ReferentielCategorieDocument, CategoriesDocumentTests, Fact
 
 ### Community 666 - ".Restreint_au_perimetre_et_enrichit_le_nom"
 Cohesion: 0.33
 Nodes (7): RapportActiviteOperateurQueryTests, CancellationToken, DateTime, Fact, Guid, IEnumerable, Task
 
 ### Community 667 - "DernierAdministrateurActifException"
-Cohesion: 0.12
-Nodes (20): 4. Revue CompteCloture, 7. Impact RG, L'appelant — `MonProfil.razor`, La commande — `CloturerMonCompteCommand`, La page — `CompteCloture.razor`, 9. Concurrence — ENT-02 / invariant compteur administrateurs, C2-06 — Rattacher un utilisateur à une société, C2-07 — Activer ou désactiver un utilisateur rattaché (+12 more)
+Cohesion: 0.13
+Nodes (15): 4. Revue CompteCloture, 7. Impact RG, L'appelant — `MonProfil.razor`, La commande — `CloturerMonCompteCommand`, La page — `CompteCloture.razor`, C2-06 — Rattacher un utilisateur à une société, C2-07 — Activer ou désactiver un utilisateur rattaché, C2-08 — Modifier les droits de consultation et de soumission d'un utilisateur (+7 more)
 
 ### Community 668 - "Architecture cible .NET 10 — archivage du prompt & analyse d'écart vs code"
 Cohesion: 0.20
 Nodes (9): 0. Point de départ : YABA existe déjà, 2. Archivage de la cible (extrait fourni), 3.1 La divergence, 3.2 Pourquoi le modèle réel a été choisi, 3.3 Options, 3.4 Décision requise, 3. Réconciliation du modèle de statut — PLAN (non exécuté), 4. Synthèse (+1 more)
 
-### Community 669 - "User Scenarios & Testing *(mandatory)*"
-Cohesion: 0.18
-Nodes (11): Edge Cases, User Scenarios & Testing *(mandatory)*, User Story 1 - Soumettre une demande IMPORT multi-BL (Priority: P1), User Story 2 - Contrôler l'unicité du BL à la soumission (Priority: P1), User Story 3 - Instruire au Pilote Manifeste (Priority: P1), User Story 4 - Aiguiller automatiquement selon le type de client (Priority: P1), User Story 5 - Traiter un dossier Client Normal jusqu'à clôture (Priority: P2), User Story 6 - Traiter un dossier Client En Compte jusqu'à clôture (Priority: P2) (+3 more)
+### Community 669 - "CablageNavigationTests"
+Cohesion: 0.42
+Nodes (3): CablageNavigationTests, DirectoryInfo, Fact
 
-### Community 670 - ".AffecterTicketNonPrisEnChargeAsync"
-Cohesion: 0.60
-Nodes (3): CancellationToken, Guid, Task
+### Community 670 - "ActionsSuperviseurCommand"
+Cohesion: 0.57
+Nodes (4): ActionsSuperviseurCommand, CancellationToken, Guid, Task
 
-### Community 671 - "4. Spécification Détaillée des Fonctionnalités"
-Cohesion: 0.18
-Nodes (11): 4.1 CON-01 — Reprise sans Ressaisie (Invariants de Non-Duplication), 4.2 CON-02 — Recherche Rapide au Guichet (Critères Validés), 4.3 CON-03 — Gestion des Rendez-vous & Créneaux, 4.4 CON-04 — Continuité Présentielle & Borne d'Accueil Externe, 4.5 IMP-15 — Alternative Présentielle Billing Import, 4.6 ERR-04 — Mode Dégradé et Résilience Documentée, 4. Spécification Détaillée des Fonctionnalités, A. Données du Rendez-vous (+3 more)
+### Community 671 - ".AgentHabilite_AccedeALaPage_EtVoitEtatVide"
+Cohesion: 0.44
+Nodes (4): Archives, ArchivesTests, Fact, Guid
 
 ### Community 672 - "Quickstart — Socle transverse de gestion des tickets et workflows"
 Cohesion: 0.22
@@ -3746,9 +3735,9 @@ Nodes (10): 1.1 Localisation existante, 1.2 Modèle d'affichage et composants UI
 Cohesion: 0.22
 Nodes (8): CalculateurPerformanceAgent, PerformanceAgent, DateTime, IReadOnlyList, TimeSpan, CalculateurPerformanceAgentTests, DateTime, Fact
 
-### Community 675 - ".EnregistrerServices"
-Cohesion: 0.14
-Nodes (12): EtapesBloquantesAnnulation, JournalAudit, LibellesStatut, EtapesBloquantesAnnulationTests, Fact, Guid, JournalAuditTests, Fact (+4 more)
+### Community 675 - "11. Pentest dynamique COMPLET (2026-09-30) — instance locale `https://localhost:7097`"
+Cohesion: 0.22
+Nodes (7): 11.1 DYN-4 — 🟠 Injection d'en-tête Host → redirection ouverte (MEDIUM) — CORRIGÉ, 11.2 Attaques avancées / peu évidentes — analyse adversariale honnête, 11. Pentest dynamique COMPLET (2026-09-30) — instance locale `https://localhost:7097`, Fact, InlineData, Task, Theory
 
 ### Community 676 - "Disponibilité Opérationnelle, Performance Applicative & Résilience Continue"
 Cohesion: 0.18
@@ -3758,9 +3747,9 @@ Nodes (10): 1. BASELINE TECHNIQUE & FORENSIQUE, 2. NIVEAUX DE PREUVE & VERDICT P
 Cohesion: 0.22
 Nodes (8): 1. Vue d'Ensemble & Fonctionnalités Clés, 2.1 Validation Complète de la Solution, 2.2 Tests Spécifiques à la Feature 010, 2. Exécution des Suites de Tests, 3. Comptes de Test et Profils, 4. Scénario de Démonstration Manuel (Parcours Pas-à-Pas), Continuité Guichet & Rendez-vous, Guide de Démarrage Rapide & Validation — Feature 010
 
-### Community 678 - "TypeObjetEnrolement"
+### Community 678 - "72 — Mémo de déploiement IIS (YABA)"
 Cohesion: 0.22
-Nodes (7): FlotteEnService, ObjetFlotte, IEnumerable, IReadOnlyList, TypeObjetEnrolement, Camion, Chauffeur
+Nodes (9): 1. Prérequis serveur, 2. Publication, 3. Variables d'environnement (À DÉFINIR SUR LE SERVEUR), 4. Base de données & migrations, 5. Antivirus upload (SEC-07), 6. SMTP — vérification au premier envoi, 72 — Mémo de déploiement IIS (YABA), 7. Data Protection (IMPORTANT même à un seul nœud) (+1 more)
 
 ### Community 679 - "2. DÉFINITION TECHNIQUE DÉTAILLÉE DES CONTRATS"
 Cohesion: 0.22
@@ -3770,9 +3759,9 @@ Nodes (8): 1. INVENTAIRE DES CONTRATS C14, 2.1 Contrat C14-01 : `ObtenirCultureC
 Cohesion: 0.22
 Nodes (8): 1. CONTRATS TECHNIQUES DE SÉCURITÉ (C15), Contrat `C15-01` — Middleware Security Headers & HTTPS Enforcement (`SEC-04`), Contrat `C15-02` — Isolation GED & Intégrité Cryptographique (`SEC-04`), Contrat `C15-03` — Validation d'Admission & Magic Bytes (`SEC-07`), Contrat `C15-04` — Adaptateur Antivirus Réel Defender & Détection EICAR (`SEC-07`), Contrat `C15-05` — Cloisonnement & Gardes d'Environnement (`SEC-09`), CONTRATS D'UTILISATION & CAS D'USAGE DURCIS — FEATURE 015, Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 
-### Community 681 - ".BOOK_NORM_01_ABC123_puis_abc123_declare_doublon_insensibilite_casse"
-Cohesion: 0.49
-Nodes (4): NormalisationBookingSqlTests, Fact, Guid, Task
+### Community 681 - "Option A — Séquence par (module, type), conforme à `research.md` actuel"
+Cohesion: 0.22
+Nodes (9): Avantages, Description, Impact concurrence, Impact exploitation, Impact maintenabilité, Impact migration, Impact volumétrie future, Inconvénients (+1 more)
 
 ### Community 682 - "Intention"
 Cohesion: 0.33
@@ -3783,12 +3772,12 @@ Cohesion: 0.33
 Nodes (5): 1. BASELINE TECHNIQUE & FORENSIQUE, 3. STATUT DES PREUVES ENVIRONNEMENTALES (L3/L4) & GAIN CDC CONDITIONNEL, 4. BILAN DU GAIN CDC PROVISOIRE, Disponibilité Opérationnelle, Performance Applicative & Résilience Continue, RAPPORT D'IMPLÉMENTATION — FEATURE 016
 
 ### Community 684 - ".ConstruireAsync"
-Cohesion: 0.10
-Nodes (21): MatriceTransitions, MotifsTransfert, TransitionNonAutoriseeException, MotifTransfertRepository, TransitionAutoriseeRepository, MatriceTransitionsTests, Fact, Task (+13 more)
+Cohesion: 0.11
+Nodes (22): TransitionNonAutoriseeException, CancellationToken, Guid, Task, MotifTransfertRepository, TransitionAutoriseeRepository, AdministrationRedefinitionTests, ArgumentException (+14 more)
 
-### Community 685 - "CircuitClientEnCompteTests"
-Cohesion: 0.44
-Nodes (5): CircuitClientEnCompteTests, Fact, Guid, MemoryStream, Task
+### Community 685 - "DistributionAutomatiqueService"
+Cohesion: 0.31
+Nodes (7): 17. Besoins de Traitement de Fond, DistributionAutomatiqueService, CancellationToken, ILogger, IServiceScopeFactory, Task, TimeSpan
 
 ### Community 686 - "StatutVisuelDossier"
 Cohesion: 0.18
@@ -3843,8 +3832,8 @@ Cohesion: 0.25
 Nodes (7): 1. Ce que le CDC exige, 2. Ce qui existe déjà, 3. Interface cible — conceptuelle, 4. Informations à recueillir, 5. Ce qui reste faisable sans fournisseur, 6. Verdict, Notification du chauffeur — ENR-04 : préparation fournisseur
 
 ### Community 699 - "ParametresReessaiNotification"
-Cohesion: 0.06
-Nodes (45): BackgroundService, 7. Traitements de fond, IHostedService, D8 — Traitement de fond : patron `RelancesAbsenceReponseService` (F001), D9 — ERR-02 : comportement arrêté, valeurs jamais codées en dur, 17. Besoins de Traitement de Fond, 1. Baseline Technique et Conformité Globale, 2. Revue Détaillée des 11 Exigences CDC (+37 more)
+Cohesion: 0.21
+Nodes (12): SECRETS / CONFIGURATION, IHostedService, D9 — ERR-02 : comportement arrêté, valeurs jamais codées en dur, 4. Exclusions et Invariants, ParametresReessaiNotification, TimeSpan, ErrCert01ConfigurationRepriseTests, Fact (+4 more)
 
 ### Community 700 - "2. Périmètre Contractuel (Exigences CDC)"
 Cohesion: 0.20
@@ -3890,9 +3879,9 @@ Nodes (8): ModelSnapshot, PlateformeDbContextModelSnapshot, DateTime, DateTimeOf
 Cohesion: 0.25
 Nodes (7): 1. Objectif du Guide, 2. Parcours 1 : Persona Client Société (Demandeur Import), 3. Parcours 2 : Persona Pilote Manifeste (Agent CIT), 4. Parcours 3 : Déblocage par le Client (`ACR-01` E2E), 5. Parcours 4 : Persona Administrateur Société, 6. Parcours 5 : Persona Superviseur / Admin CIT, Quickstart & Manuel de Validation UI/UX: Consolidation F001-F003
 
-### Community 711 - "ValiderEnrolementCommandTests"
-Cohesion: 0.35
-Nodes (7): ValiderEnrolementCommandTests, CancellationToken, Fact, Guid, InvalidOperationException, Mock, Task
+### Community 711 - "1. SCÉNARIOS DE VÉRIFICATION RAPIDE"
+Cohesion: 0.22
+Nodes (8): 1. SCÉNARIOS DE VÉRIFICATION RAPIDE, GUIDE DE PRISE EN MAIN & VALIDATION RAPIDE (QUICKSTART) — FEATURE 014, Scénario 1 : Première visite avec navigateur en français, Scénario 2 : Première visite avec navigateur en anglais, Scénario 3 : Changement de langue via le sélecteur, Scénario 4 : Saisie d'une demande Import en anglais, Scénario 5 : Préservation de saisie lors d'une bascule de langue, Scénario 6 : Test de complétude de la matrice bilingue
 
 ### Community 712 - ".ExecuterAsync"
 Cohesion: 0.28
@@ -3910,9 +3899,9 @@ Nodes (5): ParcoursImpersonationTests, Fact, HttpClient, Task, UserManager
 Cohesion: 0.22
 Nodes (8): 1. Périmètre — 7 Exigences + 1 Recette Transverse, 2. Clarifications Spécifiques Intégrées, 3. Exclusions Formelles et Anti-Scope, 4. Contraintes Architecturales, 5. Fiches TEST-SPEC et Scénarios, 6. Traçabilité et Métriques de Couverture, 7. Definition of Done (DoD), Checklist Qualité de la Spécification — Feature 012 (Remédiation Dettes Métier & Recette Transverse)
 
-### Community 716 - "24. Remédiation ciblée — validation finale (2026-08-30, seconde session)"
-Cohesion: 0.17
-Nodes (12): 24.10 Statut PC-19, 24.11 Dette technique restante, 24.12 Nouveau score des 24 exigences, 24.1 Corrections appliquées, 24.2 Pages Blazor modifiées, 24.4 Tests ajoutés/modifiés, 24.5 Résultat autorisation, 24.6 Résultat CAS1→CAS12 (+4 more)
+### Community 716 - ".ExecuterAsync"
+Cohesion: 0.31
+Nodes (8): FicheDossierVue, TicketLigneDossierVue, DateTime, Guid, IReadOnlyList, CancellationToken, Guid, Task
 
 ### Community 717 - "Cahier de tests utilisateurs YABA"
 Cohesion: 0.22
@@ -3926,9 +3915,9 @@ Nodes (6): ArticleAideInitial, ContenuAideInitial, Articles, IReadOnlyList, Cont
 Cohesion: 0.22
 Nodes (9): 1. Pré-requis machine, 2. Lancement (environnement Development + jeu de démo), 3. Comptes de démonstration, 4. Jeu de données déjà en place (côté client), 5. ⚠️ Piège n°1 — la 2FA (à préparer AVANT), 6. Scénario conseillé (~12–15 min), 7. Check-list T-1h (répétition à blanc), 8. Replis si accroc (+1 more)
 
-### Community 720 - "Recertification post-remédiation"
-Cohesion: 0.20
-Nodes (9): Ce que cela change, Conclusion, Conséquence sur la conformité, Décision, La question préalable, et sa réponse, Recertification post-remédiation, Résumé, SEC-06 (+1 more)
+### Community 720 - "FileDeTraitement"
+Cohesion: 0.03
+Nodes (84): 3. MATRICE DE VÉRITÉ FORENSIQUE (EXIGENCES DE SÉCURITÉ AUDITÉES), 4.1 Matrice de l'état engageant, 4.3 Règles recontrôlées, 4.4 Réserve, 4. Validation P1-01 — **VALIDÉ, avec une réserve de couverture**, Ce que cela change, Conclusion, Conséquence sur la conformité (+76 more)
 
 ### Community 721 - "ReconnectModal.razor.js"
 Cohesion: 0.32
@@ -3962,9 +3951,9 @@ Nodes (7): Anomalies corrigées, Anomalies restantes, Audit après corrections, 
 Cohesion: 0.29
 Nodes (6): 1. Comptes Clients (Sociétés), 2. Comptes Internes CIT (Agents), Avertissement de Sécurité, Comment définir le mot de passe localement :, Comptes de Test (Environnement Development), Objectif
 
-### Community 730 - "ResolveurSuperviseursDeLaFile"
-Cohesion: 0.39
-Nodes (5): ResolveurSuperviseursDeLaFile, CancellationToken, Guid, IReadOnlyList, Task
+### Community 730 - ".LireGuid"
+Cohesion: 0.16
+Nodes (11): CancellationToken, Guid, IReadOnlyList, Task, ResolveurChargeUtile, Guid, ResolveurSuperviseursDeLaFile, CancellationToken (+3 more)
 
 ### Community 731 - "Plan d'action vers la conformité 100 % — établi le 06/10/2026"
 Cohesion: 0.29
@@ -3983,20 +3972,20 @@ Cohesion: 0.29
 Nodes (6): 1. Méthode, 2. Résultat, 3. Matrice complète, 4. Réserve, Les 35 exigences sans citation d'identifiant, Matrice de traçabilité UAT — 188 exigences
 
 ### Community 735 - "Data Model — Modèle conceptuel fonctionnel"
-Cohesion: 0.14
-Nodes (13): 1. Concepts réutilisés sans extension (Feature 001 / Feature 002), 2. Extensions additives (Feature 001, strictement additives), 3. Concept nouveau — Suivi de branche IES, 4. Relations principales, 5.1 Tronc commun, 5.2 Circuit Client Normal, 5.3 Circuit Client En Compte, 5.4 Circuit Client Deposit (+5 more)
+Cohesion: 0.13
+Nodes (14): 1. Concepts réutilisés sans extension (Feature 001 / Feature 002), 2. Extensions additives (Feature 001, strictement additives), 3. Concept nouveau — Suivi de branche IES, 4. Relations principales, 5.1 Tronc commun, 5.2 Circuit Client Normal, 5.3 Circuit Client En Compte, 5.4 Circuit Client Deposit (+6 more)
 
 ### Community 736 - "6. MPD"
 Cohesion: 0.29
 Nodes (7): 6.1 Conventions de types, 6.2 Numérotation, 6.3 Index, 6.4 Contraintes structurantes, 6.5 Sécurité et rétention, 6.6 Volumétrie, 6. MPD
 
 ### Community 737 - "DashboardClientVue"
-Cohesion: 0.49
-Nodes (9): D4 — Read-Model du Dashboard Client, Phase 5 : Dashboard Client & Implémentation d'ACR-01 ("Mes actions requises") (Contrat C4-02), ActionRequiseItemVue, DashboardClientVue, DossierResumeVue, TicketResumeVue, DateTime, Guid (+1 more)
+Cohesion: 0.22
+Nodes (16): D4 — Read-Model du Dashboard Client, Phase 5 : Dashboard Client & Implémentation d'ACR-01 ("Mes actions requises") (Contrat C4-02), ActionRequiseItemVue, DashboardClientVue, DossierResumeVue, TicketResumeVue, TypeActionRequise, ComplementExport (+8 more)
 
-### Community 738 - "Spécification Fonctionnelle Clarifiée — Feature 007"
-Cohesion: 0.10
-Nodes (20): 1.1 Contexte Métier, 1.2 Frontière Portail / Hors-Portail (Dissociation Fondamentale — CLAR-AVE-01), 1. Contexte & Périmètre, 2. Exigences Fonctionnelles Traitées, 3. Rôles & Permissions, 4. User Stories & Critères d'Acceptation, 5. Matrice des Clarifications Décisionnelles (CLAR-AVE-01 à CLAR-AVE-12), 6. Cycles de Vie des Tickets Avoir & Exonération (+12 more)
+### Community 738 - "DocumentsCommunsFormulaire.razor"
+Cohesion: 0.22
+Nodes (8): Ajouter, Basculer, DocumentCommunSaisi, IStringLocalizer, Microsoft.AspNetCore.Components.Forms, Microsoft.Extensions.Localization, SharedResources, ZoneDepot
 
 ### Community 739 - "Décisions requises pour atteindre 100/100"
 Cohesion: 0.29
@@ -4010,9 +3999,9 @@ Nodes (6): HeadOutlet, ImportMap, ReconnectModal, Routes, IHttpContextAccessor, 
 Cohesion: 0.29
 Nodes (6): 1. Base de données (SQL 10.88.179.104, base `yaba`), 2. Publication IIS (pool et application `yaba`), 3. Vérifications après publication, 4. Retour arrière, Exécuter le script (encodage — piège rencontré le 12/10), Point de publication — release `76b2a30` (zone de dépôt « panier »)
 
-### Community 742 - "RAPPORT D'IMPLÉMENTATION — FEATURE 010"
-Cohesion: 0.40
-Nodes (4): 1. Synthèse Exécutive, 3. Résultats des Tests & Métriques Qualité, Périphérie Fonctionnelle & Exigences Couvertes :, RAPPORT D'IMPLÉMENTATION — FEATURE 010
+### Community 742 - "DepotDocumentAutorisationTests"
+Cohesion: 0.50
+Nodes (4): DepotDocumentAutorisationTests, Fact, MemoryStream, Task
 
 ### Community 743 - "Clarifications"
 Cohesion: 0.29
@@ -4038,17 +4027,17 @@ Nodes (10): Aiguillage automatique par type de client (IMP-06), Alternative pré
 Cohesion: 0.27
 Nodes (7): CancellationToken, Guid, IReadOnlyList, Task, CancellationToken, Fact, Task
 
-### Community 749 - ".ExecuterAsync"
-Cohesion: 0.27
-Nodes (6): CancellationToken, Task, CancellationToken, Fact, Guid, Task
+### Community 749 - ".Admin_peut_modifier_categorie"
+Cohesion: 0.38
+Nodes (4): CancellationToken, Fact, Guid, Task
 
 ### Community 750 - "6. Fiches de certification — SEC"
 Cohesion: 0.29
 Nodes (7): 6. Fiches de certification — SEC, SEC-01 — Authentification et robustesse des accès, SEC-03 — Cloisonnement strict des données, SEC-05 — Journal d'audit non modifiable, SEC-10 — Expiration de session, SEC-11 — Désactivation immédiate sans perte d'historique, SEC-12 — Lien de notification jamais un accès direct
 
 ### Community 751 - "Specs i18n FR/EN — backlog ClickUp"
-Cohesion: 0.22
-Nodes (8): Specs i18n FR/EN — backlog ClickUp, TÂCHE 2 — LOT 2 : Public / Auth  ⏳ À FAIRE, TÂCHE 3 — LOT 3 : Client  ⏳ À FAIRE, TÂCHE 4 — LOT 4 : Agent / Superviseur  ⏳ À FAIRE, TÂCHE 5 — LOT 5 : Administration  ⏳ À FAIRE, TÂCHE 6 — LOT 6 : Reste  ⏳ À FAIRE, TÂCHE 7 — Transverse : Guards & Documentation  ⏳ EN CONTINU, ÉPOPÉE — i18n FR/EN à 100 % par lots
+Cohesion: 0.14
+Nodes (12): Specs i18n FR/EN — backlog ClickUp, TÂCHE 1 — LOT 1 : Shared / Navigation  ✅ TERMINÉ, TÂCHE 2 — LOT 2 : Public / Auth  ⏳ À FAIRE, TÂCHE 3 — LOT 3 : Client  ⏳ À FAIRE, TÂCHE 4 — LOT 4 : Agent / Superviseur  ⏳ À FAIRE, TÂCHE 5 — LOT 5 : Administration  ⏳ À FAIRE, TÂCHE 6 — LOT 6 : Reste  ⏳ À FAIRE, TÂCHE 7 — Transverse : Guards & Documentation  ⏳ EN CONTINU (+4 more)
 
 ### Community 752 - "BandeauImpersonation.razor"
 Cohesion: 0.12
@@ -4070,25 +4059,25 @@ Nodes (6): 1. COMPILATION DU PROJET, 2. EXÉCUTION DE LA SUITE DE TESTS COMPLÈT
 Cohesion: 0.29
 Nodes (6): 1. ABSENCE D'IMPACT SUR LE MODÈLE RELATIONNEL, 2.1 Modèles de Diagnostic & Santé (`CIT.Plateforme.Application.Supervision`), 2.2 Modèle de Calcul de Disponibilité, 2. MODÈLES EN MÉMOIRE & STRUCTURES DTO, Disponibilité Opérationnelle, Performance Applicative & Résilience Continue, MODÈLE DE DONNÉES & SCHÉMA — FEATURE 016
 
-### Community 757 - ".ConstruireContexte"
+### Community 757 - "RelancesAbsenceReponseUseCaseTests"
 Cohesion: 0.42
-Nodes (5): ReouvertureTests, Fact, Guid, InvalidOperationException, Task
+Nodes (5): RelancesAbsenceReponseUseCaseTests, DateTime, Fact, Mock, Task
 
 ### Community 758 - ".BuildTargetModel"
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 759 - "BandeauDisponibiliteAgent.razor"
-Cohesion: 0.22
-Nodes (8): BasculerDisponibiliteAsync, OnParametersSet, GererDisponibiliteCommand, IServiceScopeFactory, IStringLocalizer, Microsoft.Extensions.DependencyInjection, Microsoft.Extensions.Localization, SharedResources
+### Community 759 - ".EnregistrerServices"
+Cohesion: 0.50
+Nodes (4): FileAgentGateTests, Fact, FileAgentGate, Guid
 
-### Community 760 - ".Document_Depose_Avec_Categorie_Est_Persiste_Et_Retrouve_Avec_Sa_Categorie"
-Cohesion: 0.09
-Nodes (27): FileFacturation, StatutAnalyseAntivirus, Infecte, NonAnalyse, Sain, DeposerDocumentAntivirusOrchestrationTests, FakeAntivirus, CancellationToken (+19 more)
+### Community 760 - ".Refuse_si_un_ticket_n_appartient_pas_au_client"
+Cohesion: 0.35
+Nodes (8): DeposerDocumentCommunMultiBlTests, FakeAntivirus, Appels, CancellationToken, Exception, Fact, Stream, Task
 
 ### Community 761 - "ArticleAideRepository"
-Cohesion: 0.21
-Nodes (10): ArticleAideRepository, CancellationToken, Guid, IReadOnlyList, Task, CentreAideTests, CancellationToken, Fact (+2 more)
+Cohesion: 0.36
+Nodes (6): ArticleAideRepository, CentreAideTests, CancellationToken, Fact, Guid, Task
 
 ### Community 762 - "2. Constats — Non-conformités confirmées"
 Cohesion: 0.29
@@ -4098,36 +4087,36 @@ Nodes (7): 2.1 [BLOQUANT] Interface utilisateur totalement absente, 2.2 [BLOQUAN
 Cohesion: 0.14
 Nodes (13): 10. BILAN & VERDICT DE CLÔTURE, 1. BASELINE COMPARATIVE, 2. DIFF FORENSIQUE DES 4 TESTS HISTORIQUES (GATE 1), 3. PROTECTION DES PREUVES F011 (GATE 2), 4. ANALYSE `PlateformeWebApplicationFactory` (GATE 5), 5. AUDIT SEC-08 : DOUBLE AUTHENTIFICATION (GATE 6), 7. AUDIT SOC-14 : EXPORT CSV & SÉCURITÉ (GATE 8), 9. SYNTHÈSE DES CONTRÔLES TECHNIQUES (GATE 10) (+5 more)
 
-### Community 764 - ".EnregistrerServices"
-Cohesion: 0.44
-Nodes (4): PiecesExigeesCompte, PiecesExigeesCompteTests, Fact, Guid
+### Community 764 - ".AdminHabilite_AccedeALaPage"
+Cohesion: 0.46
+Nodes (4): MatriceTransitions, MatriceTransitionsTests, Fact, Guid
 
-### Community 765 - "CablageNavigationTests"
-Cohesion: 0.13
-Nodes (14): 5. D-05/D-15 — la sidebar filtrée sur les droits réels, 72 tests nouveaux, Architecture, Matrice de navigation, Mesure avant / après — en navigateur, sur l'environnement UAT, Principe : aucune seconde logique d'autorisation, 6. Sidebar — propriété conservée, SeekOrigin (+6 more)
+### Community 765 - "Remédiation UAT — P0 navigateur + filtrage de la sidebar"
+Cohesion: 0.09
+Nodes (22): 10. Reste ouvert, 11. Environnement, 4. D-01 — la modale de confirmation, enfin visible, 5. D-05/D-15 — la sidebar filtrée sur les droits réels, 72 tests nouveaux, 7. Une régression introduite, trouvée et corrigée, 8. Tests, 9. Non-régression UAT rejouée en navigateur (+14 more)
 
 ### Community 766 - ".ConstruireContexte"
-Cohesion: 0.23
-Nodes (8): ModifierTypeClientTests, Fact, Guid, Task, MessagesTests, Fact, Guid, Task
+Cohesion: 0.50
+Nodes (4): ModifierTypeClientTests, Fact, Guid, Task
 
-### Community 767 - ".CAS4_Desactivation_de_A_et_retrogradation_de_B_concurrentes_une_seule_reussit"
-Cohesion: 0.47
-Nodes (4): ConcurrenceDernierAdministrateurCasSupplementairesTests, Fact, Guid, Task
+### Community 767 - "User Scenarios & Testing *(mandatory)*"
+Cohesion: 0.25
+Nodes (8): Edge Cases, User Scenarios & Testing *(mandatory)*, User Story 1 - Création et validation d'un compte société (Priority: P1), User Story 2 - Authentification et accès au compte (Priority: P1), User Story 3 - Gestion des utilisateurs rattachés à une société (Priority: P2), User Story 4 - Cloisonnement et visibilité des données selon le compte et les droits (Priority: P2), User Story 5 - Modification tracée du type de client (Priority: P3), User Story 6 - Authentification renforcée pour les comptes clients (Priority: P4)
 
-### Community 768 - ".EnregistrerServices"
-Cohesion: 0.44
-Nodes (4): Priorites, PrioritesTests, Fact, Guid
+### Community 768 - "Contrats Applicatifs (Use Cases) — Feature 006"
+Cohesion: 0.25
+Nodes (7): C7-01 : SoumettreReclamationCommand, C7-02 : CloturerReclamationCommand, C7-03 : EvaluerReclamationCommand, C7-04 : ListerCategoriesReclamationQuery, C7-05 : ModifierCategoriesReclamationCommand, Contrats Applicatifs (Use Cases) — Feature 006, Contrats F001 Réutilisés Directement
 
 ### Community 769 - ".BuildTargetModel"
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 770 - "ObtenirDashboardAgentQuery"
-Cohesion: 0.13
-Nodes (19): 1. Risques résiduels initiaux, Autorisation, Ce qui décide réellement, surface par surface, Cloisonnement ressources, Comptes désactivés, Contre-audit sécurité post P0-ter, Décision finale P0, Inventaire (+11 more)
+### Community 770 - ".La_charge_est_bornee_au_perimetre_et_montre_les_absents_avec_charge"
+Cohesion: 0.12
+Nodes (17): DisponibiliteRepository, DisponibiliteAutorisationTests, Fact, Task, DisponibiliteTests, Fact, Task, GardeTableauDeBordAgentTests (+9 more)
 
-### Community 771 - ".EnregistrerServices"
-Cohesion: 0.44
+### Community 771 - ".AdminHabilite_AccedeALaPage"
+Cohesion: 0.46
 Nodes (4): ReglesEscalade, ReglesEscaladeTests, Fact, Guid
 
 ### Community 772 - "Architecture & schéma global du workflow YABA (swimlanes)"
@@ -4146,13 +4135,13 @@ Nodes (3): DossierRepositoryTests, Fact, Task
 Cohesion: 0.25
 Nodes (8): 1. Comptes CIT (agents / administration), 2. Comptes Sociétés Clientes, 3. Files de Traitement Associées, 4. Notes, Base de données, Comptes de Test — Jeu de Données CIT, Différence avec `09-comptes-test-development.md`, Objectif
 
-### Community 776 - "DashboardAgentVue"
-Cohesion: 0.44
-Nodes (7): Phase 6 : Dashboard Agent CIT & Gestion de Disponibilité (Contrat C4-03), DashboardAgentVue, FileStatistiqueVue, TicketPrisEnChargeVue, DateTime, Guid, IReadOnlyList
+### Community 776 - ".ExecuterAsync"
+Cohesion: 0.26
+Nodes (10): Phase 6 : Dashboard Agent CIT & Gestion de Disponibilité (Contrat C4-03), DashboardAgentVue, FileStatistiqueVue, TicketPrisEnChargeVue, DateTime, Guid, IReadOnlyList, CancellationToken (+2 more)
 
-### Community 777 - ".ListerAsync"
-Cohesion: 0.02
-Nodes (102): 12. Audit du socle Ticket, IEndpointRouteBuilder, Mécanisme, D6 — Invariant du dernier administrateur actif (CLAR-03), CancellationToken, Guid, IReadOnlyList, Task (+94 more)
+### Community 777 - "UtilisateurSociete"
+Cohesion: 0.04
+Nodes (50): Mécanisme, D6 — Invariant du dernier administrateur actif (CLAR-03), CancellationToken, Guid, Task, ProfilSocieteResultat, CancellationToken, Guid (+42 more)
 
 ### Community 779 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4162,17 +4151,17 @@ Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 Cohesion: 0.25
 Nodes (8): 20. Critères d'Acceptation (Given/When/Then), US1 / US4 — Centre de notifications, état Lu/Non lu (NOT-01, NOT-03), US2 / US3 — Émission et lien (COM-01, COM-02, SEC-12), US5 — Administration (COM-03, NOT-02), US6 — Étanchéité du fil de messages (COM-04), US7 — Préférences (COM-05, Should), US8 — Relances (COM-06, Could), US9 — Raccordement de la mention `@Nom` (NOT-01 appliquée à un agent ; MSG-04 propriété de F001)
 
-### Community 781 - "xunit"
+### Community 781 - "CIT.Plateforme.Web.Tests.Support"
 Cohesion: 0.02
-Nodes (71): CIT.Plateforme.Web.Components, CIT.Plateforme.Web.Tests.Architecture, CIT.Plateforme.Web.Tests.Nfr, CIT.Plateforme.Infrastructure, CIT.Plateforme.Infrastructure.Tests.Notifications, CIT.Plateforme.Web, CIT.Plateforme.Web.Tests.Infrastructure, CIT.Plateforme.Web.Tests.Recette (+63 more)
+Nodes (56): CIT.Plateforme.Web.Components, CIT.Plateforme.Web.Tests.Architecture, CIT.Plateforme.Web.Tests.Nfr, CIT.Plateforme.Infrastructure, CIT.Plateforme.Web, CIT.Plateforme.Web.Tests.Infrastructure, CIT.Plateforme.Web.Tests.Recette, CIT.Plateforme.Web.Tests.Supervision (+48 more)
 
 ### Community 782 - ".BuildTargetModel"
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 783 - ".ExecuterAsync"
-Cohesion: 0.11
-Nodes (16): CancellationToken, Guid, Task, CancellationToken, Guid, Task, CancellationToken, Fact (+8 more)
+### Community 783 - ".Un_agent_Support_IT_N1_ou_N2_prend_en_charge_un_incident"
+Cohesion: 0.28
+Nodes (6): CancellationToken, Fact, Guid, InlineData, Task, Theory
 
 ### Community 784 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4187,28 +4176,28 @@ Cohesion: 0.22
 Nodes (6): Content Quality, Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: Billing Office IMPORT & Unicité BL, Vérifications spécifiques à cette tâche (§21 de la demande)
 
 ### Community 787 - ".BuildTargetModel"
-Cohesion: 0.29
-Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
+Cohesion: 0.12
+Nodes (14): Contenu livré, Deux migrations EF (toutes deux additives, rétro-compatibles), Procédure (ordre strict), Republication — rôles non-CIT + validation interne 4-yeux, Rollback, Vérifs fonctionnelles post-déploiement, MigrationBuilder, AjoutDroitValidationCollaborateur (+6 more)
 
 ### Community 788 - ".Attribuer"
-Cohesion: 0.07
-Nodes (32): CandidatsAffectationProvider, DisponibiliteRepository, DisponibiliteAutorisationTests, Fact, Task, DisponibiliteTests, Fact, Task (+24 more)
+Cohesion: 0.06
+Nodes (39): FileFacturation, CandidatsAffectationProvider, DistributionCompetenceTests, Fact, Guid, Task, ConstaterJointureIesAutorisationTests, Fact (+31 more)
 
 ### Community 789 - "SujetAssistantRepository"
 Cohesion: 0.39
 Nodes (5): SujetAssistantRepository, CancellationToken, Guid, IReadOnlyList, Task
 
-### Community 790 - ".DefinirTransitionAsync"
-Cohesion: 0.47
-Nodes (6): MatriceTransitionsVue, TransitionAdministree, CancellationToken, Guid, IReadOnlyList, Task
+### Community 790 - ".ExecuterAsync"
+Cohesion: 0.25
+Nodes (4): CancellationToken, Task, CancellationToken, Task
 
 ### Community 791 - "IAutorisationService"
 Cohesion: 0.03
-Nodes (237): 4. Conformité du schéma au code (vérifié), §2 — Dossier / Ticket / BL-Booking / Documents (infographie 1), §3 — Parcours IMPORT, §4 — Parcours EXPORT, Comparaison projet ↔ documents 06/10 (Parcours Client + Complément CDC + 3 infographies), Déjà conforme (rappel), Mise à jour — lot A+B livré (06/10/2026, TDD), Écarts résiduels (état initial — désormais résorbés par le lot A+B ci-dessus) (+229 more)
+Nodes (223): 1. Scénarios fonctionnels (§22), Écarts résiduels (état initial — désormais résorbés par le lot A+B ci-dessus), 1. Billing Office — parcours Import (4 types de client) & Export, 3. Socle transverse & workflows, 7. Matrice des 98 règles, 6. Matrice complète RG-* → implémentation, Matrice 98 RG, D-05 — `workflow.deroger` non attribuable (+215 more)
 
-### Community 792 - ".ResoudreAsync"
-Cohesion: 0.33
-Nodes (6): ResolveurAgentsDeLaFile, CancellationToken, Guid, IReadOnlyDictionary, IReadOnlyList, Task
+### Community 792 - "PiecesJointesFormulaire.razor"
+Cohesion: 0.25
+Nodes (7): Ajouter, IBrowserFile, IStringLocalizer, Microsoft.AspNetCore.Components.Forms, Microsoft.Extensions.Localization, SharedResources, ZoneDepot
 
 ### Community 793 - ".EnregistrerDecisionAsync"
 Cohesion: 0.71
@@ -4230,17 +4219,17 @@ Nodes (7): BlocAide, TypeBlocAide, Astuce, Etape, Intertitre, Paragraphe, Puce
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 798 - ".ResoudreDestinatairesPourTicketAsync"
-Cohesion: 0.26
-Nodes (8): CancellationToken, Guid, IReadOnlyList, Task, ResolveurClientEnrolementTests, InlineData, Task, Theory
+### Community 798 - "ResolveurClientDuDossier"
+Cohesion: 0.17
+Nodes (12): ResolveurClientDuDossier, CancellationToken, Guid, HashSet, IReadOnlyList, Task, InlineData, Theory (+4 more)
 
 ### Community 799 - "PreuvePaiementTicket.razor"
 Cohesion: 0.22
 Nodes (8): OnParametersSetAsync, ActionsDocument, IServiceScopeFactory, IStringLocalizer, Microsoft.Extensions.DependencyInjection, Microsoft.Extensions.Localization, ObtenirFicheTicketQuery, SharedResources
 
-### Community 800 - ".EnregistrerServices"
-Cohesion: 0.44
-Nodes (4): StrategieFile, StrategieFileTests, Fact, Guid
+### Community 800 - "PrisEnChargePar.razor"
+Cohesion: 0.25
+Nodes (7): OnParametersSetAsync, IServiceScopeFactory, IStringLocalizer, IUtilisateurInfoRepository, Microsoft.Extensions.DependencyInjection, Microsoft.Extensions.Localization, SharedResources
 
 ### Community 801 - "CIT.Plateforme.Domain.Tests.csproj"
 Cohesion: 0.29
@@ -4274,9 +4263,9 @@ Nodes (5): Montée en charge / technique, Métier / fonctionnel, Q&R anticipées
 Cohesion: 0.29
 Nodes (7): A. Visiteur et ouverture de compte, B. Client et administrateur de société, C. Transporteur ou chauffeur, D. Agent métier, E. Supervision et administration CIT, F. Support et contrôles de confort, Résultats à cocher
 
-### Community 810 - "Prêt d'exploitation — rétention et purge"
-Cohesion: 0.33
-Nodes (5): 2. G-02 — ce qui manque, et pourquoi ce n'est pas un oubli technique, 3. Ce qui est techniquement prêt, 4. Réserves à lever avant tout déclenchement automatique, 5. Décision attendue, Prêt d'exploitation — rétention et purge
+### Community 810 - ".Commentaire_vide_est_refuse"
+Cohesion: 0.43
+Nodes (5): ArgumentException, CancellationToken, Fact, Guid, Task
 
 ### Community 811 - "Audit de sécurité des dépendances"
 Cohesion: 0.33
@@ -4302,9 +4291,9 @@ Nodes (5): 1. Inventaire Exhaustif des Exigences (SIM-01 à SIM-11), 2. Conformi
 Cohesion: 0.33
 Nodes (5): 1. Bilan d'Exécution, 2. Décision de Clôture, Module Avoir & Exonération, Revue de Clôture Finale — Feature 007, Tableau de Clôture
 
-### Community 817 - "StockageEspion"
-Cohesion: 0.31
-Nodes (6): Stream, AntivirusQuiLitVraiment, ContenuAnalyse, StockageEspion, ContenuEcrit, CancellationToken
+### Community 817 - "AccessibiliteFormelleTests"
+Cohesion: 0.43
+Nodes (3): AccessibiliteFormelleTests, Fact, IEnumerable
 
 ### Community 818 - ".Construire"
 Cohesion: 0.50
@@ -4319,12 +4308,12 @@ Cohesion: 0.33
 Nodes (6): 9. NFR — certification sans seuil inventé, NFR-01 — Interface en français, ergonomie simple, NFR-02 — Portail responsive, NFR-11 — Horaires de traitement et SLA, Niveau de preuve retenu (clarifié) — preuve **structurelle**, limite déclarée, État vérifié du calendrier (clarifié)
 
 ### Community 821 - "CompetenceOperateur"
-Cohesion: 0.29
-Nodes (6): 4. Migrations — vérification après remédiation, CompetenceOperateur, Code, Id, OperateurId, Guid
+Cohesion: 0.25
+Nodes (7): A.1 Comptes et habilitations, 4. Migrations — vérification après remédiation, CompetenceOperateur, Code, Id, OperateurId, Guid
 
-### Community 822 - ".ExecuterAsync"
-Cohesion: 0.32
-Nodes (7): LigneActiviteOperateurVue, CancellationToken, DateTime, Guid, IReadOnlyList, Task, TimeSpan
+### Community 822 - ".ObtenirParSuperviseurAsync"
+Cohesion: 0.06
+Nodes (34): ResultatReaffectationDeMasse, CancellationToken, Guid, IReadOnlyList, Task, AgentAnnuaireVue, RubriqueAnnuaireVue, CancellationToken (+26 more)
 
 ### Community 823 - "Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement"
 Cohesion: 0.33
@@ -4342,9 +4331,9 @@ Nodes (5): 1. VÉRIFICATION DES HEALTH CHECKS, 2. EXÉCUTION DES BENCHMARKS DE P
 Cohesion: 0.33
 Nodes (5): CHECKLIST DES EXIGENCES CLARIFIÉES — FEATURE 017, EXIGENCE 1 : SEC-02 (Must) — Contrôle d'Accès par Rôles au Niveau Champ, EXIGENCE 2 : SEC-06 (Must) — Protection des Données Personnelles & Rétention ARTCI, Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI), TRAÇABILITÉ DES CONTRATS & TEST-SPEC
 
-### Community 827 - "RemediationCustomerComplaintContent"
-Cohesion: 0.15
-Nodes (11): 14. Verdict de clôture, Changements étrangers à F006 — matrice complète (git status / diff), Migrations, MigrationBuilder, RemediationCustomerComplaintContent, DateTime, DateTimeOffset, Guid (+3 more)
+### Community 827 - "CLOSURE REVIEW FORMELLE FINALE (31 août 2026)"
+Cohesion: 0.08
+Nodes (22): 14. Verdict de clôture, AVE, Baseline réexécutée, Changements étrangers à F006 — matrice complète (git status / diff), CLAR-REC-01 → 08, CLOSURE REVIEW FORMELLE FINALE (31 août 2026), Contrats C7, Couverture CDC après F006 (+14 more)
 
 ### Community 828 - ".ExecuterAsync"
 Cohesion: 0.29
@@ -4363,8 +4352,8 @@ Cohesion: 0.48
 Nodes (4): IJournalAuditLecture, JournalAuditLecture, EntreeJournalAuditVue, IUtilisateurInfoRepository
 
 ### Community 832 - ".M"
-Cohesion: 0.17
-Nodes (11): Backlog UI/UX, Par nature, Quick wins — faible effort, fort impact, faible risque, Synthèse, Séquencement proposé, Table, 0. Correction d'un constat de `spec.md` §17, CalculateurReportingBadtTests (+3 more)
+Cohesion: 0.13
+Nodes (14): Backlog de clôture, Chemin critique, Regroupement par lot, Backlog UI/UX, Par nature, Quick wins — faible effort, fort impact, faible risque, Synthèse, Séquencement proposé (+6 more)
 
 ### Community 833 - ".BuildTargetModel"
 Cohesion: 0.33
@@ -4419,16 +4408,16 @@ Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
 ### Community 847 - ".BuildTargetModel"
-Cohesion: 0.13
-Nodes (12): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan, DateTime, DateTimeOffset (+4 more)
+Cohesion: 0.29
+Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
 ### Community 848 - "Backlog UI/UX ultime — après recette build publié"
 Cohesion: 0.40
 Nodes (4): Acquis solides (ne plus rouvrir), Backlog UI/UX ultime — après recette build publié, Fermés ce tour (build publié), Restant — ce qui empêche 100
 
-### Community 849 - ".BuildTargetModel"
-Cohesion: 0.29
-Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
+### Community 849 - "DateOnly"
+Cohesion: 0.03
+Nodes (49): JoursFeriesCourants, Actuels, IReadOnlySet, DateTime, Guid, MigrationBuilder, DateTime, DateTimeOffset (+41 more)
 
 ### Community 850 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4454,9 +4443,9 @@ Nodes (4): 1. Respect des Contraintes Non-Négociables (Constitution), 2. Exhaus
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 856 - "NumerotationAvecCollisionSurLeDeuxiemeTicket"
-Cohesion: 0.60
-Nodes (3): NumerotationAvecCollisionSurLeDeuxiemeTicket, CancellationToken, Task
+### Community 856 - ".AnalyserAsync"
+Cohesion: 0.43
+Nodes (5): FakeAntivirus, FakeStockage, CancellationToken, Stream, Task
 
 ### Community 857 - "7. ERR-02 — seule correction de produit anticipée"
 Cohesion: 0.40
@@ -4474,25 +4463,25 @@ Nodes (4): 1. SYNTHÈSE DES IMPACTS DE MODÉLISATION, 2. AUDIT DU MODÈLE EXISTA
 Cohesion: 0.40
 Nodes (4): 1. EXÉCUTION DES TESTS UNITAIRES ET D'INTÉGRATION, 2. VÉRIFICATION DU MODÈLE ET DES MIGRATIONS, GUIDE DE DÉMARRAGE RAPIDE — FEATURE 017, Sécurité Granulaire Métier & Rétention Documentaire Réglementaire (ARTCI)
 
-### Community 861 - "PiecesExigeesCompteCommands.cs"
-Cohesion: 0.22
-Nodes (12): ContenuJustificatif, GererPiecesExigeesCommand, JustificatifVue, ListerJustificatifsDemandeQuery, ListerPiecesExigeesQuery, PieceExigeeVue, TelechargerJustificatifQuery, CancellationToken (+4 more)
+### Community 861 - ".DefinirAsync"
+Cohesion: 0.25
+Nodes (9): ContenuJustificatif, JustificatifVue, ListerPiecesExigeesQuery, PieceExigeeVue, CancellationToken, DateTime, Guid, IReadOnlyList (+1 more)
 
 ### Community 862 - ".BuildTargetModel"
 Cohesion: 0.40
 Nodes (4): DateTime, DateTimeOffset, Guid, ModelBuilder
 
-### Community 863 - ".CheckHealthAsync"
+### Community 863 - "EnvironnementDeTest"
 Cohesion: 0.29
-Nodes (6): ChiffrementDocumentsHealthCheck, CancellationToken, HealthCheckContext, HealthCheckResult, IConfiguration, Task
+Nodes (7): IHostEnvironment, EnvironnementDeTest, ApplicationName, ContentRootFileProvider, ContentRootPath, EnvironmentName, IFileProvider
 
 ### Community 864 - ".BuildTargetModel"
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 865 - ".BuildTargetModel"
+### Community 865 - "Data Model — Feature 008 (Enrôlement Transporteurs)"
 Cohesion: 0.29
-Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
+Nodes (6): 3. Nouvelles permissions (données de configuration, pas de schéma), 4. Nouvelle méthode de repository (interface, pas de table), 5. Diagramme conceptuel des relations exploitées, 7. Stratégie EF Core / SQL Server, 8. Ce que ce modèle exclut explicitement (rappel des frontières spec.md §22), Data Model — Feature 008 (Enrôlement Transporteurs)
 
 ### Community 866 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4502,9 +4491,9 @@ Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 869 - "4.3 Exigences NON CONFORMES — établies par preuve"
-Cohesion: 0.50
-Nodes (4): 4.1 Dénombrement — **confirmé**, 4.2 Répartition par famille (30 familles), 4.3 Exigences NON CONFORMES — établies par preuve, 4. Reconstruction des 188 exigences
+### Community 869 - ".TraiterTicketAsync"
+Cohesion: 0.43
+Nodes (5): ICandidatsAffectationProvider, CancellationToken, Guid, IReadOnlyList, Task
 
 ### Community 870 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4614,24 +4603,28 @@ Nodes (3): 1. PARAMÈTRES DE CAMPAGNE, 2. PROTOCOLE & RÉSULTAT DU CALCUL, RAPPO
 Cohesion: 0.50
 Nodes (3): 1. PARAMÈTRES DU BENCHMARK, 2. RÉSULTAT DU BENCHMARK L3, RAPPORT DE BENCHMARK DE PERFORMANCE K6 (NFR-04 - L3)
 
-### Community 901 - ".Le_rappel_part_une_seule_fois_par_document"
-Cohesion: 0.39
-Nodes (5): EcheancesDocumentsTests, ArgumentException, CancellationToken, Fact, Task
+### Community 900 - "ProvisionnementRendezVous"
+Cohesion: 0.38
+Nodes (4): ProvisionnementRendezVous, CancellationToken, ILogger, Task
+
+### Community 901 - ".BuildTargetModel"
+Cohesion: 0.29
+Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
 ### Community 902 - "LanguageSwitcher.razor"
 Cohesion: 0.50
 Nodes (3): AntiforgeryToken, NavigationManager, System.Globalization
 
 ### Community 905 - "ModaleConfirmationFocusTests"
-Cohesion: 0.09
-Nodes (21): 1. WCAG 1.4.11 — Contraste non textuel (champs de saisie) — PASS technique, 2. Déjà corrigé et vérifié (tours précédents), 3. Confirmations accessibles (AM-03, ce cycle), 4. Restant pour le 10ᵉ point — NON EXÉCUTABLE ici, Audit accessibilité — état final, 1. Résultats par critère, 2. Défauts techniques trouvés et CORRIGÉS ce tour, 3. Ce qui bloque encore la conformité AA formelle (+13 more)
+Cohesion: 0.07
+Nodes (28): 2. Déjà corrigé et vérifié (tours précédents), 3. Confirmations accessibles (AM-03, ce cycle), 4. Restant pour le 10ᵉ point — NON EXÉCUTABLE ici, Audit accessibilité — état final, 1. Corrigé et vérifié (tours précédents, pages anonymes), 2. NON TESTÉ ce tour (pages authentifiées — blocage harnais), 3. Restant pour le 10ᵉ point d'accessibilité, Audit accessibilité technique (+20 more)
 
 ### Community 906 - ".Regroupe_les_agents_par_file_et_exclut_les_files_hors_carte"
 Cohesion: 0.36
 Nodes (6): AnnuaireAgentsParFileQueryTests, CancellationToken, Fact, Guid, IEnumerable, Task
 
-### Community 907 - "RendreTicketALaFileTests"
-Cohesion: 0.39
+### Community 907 - ".ConstruireAsync"
+Cohesion: 0.47
 Nodes (5): Contexte, RendreTicketALaFileTests, Fact, Guid, Task
 
 ### Community 908 - ".BuildTargetModel"
@@ -4718,9 +4711,9 @@ Nodes (4): DateTime, DateTimeOffset, Guid, ModelBuilder
 Cohesion: 0.29
 Nodes (6): 1. MATRICE DE TRAÇABILITÉ CDC, 2. AUDIT DES DÉCISIONS CLÉS (18/18 VALIDÉES), 3. EXCLUSIONS STRICTES (ANTI-SCOPE RESPECTÉ), 4. RECAPITULATIF TEST-SPEC, CHECKLIST DES EXIGENCES & CLARIFICATIONS — FEATURE 015, Sécurité des Échanges, Protection Documentaire & Cloisonnement d'Environnement
 
-### Community 933 - "DecisionLigneBadt"
-Cohesion: 0.40
-Nodes (4): DecisionLigneBadt, Accordee, EnAttente, Refusee
+### Community 933 - ".BuildTargetModel"
+Cohesion: 0.29
+Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
 ### Community 934 - "ApercuProformaFacture.razor"
 Cohesion: 0.29
@@ -4731,8 +4724,8 @@ Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
 ### Community 942 - ".ClorePourMotifAsync"
-Cohesion: 0.73
-Nodes (3): CancellationToken, Guid, Task
+Cohesion: 0.29
+Nodes (8): CancellationToken, Document, Guid, Stream, Task, CancellationToken, Guid, Task
 
 ### Community 943 - ".Up"
 Cohesion: 0.33
@@ -4762,9 +4755,9 @@ Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 950 - ".BuildTargetModel"
-Cohesion: 0.29
-Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
+### Community 950 - ".PrendreEnCharge_HabiliteAvoirSeulement_RefuseSurExoneration"
+Cohesion: 0.57
+Nodes (3): CancellationToken, Fact, Task
 
 ### Community 951 - "2. EXÉCUTION DÉTAILLÉE PAR EXIGENCE"
 Cohesion: 0.29
@@ -4778,9 +4771,9 @@ Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 Cohesion: 0.33
 Nodes (5): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeSpan
 
-### Community 954 - "TypeActionRequise"
-Cohesion: 0.29
-Nodes (7): TypeActionRequise, ComplementExport, ComplementManifeste, ComplementReclamation, NouvellePreuveRequise, PaiementAttendu, ProformaAValider
+### Community 954 - ".ConstruireContexte"
+Cohesion: 0.48
+Nodes (4): MessagesTests, Fact, Guid, Task
 
 ### Community 955 - ".BuildTargetModel"
 Cohesion: 0.33
@@ -4814,17 +4807,17 @@ Nodes (4): DateTime, DateTimeOffset, Guid, ModelBuilder
 Cohesion: 0.40
 Nodes (4): DateTime, DateTimeOffset, Guid, ModelBuilder
 
-### Community 965 - ".BuildTargetModel"
+### Community 965 - "FakeUtilisateurInfoRepository"
 Cohesion: 0.29
-Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
+Nodes (3): FakeUtilisateurInfoRepository, IEnumerable, IReadOnlyDictionary
 
 ### Community 966 - ".BuildTargetModel"
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 967 - "ZoneDepot.razor"
-Cohesion: 0.29
-Nodes (6): InputFile, InputFileChangeEventArgs, IStringLocalizer, Microsoft.AspNetCore.Components.Forms, Microsoft.Extensions.Localization, SharedResources
+### Community 967 - "7. RG-CPT-08 — fiche de décision"
+Cohesion: 0.33
+Nodes (6): 7. RG-CPT-08 — fiche de décision, Cause racine, Les deux options, OPTION A — Le transporteur reste `Client`, OPTION B — Nature `Transporteur` distincte, État actuel
 
 ### Community 968 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4834,9 +4827,9 @@ Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 970 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
+### Community 970 - "4. REC-SEC-01 → REC-SEC-06"
+Cohesion: 0.33
+Nodes (4): 4. REC-SEC-01 → REC-SEC-06, InlineData, Task, Theory
 
 ### Community 971 - ".BuildTargetModel"
 Cohesion: 0.29
@@ -4846,45 +4839,45 @@ Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 Cohesion: 0.29
 Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
 
-### Community 973 - ".BuildTargetModel"
-Cohesion: 0.29
-Nodes (6): DateTime, DateTimeOffset, Guid, ModelBuilder, TimeOnly, TimeSpan
+### Community 973 - "4. `DistribueLeUtc` — les quatre scénarios"
+Cohesion: 0.33
+Nodes (5): 4. `DistribueLeUtc` — les quatre scénarios, ExecuteurTransactionnel, CancellationToken, Func, Task
 
-### Community 974 - ".Up"
+### Community 974 - ".ConsignerAuditAsync"
+Cohesion: 0.53
+Nodes (3): CancellationToken, Guid, Task
+
+### Community 975 - ".ObtenirFiche_ClientAutreSociete_LeveAccesRefuseException"
+Cohesion: 0.60
+Nodes (3): CancellationToken, Fact, Task
+
+### Community 977 - "TitresPageTests"
 Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
-
-### Community 975 - ".Conteneur_deja_present_est_ignore"
-Cohesion: 0.48
-Nodes (4): CancellationToken, Fact, Guid, Task
-
-### Community 977 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
+Nodes (4): TitresPageTests, Fact, IEnumerable, Regex
 
 ### Community 978 - "Conformité finale — 98 RG et dettes hors score"
-Cohesion: 0.33
-Nodes (5): 2. Recalcul, Conclusion, Conformité finale — 98 RG et dettes hors score, Par domaine, Progression
+Cohesion: 0.20
+Nodes (9): 2. Recalcul, 3. Arbitrages toujours ouverts, Conclusion, Conformité finale — 98 RG et dettes hors score, Par domaine, Progression, RG-COM-01 — 🟡 PARTIELLEMENT CONFORME, RG-CPT-08 — 🔵 N/A / À ARBITRER (+1 more)
 
-### Community 979 - ".Up"
+### Community 979 - "Procès-verbal de recette — YABA (§22 du CDC)"
 Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
+Nodes (4): 2. Exigences non fonctionnelles à prouver (§19), 3. Synthèse et décision, En-tête, Procès-verbal de recette — YABA (§22 du CDC)
 
-### Community 980 - ".Up"
+### Community 980 - "5. Comment les exécuter"
 Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
+Nodes (5): 5. Comment les exécuter, En continu (déjà en place), Toute la recette en une commande (depuis la racine du dépôt), Toute la suite (régression complète, ~2160 tests), Un domaine précis
 
 ### Community 981 - "FakeNumerotationService"
 Cohesion: 0.60
 Nodes (3): FakeNumerotationService, CancellationToken, Task
 
-### Community 982 - ".ExecuterAsync"
-Cohesion: 0.53
-Nodes (3): CancellationToken, Guid, Task
-
-### Community 983 - "ProvisionnementChampsEnrolement"
+### Community 982 - "25. Défauts"
 Cohesion: 0.40
-Nodes (4): ProvisionnementChampsEnrolement, CancellationToken, ILogger, Task
+Nodes (5): 25. Défauts, UX-P0 — bloque un parcours ou provoque une action dangereuse, UX-P1 — dégradation importante d'un parcours principal, UX-P2 — problème réel mais contournable, UX-P3 — polish et cohérence
+
+### Community 983 - "13. Priorisation"
+Cohesion: 0.40
+Nodes (5): 13. Priorisation, LOT A — Bloquants production, LOT B — Arbitrages avant pilote, LOT C — Dettes à court terme, LOT D — Améliorations post-production
 
 ### Community 984 - "MODÈLE DE DONNÉES & MATRICE DES RESSOURCES — FEATURE 014"
 Cohesion: 0.33
@@ -4898,73 +4891,61 @@ Nodes (4): ProvisionnementSujetsAssistant, CancellationToken, ILogger, Task
 Cohesion: 0.40
 Nodes (5): SocieteSelectionnable, CancellationToken, Guid, IReadOnlyList, Task
 
-### Community 987 - ".Persistance_TicketAvoirEtDecision_RoundtripSqlServerReussi"
+### Community 987 - ".ExecuterAsync"
 Cohesion: 0.40
-Nodes (4): AvoirExonerationPersistenceTests, DateTime, Fact, Task
+Nodes (4): CancellationToken, Guid, IReadOnlyList, Task
 
-### Community 989 - ".Up"
-Cohesion: 0.33
-Nodes (4): DateTime, Guid, MigrationBuilder, TimeSpan
+### Community 988 - "2. Décisions d'Architecture (D1 à D9)"
+Cohesion: 0.13
+Nodes (12): 2. Décisions d'Architecture (D1 à D9), D1 — PRI-02 : Déduction initiale de priorité et ordonnancement de file, D2 — IMP-03 : Raccordement de l'événement `TicketCree` dans Billing Import, D3 — REC-02 & REC-03 : Certification stricte sans duplication de code, D4 — SEC-08 : Stratégie d'assainissement et stabilisation du harnais de test 2FA, D5 — SOC-14 : Conception de l'export CSV tabulaire léger, D6 — COM-06 : Relances automatiques multicanales (InApp + Email), D7 — REC-SCE-14 : Scénario transverse E2E sans mock destructif (+4 more)
 
-### Community 991 - "ChronologieTicketTests"
-Cohesion: 0.50
-Nodes (3): ChronologieTicketTests, ChronologieTicket, Fact
+### Community 989 - "OuvrirDossierAuGuichetRequest"
+Cohesion: 0.40
+Nodes (5): OuvrirDossierAuGuichetRequest, SensOperationGuichet, Export, Import, Guid
 
 ### Community 992 - "4. Client d’entreprise"
 Cohesion: 0.67
 Nodes (3): 4. Client d’entreprise, Ouverture du compte, Parcours d’utilisation
 
-### Community 993 - "10. Déclencheurs Métier"
-Cohesion: 0.67
-Nodes (3): 10.1 Trois niveaux de source — définitions, 10.2 Matrice des déclencheurs (exploitable par `/speckit.plan`), 10. Déclencheurs Métier
-
-### Community 994 - "25. Clarifications"
-Cohesion: 0.67
-Nodes (3): 25.1 Audit détaillé des 9 clarifications, 25. Clarifications, Session 2026-09-01
-
-### Community 996 - "Étape 0 — Garde de périmètre obligatoire et détermination mécanique du périmètre réel"
-Cohesion: 0.40
-Nodes (5): 0.1 Contradiction IMP-15 — analyse et décision, 0.2 Contradiction UNI-04 — analyse et décision (découverte additionnelle, non signalée par la roadmap), 0.3 Table de sélection des exigences retenues, 0.4 Vérification inverse (Feature 003 → exigences sélectionnées → matrice CDC), Étape 0 — Garde de périmètre obligatoire et détermination mécanique du périmètre réel
-
-### Community 997 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
-
-### Community 1002 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
-
-### Community 1003 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
-
-### Community 1004 - ".Up"
-Cohesion: 0.40
-Nodes (3): DateTime, Guid, MigrationBuilder
-
-### Community 1006 - "1. Les trois écarts qui portent une exigence"
+### Community 993 - "17. Checklist mise en production"
 Cohesion: 0.50
-Nodes (4): 1. Les trois écarts qui portent une exigence, ÉCART-01 — Aucune mesure du temps par étape, ÉCART-02 — Le « temps total du parcours » ne part pas de la création, ÉCART-03 — Les statuts ne sont pas paramétrables
+Nodes (4): 17. Checklist mise en production, MEP, POST-MEP — smoke tests, PRE-MEP
+
+### Community 994 - "8. PC-16 / RG-COM-01 — fiche d'arbitrage"
+Cohesion: 0.50
+Nodes (4): 8. PC-16 / RG-COM-01 — fiche d'arbitrage, Décision attendue, L'élément sourcé qui éclaire la décision, État constaté
+
+### Community 995 - "9. Assistant IA — RG-IA-01 / RG-IA-02"
+Cohesion: 0.50
+Nodes (4): 9. Assistant IA — RG-IA-01 / RG-IA-02, Les trois options, Question à trancher en plus du moteur, État constaté
+
+### Community 996 - ".ExecuterAsync"
+Cohesion: 0.50
+Nodes (3): CancellationToken, Guid, Task
+
+### Community 999 - ".ViderAsync"
+Cohesion: 0.50
+Nodes (3): ReinitialisationDonneesDeTest, CancellationToken, Task
 
 ## Knowledge Gaps
-- **6941 isolated node(s):** `URL_BASE`, `PARCOURS`, `comptes`, `mesures`, `debut` (+6936 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 10209 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **6942 isolated node(s):** `URL_BASE`, `PARCOURS`, `comptes`, `mesures`, `debut` (+6937 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 10210 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **33 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `PlateformeDbContext` connect `PlateformeDbContext` to `.AjouterInfrastructure`, `ReferentielsTarifairesRepository`, `CIT.Plateforme.Application.ActualisationBadt`, `PlateformeWebApplicationFactory`, `ReglesDepotDocument`, `IDocumentRepository`, `SoumettreDemandeExportCommand`, `.Rattacher`, `EntreeHistorique`, `IDossierRepository`, `IContexteUtilisateurWeb`, `Ticket`, `.ConfigurerServices`, `CancellationToken`, `.ConstruireAsync`, `VersionGrilleTarifaire`, `IReferentielsTarifairesRepository`, `.ConstruireContexte`, `ControleAccesRessourceService`, `VersionGrilleTarifaireRepository`, `RegleAccesConnexionTests`, `.Construire`, `LotPurgeRetention`, `IdentiteTarificationTests`, `TypeClient`, `.CreerContexte`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010`, `EvenementSocle`, `MotifTransfert`, `RendezVous`, `DevelopmentSeeder`, `LibelleStatutTicket`, `.ConstruireAsync`, `.AppliquerParametres`, `HistoriqueDisponibilite`, `SeedRecetteUat`, `.Une_categorie_configuree_par_l_administration_permet_de_soumettre_une_reclamation`, `Remédiation P0-bis — Cloisonnement agent sur les fiches Ticket / Dossier`, `CancellationToken`, `Dossier`, `CanalNotification`, `UniteDeTravail`, `.SynchroniserTicketModifie`, `LibellesStatutParametrablesTests`, `CloisonnementAgentFichesTests`, `DossierSimulation`, `.CreerNouveauContexte`, `BrouillonSaisie`, `GestionnaireRetentionService`, `ServiceNumerotation`, `InMemoryEvenementSocleRepository`, `TransitionAutorisee`, `.CompteActif`, `DestinationEnvoi`, `PieceExigeeCompte`, `SocieteCliente`, `.CreerTicketAsync`, `SoumettreDemandeImportRequete`, `Audit Post-Implémentation Indépendant — Feature 005 (Simulation Proforma)`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 009`, `.Construire`, `ConsulterMesNotificationsQuery`, `SecCert01VerrouillageTests`, `.CreerUtilisateurActifAsync`, `DistribuerNotificationsUseCaseTests`, `ProvisionnementParametrageMetier`, `.Soumission`, `CategorieIncident`, `.EnregistrerServices`, `.Changement_de_type_apres_creation_du_dossier_avant_aiguillage_n_affecte_pas_le_circuit`, `CategorieMarchandise`, `.Preparer`, `ParametreTypeClient`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT`, `ApiCloisonnementTests`, `NFR-03 (Must) — Disponibilité Cible $\ge 99\%$ en Heures Ouvrées`, `DernierAdministrateurActifException`, `Remédiation P0-ter — Contrôle d'accès centralisé`, `PieceExigeeCompteRepository`, `Rapport de Revue Visuelle et Fonctionnelle Indépendante`, `2. DÉCISIONS D'ARCHITECTURE`, `.Creer`, `.EnregistrerServices`, `Exception`, `.ConstruireAsync`, `.Verifier`, `.Une_matrice_deja_parametree_n_est_jamais_reecrite`, `.Desactivation_d_un_utilisateur_non_administrateur_reussit_sans_condition`, `.Construire`, `ParametresReessaiNotification`, `PrendreEnChargeCommand`, `Tasks: Socle transverse de gestion des tickets et workflows`, `FicheEnrolement.razor`, `.CompleterAsync`, `.CreerAgentAsync`, `2. Matrice des 24 exigences retenues`, `CablageEtatEngageantTests`, `ParcoursImpersonationTests`, `24. Remédiation ciblée — validation finale (2026-08-30, seconde session)`, `.L_annuaire_classe_agents_transporteurs_et_clients_sans_societe`, `Revue de fermeture — Feature 003 : Billing Office IMPORT & Unicité BL`, `.Construire`, `ProvisionnementAdministrateurInitial`, `Backlog UI/UX résiduel`, `EnvoiNotification`, `.ConstruireContexte`, `.Document_Depose_Avec_Categorie_Est_Persiste_Et_Retrouve_Avec_Sa_Categorie`, `ArticleAideRepository`, `LiaisonTicket`, `REGRESSION AUDIT F012`, `.ConstruireContexteAvecDocumentAsync`, `.EnregistrerServices`, `.ConstruireContexte`, `.EnregistrerServices`, `ObtenirDashboardAgentQuery`, `.EnregistrerServices`, `FileDeTraitement`, `ParcoursConnexion2FaTests`, `.Attribuer`, `SujetAssistantRepository`, `IAutorisationService`, `RendezVousRepository`, `SecCert04SessionTests`, `.EnregistrerServices`, `Permission`, `.Construire`, `.ExecuterAsync`, `.Construire`, `PassageEnFile`, `JournalAuditLecture`, `.M`, `.Construire`, `ParametresSlaProvider`, `InvitationCollaborateur`, `ResolutionAuteurJournalAuditTests`, `TarifNonTrouveException`, `.Creer`, `BrouillonRepository`, `PieceExigeeEtapeRepository`, `ProvisionnementNotifications`, `.PreparerAsync`, `ProvisionnementIdentiteSocietes`, `.ListerARappelerAsync`, `.Construire`, `2. Découpage en 10 Phases d'Implémentation`, `SimulationProformaRepository`, `DateOnly`, `RendreTicketALaFileTests`, `.Construire`, `ComptesAgentsTests`, `UtilisateurSociete`, `.Construire`, `.Publier`, `SuiviBrancheIes`, `.ConstruireAsync`, `Audit post-implémentation indépendant — Feature 003 : Billing Office IMPORT & Unicité BL`, `DecisionAvoirExo`, `FenetreMaintenance`, `ScannerAntivirusDefender`, `ProvisionnementChampsEnrolement`, `MODÈLE DE DONNÉES & MATRICE DES RESSOURCES — FEATURE 014`, `ProvisionnementSujetsAssistant`, `LigneActualisationBadtRepository`, `JustificatifDemandeCompte`, `Post-Implementation Audit Indépendant — Feature 011 (Certification Sécurité & Socle NFR)`, `Rapport d'Implémentation Final — Feature 006 (Customer Complaint)`, `CompetenceOperateurRepository`, `.TraiterUneFoisAsync`, `.Construire`, `ApplicationUser`, `SurveillerEcheancesCalendrierTests`, `.PreparerAsync`, `PassageEnFileRepository`?**
-  _High betweenness centrality (0.108) - this node is a cross-community bridge._
-- **Why does `IContexteUtilisateurWeb` connect `IContexteUtilisateurWeb` to `CentreNotifications.razor`, `NouvelleDemandeBadt.razor`, `2. Décisions Techniques Structurantes (D1 à D15)`, `PlateformeDbContext`, `SoumettreDemandeExportCommand`, `.Rattacher`, `IDossierRepository`, `.ConfigurerServices`, `Plan Technique d'Implémentation — Feature 004 : Billing Office EXPORT`, `VersionGrilleTarifaire`, `ControleAccesRessourceService`, `ProfilSociete.razor`, `VersionGrilleTarifaireRepository`, `TypeClient`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010`, `MonProfil.razor`, `DetailDossier.razor`, `ComptesAgents.razor`, `Tasks: Consolidation UI/UX des Features 001 à 003`, `Archives.razor`, `ReportingActualisationBadt.razor`, `CIT.Plateforme.Web.Components.Shared`, `UniteDeTravail`, `FicheActualisationBadt.razor`, `AdministrationNotifications.razor`, `MesIncidents.razor`, `PiecesExigeesEtape.razor`, `DashboardSociete.razor`, `.Module`, `EspaceFonctionnel`, `AdministrationAide.razor`, `IndicateursTemps.razor`, `ManuelUtilisateur.razor`, `1. Analyse des Décisions d'Architecture (D1 à D10)`, `TableauDeBord.razor`, `FicheTicket.razor`, `SimulationProformaPage.razor`, `MesRendezVous.razor`, `CIT.Plateforme.Web.Services`, `FileIes.razor`, `AgendaGuichet.razor`, `AdministrationCategoriesIncident.razor`, `LibellesStatut.razor`, `MainLayout.razor`, `.EnregistrerServices`, `AdministrationReferentielsConteneur.razor`, `EtapesBloquantesAnnulation.razor`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT`, `ApiCloisonnementTests`, `FileComptabiliteExport.razor`, `ValiderDemandes.razor`, `FileFacturation.razor`, `Rapport de Revue Visuelle et Fonctionnelle Indépendante`, `.Creer`, `.EnregistrerServices`, `ComptesUtilisateurs.razor`, `FilePiloteManifeste.razor`, `Documents.razor`, `.ConstruireAsync`, `EnrolementsAValider.razor`, `CompetencesOperateur.razor`, `NavMenu.razor`, `FileFacturationExport.razor`, `ModifierTypeClient.razor`, `PrendreEnChargeCommand`, `ParametresSla.razor`, `PerimetresSupervision.razor`, `FicheEnrolement.razor`, `FileControleDocumentaire.razor`, `ValidationPaiement.razor`, `RechercheGuichet.razor`, `StrategieFile.razor`, `ReglesPrioriteAutomatique.razor`, `FileControleDocumentaireExport.razor`, `Impersonation.razor`, `Spécification Fonctionnelle Clarifiée — Feature 007`, `ConsulterTicketCloture.razor`, `NouvelleDemandeAvoirExo.razor`, `FileIesExport.razor`, `Revue de Fermeture Finale — Feature 004 : Billing Office EXPORT`, `PiecesExigeesCompte.razor`, `FileBackOfficeExport.razor`, `FileValidationPaiementExport.razor`, `EnrolementSociete.razor`, `DetailSimulationPage.razor`, `BandeauDisponibiliteAgent.razor`, `.Document_Depose_Avec_Categorie_Est_Persiste_Et_Retrouve_Avec_Sa_Categorie`, `.EnregistrerServices`, `.EnregistrerServices`, `.EnregistrerServices`, `FicheDossier.razor`, `MotifsTransfert.razor`, `Disponibilite.razor`, `MesEnrolements.razor`, `ConstaterJointureIesAutorisationTests`, `AssistantChat.razor`, `AdministrationCategories.razor`, `AdministrationAssistant.razor`, `CentreAide.razor`, `.EnregistrerServices`, `BillingImport/SoumettreDemande.razor`, `ReglesEscalade.razor`, `ChampsFormulaireEnrolement.razor`, `MatriceTransitions.razor`, `Priorites.razor`, `FicheAvoirExoneration.razor`, `RetraitEnrolementSociete.razor`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT : FEATURE 003.5 — CONSOLIDATION UI/UX (F001-F003)`, `JoursFeries.razor`, `FileComptabiliteClient.razor`, `Revue de fermeture — Feature 003.5 : Consolidation UI/UX (F001-F003) & ACR-01`, `.ConsignerAuditAsync`, `HeaderBar.razor`, `DashboardClient.razor`, `Implementation Plan: Consolidation UI/UX des Features 001 à 003`, `.MainLayout_RenduComplet_HeaderEtSidebar`, `HistoriqueSimulationsPage.razor`, `Referentiels.razor`, `MesDonnees.razor`, `FileAgentGate.razor`, `MesPreferencesNotification.razor`, `FileActualisationBadt.razor`, `MesDemandes.razor`, `FileReclamations.razor`, `Collaborateurs.razor`, `GestionGrillesTarifaires.razor`, `ComptesAgentsTests`, `.Enrolement`, `.Arranger`, `DashboardAgent.razor`, `JournalAudit.razor`, `TypesClient.razor`, `FileAvoirExoneration.razor`, `NouvelEnrolement.razor`, `FileIncidentsIT.razor`, `PerformanceAgents.razor`, `SuiviBrancheIes`, `ConsulterFileQuery`, `DecisionAvoirExo`, `SoumettreDemandeExport.razor`, `MesReclamations.razor`, `Rapport d'Implémentation Final — Feature 006 (Customer Complaint)`, `ActionsDocument.razor`?**
-  _High betweenness centrality (0.095) - this node is a cross-community bridge._
-- **Why does `Ticket` connect `Ticket` to `.CreerTicketReclamation`, `AccesRefuseException`, `PlateformeWebApplicationFactory`, `CancellationToken`, `ReglesDepotDocument`, `IDocumentRepository`, `PlateformeDbContext`, `CIT.Plateforme.Application.Securite`, `SoumettreDemandeExportCommand`, `EntreeHistorique`, `IDossierRepository`, `Spécification Fonctionnelle Clarifiée — Feature 010`, `IContexteUtilisateurWeb`, `.ConfigurerServices`, `RelancesAbsenceReponseTests`, `CancellationToken`, `ControleAccesRessourceService`, `Tasks: Feature 009 — Notifications Multicanales & Centre de Notifications In-App`, `ModeleNotification`, `.Construire`, `LotPurgeRetention`, `CancellationToken`, `.CreerContexte`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010`, `AutorisationChampService`, `RendezVous`, `Pec05AffectationDirecteTests`, `BadgeEnrolement`, `.ConstruireAsync`, `Quickstart — Billing Office IMPORT & Unicité BL`, `Task`, `.ChargerParquesAsync`, `.ExecuterAsync`, `Task`, `Dossier`, `.SynchroniserTicketModifie`, `UniteDeTravail`, `.CreerNouveauContexte`, `GestionnaireRetentionService`, `FakeTicketRepository`, `ParametresSla`, `SensEnrolement`, `.Module`, `SocieteCliente`, `.ExecuterAsync`, `StatutTicket`, `.Appliquer`, `.ExecuterAsync`, `Document`, `SurveillerEcheancesUseCase`, `DistribuerNotificationsUseCaseTests`, `.ExecuterAsync`, `SoumettreEnrolementSocieteCommandTests`, `.ListerNiveauxAsync`, `RepondeurDonneesAssistant`, `.Preparer`, `TicketExtensionsBillingImportTests`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT`, `.ValiderAsync`, `4. Spécification Détaillée des Fonctionnalités`, `.Creer`, `TypeObjetEnrolement`, `.BOOK_NORM_01_ABC123_puis_abc123_declare_doublon_insensibilite_casse`, `StatutVisuelDossier`, `.Construire`, `PrendreEnChargeCommand`, `.CreerDemandeAvoirExo`, `Analyse de Séquençage et Roadmap des Features`, `FicheEnrolement.razor`, `ValiderEnrolementCommandTests`, `CablageEtatEngageantTests`, `.EnregistrerAsync`, `Preflight — Feature 007 (Avoir & Exonération)`, `TicketEnrolementTests`, `Revue de fermeture — Feature 003 : Billing Office IMPORT & Unicité BL`, `Data Model — Modèle conceptuel fonctionnel`, `Spécification Fonctionnelle Clarifiée — Feature 007`, `TraitementLigneBadtCommandsTests`, `Requirements *(mandatory)*`, `.ExecuterAsync`, `EnvoiNotification`, `.ConstruireContexte`, `LiaisonTicket`, `2. Constats — Non-conformités confirmées`, `SoumettreEnrolementRequete`, `.ConstruireContexte`, `Preflight — Feature 010 (Continuité Guichet & Rendez-vous)`, `FileDeTraitement`, `.ListerAsync`, `.ExecuterAsync`, `.Attribuer`, `IAutorisationService`, `RendezVousRepository`, `Permission`, `TicketAnonymisationTests`, `.ExecuterAsync`, `.ExecuterAsync`, `RappelerExpirationBadgesCommand`, `.Construire`, `ParametresSlaProvider`, `.ExecuterAsync`, `.Creer`, `DraftInExportTests`, `ConsulterArchivesQueryTests`, `.ExecuterAsync`, `DateOnly`, `.Enrolement`, `UtilisateurSociete`, `.Construire`, `.Publier`, `SuiviBrancheIes`, `.Cree_dossier_ticket_et_une_ligne_par_conteneur_dans_la_file_BADT`, `.ConstruireAsync`, `Feature Specification: Billing Office IMPORT & Unicité BL`, `ConsulterFileQuery`, `ModifierDateEnlevementTests`, `ProformaEtReglementTests`, `DecisionAvoirExo`, `.ExecuterAsync`, `CalendrierOuvre`, `Rapport d'Implémentation Final — Feature 006 (Customer Complaint)`, `PassageEnFileRepository`?**
+- **Why does `PlateformeDbContext` connect `PlateformeDbContext` to `CentreNotifications.razor`, `.AjouterInfrastructure`, `ReferentielsTarifairesRepository`, `DeposerDocumentCommand`, `.PreparerActeursAsync`, `NiveauPriorite`, `TypeClient`, `.Rattacher`, `EntreeHistorique`, `EtatCompteEtAutorisationTests`, `IContexteUtilisateurWeb`, `Ticket`, `ConsulterDossierGuichetQuery`, `CancellationToken`, `.ConstruireAsync`, `IReferentielsTarifairesRepository`, `ITicketRepository`, `.ConstruireContexte`, `ImportateurGrilleTarifaireCsv`, `.ConstruireBase`, `RegleAccesConnexionTests`, `.Construire`, `AjoutRetentionEtGelLegal`, `CloisonnementService`, `.Creer`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010`, `EvenementSocle`, `MotifTransfert`, `RendezVous`, `DevelopmentSeeder`, `LibelleStatutTicket`, `ReglePrioriteAutomatique`, `.ConstruireAsync`, `.Creer`, `.ConstruireContexte`, `xunit`, `PerimetresSupervisionTests`, `HistoriqueDisponibilite`, `SeedRecetteUat`, `.ExecuterAsync`, `Dossier`, `CanalNotification`, `.SynchroniserTicketModifie`, `UniteDeTravail`, `LibellesStatutParametrablesTests`, `TestDbIsolationTests`, `AccesRefuseException`, `.CreerNouveauContexte`, `BrouillonSaisie`, `GestionnaireRetentionService`, `InMemoryEvenementSocleRepository`, `TransitionAutorisee`, `.CompteActif`, `DestinationEnvoi`, `SocieteCliente`, `.PreparerAsync`, `Audit Post-Implémentation Indépendant — Feature 005 (Simulation Proforma)`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 009`, `.ConstruireContexteAvecUnAdmin`, `.Construire`, `SecCert01VerrouillageTests`, `.CreerUtilisateurActifAsync`, `RelancesAbsenceReponseService`, `ProvisionnementParametrageMetier`, `AdministrationCategoriesIncident.razor`, `ProvisionnementAdministrateurInitial`, `ServiceNumerotation`, `Audit final de conformité`, `.ConstruireTicket`, `.ExecuterAsync`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT`, `ApiCloisonnementTests`, `microsoft_extensions_diagnostics_healthchecks`, `Remédiation P0-ter — Contrôle d'accès centralisé`, `InvitationCollaborateur`, `.AgentHabilite_AccedeALaPage_EtVoitEtatVide`, `Rapport de Revue Visuelle et Fonctionnelle Indépendante`, `2. DÉCISIONS D'ARCHITECTURE`, `.Creer`, `.ConstruireAsync`, `DistributionAutomatiqueService`, `.Commandes`, `.Verifier`, `.Une_matrice_deja_parametree_n_est_jamais_reecrite`, `.Desactivation_d_un_utilisateur_non_administrateur_reussit_sans_condition`, `.Construire`, `PublierMessageCommand`, `Tasks: Socle transverse de gestion des tickets et workflows`, `AttenteClientCommand`, `.CompleterAsync`, `ApplicationUser`, `SoumettreDemandeImportRequete`, `CablageEtatEngageantTests`, `ParcoursImpersonationTests`, `.L_annuaire_classe_agents_transporteurs_et_clients_sans_societe`, `FileDeTraitement`, `CablageControleAccesTests`, `SoumettreDemandeImportCommand`, `.Construire`, `ProvisionnementAdministrateurInitialTests`, `Backlog UI/UX résiduel`, `.EnregistrerServices`, `ArticleAideRepository`, `LiaisonTicket`, `REGRESSION AUDIT F012`, `.AdminHabilite_AccedeALaPage`, `.ConstruireContexte`, `.ConstruireContexteAvecDocumentAsync`, `.La_charge_est_bornee_au_perimetre_et_montre_les_absents_avec_charge`, `.AdminHabilite_AccedeALaPage`, `UtilisateurSociete`, `ParcoursConnexion2FaTests`, `.Attribuer`, `SujetAssistantRepository`, `IAutorisationService`, `RendezVousRepository`, `SecCert04SessionTests`, `SurveillanceSlaService`, `.Construire`, `.Construire`, `PassageEnFile`, `Rapport d'Implémentation — Feature 005 : Simulation de Proforma`, `JournalAuditLecture`, `.M`, `.Construire`, `.EnregistrerServices`, `ParametresSlaProvider`, `Revue de fermeture — Feature 003.5 : Consolidation UI/UX (F001-F003) & ACR-01`, `2. Liste Détaillée des 40 Tâches d'Implémentation`, `.Creer`, `BrouillonRepository`, `PieceExigeeEtapeRepository`, `ProvisionnementNotifications`, `.PreparerAsync`, `ParametreTypeClient`, `ProvisionnementIdentiteSocietes`, `.ListerARappelerAsync`, `JourFerie`, `.Definir`, `SimulationProformaRepository`, `ProvisionnementRendezVous`, `.ConstruireAsync`, `.Construire`, `HabilitationUtilisateur`, `.Construire`, `.Publier`, `BrancheIes`, `.ConstruireAsync`, `EntreeJournalAuditVue`, `.ConstruireContexte`, `ConsulterFileQuery`, `DecisionAvoirExo`, `FenetreMaintenance`, `ScannerAntivirusDefender`, `4. `DistribueLeUtc` — les quatre scénarios`, `MODÈLE DE DONNÉES & MATRICE DES RESSOURCES — FEATURE 014`, `ProvisionnementSujetsAssistant`, `LigneActualisationBadtRepository`, `Post-Implementation Audit Indépendant — Feature 011 (Certification Sécurité & Socle NFR)`, `Rapport d'Implémentation Final — Feature 006 (Customer Complaint)`, `.ViderAsync`, `.Construire`, `SurveillerEcheancesCalendrierTests`, `PassageEnFileRepository`?**
+  _High betweenness centrality (0.104) - this node is a cross-community bridge._
+- **Why does `IContexteUtilisateurWeb` connect `IContexteUtilisateurWeb` to `CentreNotifications.razor`, `NouvelleDemandeBadt.razor`, `PlateformeDbContext`, `TypeClient`, `.Rattacher`, `CIT.Plateforme.Web.Resources`, `ConsulterDossierGuichetQuery`, `Plan Technique d'Implémentation — Feature 004 : Billing Office EXPORT`, `ITicketRepository`, `ProfilSociete.razor`, `ImportateurGrilleTarifaireCsv`, `.ConstruireBase`, `CloisonnementService`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010`, `MonProfil.razor`, `ComptesAgents.razor`, `Tasks: Consolidation UI/UX des Features 001 à 003`, `Archives.razor`, `PerimetresSupervisionTests`, `ReportingActualisationBadt.razor`, `MesDemandesAvoirExo.razor`, `UniteDeTravail`, `FicheEnrolement.razor`, `AccesRefuseException`, `FicheActualisationBadt.razor`, `AdministrationNotifications.razor`, `MesIncidents.razor`, `PiecesExigeesEtape.razor`, `NouvelleReclamation.razor`, `ContexteUtilisateurVue`, `AdministrationAide.razor`, `TableauDeBord.razor`, `FicheTicket.razor`, `SimulationProformaPage.razor`, `MesRendezVous.razor`, `CIT.Plateforme.Web.Services`, `FileIes.razor`, `AgendaGuichet.razor`, `LibellesStatut.razor`, `AdministrationCategoriesIncident.razor`, `MainLayout.razor`, `Preflight — Feature 011 : Certification Sécurité & Socle Non-Fonctionnel`, `.ConstruireTicket`, `AdministrationReferentielsConteneur.razor`, `EtapesBloquantesAnnulation.razor`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT`, `ApiCloisonnementTests`, `FileComptabiliteExport.razor`, `ValiderDemandes.razor`, `FileFacturation.razor`, `.AgentHabilite_AccedeALaPage_EtVoitEtatVide`, `Rapport de Revue Visuelle et Fonctionnelle Indépendante`, `.Creer`, `ComptesUtilisateurs.razor`, `FilePiloteManifeste.razor`, `Documents.razor`, `EnrolementsAValider.razor`, `CompetencesOperateur.razor`, `NavMenu.razor`, `FileFacturationExport.razor`, `ModifierTypeClient.razor`, `ParametresSla.razor`, `PerimetresSupervision.razor`, `AttenteClientCommand`, `CIT.Plateforme.Web.Components.Shared`, `ValidationPaiement.razor`, `RechercheGuichet.razor`, `StrategieFile.razor`, `ReglesPrioriteAutomatique.razor`, `FileControleDocumentaireExport.razor`, `Impersonation.razor`, `ConsulterTicketCloture.razor`, `NouvelleDemandeAvoirExo.razor`, `FileIesExport.razor`, `Revue de Fermeture Finale — Feature 004 : Billing Office EXPORT`, `PiecesExigeesCompte.razor`, `FileBackOfficeExport.razor`, `FileValidationPaiementExport.razor`, `EnrolementSociete.razor`, `DetailSimulationPage.razor`, `.EnregistrerServices`, `LiaisonTicket`, `.AdminHabilite_AccedeALaPage`, `Contrats Applicatifs (Use Cases) — Feature 006`, `.AdminHabilite_AccedeALaPage`, `FicheDossier.razor`, `MotifsTransfert.razor`, `Disponibilite.razor`, `MesEnrolements.razor`, `.Attribuer`, `AssistantChat.razor`, `AdministrationCategories.razor`, `AdministrationAssistant.razor`, `CentreAide.razor`, `BillingImport/SoumettreDemande.razor`, `ReglesEscalade.razor`, `ChampsFormulaireEnrolement.razor`, `MatriceTransitions.razor`, `Priorites.razor`, `FicheAvoirExoneration.razor`, `RetraitEnrolementSociete.razor`, `Notification`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT : FEATURE 003.5 — CONSOLIDATION UI/UX (F001-F003)`, `Rapport d'Implémentation — Feature 005 : Simulation de Proforma`, `JoursFeries.razor`, `.EnregistrerServices`, `FileComptabiliteClient.razor`, `Revue de fermeture — Feature 003.5 : Consolidation UI/UX (F001-F003) & ACR-01`, `HeaderBar.razor`, `DashboardClient.razor`, `Implementation Plan: Consolidation UI/UX des Features 001 à 003`, `.PreparerAsync`, `.MainLayout_RenduComplet_HeaderEtSidebar`, `HistoriqueSimulationsPage.razor`, `Referentiels.razor`, `MesDonnees.razor`, `FileAgentGate.razor`, `MesPreferencesNotification.razor`, `MesDemandes.razor`, `FileReclamations.razor`, `Collaborateurs.razor`, `GestionGrillesTarifaires.razor`, `.Enrolement`, `DashboardAgent.razor`, `JournalAudit.razor`, `TypesClient.razor`, `FileAvoirExoneration.razor`, `NouvelEnrolement.razor`, `FileIncidentsIT.razor`, `PerformanceAgents.razor`, `BrancheIes`, `ConsulterFileQuery`, `PrendreRendezVous.razor`, `DecisionAvoirExo`, `SoumettreDemandeExport.razor`, `MesReclamations.razor`, `Rapport d'Implémentation Final — Feature 006 (Customer Complaint)`, `ActionsDocument.razor`?**
+  _High betweenness centrality (0.094) - this node is a cross-community bridge._
+- **Why does `Ticket` connect `Ticket` to `.CreerTicketReclamation`, `.ConsignerAuditAsync`, `CancellationToken`, `DeposerDocumentCommand`, `NiveauPriorite`, `LotPurgeRetention`, `PlateformeDbContext`, `CIT.Plateforme.Application.Securite`, `TypeClient`, `.Rattacher`, `EntreeHistorique`, `EtatCompteEtAutorisationTests`, `ConsulterDossierGuichetQuery`, `RelancesAbsenceReponseTests`, `CancellationToken`, `ITicketRepository`, `ModeleNotification`, `.Construire`, `AjoutRetentionEtGelLegal`, `CancellationToken`, `.ExigerConsultationTicketAsync`, `.Creer`, `AUDIT POST-IMPLÉMENTATION INDÉPENDANT — FEATURE 010`, `EvenementSocle`, `RendezVous`, `Pec05AffectationDirecteTests`, `BadgeEnrolement`, `.ConstruireAsync`, `Task`, `.ConstruireContexte`, `.ChargerParquesAsync`, `.Agent_sans_permission_est_refuse`, `Task`, `Dossier`, `.SynchroniserTicketModifie`, `UniteDeTravail`, `GestionnaireRetentionService`, `FakeTicketRepository`, `ParametresSla`, `SensEnrolement`, `1. Principe de Persistance`, `Remédiation post-audit final`, `SocieteCliente`, `.ExecuterAsync`, `SoumettreDemandeAvoirExoRequete`, `EtatProforma`, `StatutTicket`, `.Appliquer`, `.ExecuterAsync`, `Document`, `.TraiterTicketAsync`, `DistribuerNotificationsUseCaseTests`, `.ExecuterAsync`, `.ExecuterAsync`, `.ListerNiveauxAsync`, `RepondeurDonneesAssistant`, `.ConstruireTicket`, `TicketExtensionsBillingImportTests`, `Rapport d'Audit Post-Implémentation Indépendant — Feature 004 : Billing Office EXPORT`, `.ValiderAsync`, `.EmettreAsync`, `.Creer`, `StatutVisuelDossier`, `.Construire`, `PublierMessageCommand`, `.CreerDemandeAvoirExo`, `Analyse de Séquençage et Roadmap des Features`, `AttenteClientCommand`, `CablageEtatEngageantTests`, `FileDeTraitement`, `Preflight — Feature 007 (Avoir & Exonération)`, `TicketEnrolementTests`, `SoumettreDemandeImportCommand`, `Data Model — Modèle conceptuel fonctionnel`, `TraitementLigneBadtCommandsTests`, `Requirements *(mandatory)*`, `.ExecuterAsync`, `RelancesAbsenceReponseUseCaseTests`, `LiaisonTicket`, `2. Constats — Non-conformités confirmées`, `SoumettreEnrolementRequete`, `Contrats Applicatifs (Use Cases) — Feature 006`, `Preflight — Feature 010 (Continuité Guichet & Rendez-vous)`, `.Objet_ou_motif_vide_leve_ArgumentException`, `.Un_agent_Support_IT_N1_ou_N2_prend_en_charge_un_incident`, `IncidentTraitementCommandTests`, `.Attribuer`, `RegleDiffusion`, `IAutorisationService`, `RendezVousRepository`, `TicketAnonymisationTests`, `.ExecuterAsync`, `.ExecuterAsync`, `RappelerExpirationBadgesCommand`, `.Construire`, `ParametresSlaProvider`, `.ExecuterAsync`, `DateOnly`, `.Creer`, `DraftInExportTests`, `ConsulterArchivesQueryTests`, `.ExecuterAsync`, `TypeObjetEnrolement`, `.Enrolement`, `HabilitationUtilisateur`, `.Construire`, `.Publier`, `BrancheIes`, `CreerDemandeActualisationBadtRequete`, `.ConstruireAsync`, `AutorisationChampService`, `.ConstruireContexte`, `ConsulterFileQuery`, `ModifierDateEnlevementTests`, `DecisionAvoirExo`, `.ExecuterAsync`, `Rapport d'Implémentation Final — Feature 006 (Customer Complaint)`?**
   _High betweenness centrality (0.054) - this node is a cross-community bridge._
 - **Are the 72 inferred relationships involving `PlateformeDbContext` (e.g. with `1. Rapport d'écart — stack & architecture` and `3. Architecture réellement trouvée`) actually correct?**
   _`PlateformeDbContext` has 72 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 99 inferred relationships involving `Ticket` (e.g. with `9. Risques d'Architecture et Extensions Anticipées` and `5. Dépendances existantes (F001, F002, F003/F004, F003.5, F006)`) actually correct?**
   _`Ticket` has 99 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `URL_BASE`, `PARCOURS`, `comptes` to the rest of the system?**
-  _6941 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _6942 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `CIT.Plateforme.Application.Tarification` be split into smaller, more focused modules?**
-  _Cohesion score 0.07811447811447811 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10359408033826638 - nodes in this community are weakly interconnected._

@@ -6642,9 +6642,9 @@
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/CIT.Plateforme.Web.Tests.csproj": {
-    "mtime": 1790772595.8200204,
-    "seen": 1791300950.683647,
-    "ast_hash": "8bb55ba99d3ab3fe00b786d237d46d40",
+    "mtime": 1792930869.7167287,
+    "seen": 1792931031.125244,
+    "ast_hash": "16d5c2c04c74d62a0bbde968f8052296",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Components/FilArianeTests.cs": {
@@ -10566,9 +10566,9 @@
     "semantic_hash": ""
   },
   "docs/revue-securite-2026-10-22.md": {
-    "mtime": 1792930697.3193169,
-    "seen": 1792930788.3282197,
-    "ast_hash": "83d2e1d3fc3fe782090fef53ec109639",
+    "mtime": 1792930938.5182865,
+    "seen": 1792931031.2011905,
+    "ast_hash": "c4a6a579340127853347709cdcb89fa0",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Securite/LimitationDebitAuthTests.cs": {
