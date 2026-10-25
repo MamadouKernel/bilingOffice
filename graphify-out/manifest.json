@@ -10392,15 +10392,15 @@
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Application/ActualisationBadt/TraitementBadtQueries.cs": {
-    "mtime": 1792168718.6897273,
-    "seen": 1792169056.8226552,
-    "ast_hash": "1a46d1f9fb25ffc8fa166918c1f4386a",
+    "mtime": 1792930042.6956165,
+    "seen": 1792930430.0397172,
+    "ast_hash": "34baaac82732ac8854734c13aca82030",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FicheActualisationBadt.razor": {
-    "mtime": 1792169964.020614,
-    "seen": 1792170102.0796695,
-    "ast_hash": "2bdec2238df9f338b0eeda4ca1c2de83",
+    "mtime": 1792930122.1392431,
+    "seen": 1792930430.1802945,
+    "ast_hash": "c7f0c9d5b4fc5d8042ef10c4caf65c5b",
     "semantic_hash": ""
   },
   "src/CIT.Plateforme.Web/Components/Pages/ActualisationBadt/FileActualisationBadt.razor": {
@@ -10566,15 +10566,21 @@
     "semantic_hash": ""
   },
   "docs/revue-securite-2026-10-22.md": {
-    "mtime": 1792647682.3707526,
-    "seen": 1792648010.3531947,
-    "ast_hash": "87206f00ece0f50335efefbcb8ec4a30",
+    "mtime": 1792929762.1421692,
+    "seen": 1792930430.3819866,
+    "ast_hash": "ac030e79b9b35cf3fd519e2742678538",
     "semantic_hash": ""
   },
   "tests/CIT.Plateforme.Web.Tests/Securite/LimitationDebitAuthTests.cs": {
     "mtime": 1792648933.8174026,
     "seen": 1792649153.6011605,
     "ast_hash": "6942c8e1645596afab556a29ef66d639",
+    "semantic_hash": ""
+  },
+  "tests/CIT.Plateforme.Application.Tests/ActualisationBadt/ObtenirFicheBadtGatingTests.cs": {
+    "mtime": 1792930294.2323768,
+    "seen": 1792930430.224003,
+    "ast_hash": "9f939379ffb13cb07b3a1c72ae0b260a",
     "semantic_hash": ""
   }
 }

@@ -94,6 +94,9 @@ public sealed record FicheBadtDto(
     DateTime DateCreationUtc,
     bool PeutQualifier,
     bool PeutDecider,
+    bool PeutPrendreEnCharge,
+    Guid? OperateurAssigneId,
+    string? OperateurAssigneNom,
     IReadOnlyList<LigneBadtDto> Lignes,
     IReadOnlyList<MessageItemVue> Messages,
     IReadOnlyList<JournalDecisionBadtDto> JournalDecisions);
@@ -129,7 +132,14 @@ public sealed class ObtenirFicheBadtQuery(
         var dossier = await dossiers.ObtenirParIdAsync(ticket.DossierId, ct).ConfigureAwait(false);
         var societe = dossier is not null ? await societes.ObtenirParIdAsync(dossier.ClientId, ct).ConfigureAwait(false) : null;
 
-        var peutQualifier = await autorisation.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        // FEATURE 010 — prise en charge explicite, comme la fiche ticket générique : un agent ne
+        // qualifie qu'un ticket qu'il s'est affecté (EnCours + assigné à lui). Tant qu'il n'est pris
+        // par personne, seul le bouton « Prendre en charge » est offert. Le Décideur, lui, est
+        // l'autorité d'escalade : il décide sur habilitation, sans posséder le ticket.
+        var instruitPerm = await autorisation.EstAutoriseAsync(agentId, Permission.ActualisationBadtInstruire, ticket.FileCouranteId, ct).ConfigureAwait(false);
+        var tenuParMoi = ticket.OperateurAssigneId == agentId;
+        var peutQualifier = instruitPerm && tenuParMoi && ticket.Statut == StatutTicket.EnCours;
+        var peutPrendreEnCharge = instruitPerm && ticket.Statut == StatutTicket.EnAttenteDePriseEnCharge;
         var peutDecider = await autorisation.EstAutoriseAsync(agentId, Permission.ActualisationBadtDecider, null, ct).ConfigureAwait(false);
 
         var lignesDto = (await lignes.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false))
@@ -141,7 +151,17 @@ public sealed class ObtenirFicheBadtQuery(
         // Fiche agent (Support Client / Décideur) : le fil complet, notes internes comprises. Le
         // client voit le même ticket via la fiche générique /tickets/{id} (messages visibles client).
         var msgs = await messages.ListerParTicketAsync(ticket.Id, ct).ConfigureAwait(false);
-        var auteurs = await utilisateursInfo.ObtenirInfosAsync(msgs.Select(m => m.AuteurId).Distinct(), ct).ConfigureAwait(false);
+        // L'opérateur assigné est résolu dans le même appel que les auteurs des messages (son nom
+        // s'affiche en tête de fiche, comme sur la fiche ticket générique).
+        var idsInfos = msgs.Select(m => m.AuteurId);
+        if (ticket.OperateurAssigneId is { } assigneId)
+        {
+            idsInfos = idsInfos.Append(assigneId);
+        }
+        var auteurs = await utilisateursInfo.ObtenirInfosAsync(idsInfos.Distinct(), ct).ConfigureAwait(false);
+        var operateurAssigneNom = ticket.OperateurAssigneId is { } aid && auteurs.TryGetValue(aid, out var infoAssigne)
+            ? (infoAssigne.NomAffiche ?? infoAssigne.Email)
+            : null;
         var messagesDto = msgs
             .OrderBy(m => m.HorodatageUtc)
             .Select(m => new MessageItemVue(
@@ -165,6 +185,8 @@ public sealed class ObtenirFicheBadtQuery(
             societe?.InformationsDeclarees ?? "Client",
             ticket.Objet ?? string.Empty, ticket.Description ?? string.Empty,
             ticket.Statut, ticket.DateCreationUtc,
-            peutQualifier, peutDecider, lignesDto, messagesDto, journalDto);
+            peutQualifier, peutDecider, peutPrendreEnCharge,
+            ticket.OperateurAssigneId, operateurAssigneNom,
+            lignesDto, messagesDto, journalDto);
     }
 }

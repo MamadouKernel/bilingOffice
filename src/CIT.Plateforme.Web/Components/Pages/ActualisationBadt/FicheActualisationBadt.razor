@@ -21,6 +21,7 @@
 @inject GenererFichierNavisBadtCommand GenererNavis
 @inject RemettreEnFileBadtCommand RemettreEnFile
 @inject CloturerTicketBadtCommand CloturerTicket
+@inject CIT.Plateforme.Application.Tickets.PrendreEnChargeCommand PrendreEnCharge
 @inject IJSRuntime Js
 @inject NavigationManager Navigation
 
@@ -56,7 +57,17 @@ else
             <div>
                 <div class="small text-muted">@Loc["BadtFiche.File"] <span class="font-monospace">@_fiche.NumeroDossier</span></div>
                 <StatutBadge Statut="@_fiche.Statut" />
+                <div class="small mt-2">
+                    <span class="text-muted">@Loc["Ticket.AssignedOperator"]</span>
+                    <span class="fw-semibold text-primary">@(_fiche.OperateurAssigneNom ?? Loc["Ticket.Unassigned"].Value)</span>
+                </div>
             </div>
+            @if (_fiche.PeutPrendreEnCharge)
+            {
+                <button type="button" class="btn btn-primary btn-sm" disabled="@_busy" @onclick="PrendreEnChargeAsync">
+                    @Loc["Ticket.TakeCharge"]
+                </button>
+            }
         </div>
         <h6 class="fw-semibold mt-2">@Loc["BadtFiche.ClientStory"]</h6>
         <p class="mb-0" style="white-space: pre-wrap;">@_fiche.Description</p>
@@ -426,6 +437,12 @@ else
             _ajoutConteneurs.Clear();
         });
     }
+
+    // Prise en charge explicite (FEATURE 010) : l'agent s'affecte le ticket avant de pouvoir
+    // qualifier, comme sur la fiche ticket générique. Réutilise la commande partagée (qui gère déjà
+    // le module BADT) et le rechargement d'ExecuterAsync met à jour les actions disponibles.
+    private async Task PrendreEnChargeAsync() =>
+        await ExecuterAsync(contexte => PrendreEnCharge.ExecuterAsync(contexte.UtilisateurId, TicketId));
 
     protected override async Task OnInitializedAsync() => await ChargerAsync();
 
