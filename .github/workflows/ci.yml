@@ -10,13 +10,23 @@ on:
 
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    # Runner Windows : les tests d'integration reels (concurrence optimiste, numerotation,
+    # E2E Web) s'appuient sur SQL Server LocalDB (BaseDeTestSql / PlateformeWebApplicationFactory),
+    # disponible uniquement sous Windows. Tranche le point ouvert T111 cote CI.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Demarrer SQL Server LocalDB
+        shell: pwsh
+        run: |
+          sqllocaldb create MSSQLLocalDB 2>$null
+          sqllocaldb start MSSQLLocalDB
+          sqllocaldb info MSSQLLocalDB
 
       - name: Restore
         run: dotnet restore CIT.Plateforme.slnx
