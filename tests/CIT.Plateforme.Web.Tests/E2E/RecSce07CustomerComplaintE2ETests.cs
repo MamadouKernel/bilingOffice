@@ -157,7 +157,7 @@ public sealed class RecSce07CustomerComplaintE2ETests : BunitContext, IClassFixt
         // Base SQL Server réelle (LocalDB) : le chargement initial est asynchrone et non instantané,
         // contrairement aux tests bUnit InMemory — attendre explicitement la fin du rendu.
         cutFiche.WaitForState(() => cutFiche.Markup.Contains("Rédigez votre message"), TimeSpan.FromSeconds(25));
-        cutFiche.Find("input[placeholder='Rédigez votre message ou complément...']").Change("Il s'agit de la facture FCT-2026-042.");
+        cutFiche.Find("input[placeholder='Rédigez votre message ou complément...']").Input("Il s'agit de la facture FCT-2026-042.");
         cutFiche.Find("button.btn-primary").Click();
         cutFiche.WaitForState(() => cutFiche.Markup.Contains("FCT-2026-042"), TimeSpan.FromSeconds(25));
 

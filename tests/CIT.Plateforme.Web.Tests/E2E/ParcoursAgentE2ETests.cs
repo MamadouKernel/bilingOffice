@@ -108,6 +108,7 @@ public sealed class ParcoursAgentE2ETests : BunitContext
         Services.AddSingleton(rejeterCmd);
         Services.AddSingleton(complementCmd);
         Services.AddSingleton(consulterFileQuery);
+        Services.AddSingleton(new CIT.Plateforme.Application.Tickets.PrendreEnChargeEtapeBillingCommand(ticketRepo, autorisation, journalisation, horloge, uow));
 
         // 1. Dashboard Agent
         var cutDashboard = Render<DashboardAgent>();

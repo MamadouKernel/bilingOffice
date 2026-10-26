@@ -121,7 +121,7 @@ public sealed class MessagerieFicheTicketNonRegressionTests : BunitContext
         var (db, _, _, msgRepo, _, _, ticket) = ConstruireTicket("BillingImport", "TCK-NR-IMPORT-01");
 
         var cut = RenderFicheAvecServices(db, ticket.Id);
-        cut.Find("input[placeholder='Rédigez votre message ou complément...']").Change("Voici mon BL corrigé.");
+        cut.Find("input[placeholder='Rédigez votre message ou complément...']").Input("Voici mon BL corrigé.");
         cut.Find("button.btn-primary").Click();
 
         var messages = await msgRepo.ListerParTicketAsync(ticket.Id);
@@ -134,7 +134,7 @@ public sealed class MessagerieFicheTicketNonRegressionTests : BunitContext
         var (db, _, _, msgRepo, _, _, ticket) = ConstruireTicket("BillingExport", "TCK-NR-EXPORT-01");
 
         var cut = RenderFicheAvecServices(db, ticket.Id);
-        cut.Find("input[placeholder='Rédigez votre message ou complément...']").Change("Voici mon booking corrigé.");
+        cut.Find("input[placeholder='Rédigez votre message ou complément...']").Input("Voici mon booking corrigé.");
         cut.Find("button.btn-primary").Click();
 
         var messages = await msgRepo.ListerParTicketAsync(ticket.Id);

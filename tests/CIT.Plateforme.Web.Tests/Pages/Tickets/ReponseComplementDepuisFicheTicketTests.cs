@@ -135,7 +135,7 @@ public sealed class ReponseComplementDepuisFicheTicketTests : BunitContext
         var cut = Render<FicheTicket>(p => p.Add(x => x.Id, ticket.Id));
 
         var champMessage = cut.Find("input[placeholder='Rédigez votre message ou complément...']");
-        champMessage.Change("Voici le numéro de facture contesté : FCT-2026-042.");
+        champMessage.Input("Voici le numéro de facture contesté : FCT-2026-042.");
 
         var boutonEnvoyer = cut.Find("button.btn-primary");
         Assert.Contains("Envoyer", boutonEnvoyer.TextContent);
