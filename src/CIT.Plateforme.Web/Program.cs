@@ -103,6 +103,16 @@ builder.Services.AddRateLimiter(options =>
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
         var chemin = httpContext.Request.Path;
+        // Drapeau réservé aux tests d'intégration (verrouillage de compte SEC-01) : lu ici, au moment
+        // de la requête, sur la configuration pleinement fusionnée — la surcharge in-memory d'une
+        // fabrique de test n'atteint pas les valeurs lues au tout début de Program. Jamais positionné
+        // en production ni dans un appsettings versionné.
+        if (httpContext.RequestServices.GetRequiredService<IConfiguration>()
+                .GetValue("LimitationDebit:Desactivee", false))
+        {
+            return RateLimitPartition.GetNoLimiter("test");
+        }
+
         if (chemin.StartsWithSegments("/_blazor") || chemin.StartsWithSegments("/_framework")
             || chemin.StartsWithSegments("/_content") || chemin.StartsWithSegments("/css")
             || chemin.StartsWithSegments("/js") || chemin.StartsWithSegments("/lib")

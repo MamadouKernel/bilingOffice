@@ -155,7 +155,7 @@ public sealed class LigneActualisationBadt
         if (Cause != CauseExpirationBadt.Terminale)
         {
             throw new InvalidOperationException(
-                "Seul un conteneur dont la cause est qualifiée « terminale » peut être actualisé.");
+                "Seul un conteneur dont la cause est imputable au terminal peut être actualisé.");
         }
 
         if (nombreJours <= 0)

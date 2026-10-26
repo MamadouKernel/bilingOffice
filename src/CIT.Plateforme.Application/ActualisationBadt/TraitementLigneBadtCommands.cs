@@ -139,7 +139,7 @@ public sealed class RejeterLigneBadtCommand(
 
         if (ligne.Cause != CauseExpirationBadt.NonTerminale)
         {
-            throw new InvalidOperationException("Seule une ligne à cause non terminale peut être rejetée par l'agent ; une cause terminale relève du Décideur.");
+            throw new InvalidOperationException("Seule une ligne à cause non imputable au terminal peut être rejetée par l'agent ; une cause imputable au terminal relève du Décideur.");
         }
 
         ligne.Refuser(motif);

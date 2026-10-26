@@ -36,6 +36,10 @@ public sealed class PlateformeWebApplicationFactory : WebApplicationFactory<Prog
                 // Les tests simulent des utilisateurs connectés sans application TOTP : l'obligation
                 // de 2FA (activée par défaut en exécution réelle) est coupée pour eux seulement.
                 new KeyValuePair<string, string?>("Securite:DoubleAuthentificationObligatoire", "false"),
+                // Les tests exercent le verrouillage de compte SEC-01 par POST répétés et une
+                // connexion valide : la limite de débit par IP (production) renverrait 429 avant le
+                // 5e essai. Neutralisée pour les tests uniquement (voir Program.cs).
+                new KeyValuePair<string, string?>("LimitationDebit:Desactivee", "true"),
             ]);
         });
 
