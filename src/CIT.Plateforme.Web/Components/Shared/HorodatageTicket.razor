@@ -1,0 +1,116 @@
+@using CIT.Plateforme.Application.Tickets
+
+@* TPS-01 / TPS-05 — horodatage du ticket : temps total, décomposition par étape (attente vs
+   traitement), étape goulot, et porteurs (qui a tenu le ticket, combien de minutes). Import, export,
+   tous modules. Libellés en français canonique (repris par le chantier i18n). *@
+
+<div class="horodatage-ticket">
+    @if (Horodatage is null || Horodatage.Etapes.Count == 0)
+    {
+        <div class="text-muted small py-4 text-center">Aucun passage en file enregistré pour ce ticket.</div>
+    }
+    else
+    {
+        <div class="row g-2 mb-3">
+            <div class="col">
+                <div class="cit-card p-3 h-100">
+                    <div class="text-muted u-fs-2xs text-uppercase">Temps total</div>
+                    <div class="fw-bold fs-5">@Duree(Horodatage.TempsTotal)@(Horodatage.EnCours ? " (en cours)" : "")</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="cit-card p-3 h-100">
+                    <div class="text-muted u-fs-2xs text-uppercase">Dont attente</div>
+                    <div class="fw-semibold">@Duree(Horodatage.TempsAttenteTotal)</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="cit-card p-3 h-100">
+                    <div class="text-muted u-fs-2xs text-uppercase">Dont traitement</div>
+                    <div class="fw-semibold">@Duree(Horodatage.TempsTraitementTotal)</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="cit-card p-3 h-100">
+                    <div class="text-muted u-fs-2xs text-uppercase">Étape goulot</div>
+                    <div class="fw-semibold">@(string.IsNullOrEmpty(Horodatage.EtapeGoulot) ? "—" : Horodatage.EtapeGoulot)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Étape</th>
+                        <th class="text-end">Attente</th>
+                        <th class="text-end">Traitement</th>
+                        <th class="text-end">Total</th>
+                        <th>Porteurs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Horodatage.Etapes)
+                    {
+                        <tr class="@(e.EstGoulot ? "table-warning" : null)">
+                            <td>
+                                <span class="fw-semibold">@e.Etape</span>
+                                @if (!string.IsNullOrWhiteSpace(e.Module))
+                                {
+                                    <span class="badge bg-light text-muted border ms-1 u-fs-2xs">@e.Module</span>
+                                }
+                                @if (e.NombrePassages > 1)
+                                {
+                                    <span class="badge bg-info-subtle text-info-emphasis ms-1 u-fs-2xs">@e.NombrePassages passages</span>
+                                }
+                                @if (e.EnCours)
+                                {
+                                    <span class="badge bg-primary-subtle text-primary-emphasis ms-1 u-fs-2xs">en cours</span>
+                                }
+                                @if (e.EstGoulot)
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis ms-1 u-fs-2xs">goulot</span>
+                                }
+                            </td>
+                            <td class="text-end font-monospace u-fs-xs">@Duree(e.TempsAttente)</td>
+                            <td class="text-end font-monospace u-fs-xs">@Duree(e.TempsTraitement)</td>
+                            <td class="text-end font-monospace u-fs-xs fw-semibold">@Duree(e.Total)</td>
+                            <td class="small">
+                                @if (e.Porteurs.Count == 0)
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                                else
+                                {
+                                    @foreach (var p in e.Porteurs)
+                                    {
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <span class="text-dark">@(string.IsNullOrWhiteSpace(p.Nom) ? "(opérateur)" : p.Nom)</span>
+                                            <span class="text-muted font-monospace u-fs-2xs">@Duree(p.TempsTraitement)</span>
+                                        </div>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public HorodatageTicketVue? Horodatage { get; set; }
+
+    /// <summary>Durée lisible : « 2 h 05 min », « 45 min », « &lt; 1 min ».</summary>
+    private static string Duree(TimeSpan d)
+    {
+        if (d <= TimeSpan.Zero) return "0 min";
+        var heures = (int)d.TotalHours;
+        var minutes = d.Minutes;
+        if (heures > 0) return $"{heures} h {minutes:00} min";
+        if (d.TotalMinutes < 1) return "< 1 min";
+        return $"{minutes} min";
+    }
+}

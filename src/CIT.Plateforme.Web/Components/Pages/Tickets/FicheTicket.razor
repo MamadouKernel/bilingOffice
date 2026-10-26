@@ -15,6 +15,7 @@
 @inject IStringLocalizer<SharedResources> Loc
 @inject IContexteUtilisateurWeb ContexteService
 @inject ObtenirFicheTicketQuery FicheTicketQuery
+@inject RapportHorodatageTicketQuery HorodatageQuery
 @inject PrendreEnChargeCommand PrendreEnCharge
 @inject AttenteClientCommand AttenteClient
 @inject PublierMessageCommand PublierMessage
@@ -437,6 +438,14 @@
                                 @Loc["Ticket.TabHistory"] (@_fiche.Chronologie.Count)
                             </button>
                         </li>
+                        @if (!_estClient)
+                        {
+                            <li class="nav-item">
+                                <button type="button" class="nav-link @(_ongletActif == "horodatage" ? "active fw-bold" : "")" @onclick="@(() => _ongletActif = "horodatage")">
+                                    Horodatage
+                                </button>
+                            </li>
+                        }
                     </ul>
 
                     <div class="p-3">
@@ -547,6 +556,10 @@
                         {
                             <ChronologieTicket Evenements="@_fiche.Chronologie" />
                         }
+                        else if (_ongletActif == "horodatage" && !_estClient)
+                        {
+                            <HorodatageTicket Horodatage="@_horodatage" />
+                        }
                     </div>
                 </div>
             </div>
@@ -566,6 +579,7 @@
     private string? _erreur;
     private string? _actionFeedback;
     private FicheTicketVue? _fiche;
+    private HorodatageTicketVue? _horodatage;
     private Guid _utilisateurId;
     private bool _estClient;
 
@@ -654,6 +668,9 @@
             _utilisateurId = contexte.UtilisateurId;
             _estClient = contexte.Nature == NatureUtilisateur.Client;
             _fiche = await FicheTicketQuery.ExecuterAsync(_utilisateurId, Id);
+
+            // Horodatage (TPS-01/TPS-05) : vue de pilotage réservée aux agents/superviseurs.
+            _horodatage = _estClient ? null : await HorodatageQuery.ExecuterAsync(_utilisateurId, Id);
         }
         catch (AccesRefuseException ex)
         {

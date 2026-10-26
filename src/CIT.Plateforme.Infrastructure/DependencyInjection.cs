@@ -401,6 +401,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Agent.ObtenirDashboardAgentQuery>();
         services.AddScoped<Application.Societe.ObtenirDashboardSocieteQuery>();
         services.AddScoped<Application.Tickets.ObtenirFicheTicketQuery>();
+        services.AddScoped<Application.Tickets.RapportHorodatageTicketQuery>();
         services.AddScoped<Application.Dossiers.ObtenirFicheDossierQuery>();
 
         // FEATURE 003 — REMÉDIATION AUDIT (post-implementation-audit.md §8.3) : consultation
